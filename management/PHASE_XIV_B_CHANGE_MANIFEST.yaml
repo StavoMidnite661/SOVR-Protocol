@@ -1,0 +1,80 @@
+phase: XIV-B
+
+title:
+  Compiler Authority Promotion
+
+objective:
+  - remove duplicate runtime authority
+  - eliminate manual protocol implementation
+  - establish generated artifacts as execution authority
+
+principles:
+  - YAML is constitutional authority
+  - compiler is realization authority
+  - runtime executes generated artifacts
+  - certifications prove deterministic realization
+
+changes:
+  - file:
+      before: packages/vault/src/index.ts
+      after: packages/vault/src/index.ts
+      reason: Remove inline VAULT_STATE_MACHINE and switch(command.type); replace with generated state machine and CommandExecutor
+      authority_source: 05_state-machines.yaml, 03_command-catalog.yaml
+  - file:
+      before: packages/runtime/generated/
+      after: packages/runtime/generated/
+      reason: Add generated vault state machine and command catalog
+      authority_source: compiler pipeline
+  - file:
+      before: packages/runtime/CommandExecutor.ts
+      after: packages/runtime/CommandExecutor.ts
+      reason: New generated command execution authority
+      authority_source: compiler pipeline
+  - file:
+      before: scripts/protocol_compile.ts
+      after: scripts/protocol_compile.ts
+      reason: Compiler pipeline entry point
+      authority_source: compiler.yaml
+  - file:
+      before: packages/compiler/integrity/ArtifactHasher.ts
+      after: packages/compiler/integrity/ArtifactHasher.ts
+      reason: Deterministic artifact integrity verification
+      authority_source: compiler.yaml
+  - file:
+      before: generated/protocol-manifest.yaml
+      after: generated/protocol-manifest.yaml
+      reason: Complete protocol manifest with domain hashes
+      authority_source: 00_protocol-manifest.yaml
+  - file:
+      before: domains/treasury.yaml
+      after: domains/treasury.yaml
+      reason: Complete domain specification for compiler
+      authority_source: constitutional YAML
+  - file:
+      before: domains/payment.yaml
+      after: domains/payment.yaml
+      reason: Complete domain specification for compiler
+      authority_source: constitutional YAML
+  - file:
+      before: domains/agent.yaml
+      after: domains/agent.yaml
+      reason: Complete domain specification for compiler
+      authority_source: constitutional YAML
+
+validation:
+  required_tests:
+    - packages/vault/tests/compiler-authority.test.ts
+    - tests/compiler/replay-determinism.test.ts
+    - npm test
+    - npm run protocol:validate
+    - npm run protocol:compile
+  required_certifications:
+    - certification/VAULT_COMPILER_AUTHORITY_CERTIFICATION.yaml
+    - certification/COMPILER_ARTIFACT_INTEGRITY_CERTIFICATION.yaml
+    - certification/DOMAIN_COMPILER_COMPLETENESS.yaml
+    - certification/REPLAY_DETERMINISM_PHASE_XIV_B.yaml
+    - certification/COMPILER_AUTHORITY_AUDIT.yaml
+    - certification/PHASE_XIV_B_COMPLETION_REPORT.yaml
+
+rollback:
+  strategy: Restore from git HEAD; generated artifacts can be regenerated from YAML

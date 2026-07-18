@@ -1,0 +1,67 @@
+phase:
+  id: PHASE_XIII
+  name: Constitutional Runtime Realization
+
+objective:
+  eliminate_runtime_spec_drift: true
+  compiler_authority: true
+  zero_hardcoded_governance: true
+  yaml_single_source_of_truth: true
+
+changes:
+  - id: DEV-001
+    file: packages/vault/src/index.ts
+    current_behavior: VaultAggregate contains hardcoded switch(state) and inline state machine definition
+    constitutional_source: 05_state-machines.yaml vault_funding_lifecycle
+    required_runtime_behavior: VaultAggregate consumes GeneratedStateMachine from compiler output
+    migration_strategy: Replace inline VAULT_STATE_MACHINE constant with import from generated/state-machines/vault.ts; remove switch-based state guards
+
+  - id: DEV-002
+    file: packages/vault/src/index.ts
+    current_behavior: protocolVersion:'1.1.0' hardcoded in every Vault event metadata
+    constitutional_source: 01_constitution.yaml system.version
+    required_runtime_behavior: Runtime resolves protocol version from ProtocolRegistry at runtime
+    migration_strategy: Remove hardcoded protocolVersion from event metadata; inject ProtocolVersionProvider into aggregate
+
+  - id: DEV-006
+    file: packages/vault/src/index.ts
+    current_behavior: VaultAggregate.receive() uses switch(command.type) dispatch
+    constitutional_source: 03_command-catalog.yaml vault commands
+    required_runtime_behavior: Command dispatch resolved from generated command catalog
+    migration_strategy: Replace switch with GeneratedCommandCatalog lookup
+
+  - id: DEV-007
+    file: packages/protocol/src/index.ts
+    current_behavior: Hardcoded CANONICAL_DOMAINS, PROTOCOL_ENTITIES, PROTOCOL_COMMANDS, PROTOCOL_EVENTS, PROTOCOL_AGGREGATES, PROTOCOL_CAPABILITIES
+    constitutional_source: 00_protocol-manifest.yaml, 02_domain-model.yaml, 03_command-catalog.yaml, 04_event-catalog.yaml, 08_security-capabilities.yaml
+    required_runtime_behavior: All protocol registries generated from YAML at build time
+    migration_strategy: Replace static exports with imports from generated catalogs
+
+  - id: DEV-008
+    file: packages/compiler/src/compiler.ts
+    current_behavior: Compiler parses YAML but does not wire YAML bridge; parseFile() is manual
+    constitutional_source: compiler.yaml, 00_protocol-manifest.yaml validation_pipeline
+    required_runtime_behavior: Compiler reads all YAML files automatically and produces executable runtime artifacts
+    migration_strategy: Implement YamlLoader and wire into SOVRCompiler.compile()
+
+governance_dependencies:
+  amendments_required:
+    - AMD-0002
+    - AMD-0004
+    - AMD-0005
+    - AMD-0009
+    - AMD-0010
+
+validation:
+  tests_required:
+    - tests/compiler/pipeline.test.ts
+    - tests/compiler/state-machine-compiler.test.ts
+    - tests/compiler/version-provider.test.ts
+    - tests/compiler/generated-artifacts.test.ts
+    - existing tests must pass unchanged
+  certification_required:
+    - certification/CONSTITUTIONAL_AUTHORITY_MAP.yaml
+    - certification/RUNTIME_AUTHORITY_BOUNDARY.yaml
+    - certification/PROTOCOL_VERSION_AUTHORITY_REPORT.yaml
+    - certification/COMPILER_RUNTIME_REALIZATION_CERTIFICATION.yaml
+    - certification/PHASE_XIII_COMPLETION_REPORT.yaml

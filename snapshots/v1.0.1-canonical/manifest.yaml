@@ -1,0 +1,16 @@
+snapshot:
+  version: 1.0.1-canonical
+  created_from: protocol v1.0.0 (pre-ratification)
+  created_by: Phase VI.12 canonical snapshot (read-only)
+  amendments_applied: []
+  note: Pre-ratification canonical snapshot. Amendment execution (AMD-0001..0012) is governed by VI.4 plan + governance vote; not performed in this session (Protocol Modification NOT AUTHORIZED).
+  object_count: 587
+  graph_hash: sha256:b6da220d152d379eb5a02b2798f942d53947b347eea41e115f26ceaeefdf0315
+  certification_status: CLOSURE_REVIEW
+  contains:
+  - protocol/
+  - governance/
+  - compiler/
+  - knowledge/
+  - certification/
+  rollback_target: governance/VERSION_HISTORY.md

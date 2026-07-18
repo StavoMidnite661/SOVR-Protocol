@@ -1,0 +1,20 @@
+{
+  "domain": "governance",
+  "buildId": "5678ed61edbc97e3",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "artifacts": [
+    {
+      "file": "state-machines/governance-state-machine.ts",
+      "hash": "345b65c1f39f669c"
+    },
+    {
+      "file": "commands/governance-commands.ts",
+      "hash": "fbcda55364d6dbad"
+    },
+    {
+      "file": "events/governance-events.ts",
+      "hash": "fa6ae3793b8833a8"
+    }
+  ],
+  "sourceHash": "86adbf20ec541ddc"
+}

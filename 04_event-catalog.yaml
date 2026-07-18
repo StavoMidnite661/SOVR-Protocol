@@ -1,0 +1,5147 @@
+# ============================================================
+# SOVR Financial OS — Event Catalog
+# File: 04_event-catalog.yaml
+# Status: FROZEN — Phase J (Protocol Closure) complete
+# ============================================================
+# Defines the universe of events (facts about what happened)
+# in SOVR. Events are immutable observations. They describe
+# reality — they do not mutate it. Projections interpret them.
+#
+# This file is populated domain-by-domain.
+# Current domains: Vault, Ledger, Treasury, Identity, Policy, Intent, Agent, Payment
+# ============================================================
+
+event_envelope:
+  description: >
+    Every event in SOVR must include these envelope fields.
+    No event may be published without a complete envelope.
+    This is the authoritative event contract for the protocol compiler.
+  compile_target: true
+  fields:
+    event_id:
+      type: string
+      format: uuid
+      required: true
+      description: Globally unique event identifier
+    event_name:
+      type: string
+      required: true
+      description: Fully qualified event name (domain.aggregate.action)
+    event_version:
+      type: string
+      format: semver
+      required: true
+      description: Event schema version
+    aggregate:
+      type: string
+      required: true
+      description: The aggregate/entity this event relates to
+    aggregate_id:
+      type: string
+      format: uuid
+      required: true
+      description: The specific instance of the aggregate
+    source_domain:
+      type: enum
+      values: [vault, ledger, treasury, identity, policy, intent, agent, payment, governance]
+      required: true
+      description: The domain that produced this event
+    command_id:
+      type: string
+      format: uuid
+      required: true
+      description: UUID of the command that caused this event
+    triggering_command:
+      type: string
+      required: true
+      description: Fully qualified command name (e.g. vault.asset.register)
+    causation_id:
+      type: string
+      format: uuid
+      required: true
+      description: The event_id that caused this event (parent event in chain)
+    correlation_id:
+      type: string
+      format: uuid
+      required: true
+      description: Groups all events from a single business operation
+    actor_id:
+      type: string
+      format: uuid
+      required: true
+      description: UUID of the actor who initiated the operation
+    identity_context:
+      type: object
+      required: true
+      description: Identity state at the time of event production
+      fields:
+        identity_id:
+          type: string
+          format: uuid
+          required: true
+        actor_type:
+          type: enum
+          values: [human, organization, ai_agent, service_account, governance, external_system, system]
+          required: true
+        session_id:
+          type: string
+          format: uuid
+          required: false
+        agent_id:
+          type: string
+          format: uuid
+          required: false
+          description: Required if actor_type is ai_agent
+        model_version:
+          type: string
+          required: false
+          description: Required if actor_type is ai_agent
+        delegation_chain:
+          type: array
+          items:
+            type: string
+            format: uuid
+          required: false
+          description: Chain of delegating identity IDs (if delegated)
+    policy_decision_id:
+      type: string
+      format: uuid
+      required: true
+      description: UUID of the PolicyDecision that authorized the triggering command
+    capability_id:
+      type: string
+      required: true
+      description: The capability that was exercised (e.g. vault.asset.create)
+    timestamp:
+      type: timestamp
+      required: true
+      description: When the event occurred (domain time, not wall clock)
+    payload:
+      type: object
+      required: true
+      description: Event-specific data fields (defined per event type)
+    projection_effect:
+      type: object
+      required: true
+      description: Instructions for projection engine on how to process this event
+      fields:
+        target:
+          type: string
+          required: true
+          description: Target read model / projection name
+        operation:
+          type: enum
+          values: [insert, update, delete, append, no_op]
+          required: true
+        invalidation_keys:
+          type: array
+          items:
+            type: string
+          required: false
+          description: Cache keys to invalidate
+    audit:
+      type: object
+      required: true
+      description: Audit metadata for governance and compliance
+      fields:
+        constitutional_rules_referenced:
+          type: array
+          items:
+            type: string
+          required: true
+          description: Invariant IDs evaluated during command execution
+        enforcement_actions:
+          type: array
+          items:
+            type: string
+          required: false
+          description: Any enforcement actions taken during this event lifecycle
+        retention_class:
+          type: enum
+          values: [permanent, regulatory_7y, operational_90d, session]
+          required: true
+
+events:
+
+  # ========================================================
+  # VAULT DOMAIN EVENTS
+  # ========================================================
+
+  vault.asset.registered:
+    aggregate: asset
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: A new asset has been registered in the Vault
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+    guarantees:
+      - asset_id is globally unique
+      - asset_type is recognized
+      - issuer identity is verified
+      - no existing asset with same asset_id
+    projection_effect:
+      target: vault_asset_view
+      operation: insert
+    data_fields:
+      asset_id:
+        type: string
+        format: uuid
+      asset_type:
+        type: enum
+        values: [cash, stablecoin, tokenized_asset, collateral_position, liquidity_position, external_claim]
+      issuer_id:
+        type: string
+        format: uuid
+      ownership_id:
+        type: string
+        format: uuid
+      beneficial_owner_id:
+        type: string
+        format: uuid
+        required: false
+      custody_provider:
+        type: enum
+        values: [sovr_internal, on_chain, external_bank, third_party]
+      custody_location:
+        type: string
+      quantity:
+        type: decimal
+        precision: 18
+        required: false
+      face_value:
+        type: decimal
+        precision: 2
+        required: false
+      native_unit:
+        type: string
+      precision:
+        type: integer
+      risk_classification:
+        type: enum
+        values: [minimal, low, medium, medium_to_high, high]
+      valuation_source:
+        type: string
+      reserve_ratio:
+        type: decimal
+        precision: 4
+      registered_at:
+        type: timestamp
+
+  vault.asset.verified:
+    aggregate: asset
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been verified to exist and be correct
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+      - treasury_projection
+    guarantees:
+      - asset was in REGISTERED state
+      - attestation proof was valid
+      - attester was trusted
+      - asset is now in VERIFIED state
+    projection_effect:
+      target: vault_asset_view
+      operation: update
+      updates:
+        state: VERIFIED
+        verified_at: event.timestamp
+    data_fields:
+      asset_id:
+        type: string
+        format: uuid
+      verifier_id:
+        type: string
+        format: uuid
+      attestation_proof_hash:
+        type: string
+      verified_at:
+        type: timestamp
+      verification_method:
+        type: enum
+        values: [on_chain_balance_proof, off_chain_custodian_statement, internal_ledger_confirmation]
+
+  vault.asset.rejected:
+    aggregate: asset
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been rejected during verification
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+    guarantees:
+      - asset was in REGISTERED or VERIFIED state
+      - rejection reason was provided
+      - asset is now in REJECTED state
+    projection_effect:
+      target: vault_asset_view
+      operation: update
+      updates:
+        state: REJECTED
+    data_fields:
+      asset_id:
+        type: string
+        format: uuid
+      rejector_id:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      rejected_at:
+        type: timestamp
+
+  vault.asset.impaired:
+    aggregate: asset
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been marked as impaired due to value decline
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+      - governance_projection
+      - policy_projection
+    guarantees:
+      - asset existed and was in operational state
+      - valuation drop detected by trusted source
+      - governance will be notified
+    projection_effect:
+      target: vault_asset_view
+      operation: update
+      updates:
+        state: IMPAIRED
+        current_valuation: impaired_value
+    data_fields:
+      asset_id:
+        type: string
+        format: uuid
+      previous_value:
+        type: decimal
+        precision: 18
+      impaired_value:
+        type: decimal
+        precision: 18
+      impairment_reason:
+        type: string
+      detected_at:
+        type: timestamp
+
+  vault.asset.write_down:
+    aggregate: asset
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been permanently written down
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+      - ledger_projection
+      - governance_projection
+    guarantees:
+      - write-down was governance-approved
+      - journal entry will be created
+      - audit trail is complete
+    projection_effect:
+      target: vault_asset_view
+      operation: update
+      updates:
+        current_valuation: new_book_value
+    data_fields:
+      asset_id:
+        type: string
+        format: uuid
+      previous_book_value:
+        type: decimal
+        precision: 18
+      new_book_value:
+        type: decimal
+        precision: 18
+      write_down_amount:
+        type: decimal
+        precision: 18
+      approved_by:
+        type: string
+        format: uuid
+      written_down_at:
+        type: timestamp
+
+  vault.reserve.created:
+    aggregate: reservation
+    aggregate_id_field: reservation_id
+    source_domain: vault
+    version: 1.0.0
+    description: A value reservation has been created
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - treasury_projection
+    guarantees:
+      - asset was in AVAILABLE state
+      - actor had reserve_control authority
+      - amount did not exceed available_balance
+      - no conflicting reservation existed
+      - reservation is in PENDING state
+    projection_effect:
+      target: vault_balance_view
+      operation: update
+      updates:
+        reserved_balance: reserved_balance + amount
+        available_balance: available_balance - amount
+    data_fields:
+      reservation_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      actor_id:
+        type: string
+        format: uuid
+      amount:
+        type: decimal
+        precision: 18
+      expiration:
+        type: timestamp
+      purpose:
+        type: string
+      created_at:
+        type: timestamp
+
+  vault.reserve.locked:
+    aggregate: reservation
+    aggregate_id_field: reservation_id
+    source_domain: vault
+    version: 1.0.0
+    description: A reservation has been locked, committing the value
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - treasury_projection
+      - payment_projection
+    guarantees:
+      - reservation was in PENDING state
+      - reservation was not expired
+      - available_balance was still sufficient
+      - reservation is now in ACTIVE state with lock
+    projection_effect:
+      target: vault_balance_view
+      operation: update
+      updates:
+        locked_balance: locked_balance + amount
+        reserved_balance: reserved_balance - amount
+    data_fields:
+      reservation_id:
+        type: string
+        format: uuid
+      lock_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      amount:
+        type: decimal
+        precision: 18
+      expected_consuming_transaction_id:
+        type: string
+        format: uuid
+      locked_at:
+        type: timestamp
+
+  vault.reserve.released:
+    aggregate: reservation
+    aggregate_id_field: reservation_id
+    source_domain: vault
+    version: 1.0.0
+    description: A reservation has been released, returning value to available pool
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - treasury_projection
+    guarantees:
+      - reservation was in PENDING or ACTIVE state
+      - value has been returned to available pool
+      - reservation is now in RELEASED state
+    projection_effect:
+      target: vault_balance_view
+      operation: update
+      updates:
+        available_balance: available_balance + amount
+        reserved_balance: reserved_balance - amount  # if was PENDING
+        locked_balance: locked_balance - amount       # if was ACTIVE
+    data_fields:
+      reservation_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      amount:
+        type: decimal
+        precision: 18
+      release_reason:
+        type: string
+      released_at:
+        type: timestamp
+
+  vault.reserve.expired:
+    aggregate: reservation
+    aggregate_id_field: reservation_id
+    source_domain: vault
+    version: 1.0.0
+    description: A reservation has expired without being consumed
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - treasury_projection
+    guarantees:
+      - reservation was in PENDING or ACTIVE state
+      - expiration time had passed
+      - value has been returned to available pool
+      - reservation is now in EXPIRED state
+    projection_effect:
+      target: vault_balance_view
+      operation: update
+      updates:
+        available_balance: available_balance + amount
+        reserved_balance: reserved_balance - amount
+        locked_balance: locked_balance - amount
+    data_fields:
+      reservation_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      amount:
+        type: decimal
+        precision: 18
+      expired_at:
+        type: timestamp
+
+  vault.collateral.added:
+    aggregate: collateral
+    aggregate_id_field: collateral_id
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been pledged as collateral
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+      - policy_projection
+    guarantees:
+      - asset was eligible for collateral
+      - ownership was verified
+      - quality score met minimum
+      - concentration limits not exceeded
+      - collateral is in ACTIVE state
+    projection_effect:
+      target: vault_collateral_view
+      operation: insert
+    data_fields:
+      collateral_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      owner_id:
+        type: string
+        format: uuid
+      obligation_id:
+        type: string
+        format: uuid
+      gross_value:
+        type: decimal
+        precision: 18
+      effective_value:
+        type: decimal
+        precision: 18
+      haircut_applied:
+        type: decimal
+        precision: 6
+      quality_score:
+        type: decimal
+        precision: 4
+      added_at:
+        type: timestamp
+
+  vault.collateral.valued:
+    aggregate: collateral
+    aggregate_id_field: collateral_id
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral has been initially valued
+    producer: vault_service
+    consumers:
+      - vault_projection
+    guarantees:
+      - valuation source was trusted
+      - haircut was correctly applied
+    projection_effect:
+      target: vault_collateral_view
+      operation: update
+      updates:
+        gross_value: event.gross_value
+        effective_value: event.effective_value
+        last_valued_at: event.timestamp
+    data_fields:
+      collateral_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      previous_effective_value:
+        type: decimal
+        precision: 18
+      new_effective_value:
+        type: decimal
+        precision: 18
+      valuation_source:
+        type: string
+      valued_at:
+        type: timestamp
+
+  vault.collateral.revalued:
+    aggregate: collateral
+    aggregate_id_field: collateral_id
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral valuation has been updated due to market change
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - valuation source was trusted and not stale
+      - previous and new values recorded
+    projection_effect:
+      target: vault_collateral_view
+      operation: update
+      updates:
+        gross_value: event.new_value
+        effective_value: new_value * (1 - haircut)
+        margin_ratio: effective_value / obligation_amount
+        last_valued_at: event.timestamp
+    data_fields:
+      collateral_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      previous_value:
+        type: decimal
+        precision: 18
+      new_value:
+        type: decimal
+        precision: 18
+      value_change:
+        type: decimal
+        precision: 18
+      valuation_source:
+        type: string
+      revalued_at:
+        type: timestamp
+
+  vault.collateral.released:
+    aggregate: collateral
+    aggregate_id_field: collateral_id
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral has been released
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+    guarantees:
+      - release conditions were met
+      - margin ratio remains above maintenance
+      - collateral is now in RELEASED state
+    projection_effect:
+      target: vault_collateral_view
+      operation: update
+      updates:
+        state: RELEASED
+    data_fields:
+      collateral_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      release_reason:
+        type: string
+      released_at:
+        type: timestamp
+
+  vault.collateral.margin_call:
+    aggregate: collateral
+    aggregate_id_field: collateral_id
+    source_domain: vault
+    version: 1.0.0
+    description: A margin call has been triggered on a collateral position
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - governance_projection
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - margin ratio fell below maintenance threshold
+      - owner and obligation holder notified
+      - deadline set for remediation
+    projection_effect:
+      target: vault_collateral_view
+      operation: update
+      updates:
+        state: MARGIN_CALL
+    data_fields:
+      collateral_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      current_ratio:
+        type: decimal
+        precision: 6
+      maintenance_ratio:
+        type: decimal
+        precision: 6
+      shortfall_amount:
+        type: decimal
+        precision: 18
+      deadline:
+        type: timestamp
+      called_at:
+        type: timestamp
+
+  vault.collateral.liquidation_initiated:
+    aggregate: collateral
+    aggregate_id_field: collateral_id
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral liquidation has begun after unresolved margin call
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - governance_projection
+      - audit_projection
+      - treasury_projection
+    guarantees:
+      - margin call was unresolved past deadline
+      - governance was notified
+      - liquidation will be orderly
+    projection_effect:
+      target: vault_collateral_view
+      operation: update
+      updates:
+        state: LIQUIDATING
+    data_fields:
+      collateral_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      liquidation_reason:
+        type: string
+      initiated_at:
+        type: timestamp
+      expected_proceeds:
+        type: decimal
+        precision: 18
+
+  vault.custody.attested:
+    aggregate: custody
+    aggregate_id_field: attestation_id
+    source_domain: vault
+    version: 1.0.0
+    description: Custody has been attested (proof of asset existence)
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+    guarantees:
+      - attester was trusted
+      - proof hash is stored
+      - attestation has validity period
+    projection_effect:
+      target: vault_custody_view
+      operation: insert_or_update
+    data_fields:
+      attestation_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      custody_provider:
+        type: string
+      attestation_proof_hash:
+        type: string
+      attested_at:
+        type: timestamp
+      attestation_valid_until:
+        type: timestamp
+
+  vault.custody.proof_expired:
+    aggregate: custody
+    aggregate_id_field: attestation_id
+    source_domain: vault
+    version: 1.0.0
+    description: A custody attestation has expired
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - governance_projection
+    guarantees:
+      - attestation validity period has passed
+      - asset may be restricted from operations
+    projection_effect:
+      target: vault_custody_view
+      operation: update
+      updates:
+        is_current: false
+    data_fields:
+      attestation_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      custody_provider:
+        type: string
+      expired_at:
+        type: timestamp
+
+  vault.valuation.updated:
+    aggregate: valuation
+    aggregate_id_field: valuation_id
+    source_domain: vault
+    version: 1.0.0
+    description: An asset valuation has been updated
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - policy_projection
+    guarantees:
+      - valuation source was trusted
+      - valuation was not stale
+      - manual valuations had governance approval
+    projection_effect:
+      target: vault_asset_view
+      operation: update
+      updates:
+        current_valuation: event.new_valuation
+        valuation_updated_at: event.timestamp
+    data_fields:
+      valuation_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      previous_valuation:
+        type: decimal
+        precision: 18
+      new_valuation:
+        type: decimal
+        precision: 18
+      valuation_source:
+        type: string
+      source_type:
+        type: enum
+        values: [oracle, internal_pricing, market_feed, manual]
+      updated_at:
+        type: timestamp
+
+  vault.reconciliation.started:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: vault
+    version: 1.0.0
+    description: A vault reconciliation has been initiated
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - no conflicting reconciliation was active
+      - external data was provided
+    projection_effect:
+      target: vault_reconciliation_view
+      operation: insert
+    data_fields:
+      reconciliation_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      initiated_by:
+        type: string
+        format: uuid
+      scope:
+        type: enum
+        values: [single_asset, actor_holdings, full_vault]
+      started_at:
+        type: timestamp
+
+  vault.reconciliation.completed:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: vault
+    version: 1.0.0
+    description: A vault reconciliation has completed successfully
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+    guarantees:
+      - all items were reconciled
+      - no discrepancies found
+    projection_effect:
+      target: vault_reconciliation_view
+      operation: update
+      updates:
+        state: COMPLETED
+        completed_at: event.timestamp
+    data_fields:
+      reconciliation_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      items_reconciled:
+        type: integer
+      completed_at:
+        type: timestamp
+
+  vault.reconciliation.discrepancy_found:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: vault
+    version: 1.0.0
+    description: A discrepancy was found during reconciliation
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - discrepancy amount is quantified
+      - severity is assessed
+      - governance is notified
+    projection_effect:
+      target: vault_reconciliation_view
+      operation: update
+      updates:
+        state: DISCREPANCY_FOUND
+    data_fields:
+      reconciliation_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      expected_value:
+        type: decimal
+        precision: 18
+      actual_value:
+        type: decimal
+        precision: 18
+      discrepancy_amount:
+        type: decimal
+        precision: 18
+      severity:
+        type: enum
+        values: [low, medium, high, critical]
+      detected_at:
+        type: timestamp
+
+  vault.ownership.transferred:
+    aggregate: ownership
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: Ownership of an asset has been transferred
+    producer: vault_service
+    consumers:
+      - vault_projection
+      - audit_projection
+      - identity_projection
+      - governance_projection
+    guarantees:
+      - current owner authorized the transfer
+      - new owner identity is verified
+      - journal entry will be created
+      - policy evaluation passed
+    projection_effect:
+      target: vault_asset_view
+      operation: update
+      updates:
+        ownership_id: new_owner_id
+    data_fields:
+      asset_id:
+        type: string
+        format: uuid
+      previous_owner_id:
+        type: string
+        format: uuid
+      new_owner_id:
+        type: string
+        format: uuid
+      authorized_by:
+        type: string
+        format: uuid
+      transferred_at:
+        type: timestamp
+
+  # ========================================================
+  # LEDGER DOMAIN EVENTS
+  # ========================================================
+
+  ledger.journal.created:
+    aggregate: journal
+    aggregate_id_field: journal_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A new journal has been created in the ledger
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - journal name unique within ledger
+      - domain is recognized
+      - ledger is ACTIVE
+    projection_effect:
+      target: ledger_journal_view
+      operation: insert
+    data_fields:
+      journal_id:
+        type: string
+        format: uuid
+      ledger_id:
+        type: string
+        format: uuid
+      name:
+        type: string
+      domain:
+        type: string
+      description:
+        type: string
+      created_at:
+        type: timestamp
+
+  ledger.entry.posted:
+    aggregate: journal_entry
+    aggregate_id_field: entry_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A journal entry has been validated and posted to the ledger
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
+      - vault_projection
+    guarantees:
+      - entry passed full validation pipeline
+      - debits equal credits
+      - all accounts were ACTIVE
+      - actor had posting authority
+      - event reference was valid and not already journalized
+      - entry is now immutable
+    projection_effect:
+      target: account_balance_view
+      operation: update
+      updates:
+        for each posting: apply debit/credit to account running balance
+    data_fields:
+      entry_id:
+        type: string
+        format: uuid
+      journal_id:
+        type: string
+        format: uuid
+      transaction_id:
+        type: string
+        format: uuid
+      event_reference:
+        type: string
+        format: uuid
+      correlation_id:
+        type: string
+        format: uuid
+      entry_type:
+        type: enum
+        values: [STANDARD, REVERSAL, CORRECTION, CLOSING, ADJUSTMENT]
+      description:
+        type: string
+      posting_count:
+        type: integer
+      total_debits:
+        type: decimal
+        precision: 18
+      total_credits:
+        type: decimal
+        precision: 18
+      posted_at:
+        type: timestamp
+      actor_context:
+        actor_id:
+          type: string
+          format: uuid
+        actor_type:
+          type: enum
+        values: [human, organization, ai_agent, service_account, governance, external_system, system]
+        identity_id:
+          type: string
+          format: uuid
+      authorization_context:
+        capability:
+          type: string
+        scope:
+          type: string
+        policy_result:
+          type: enum
+          values: [APPROVE, DENY, REQUIRE_APPROVAL]
+      postings:
+        posting_id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        account_code:
+          type: string
+        amount:
+          type: decimal
+          precision: 18
+        direction:
+          type: enum
+          values: [DEBIT, CREDIT]
+        asset_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+      balance_after:
+        account_id:
+          type: string
+          format: uuid
+        new_balance:
+          type: decimal
+          precision: 18
+
+  ledger.entry.rejected:
+    aggregate: journal_entry
+    aggregate_id_field: entry_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A journal entry failed validation and was rejected
+    producer: ledger_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - entry was not posted
+      - no account balances were affected
+      - rejection reason is recorded
+    projection_effect:
+      target: none
+      operation: none
+    data_fields:
+      entry_id:
+        type: string
+        format: uuid
+      journal_id:
+        type: string
+        format: uuid
+      transaction_id:
+        type: string
+        format: uuid
+      rejection_reason:
+        type: string
+      failed_validation_rules:
+        type: array
+        items:
+          type: string
+      rejected_at:
+        type: timestamp
+      actor_id:
+        type: string
+        format: uuid
+
+  ledger.entry.reversed:
+    aggregate: journal_entry
+    aggregate_id_field: entry_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A journal entry has been reversed by a new entry with inverse postings
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - original entry exists and was POSTED or SETTLED
+      - reversal entry has inverse postings
+      - original entry is not modified
+      - both entries link to each other
+    projection_effect:
+      target: account_balance_view
+      operation: update
+      updates:
+        for each posting: apply inverse debit/credit to account running balance
+    data_fields:
+      entry_id:
+        type: string
+        format: uuid
+      journal_id:
+        type: string
+        format: uuid
+      original_entry_id:
+        type: string
+        format: uuid
+      reversal_reason:
+        type: string
+      reversed_at:
+        type: timestamp
+      postings:
+        posting_id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        amount:
+          type: decimal
+          precision: 18
+        direction:
+          type: enum
+          values: [DEBIT, CREDIT]
+      balance_after:
+        account_id:
+          type: string
+          format: uuid
+        new_balance:
+          type: decimal
+          precision: 18
+
+  ledger.entry.corrected:
+    aggregate: journal_entry
+    aggregate_id_field: entry_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A compensating correction entry has been posted
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - original entry exists and was POSTED or SETTLED
+      - correction entry balances
+      - governance approved the correction
+      - original entry is not modified
+    projection_effect:
+      target: account_balance_view
+      operation: update
+      updates:
+        for each posting: apply debit/credit to account running balance
+    data_fields:
+      entry_id:
+        type: string
+        format: uuid
+      journal_id:
+        type: string
+        format: uuid
+      original_entry_id:
+        type: string
+        format: uuid
+      correction_description:
+        type: string
+      approved_by:
+        type: string
+        format: uuid
+      corrected_at:
+        type: timestamp
+      postings:
+        posting_id:
+          type: string
+          format: uuid
+        account_id:
+          type: string
+          format: uuid
+        amount:
+          type: decimal
+          precision: 18
+        direction:
+          type: enum
+          values: [DEBIT, CREDIT]
+
+  ledger.account.created:
+    aggregate: account
+    aggregate_id_field: account_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A new account has been added to the chart of accounts
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - account code unique within ledger
+      - account type recognized
+      - normal balance consistent with type
+    projection_effect:
+      target: chart_of_accounts_view
+      operation: insert
+    data_fields:
+      account_id:
+        type: string
+        format: uuid
+      account_code:
+        type: string
+      account_name:
+        type: string
+      account_type:
+        type: enum
+        values: [ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE, MEMORANDUM, RESERVE, COLLATERAL]
+      normal_balance:
+        type: enum
+        values: [DEBIT, CREDIT, NONE]
+      domain_ownership:
+        type: string
+      owner_id:
+        type: string
+        format: uuid
+      created_at:
+        type: timestamp
+
+  ledger.account.frozen:
+    aggregate: account
+    aggregate_id_field: account_id
+    source_domain: ledger
+    version: 1.0.0
+    description: An account has been frozen, preventing new postings
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - account was ACTIVE
+      - no pending entries existed
+      - freeze reason recorded
+    projection_effect:
+      target: chart_of_accounts_view
+      operation: update
+      updates:
+        status: FROZEN
+    data_fields:
+      account_id:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      frozen_at:
+        type: timestamp
+      frozen_by:
+        type: string
+        format: uuid
+
+  ledger.reconciliation.started:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A ledger reconciliation process has been initiated
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - no conflicting reconciliation was active
+      - source data was available
+      - reconciliation type is valid
+    projection_effect:
+      target: reconciliation_dashboard_view
+      operation: insert
+    data_fields:
+      reconciliation_id:
+        type: string
+        format: uuid
+      type:
+        type: enum
+        values: [internal, vault_reconciliation, treasury_reconciliation, external_reconciliation]
+      scope:
+        type: string
+      initiated_by:
+        type: string
+        format: uuid
+      started_at:
+        type: timestamp
+
+  ledger.reconciliation.mismatch_detected:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A discrepancy was found during ledger reconciliation
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - discrepancy amount quantified
+      - severity assessed
+      - governance notified if severity >= medium
+    projection_effect:
+      target: reconciliation_dashboard_view
+      operation: update
+      updates:
+        state: MISMATCH_DETECTED
+        severity: event.severity
+        discrepancy_amount: event.discrepancy_amount
+    data_fields:
+      reconciliation_id:
+        type: string
+        format: uuid
+      expected_value:
+        type: decimal
+        precision: 18
+      actual_value:
+        type: decimal
+        precision: 18
+      discrepancy_amount:
+        type: decimal
+        precision: 18
+      severity:
+        type: enum
+        values: [none, low, medium, high, critical]
+      affected_accounts:
+        type: array
+        items:
+          type: string
+          format: uuid
+      detected_at:
+        type: timestamp
+
+  ledger.reconciliation.completed:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A ledger reconciliation has been resolved
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - resolution method recorded
+      - if adjustment: correction entry posted and balanced
+    projection_effect:
+      target: reconciliation_dashboard_view
+      operation: update
+      updates:
+        state: COMPLETE
+        resolution_method: event.resolution_method
+    data_fields:
+      reconciliation_id:
+        type: string
+        format: uuid
+      resolution_method:
+        type: enum
+        values: [auto_tolerance, adjustment, escalation, no_action_needed]
+      adjustment_entry_id:
+        type: string
+        format: uuid
+        required: false
+      resolved_at:
+        type: timestamp
+
+  ledger.period.closing:
+    aggregate: accounting_period
+    aggregate_id_field: period_id
+    source_domain: ledger
+    version: 1.0.0
+    description: An accounting period is being closed with closing entries
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - all entries for the period are settled
+      - no pending reconciliations
+      - closing entries will be posted
+    projection_effect:
+      target: accounting_period_view
+      operation: update
+      updates:
+        status: CLOSING
+    data_fields:
+      period_id:
+        type: string
+        format: uuid
+      ledger_id:
+        type: string
+        format: uuid
+      closing_entries:
+        entry_id:
+          type: string
+          format: uuid
+      started_at:
+        type: timestamp
+
+  ledger.period.closed:
+    aggregate: accounting_period
+    aggregate_id_field: period_id
+    source_domain: ledger
+    version: 1.0.0
+    description: An accounting period has been fully closed
+    producer: ledger_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - closing entries posted and balanced
+      - period is immutable
+      - next period can now be closed
+    projection_effect:
+      target: accounting_period_view
+      operation: update
+      updates:
+        status: CLOSED
+        closing_entries_recorded: true
+    data_fields:
+      period_id:
+        type: string
+        format: uuid
+      closing_entry_ids:
+        type: array
+        items:
+          type: string
+          format: uuid
+      closed_at:
+        type: timestamp
+
+  # ========================================================
+  # TREASURY DOMAIN EVENTS
+  # ========================================================
+
+  treasury.transfer.requested:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: A new treasury transfer has been requested
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - audit_projection
+    guarantees:
+      - order_id is globally unique
+      - transfer state is REQUESTED
+      - all required fields are present
+    projection_effect:
+      target: transfer_order_view
+      operation: insert
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      source_actor_id:
+        type: string
+        format: uuid
+      destination_details:
+        type: object
+      asset_id:
+        type: string
+        format: uuid
+      amount:
+        type: decimal
+        precision: 18
+      purpose:
+        type: string
+      requested_at:
+        type: timestamp
+
+  treasury.transfer.authorized:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: A transfer has passed identity, capability, and policy gates
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - audit_projection
+    guarantees:
+      - all authorization gates passed
+      - policy evaluation result is APPROVE
+      - transfer state is AUTHORIZED
+    projection_effect:
+      target: transfer_order_view
+      operation: update
+      updates:
+        state: AUTHORIZED
+        authorized_at: event.timestamp
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      authorized_by:
+        type: string
+        format: uuid
+      policy_result:
+        type: string
+      rules_applied:
+        type: array
+      authorized_at:
+        type: timestamp
+
+  treasury.transfer.rejected:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: A transfer has been rejected
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - rejection reason is recorded
+      - transfer state is REJECTED
+      - no value was moved
+    projection_effect:
+      target: transfer_order_view
+      operation: update
+      updates:
+        state: REJECTED
+        rejection_reason: event.reason
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      rejection_stage:
+        type: string
+      error_code:
+        type: string
+      rejected_at:
+        type: timestamp
+
+  treasury.transfer.reserved:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: Vault reservation has been locked for a transfer
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - vault_projection
+      - audit_projection
+    guarantees:
+      - vault lock is ACTIVE
+      - vault_reservation_id references an ACTIVE reservation
+      - transfer state is RESERVED
+    projection_effect:
+      target: transfer_order_view
+      operation: update
+      updates:
+        state: RESERVED
+        vault_reservation_id: event.vault_reservation_id
+        vault_lock_id: event.vault_lock_id
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      vault_reservation_id:
+        type: string
+        format: uuid
+      vault_lock_id:
+        type: string
+        format: uuid
+      reserved_amount:
+        type: decimal
+        precision: 18
+      reserved_at:
+        type: timestamp
+
+  treasury.transfer.executing:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: Transfer execution has begun on the payment rail
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - payment_projection
+      - audit_projection
+    guarantees:
+      - vault lock was ACTIVE at time of execution
+      - instruction_id references the payment instruction
+      - compensation saga is defined
+    projection_effect:
+      target: transfer_order_view
+      operation: update
+      updates:
+        state: EXECUTING
+        instruction_id: event.instruction_id
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      instruction_id:
+        type: string
+        format: uuid
+      payment_rail:
+        type: string
+      max_attempts:
+        type: integer
+      timeout:
+        type: integer
+      executing_at:
+        type: timestamp
+
+  treasury.transfer.settled:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: A transfer has been confirmed as settled
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - vault_projection
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - settlement confirmed by external rail or reconciliation
+      - vault reservation will be consumed
+      - ledger journal entry will be posted
+    projection_effect:
+      target: transfer_order_view
+      operation: update
+      updates:
+        state: SETTLED
+        settled_at: event.timestamp
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      settlement_reference:
+        type: string
+      settlement_amount:
+        type: decimal
+        precision: 18
+      settled_at:
+        type: timestamp
+
+  treasury.transfer.failed:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: A transfer has failed during execution or settlement
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - vault_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - failure reason is recorded
+      - vault lock may need to be released
+      - compensation saga may be triggered
+    projection_effect:
+      target: transfer_order_view
+      operation: update
+      updates:
+        state: FAILED
+        failure_reason: event.reason
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      failure_stage:
+        type: string
+      error_code:
+        type: string
+      retryable:
+        type: boolean
+      failed_at:
+        type: timestamp
+
+  treasury.transfer.expired:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: A transfer has expired without completing
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - vault_projection
+      - audit_projection
+    guarantees:
+      - no value was moved
+      - any vault reservation was released
+      - transfer state is EXPIRED
+    projection_effect:
+      target: transfer_order_view
+      operation: update
+      updates:
+        state: EXPIRED
+        expired_at: event.timestamp
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      expiration_reason:
+        type: string
+      state_at_expiration:
+        type: string
+      expired_at:
+        type: timestamp
+
+  treasury.transfer.compensation_required:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: A compensation saga has been initiated for a failed transfer
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - vault_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - compensation step is defined
+      - vault lock resolution is required
+      - governance may need to approve
+    projection_effect:
+      target: transfer_order_view
+      operation: update
+      updates:
+        state: COMPENSATION_REQUIRED
+        current_compensation_step: event.compensation_step
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      compensation_step:
+        type: string
+      compensation_saga_id:
+        type: string
+        format: uuid
+      vault_resolution_required:
+        type: boolean
+      governance_approval_required:
+        type: boolean
+      initiated_at:
+        type: timestamp
+
+  treasury.liquidity.warning:
+    aggregate: liquidity_position
+    aggregate_id_field: actor_id
+    source_domain: treasury
+    version: 1.0.0
+    description: Liquidity has fallen below a configured threshold
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - governance_projection
+      - alert_projection
+    guarantees:
+      - threshold breach is real (computed from projection)
+      - no false positives from stale data
+    projection_effect:
+      target: liquidity_position_view
+      operation: update
+      updates:
+        warning_active: true
+        warning_level: event.level
+    data_fields:
+      actor_id:
+        type: string
+        format: uuid
+      asset_id:
+        type: string
+        format: uuid
+      current_available:
+        type: decimal
+        precision: 18
+      threshold:
+        type: decimal
+        precision: 18
+      level:
+        type: string
+      triggered_by:
+        type: string
+      warned_at:
+        type: timestamp
+
+  treasury.settlement.confirmed:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: treasury
+    version: 1.0.0
+    description: Settlement has been confirmed for a transfer
+    producer: treasury_service
+    consumers:
+      - treasury_projection
+      - ledger_projection
+      - vault_projection
+      - audit_projection
+    guarantees:
+      - settlement matches original transfer amount
+      - settlement reference is recorded
+      - vault consumption will be triggered
+    projection_effect:
+      target: transfer_order_view
+      operation: update
+      updates:
+        settlement_status: CONFIRMED
+        settlement_reference: event.settlement_reference
+    data_fields:
+      order_id:
+        type: string
+        format: uuid
+      settlement_reference:
+        type: string
+      settlement_amount:
+        type: decimal
+        precision: 18
+      settlement_rail:
+        type: string
+      confirmed_at:
+        type: timestamp
+
+  # ========================================================
+  # IDENTITY DOMAIN EVENTS
+  # ========================================================
+
+  identity.actor.registered:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: A new actor has been registered in the Identity subsystem
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+      - INV-008: identity gate enforced
+    projection_effect:
+      target: identity_actor_view
+      operation: insert
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+      actor_type:
+        type: enum
+      display_name:
+        type: string
+      registered_by:
+        type: string
+        format: uuid
+      trust_level:
+        type: enum
+
+  identity.actor.verified:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: An actor has been verified by an authority
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-003: authority establishment
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_actor_view
+      operation: update
+      updates:
+        verification_status: VERIFIED
+        trust_level: event.trust_level_assigned
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+      verified_by:
+        type: string
+        format: uuid
+      trust_level_assigned:
+        type: enum
+
+  identity.actor.suspended:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: An actor has been suspended
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-003: authority modification
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_actor_view
+      operation: update
+      updates:
+        status: SUSPENDED
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+      suspended_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+
+  identity.actor.revoked:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: An actor has been revoked
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-003: authority modification
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_actor_view
+      operation: update
+      updates:
+        status: REVOKED
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+      revoked_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      revocation_type:
+        type: enum
+
+  identity.credential.issued:
+    aggregate: credential
+    aggregate_id_field: credential_id
+    source_domain: identity
+    version: 1.0.0
+    description: A credential has been issued to an actor
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+      - INV-008: identity gate enforced
+    projection_effect:
+      target: identity_credential_view
+      operation: insert
+    data_fields:
+      credential_id:
+        type: string
+        format: uuid
+      identity_id:
+        type: string
+        format: uuid
+      credential_type:
+        type: enum
+      trust_level:
+        type: enum
+      binding_strength:
+        type: enum
+      expires_at:
+        type: timestamp
+      issued_by:
+        type: string
+        format: uuid
+
+  identity.credential.expired:
+    aggregate: credential
+    aggregate_id_field: credential_id
+    source_domain: identity
+    version: 1.0.0
+    description: A credential has expired
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_credential_view
+      operation: update
+      updates:
+        status: EXPIRED
+    data_fields:
+      credential_id:
+        type: string
+        format: uuid
+      identity_id:
+        type: string
+        format: uuid
+      expired_at:
+        type: timestamp
+
+  identity.credential.revoked:
+    aggregate: credential
+    aggregate_id_field: credential_id
+    source_domain: identity
+    version: 1.0.0
+    description: A credential has been revoked
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-003: authority modification
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_credential_view
+      operation: update
+      updates:
+        status: REVOKED
+    data_fields:
+      credential_id:
+        type: string
+        format: uuid
+      identity_id:
+        type: string
+        format: uuid
+      revoked_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+
+  identity.session.created:
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: A new session has been created for an authenticated actor
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+      - INV-008: identity gate enforced
+    projection_effect:
+      target: identity_session_view
+      operation: insert
+    data_fields:
+      session_id:
+        type: string
+        format: uuid
+      identity_id:
+        type: string
+        format: uuid
+      actor_type:
+        type: enum
+      authentication_method:
+        type: enum
+      trust_level:
+        type: enum
+      binding_strength:
+        type: enum
+      expires_at:
+        type: timestamp
+
+  identity.session.expired:
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: A session has expired
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_session_view
+      operation: update
+      updates:
+        status: EXPIRED
+    data_fields:
+      session_id:
+        type: string
+        format: uuid
+      identity_id:
+        type: string
+        format: uuid
+      expired_at:
+        type: timestamp
+
+  identity.session.terminated:
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: A session has been terminated
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_session_view
+      operation: update
+      updates:
+        status: TERMINATED
+    data_fields:
+      session_id:
+        type: string
+        format: uuid
+      identity_id:
+        type: string
+        format: uuid
+      terminated_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+
+  identity.delegation.created:
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: A delegation of authority has been created
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-003: authority delegation
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_delegation_view
+      operation: insert
+    data_fields:
+      delegation_id:
+        type: string
+        format: uuid
+      delegator_id:
+        type: string
+        format: uuid
+      delegate_id:
+        type: string
+        format: uuid
+      delegated_capabilities:
+        type: array
+      max_depth:
+        type: integer
+      audit_requirement:
+        type: enum
+
+  identity.delegation.revoked:
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: A delegation of authority has been revoked
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-003: authority modification
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_delegation_view
+      operation: update
+      updates:
+        status: REVOKED
+    data_fields:
+      delegation_id:
+        type: string
+        format: uuid
+      revoked_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+
+  identity.delegation.expired:
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: A delegation of authority has expired
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_delegation_view
+      operation: update
+      updates:
+        status: EXPIRED
+    data_fields:
+      delegation_id:
+        type: string
+        format: uuid
+      expired_at:
+        type: timestamp
+
+  identity.trust_anchor.registered:
+    aggregate: trust_anchor
+    aggregate_id_field: trust_anchor_id
+    source_domain: identity
+    version: 1.0.0
+    description: A trust anchor has been registered
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-003: authority establishment
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: identity_trust_anchor_view
+      operation: insert
+    data_fields:
+      trust_anchor_id:
+        type: string
+        format: uuid
+      anchor_type:
+        type: enum
+      trust_level_issued:
+        type: enum
+      scope_of_trust:
+        type: array
+      registered_by:
+        type: string
+        format: uuid
+
+  identity.authentication.succeeded:
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: An authentication attempt has succeeded
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-008: gate 1 passed
+    projection_effect:
+      target: identity_session_view
+      operation: update
+      updates:
+        authentication_status: AUTHENTICATED
+    data_fields:
+      session_id:
+        type: string
+        format: uuid
+      identity_id:
+        type: string
+        format: uuid
+      actor_type:
+        type: enum
+      authentication_method:
+        type: enum
+      trust_level:
+        type: enum
+      binding_strength:
+        type: enum
+      credential_id:
+        type: string
+        format: uuid
+
+  identity.authentication.failed:
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: An authentication attempt has failed
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - INV-008: gate 1 failed
+    projection_effect:
+      target: identity_session_view
+      operation: update
+      updates:
+        authentication_status: FAILED
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+        required: false
+      actor_type:
+        type: enum
+        required: false
+      authentication_method:
+        type: enum
+        required: false
+      failure_reason:
+        type: string
+      credential_id:
+        type: string
+        format: uuid
+        required: false
+
+  # ========================================================
+  # POLICY DOMAIN EVENTS
+  # ========================================================
+
+  policy.rule.created:
+    aggregate: rule
+    aggregate_id_field: rule_id
+    source_domain: policy
+    version: 1.0.0
+    description: A new policy rule has been created
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: policy_rule_view
+      operation: insert
+    data_fields:
+      rule_id:
+        type: string
+        format: uuid
+      rule_name:
+        type: string
+      category:
+        type: enum
+      created_by:
+        type: string
+        format: uuid
+      constitutional_reference:
+        type: string
+        required: false
+
+  policy.rule.updated:
+    aggregate: rule
+    aggregate_id_field: rule_id
+    source_domain: policy
+    version: 1.0.0
+    description: A policy rule has been updated to a new version
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: policy_rule_view
+      operation: update
+      updates:
+        version: event.version
+        updated_at: event.timestamp
+    data_fields:
+      rule_id:
+        type: string
+        format: uuid
+      rule_name:
+        type: string
+      version:
+        type: string
+      updated_by:
+        type: string
+        format: uuid
+      changes:
+        type: array
+
+  policy.rule.activated:
+    aggregate: rule
+    aggregate_id_field: rule_id
+    source_domain: policy
+    version: 1.0.0
+    description: A policy rule has been activated
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - INV-008: policy gate active
+    projection_effect:
+      target: policy_rule_view
+      operation: update
+      updates:
+        status: ACTIVE
+        effective_from: event.effective_from
+    data_fields:
+      rule_id:
+        type: string
+        format: uuid
+      activated_by:
+        type: string
+        format: uuid
+      effective_from:
+        type: timestamp
+
+  policy.rule.deactivated:
+    aggregate: rule
+    aggregate_id_field: rule_id
+    source_domain: policy
+    version: 1.0.0
+    description: A policy rule has been deactivated
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: policy_rule_view
+      operation: update
+      updates:
+        status: INACTIVE
+    data_fields:
+      rule_id:
+        type: string
+        format: uuid
+      deactivated_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+
+  policy.evaluation.completed:
+    aggregate: evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    description: A policy evaluation has been completed with a decision
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-003: authority establishment
+      - INV-005: audit trail maintained
+      - INV-008: gate 4 completed
+    projection_effect:
+      target: policy_evaluation_view
+      operation: insert
+    data_fields:
+      evaluation_id:
+        type: string
+        format: uuid
+      policy_set_id:
+        type: string
+        format: uuid
+      authorization_context_id:
+        type: string
+        format: uuid
+      command_id:
+        type: string
+        format: uuid
+      decision:
+        type: enum
+      confidence:
+        type: enum
+      risk_level:
+        type: enum
+      rules_evaluated:
+        type: integer
+      rules_passed:
+        type: integer
+      rules_failed:
+        type: integer
+      deterministic_hash:
+        type: string
+      constitutional_rules_referenced:
+        type: array
+
+  policy.evaluation.denied:
+    aggregate: evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    description: A policy evaluation has resulted in a denial
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-003: authority establishment
+      - INV-008: policy gate denied
+    projection_effect:
+      target: policy_evaluation_view
+      operation: update
+      updates:
+        decision: DENIED
+    data_fields:
+      evaluation_id:
+        type: string
+        format: uuid
+      decision:
+        type: enum
+      failed_rules:
+        type: array
+      risk_level:
+        type: enum
+
+  policy.evaluation.escalated:
+    aggregate: evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    description: A policy evaluation has been escalated for human review
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-003: authority establishment
+      - INV-005: audit trail maintained
+      - INV-008: policy gate escalated
+    projection_effect:
+      target: policy_evaluation_view
+      operation: update
+      updates:
+        decision: ESCALATED
+    data_fields:
+      evaluation_id:
+        type: string
+        format: uuid
+      escalation_reason:
+        type: enum
+      escalation_target:
+        type: enum
+
+  policy.evaluation.deferred:
+    aggregate: evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    description: A policy evaluation has been deferred to a later time
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: policy_evaluation_view
+      operation: update
+      updates:
+        decision: DEFERRED
+    data_fields:
+      evaluation_id:
+        type: string
+        format: uuid
+      defer_until:
+        type: timestamp
+      reason:
+        type: string
+
+  policy.escalation.created:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: policy
+    version: 1.0.0
+    description: A policy escalation has been created
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: policy_escalation_view
+      operation: insert
+    data_fields:
+      escalation_id:
+        type: string
+        format: uuid
+      evaluation_id:
+        type: string
+        format: uuid
+      reason:
+        type: enum
+      target:
+        type: enum
+      deadline:
+        type: timestamp
+
+  policy.escalation.resolved:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: policy
+    version: 1.0.0
+    description: A policy escalation has been resolved
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: policy_escalation_view
+      operation: update
+      updates:
+        status: RESOLVED
+    data_fields:
+      escalation_id:
+        type: string
+        format: uuid
+      resolved_by:
+        type: string
+        format: uuid
+      resolution:
+        type: enum
+      resolved_at:
+        type: timestamp
+
+  policy.compliance.requirement.registered:
+    aggregate: compliance_requirement
+    aggregate_id_field: requirement_id
+    source_domain: policy
+    version: 1.0.0
+    description: A compliance requirement has been registered
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: policy_compliance_requirement_view
+      operation: insert
+    data_fields:
+      requirement_id:
+        type: string
+        format: uuid
+      regulation_id:
+        type: string
+      jurisdiction:
+        type: string
+      registered_by:
+        type: string
+        format: uuid
+
+  policy.compliance.violation.detected:
+    aggregate: evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    description: A compliance violation has been detected during evaluation
+    producer: policy_service
+    consumers:
+      - policy_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-003: authority establishment
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: policy_evaluation_view
+      operation: update
+      updates:
+        compliance_violation: true
+    data_fields:
+      evaluation_id:
+        type: string
+        format: uuid
+      requirement_id:
+        type: string
+        format: uuid
+      violation_description:
+        type: string
+      severity:
+        type: enum
+
+  # ========================================================
+  # INTENT DOMAIN EVENTS
+  # ========================================================
+
+  intent.received:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: A new intent has been received from an actor
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: intent_view
+      operation: insert
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      intent_type:
+        type: enum
+      actor_id:
+        type: string
+        format: uuid
+      domain_target:
+        type: enum
+      objective:
+        type: string
+      priority:
+        type: enum
+      confidence:
+        type: enum
+
+  intent.enriching.started:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent enrichment has started
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: ENRICHING
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      enrichment_steps_count:
+        type: integer
+
+  intent.enriching.completed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent enrichment has been completed
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+      - INV-006: ambiguity resolved explicitly
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: ENRICHED
+        confidence: event.updated_confidence
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      steps_completed:
+        type: integer
+      steps_failed:
+        type: integer
+      steps_skipped:
+        type: integer
+      updated_confidence:
+        type: enum
+
+  intent.enriching.failed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent enrichment has failed
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: ENRICHMENT_FAILED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      failed_step_type:
+        type: enum
+      error_detail:
+        type: string
+
+  intent.validation.completed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent validation has been completed
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+      - INV-008: policy gate evaluated
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        validation_status: COMPLETED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      validation_id:
+        type: string
+        format: uuid
+      overall_result:
+        type: enum
+      blocking_failures:
+        type: integer
+      warnings:
+        type: integer
+
+  intent.validated:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has been validated and is ready for conversion
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-006: ambiguity resolved
+      - INV-008: policy gate passed
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: VALIDATED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      validation_result:
+        type: enum
+      converted_to:
+        type: enum
+        required: false
+
+  intent.failed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has failed
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: FAILED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      failure_stage:
+        type: enum
+      error_detail:
+        type: string
+
+  intent.cancelled:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has been cancelled
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: CANCELLED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      cancelled_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+
+  intent.converted_to_command:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has been converted to a command
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+      - INV-006: ambiguity resolved
+      - INV-008: policy gate passed
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: CONVERTED
+        command_id: event.command_id
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      command_id:
+        type: string
+        format: uuid
+      command_name:
+        type: string
+      conversion_confidence:
+        type: enum
+      assumptions_made:
+        type: array
+      human_confirmation_required:
+        type: boolean
+
+  intent.archived:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has been archived
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: ARCHIVED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      final_state:
+        type: enum
+      archived_at:
+        type: timestamp
+
+  intent.expired:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has expired
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: EXPIRED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      expired_at:
+        type: timestamp
+
+  intent.multi_step.step_completed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: A step within a multi-step intent has been completed
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        current_step: event.step_order
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      step_order:
+        type: integer
+      step_intent_id:
+        type: string
+        format: uuid
+      steps_remaining:
+        type: integer
+
+  intent.multi_step.completed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: A multi-step intent has been completed
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: MULTI_STEP_COMPLETED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      total_steps:
+        type: integer
+      succeeded_steps:
+        type: integer
+      failed_steps:
+        type: integer
+
+  intent.multi_step.failed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: A multi-step intent has failed
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+      - INV-006: ambiguity or error detected
+    projection_effect:
+      target: intent_view
+      operation: update
+      updates:
+        status: MULTI_STEP_FAILED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      failed_at_step:
+        type: integer
+      error_detail:
+        type: string
+      compensation_initiated:
+        type: boolean
+
+  # ========================================================
+  # AGENT DOMAIN EVENTS
+  # ========================================================
+
+  agent.registration.submitted:
+    aggregate: registration
+    aggregate_id_field: registration_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent registration has been submitted
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: agent_registration_view
+      operation: insert
+    data_fields:
+      registration_id:
+        type: string
+        format: uuid
+      agent_name:
+        type: string
+      agent_type:
+        type: enum
+      proposed_by:
+        type: string
+        format: uuid
+      model_type:
+        type: string
+      model_version:
+        type: string
+
+  agent.registration.approved:
+    aggregate: registration
+    aggregate_id_field: registration_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent registration has been approved
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: agent_registration_view
+      operation: update
+      updates:
+        status: APPROVED
+    data_fields:
+      registration_id:
+        type: string
+        format: uuid
+      approved_by:
+        type: string
+        format: uuid
+      conditions:
+        type: array
+        required: false
+      approved_at:
+        type: timestamp
+
+  agent.registration.rejected:
+    aggregate: registration
+    aggregate_id_field: registration_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent registration has been rejected
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: agent_registration_view
+      operation: update
+      updates:
+        status: REJECTED
+    data_fields:
+      registration_id:
+        type: string
+        format: uuid
+      rejected_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+
+  agent.activated:
+    aggregate: instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent instance has been activated
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: agent_instance_view
+      operation: insert
+    data_fields:
+      agent_id:
+        type: string
+        format: uuid
+      registration_id:
+        type: string
+        format: uuid
+      activated_by:
+        type: string
+        format: uuid
+      trust_level:
+        type: enum
+
+  agent.execution.started:
+    aggregate: instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent execution has started
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+      - INV-008: all gates passed before execution
+      - INV-010: human override available
+    projection_effect:
+      target: agent_execution_view
+      operation: insert
+    data_fields:
+      execution_id:
+        type: string
+        format: uuid
+      agent_id:
+        type: string
+        format: uuid
+      identity_id:
+        type: string
+        format: uuid
+      intent_id:
+        type: string
+        format: uuid
+      command_id:
+        type: string
+        format: uuid
+      policy_decision_id:
+        type: string
+        format: uuid
+      capability_id:
+        type: string
+      model_version:
+        type: string
+      constitutional_rules:
+        type: array
+      input_summary:
+        type: string
+      executed_at:
+        type: timestamp
+      includes_audit_envelope:
+        type: boolean
+
+  agent.execution.completed:
+    aggregate: instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent execution has completed
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+      - INV-008: execution result recorded
+      - INV-010: human override available
+    projection_effect:
+      target: agent_execution_view
+      operation: update
+      updates:
+        status: COMPLETED
+    data_fields:
+      execution_id:
+        type: string
+        format: uuid
+      agent_id:
+        type: string
+        format: uuid
+      execution_result:
+        type: enum
+      execution_time_ms:
+        type: integer
+      resources_used:
+        type: object
+      state_changes:
+        type: array
+      output_summary:
+        type: string
+      error_detail:
+        type: string
+        required: false
+      completed_at:
+        type: timestamp
+      includes_audit_envelope:
+        type: boolean
+
+  agent.execution.failed:
+    aggregate: instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent execution has failed
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+    guarantees:
+      - INV-005: audit trail maintained
+      - INV-010: human override available
+    projection_effect:
+      target: agent_execution_view
+      operation: update
+      updates:
+        status: FAILED
+    data_fields:
+      execution_id:
+        type: string
+        format: uuid
+      agent_id:
+        type: string
+        format: uuid
+      error_detail:
+        type: string
+      failed_at_stage:
+        type: enum
+
+  agent.execution.escalated:
+    aggregate: instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent execution has been escalated
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+      - INV-010: human override available
+    projection_effect:
+      target: agent_execution_view
+      operation: update
+      updates:
+        status: ESCALATED
+    data_fields:
+      execution_id:
+        type: string
+        format: uuid
+      agent_id:
+        type: string
+        format: uuid
+      escalation_reason:
+        type: string
+
+  agent.capability.bound:
+    aggregate: capability_binding
+    aggregate_id_field: binding_id
+    source_domain: agent
+    version: 1.0.0
+    description: A capability has been bound to an agent
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: agent_capability_binding_view
+      operation: insert
+    data_fields:
+      binding_id:
+        type: string
+        format: uuid
+      agent_id:
+        type: string
+        format: uuid
+      capability_id:
+        type: string
+      scope_pattern:
+        type: string
+      granted_by:
+        type: string
+        format: uuid
+
+  agent.capability.revoked:
+    aggregate: capability_binding
+    aggregate_id_field: binding_id
+    source_domain: agent
+    version: 1.0.0
+    description: A capability has been revoked from an agent
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: agent_capability_binding_view
+      operation: update
+      updates:
+        status: REVOKED
+    data_fields:
+      binding_id:
+        type: string
+        format: uuid
+      agent_id:
+        type: string
+        format: uuid
+      revoked_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+
+  agent.suspended:
+    aggregate: instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent instance has been suspended
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+      - INV-010: human override available
+    projection_effect:
+      target: agent_instance_view
+      operation: update
+      updates:
+        status: SUSPENDED
+    data_fields:
+      agent_id:
+        type: string
+        format: uuid
+      suspended_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+
+  agent.terminated:
+    aggregate: instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent instance has been terminated
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+      - INV-010: human override available
+    projection_effect:
+      target: agent_instance_view
+      operation: update
+      updates:
+        status: TERMINATED
+    data_fields:
+      agent_id:
+        type: string
+        format: uuid
+      terminated_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      terminated_at:
+        type: timestamp
+
+  agent.governance.override.issued:
+    aggregate: governance_override
+    aggregate_id_field: override_id
+    source_domain: agent
+    version: 1.0.0
+    description: A governance override has been issued for an agent
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - INV-004: AI agent confinement
+      - INV-005: audit trail maintained
+      - INV-010: human override available
+    projection_effect:
+      target: agent_governance_override_view
+      operation: insert
+    data_fields:
+      override_id:
+        type: string
+        format: uuid
+      agent_id:
+        type: string
+        format: uuid
+      override_type:
+        type: enum
+      initiated_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      constitutional_reference:
+        type: string
+
+  agent.quota.exceeded:
+    aggregate: instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent has exceeded its quota
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+    guarantees:
+      - INV-007: resource boundaries enforced
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: agent_instance_view
+      operation: update
+      updates:
+        quota_exceeded: true
+    data_fields:
+      agent_id:
+        type: string
+        format: uuid
+      quota_type:
+        type: string
+      current_usage:
+        type: decimal
+        precision: 18
+      limit:
+        type: decimal
+        precision: 18
+      period:
+        type: enum
+
+  agent.concurrency.limit_reached:
+    aggregate: instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: An agent has reached its concurrency limit
+    producer: agent_service
+    consumers:
+      - agent_projection
+      - audit_projection
+    guarantees:
+      - INV-007: resource boundaries enforced
+      - INV-005: audit trail maintained
+    projection_effect:
+      target: agent_instance_view
+      operation: update
+      updates:
+        concurrency_limit_reached: true
+    data_fields:
+      agent_id:
+        type: string
+        format: uuid
+      current_executions:
+        type: integer
+      max_concurrent:
+        type: integer
+      queued_count:
+        type: integer
+
+  # ========================================================
+  # PAYMENT DOMAIN EVENTS (Phase E — Mechanical Registration)
+  # ========================================================
+
+  payment.request.created:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: payment_service
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    guarantees:
+      - payment_request_id is globally unique
+      - source_transfer_id references existing treasury.transfer
+      - amount matches treasury.transfer amount
+    projection_effect:
+      target: payment_status_view
+      operation: insert
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      source_transfer_id: { type: string, format: uuid }
+      rail_type: { type: enum, required: false }
+      amount: { type: object }
+      urgency: { type: enum }
+      state: { type: enum }
+
+  payment.request.cancelled:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: payment_service
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    guarantees:
+      - payment_request.state was in a cancellable state
+      - No adapter execution was in progress
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      reason: { type: string }
+      cancelled_by: { type: string, format: uuid }
+      state: { type: enum, values: [CANCELLED] }
+
+  payment.execution.planned:
+    aggregate: execution_plan
+    aggregate_id_field: execution_plan_id
+    source_domain: payment
+    version: 1.0.0
+    producer: routing_engine
+    consumers: [payment_projection, audit_projection]
+    guarantees:
+      - Routing was deterministic
+      - Selected rail is compatible with asset type
+      - All evaluation criteria were scored
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      execution_plan_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      selected_rail: { type: enum }
+      confidence_score: { type: decimal, precision: 4 }
+      estimated_settlement_time_ms: { type: integer }
+      compensation_strategy: { type: string }
+
+  payment.execution.started:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection]
+    guarantees:
+      - Execution plan was approved
+      - Adapter was registered
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      adapter_phase: { type: enum, values: [EXECUTE] }
+
+  payment.execution.completed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, treasury_projection, receipt_service]
+    guarantees:
+      - Rail adapter returned confirmed: true
+      - Rail reference ID was captured
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_reference_id: { type: string }
+      actual_amount: { type: decimal, precision: 18 }
+      fees: { type: decimal, precision: 18 }
+      state: { type: enum, values: [RECONCILING] }
+
+  payment.execution.failed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, escalation_service]
+    guarantees:
+      - Failure reason was captured
+      - Compensation may be required
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      failure_reason: { type: string }
+      failure_phase: { type: enum }
+      retryable: { type: boolean }
+      state: { type: enum, values: [FAILED] }
+
+  payment.rail.prepared:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    guarantees:
+      - Adapter did not mutate constitutional state
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_preparation_id: { type: string }
+      rail_metadata: { type: object, required: false }
+
+  payment.rail.executed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    guarantees:
+      - Adapter did not mutate constitutional state
+      - Rail execution ID was captured
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_execution_id: { type: string }
+      rail_reference_id: { type: string, required: false }
+      submitted_at: { type: timestamp }
+
+  payment.rail.confirmed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    guarantees:
+      - External system confirmed the transaction
+      - Actual amount matches or discrepancy was flagged
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_reference_id: { type: string }
+      confirmed_amount: { type: decimal, precision: 18 }
+      fees: { type: decimal, precision: 18 }
+      fx_rate: { type: decimal, precision: 8, required: false }
+
+  payment.rail.failed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection, escalation_service]
+    guarantees:
+      - Failure was captured without data loss
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_execution_id: { type: string }
+      error_code: { type: string }
+      error_message: { type: string }
+      retryable: { type: boolean }
+
+  payment.reconciliation.started:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: payment
+    version: 1.0.0
+    producer: reconciliation_service
+    consumers: [payment_projection, audit_projection, governance_projection]
+    projection_effect:
+      target: reconciliation_view
+      operation: insert
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      trigger_type: { type: enum }
+
+  payment.reconciliation.completed:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: payment
+    version: 1.0.0
+    producer: reconciliation_service
+    consumers: [payment_projection, audit_projection, governance_projection]
+    projection_effect:
+      target: reconciliation_view
+      operation: update
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      status: { type: enum }
+      matched: { type: boolean }
+      discrepancy_amount: { type: decimal, precision: 18, required: false }
+      resolved_by: { type: string, format: uuid, required: false }
+
+  payment.reconciliation.discrepancy:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: payment
+    version: 1.0.0
+    producer: reconciliation_service
+    consumers: [payment_projection, audit_projection, escalation_service, governance_projection]
+    projection_effect:
+      target: reconciliation_view
+      operation: update
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      expected_amount: { type: decimal, precision: 18 }
+      actual_amount: { type: decimal, precision: 18 }
+      discrepancy_amount: { type: decimal, precision: 18 }
+      severity: { type: enum, values: [LOW, MEDIUM, HIGH, CRITICAL] }
+
+  payment.receipt.issued:
+    aggregate: execution_receipt
+    aggregate_id_field: receipt_id
+    source_domain: payment
+    version: 1.0.0
+    producer: receipt_service
+    consumers: [payment_projection, audit_projection, compliance_projection]
+    guarantees:
+      - Payment was in SETTLED state
+      - All constitutional gates were passed
+    projection_effect:
+      target: receipt_view
+      operation: insert
+    data_fields:
+      receipt_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_reference_id: { type: string }
+      amount_executed: { type: object }
+      fees: { type: decimal, precision: 18 }
+      constitutional_compliance_attestation: { type: enum }
+
+  payment.compensation.started:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      reason: { type: string }
+      compensation_strategy: { type: string }
+      state: { type: enum, values: [COMPENSATING] }
+
+  payment.compensation.completed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      reversal_rail_reference_id: { type: string, required: false }
+      state: { type: enum, values: [REVERSED] }
+
+  # ========================================================
+  # GOVERNANCE DOMAIN EVENTS
+  # ========================================================
+
+  governance.proposal.submitted:
+    aggregate: governance_proposal
+    aggregate_id_field: proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: A new governance proposal has been submitted
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_proposal_view
+      operation: insert
+    data_fields:
+      proposal_id: { type: string, format: uuid }
+      proposal_type: { type: enum, values: [CONSTITUTIONAL_AMENDMENT, POLICY_RULE_CREATE, POLICY_RULE_MODIFY, CAPABILITY_GRANT, CAPABILITY_REVOKE, AGENT_APPROVAL, AGENT_OVERRIDE, BOUNDARY_SYSTEM_APPROVAL, EMERGENCY_HALT, AUDIT_INVESTIGATION] }
+      proposed_by: { type: string, format: uuid }
+      target_domain: { type: enum, values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, GOVERNANCE, SYSTEM] }
+      required_approvals: { type: integer }
+      expires_at: { type: timestamp }
+
+  governance.proposal.approved:
+    aggregate: governance_proposal
+    aggregate_id_field: proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: A governance proposal has been approved
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_proposal_view
+      operation: update
+      updates:
+        state: APPROVED
+        current_approvals: event.current_approvals
+    data_fields:
+      proposal_id: { type: string, format: uuid }
+      approver_id: { type: string, format: uuid }
+      current_approvals: { type: integer }
+      required_approvals: { type: integer }
+
+  governance.proposal.rejected:
+    aggregate: governance_proposal
+    aggregate_id_field: proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: A governance proposal has been rejected
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_proposal_view
+      operation: update
+      updates:
+        state: REJECTED
+    data_fields:
+      proposal_id: { type: string, format: uuid }
+      rejector_id: { type: string, format: uuid }
+      reason: { type: string }
+
+  governance.amendment.proposed:
+    aggregate: governance_amendment
+    aggregate_id_field: amendment_id
+    source_domain: governance
+    version: 1.0.0
+    description: A constitutional amendment has been proposed
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_amendment_view
+      operation: insert
+    data_fields:
+      amendment_id: { type: string, format: uuid }
+      amendment_number: { type: string }
+      section: { type: enum, values: [INVARIANTS, CONFLICT_RESOLUTION, AUTHORITY_MODEL, FINANCIAL_INTEGRITY, AGENT_GOVERNANCE, GOVERNANCE_STRUCTURE, RUNTIME_ENFORCEMENT, PROTECTED_ARTICLES] }
+      proposed_by: { type: string, format: uuid }
+      voting_ends_at: { type: timestamp }
+
+  governance.amendment.ratified:
+    aggregate: governance_amendment
+    aggregate_id_field: amendment_id
+    source_domain: governance
+    version: 1.0.0
+    description: A constitutional amendment has been ratified
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_amendment_view
+      operation: update
+      updates:
+        state: RATIFIED
+        ratified_at: event.timestamp
+    data_fields:
+      amendment_id: { type: string, format: uuid }
+      amendment_number: { type: string }
+      section: { type: string }
+      ratified_at: { type: timestamp }
+      new_text: { type: string }
+
+  governance.emergency_halt.issued:
+    aggregate: emergency_halt
+    aggregate_id_field: halt_id
+    source_domain: governance
+    version: 1.0.0
+    description: An emergency system halt has been issued
+    producer: governance_service
+    consumers: [governance_projection, audit_projection, vault_projection, treasury_projection, ledger_projection]
+    projection_effect:
+      target: emergency_halt_view
+      operation: insert
+    data_fields:
+      halt_id: { type: string, format: uuid }
+      triggered_by: { type: string, format: uuid }
+      co_triggered_by: { type: string, format: uuid, required: false }
+      trigger_reason: { type: enum, values: [ACTIVE_BREACH, ASSET_INTEGRITY_COMPROMISED, REGULATORY_MANDATE, SYSTEMIC_FAILURE] }
+      affected_domains: { type: array, items: { type: enum, values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, ALL] } }
+      expires_at: { type: timestamp }
+
+  governance.emergency_halt.lifted:
+    aggregate: emergency_halt
+    aggregate_id_field: halt_id
+    source_domain: governance
+    version: 1.0.0
+    description: An emergency system halt has been lifted
+    producer: governance_service
+    consumers: [governance_projection, audit_projection, vault_projection, treasury_projection, ledger_projection]
+    projection_effect:
+      target: emergency_halt_view
+      operation: update
+      updates:
+        state: LIFTED
+        lifted_at: event.timestamp
+    data_fields:
+      halt_id: { type: string, format: uuid }
+      lifted_by: { type: string, format: uuid }
+      lifted_at: { type: timestamp }
+
+  governance.audit.queried:
+    aggregate: audit_record
+    aggregate_id_field: audit_id
+    source_domain: governance
+    version: 1.0.0
+    description: An audit query has been executed
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: audit_record_view
+      operation: insert
+    data_fields:
+      audit_id: { type: string, format: uuid }
+      audit_type: { type: enum, values: [ROUTINE, INVESTIGATIVE, COMPLIANCE, EMERGENCY, CONSTITUTIONAL] }
+      target_domains: { type: array, items: { type: enum, values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, ALL] } }
+      start_date: { type: timestamp }
+      end_date: { type: timestamp, required: false }
+
+  governance.oversight.reviewed:
+    aggregate: audit_record
+    aggregate_id_field: audit_id
+    source_domain: governance
+    version: 1.0.0
+    description: An oversight review has been completed
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: audit_record_view
+      operation: update
+      updates:
+        state: COMPLETED
+        completed_at: event.timestamp
+    data_fields:
+      audit_id: { type: string, format: uuid }
+      findings_summary: { type: string }
+      actions_required: { type: array, items: { type: string } }
+
+  governance.capability.granted:
+    aggregate: capability_grant
+    aggregate_id_field: grant_id
+    source_domain: governance
+    version: 1.0.0
+    description: A capability has been granted to an actor
+    producer: governance_service
+    consumers: [governance_projection, audit_projection, capability_projection]
+    projection_effect:
+      target: capability_grant_view
+      operation: insert
+    data_fields:
+      grant_id: { type: string, format: uuid }
+      capability_id: { type: string }
+      actor_id: { type: string, format: uuid }
+      scope_pattern: { type: string }
+      granted_by: { type: string, format: uuid }
+      expires_at: { type: timestamp, required: false }
+
+  governance.capability.revoked:
+    aggregate: capability_grant
+    aggregate_id_field: grant_id
+    source_domain: governance
+    version: 1.0.0
+    description: A capability has been revoked from an actor
+    producer: governance_service
+    consumers: [governance_projection, audit_projection, capability_projection]
+    projection_effect:
+      target: capability_grant_view
+      operation: update
+      updates:
+        state: REVOKED
+        revoked_at: event.timestamp
+    data_fields:
+      grant_id: { type: string, format: uuid }
+      capability_id: { type: string }
+      actor_id: { type: string, format: uuid }
+      revoked_by: { type: string, format: uuid }
+      reason: { type: string }
+
+  governance.escalation.submitted:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: A governance escalation has been submitted
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_escalation_view
+      operation: insert
+    data_fields:
+      escalation_id: { type: string, format: uuid }
+      source_domain: { type: enum, values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, GOVERNANCE] }
+      source_event_id: { type: string, format: uuid }
+      reason: { type: string }
+      submitted_by: { type: string, format: uuid }
+
+  governance.escalation.resolved:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: A governance escalation has been resolved
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_escalation_view
+      operation: update
+      updates:
+        state: RESOLVED
+        resolved_at: event.timestamp
+    data_fields:
+      escalation_id: { type: string, format: uuid }
+      resolution: { type: object }
+      resolved_by: { type: string, format: uuid }
+      resolved_at: { type: timestamp }
+
+  governance.escalation.expired:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: A governance escalation has expired without resolution
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_escalation_view
+      operation: update
+      updates:
+        state: EXPIRED
+    data_fields:
+      escalation_id: { type: string, format: uuid }
+      expired_at: { type: timestamp }
+      compensation_action: { type: string }
+
+  governance.policy_rule.review_requested:
+    aggregate: policy_rule
+    aggregate_id_field: rule_id
+    source_domain: governance
+    version: 1.0.0
+    description: Governance review has been requested for a policy rule
+    producer: governance_service
+    consumers: [governance_projection, audit_projection, policy_projection]
+    projection_effect:
+      target: policy_rule_review_view
+      operation: insert
+    data_fields:
+      rule_id: { type: string, format: uuid }
+      rule_name: { type: string }
+      requested_by: { type: string, format: uuid }
+      review_reason: { type: string }
+
+  governance.policy_rule.activated.notification.sent:
+    aggregate: policy_rule
+    aggregate_id_field: rule_id
+    source_domain: governance
+    version: 1.0.0
+    description: Notification sent to affected domains after policy rule activation
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: policy_rule_notification_view
+      operation: insert
+    data_fields:
+      rule_id: { type: string, format: uuid }
+      notified_domains: { type: array, items: { type: string } }
+      notification_status: { type: enum, values: [SENT, FAILED, PARTIAL] }
+
+  governance.proposal.cancelled:
+    aggregate: governance_proposal
+    aggregate_id_field: proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: A governance proposal has been cancelled
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_proposal_view
+      operation: update
+      updates:
+        state: CANCELLED
+    data_fields:
+      proposal_id: { type: string, format: uuid }
+      cancelled_by: { type: string, format: uuid }
+      reason: { type: string }
+      cancelled_at: { type: timestamp }
+
+  governance.proposal.expired:
+    aggregate: governance_proposal
+    aggregate_id_field: proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: A governance proposal has expired without action
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_proposal_view
+      operation: update
+      updates:
+        state: EXPIRED
+    data_fields:
+      proposal_id: { type: string, format: uuid }
+      expired_at: { type: timestamp }
+
+  governance.proposal.implemented:
+    aggregate: governance_proposal
+    aggregate_id_field: proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: A governance proposal has been implemented
+    producer: governance_service
+    consumers: [governance_projection, audit_projection]
+    projection_effect:
+      target: governance_proposal_view
+      operation: update
+      updates:
+        state: IMPLEMENTED
+    data_fields:
+      proposal_id: { type: string, format: uuid }
+      implemented_by: { type: string, format: uuid }
+      implemented_at: { type: timestamp }
+      implementation_summary: { type: string }
+
+  identity.session.authentication_failed:
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: An identity session authentication attempt failed
+    producer: identity_service
+    consumers: [identity_projection, audit_projection]
+    projection_effect:
+      target: identity_session_view
+      operation: update
+      updates:
+        authentication_status: FAILED
+    data_fields:
+      session_id: { type: string, format: uuid }
+      identity_id: { type: string, format: uuid, required: false }
+      actor_type: { type: enum, required: false }
+      failure_reason: { type: string }
+      authentication_method: { type: enum, required: false }
+
+  identity.delegation.limit_exceeded:
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: A delegation chain depth limit has been exceeded
+    producer: identity_service
+    consumers: [identity_projection, audit_projection]
+    projection_effect:
+      target: identity_delegation_view
+      operation: update
+      updates:
+        status: LIMIT_EXCEEDED
+    data_fields:
+      delegation_id: { type: string, format: uuid }
+      delegator_id: { type: string, format: uuid }
+      delegate_id: { type: string, format: uuid }
+      limit_type: { type: string }
+      current_depth: { type: integer }
+      max_depth: { type: integer }
+      exceeded_at: { type: timestamp }
+
+  payment.execution.planning_failed:
+    aggregate: execution_plan
+    aggregate_id_field: execution_plan_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment execution plan generation failed
+    producer: routing_engine
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: PLANNING_FAILED
+    data_fields:
+      execution_plan_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  payment.execution.start_failed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment execution start failed
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: START_FAILED
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  payment.execution.settled:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment execution has been settled
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: SETTLED
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      settlement_reference: { type: string }
+      settled_at: { type: timestamp }
+      settlement_amount: { type: decimal, precision: 18 }
+
+  payment.execution.confirmation_failed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment execution confirmation failed
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: CONFIRMATION_FAILED
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  payment.rail.preparing:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment request is being prepared on a rail
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: PREPARING
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_preparation_id: { type: string }
+      preparing_at: { type: timestamp }
+
+  payment.rail.executing:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment request is executing on a rail
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: EXECUTING
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_execution_id: { type: string }
+      executing_at: { type: timestamp }
+
+  payment.rail.confirming:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment request is being confirmed on a rail
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: CONFIRMING
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      confirming_at: { type: timestamp }
+
+  payment.rail.validating:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment request is being validated on a rail
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: VALIDATING
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_validation_id: { type: string }
+      validating_at: { type: timestamp }
+
+  payment.rail.validated:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment request has been validated on a rail
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: VALIDATED
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      rail_validation_id: { type: string }
+      validated_at: { type: timestamp }
+
+  payment.rail.prepare_timed_out:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Rail preparation phase timed out for a payment request
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: PREPARE_TIMEOUT
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      timeout_ms: { type: integer }
+      timed_out_at: { type: timestamp }
+
+  payment.rail.execution_timed_out:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Rail execution phase timed out for a payment request
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: EXECUTION_TIMEOUT
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      timeout_ms: { type: integer }
+      timed_out_at: { type: timestamp }
+
+  payment.rail.confirmation_timed_out:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Rail confirmation phase timed out for a payment request
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: CONFIRMATION_TIMEOUT
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      timeout_ms: { type: integer }
+      timed_out_at: { type: timestamp }
+
+  payment.rail.validation_timed_out:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Rail validation phase timed out for a payment request
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: VALIDATION_TIMEOUT
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum }
+      timeout_ms: { type: integer }
+      timed_out_at: { type: timestamp }
+
+  payment.reconciliation.start_failed:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment reconciliation start failed
+    producer: reconciliation_service
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: reconciliation_view
+      operation: insert
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  payment.reconciliation.timed_out:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment reconciliation timed out
+    producer: reconciliation_service
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: reconciliation_view
+      operation: update
+      updates:
+        state: TIMED_OUT
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      timeout_ms: { type: integer }
+      timed_out_at: { type: timestamp }
+
+  payment.reconciliation.completion_failed:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment reconciliation completion failed
+    producer: reconciliation_service
+    consumers: [payment_projection, audit_projection, governance_projection]
+    projection_effect:
+      target: reconciliation_view
+      operation: update
+      updates:
+        state: COMPLETION_FAILED
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  payment.compensation.start_failed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment compensation start failed
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: COMPENSATION_START_FAILED
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  payment.compensation.timed_out:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment compensation timed out
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: COMPENSATION_TIMEOUT
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      timeout_ms: { type: integer }
+      timed_out_at: { type: timestamp }
+
+  payment.receipt.issuance_failed:
+    aggregate: execution_receipt
+    aggregate_id_field: receipt_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment receipt issuance failed
+    producer: receipt_service
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: receipt_view
+      operation: insert
+    data_fields:
+      receipt_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  payment.settlement.confirmed:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment settlement has been confirmed
+    producer: treasury_service
+    consumers: [payment_projection, treasury_projection, ledger_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        settlement_status: CONFIRMED
+    data_fields:
+      order_id: { type: string, format: uuid }
+      settlement_reference: { type: string }
+      settlement_amount: { type: decimal, precision: 18 }
+      confirmed_at: { type: timestamp }
+
+  payment.settlement.completed:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment settlement has completed
+    producer: treasury_service
+    consumers: [payment_projection, treasury_projection, ledger_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        settlement_status: COMPLETED
+    data_fields:
+      order_id: { type: string, format: uuid }
+      settlement_reference: { type: string }
+      completed_at: { type: timestamp }
+
+  payment.settlement.failed:
+    aggregate: transfer_order
+    aggregate_id_field: order_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment settlement failed
+    producer: treasury_service
+    consumers: [payment_projection, treasury_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: SETTLEMENT_FAILED
+    data_fields:
+      order_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+      retryable: { type: boolean }
+
+  payment.request.creation_failed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment request creation failed
+    producer: payment_service
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: insert
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  payment.request.cancellation_failed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment request cancellation failed
+    producer: payment_service
+    consumers: [payment_projection, audit_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+      updates:
+        state: CANCELLATION_FAILED
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  ledger.account.closed:
+    aggregate: account
+    aggregate_id_field: account_id
+    source_domain: ledger
+    version: 1.0.0
+    description: A ledger account has been closed
+    producer: ledger_service
+    consumers: [ledger_projection, audit_projection]
+    projection_effect:
+      target: chart_of_accounts_view
+      operation: update
+      updates:
+        status: CLOSED
+    data_fields:
+      account_id: { type: string, format: uuid }
+      closed_at: { type: timestamp }
+      closed_by: { type: string, format: uuid }
+
+  ledger.account.freeze_failed:
+    aggregate: account
+    aggregate_id_field: account_id
+    source_domain: ledger
+    version: 1.0.0
+    description: Ledger account freeze failed
+    producer: ledger_service
+    consumers: [ledger_projection, audit_projection]
+    projection_effect:
+      target: chart_of_accounts_view
+      operation: update
+    data_fields:
+      account_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  ledger.entry.correction_failed:
+    aggregate: journal_entry
+    aggregate_id_field: entry_id
+    source_domain: ledger
+    version: 1.0.0
+    description: Journal entry correction failed
+    producer: ledger_service
+    consumers: [ledger_projection, audit_projection]
+    projection_effect:
+      target: none
+      operation: none
+    data_fields:
+      entry_id: { type: string, format: uuid }
+      journal_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  ledger.entry.rejection_failed:
+    aggregate: journal_entry
+    aggregate_id_field: entry_id
+    source_domain: ledger
+    version: 1.0.0
+    description: Journal entry rejection failed
+    producer: ledger_service
+    consumers: [audit_projection]
+    projection_effect:
+      target: none
+      operation: none
+    data_fields:
+      entry_id: { type: string, format: uuid }
+      journal_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  ledger.period.close_failed:
+    aggregate: accounting_period
+    aggregate_id_field: period_id
+    source_domain: ledger
+    version: 1.0.0
+    description: Accounting period close failed
+    producer: ledger_service
+    consumers: [ledger_projection, audit_projection, governance_projection]
+    projection_effect:
+      target: accounting_period_view
+      operation: update
+    data_fields:
+      period_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  ledger.reconciliation.resolution_failed:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: ledger
+    version: 1.0.0
+    description: Ledger reconciliation resolution failed
+    producer: ledger_service
+    consumers: [ledger_projection, audit_projection, governance_projection]
+    projection_effect:
+      target: reconciliation_dashboard_view
+      operation: update
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  ledger.reconciliation.start_failed:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: ledger
+    version: 1.0.0
+    description: Ledger reconciliation start failed
+    producer: ledger_service
+    consumers: [ledger_projection, audit_projection, governance_projection]
+    projection_effect:
+      target: reconciliation_dashboard_view
+      operation: update
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  saga.started:
+    aggregate: saga_instance
+    aggregate_id_field: saga_id
+    source_domain: kernel
+    version: 1.0.0
+    description: A saga instance has started
+    producer: saga_orchestrator
+    consumers: [audit_projection]
+    projection_effect:
+      target: saga_instance_view
+      operation: insert
+    data_fields:
+      saga_id: { type: string, format: uuid }
+      saga_type: { type: string }
+      started_at: { type: timestamp }
+
+  saga.completed:
+    aggregate: saga_instance
+    aggregate_id_field: saga_id
+    source_domain: kernel
+    version: 1.0.0
+    description: A saga instance has completed successfully
+    producer: saga_orchestrator
+    consumers: [audit_projection]
+    projection_effect:
+      target: saga_instance_view
+      operation: update
+      updates:
+        state: COMPLETED
+    data_fields:
+      saga_id: { type: string, format: uuid }
+      completed_at: { type: timestamp }
+
+  saga.failed:
+    aggregate: saga_instance
+    aggregate_id_field: saga_id
+    source_domain: kernel
+    version: 1.0.0
+    description: A saga instance has failed
+    producer: saga_orchestrator
+    consumers: [audit_projection]
+    projection_effect:
+      target: saga_instance_view
+      operation: update
+      updates:
+        state: FAILED
+    data_fields:
+      saga_id: { type: string, format: uuid }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+
+  saga.compensating:
+    aggregate: saga_instance
+    aggregate_id_field: saga_id
+    source_domain: kernel
+    version: 1.0.0
+    description: A saga instance is in the compensating phase
+    producer: saga_orchestrator
+    consumers: [audit_projection]
+    projection_effect:
+      target: saga_instance_view
+      operation: update
+      updates:
+        state: COMPENSATING
+    data_fields:
+      saga_id: { type: string, format: uuid }
+      compensating_at: { type: timestamp }
+      current_step: { type: string }
+
+  saga.compensated:
+    aggregate: saga_instance
+    aggregate_id_field: saga_id
+    source_domain: kernel
+    version: 1.0.0
+    description: A saga instance has been fully compensated
+    producer: saga_orchestrator
+    consumers: [audit_projection]
+    projection_effect:
+      target: saga_instance_view
+      operation: update
+      updates:
+        state: COMPENSATED
+    data_fields:
+      saga_id: { type: string, format: uuid }
+      compensated_at: { type: timestamp }
+      compensation_strategy: { type: string }
+
+  system.health.degraded:
+    aggregate: system_health
+    aggregate_id_field: health_id
+    source_domain: kernel
+    version: 1.0.0
+    description: System health has degraded
+    producer: health_monitor
+    consumers: [audit_projection, governance_projection]
+    projection_effect:
+      target: system_health_view
+      operation: update
+      updates:
+        state: DEGRADED
+    data_fields:
+      health_id: { type: string, format: uuid }
+      degradation_reason: { type: string }
+      degraded_at: { type: timestamp }
+      affected_services: { type: array, items: { type: string } }
+
+  system.health.restored:
+    aggregate: system_health
+    aggregate_id_field: health_id
+    source_domain: kernel
+    version: 1.0.0
+    description: System health has been restored
+    producer: health_monitor
+    consumers: [audit_projection, governance_projection]
+    projection_effect:
+      target: system_health_view
+      operation: update
+      updates:
+        state: HEALTHY
+    data_fields:
+      health_id: { type: string, format: uuid }
+      restored_at: { type: timestamp }
+      restoration_action: { type: string }
+
+  system.health.unknown:
+    aggregate: system_health
+    aggregate_id_field: health_id
+    source_domain: kernel
+    version: 1.0.0
+    description: System health state is unknown
+    producer: health_monitor
+    consumers: [audit_projection, governance_projection]
+    projection_effect:
+      target: system_health_view
+      operation: update
+      updates:
+        state: UNKNOWN
+    data_fields:
+      health_id: { type: string, format: uuid }
+      unknown_since: { type: timestamp }
+      last_known_state: { type: string }
+
+  system.health.halted:
+    aggregate: system_health
+    aggregate_id_field: health_id
+    source_domain: kernel
+    version: 1.0.0
+    description: System health has halted
+    producer: health_monitor
+    consumers: [audit_projection, governance_projection, vault_projection, treasury_projection, ledger_projection]
+    projection_effect:
+      target: system_health_view
+      operation: update
+      updates:
+        state: HALTED
+    data_fields:
+      health_id: { type: string, format: uuid }
+      halted_at: { type: timestamp }
+      halt_reason: { type: enum }
+      triggered_by: { type: string, format: uuid }
+      affected_domains: { type: array, items: { type: string } }

@@ -1,0 +1,72 @@
+security:
+  status: conditional
+  evidence:
+    - certification/SECURITY_FINAL_AUDIT.md
+    - apps/api/src/index.ts uses real RBAC
+    - packages/security/src/crypto.ts SHA-256 chain
+
+database:
+  status: conditional
+  evidence:
+    - deployment/docker-compose.production.yml
+    - packages/events/src/postgres.ts
+    - packages/events/src/schema.ts
+    - migrations/run.ts
+
+event_integrity:
+  status: green
+  evidence:
+    - packages/kernel/src/integrity/hash-engine.ts
+    - packages/kernel/src/integrity/chain-verifier.ts
+    - tests/security/event-integrity.test.ts (6 tests PASS)
+    - packages/ledger/src/index.ts SHA-256
+
+authorization:
+  status: green
+  evidence:
+    - apps/api/src/index.ts replaces authorize:()=>true
+    - packages/security/src/rbac.ts Role/Permission enforcement
+    - packages/security/src/authz.ts AuthorizationService
+
+performance:
+  status: conditional
+  evidence:
+    - tests/stress/concurrency.test.ts PASS
+    - Prometheus /metrics endpoint pending
+
+governance:
+  status: conditional
+  evidence:
+    - management/PHASE_XI_CHANGE_MANIFEST.md
+    - governance/STATE_RECONCILIATION_REPORT.md
+
+# Phase XII — Compiler Authority Verification
+phase_xii:
+  yaml_authority:
+    status: verified
+    evidence:
+      - certification/COMPILER_INPUT_TRACE.yaml (28 sources traced)
+      - All protocol YAML parsable and conformant
+  compiler_executable:
+    status: partial
+    evidence:
+      - packages/compiler builds clean (tsc -b exit 0)
+      - packages/compiler/runtime builds clean (tsc -b exit 0)
+      - CompilerRuntime.execute() works on programmatic input
+      - CompilerEngine.parse() is STUB — returns empty ParsedProtocol
+      - No YAML-to-artifact pipeline wired
+  runtime_derived:
+    status: partial
+    evidence:
+      - certification/RUNTIME_AUTHORITY_MATRIX.yaml (31 rules traced, 26 YAML-sourced)
+      - certification/HARDCODE_DEVIATION_REPORT.yaml (3 deviations: DEV-001, DEV-002, DEV-006)
+  certification_generated:
+    status: partial
+    evidence:
+      - certification/COMPILER_EXECUTION_PROOF.yaml
+      - Certification reports still manually authored (not compiler-generated)
+  compiler_contract:
+    status: governance_draft
+    evidence:
+      - certification/SEMANTIC_COMPILER_CONTRACT_ASSESSMENT.yaml
+      - Preconditions SATISFIED but AMD-0002/0004/0005/0009/0010 not RATIFIED

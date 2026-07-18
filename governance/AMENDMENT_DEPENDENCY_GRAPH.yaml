@@ -1,0 +1,175 @@
+amendment_dependency_graph:
+  schema_version: 1.0.0
+  phase: amendment_execution_review
+  source: governance/amendments/INDEX.yaml
+  execution_order:
+  - AMD-0001
+  - AMD-0004
+  - AMD-0010
+  - AMD-0007
+  - AMD-0006
+  - AMD-0002
+  - AMD-0003
+  - AMD-0005
+  - AMD-0009
+  - AMD-0011
+  - AMD-0008
+  - AMD-0012
+  rule: AN_AMENDMENT_RUNS_ONLY_AFTER_ALL_DEPENDS_ON_ARE_APPLIED
+  amendments:
+  - id: AMD-0001
+    title: Repair Invalid YAML Structure
+    severity: critical
+    status: PROPOSED
+    findings:
+    - G-01
+    depends_on: &id001 []
+    required_before: *id001
+    conflicts_with: []
+    enables:
+    - AMD-0004
+    application_order: 1
+  - id: AMD-0002
+    title: Aggregate Root Constitutional Registry
+    severity: high
+    status: PROPOSED
+    findings:
+    - G-02
+    depends_on: &id002
+    - AMD-0006
+    required_before: *id002
+    conflicts_with: []
+    enables:
+    - AMD-0003
+    application_order: 6
+  - id: AMD-0003
+    title: Saga Command Reference Resolution
+    severity: high
+    status: PROPOSED
+    findings:
+    - G-03
+    depends_on: &id003
+    - AMD-0002
+    required_before: *id003
+    conflicts_with: []
+    enables:
+    - AMD-0005
+    application_order: 7
+  - id: AMD-0004
+    title: Canonical Domain Registry
+    severity: high
+    status: PROPOSED
+    findings:
+    - G-05
+    depends_on: &id004
+    - AMD-0001
+    required_before: *id004
+    conflicts_with: []
+    enables:
+    - AMD-0010
+    application_order: 2
+  - id: AMD-0005
+    title: Validation Expression Language Specification
+    severity: high
+    status: PROPOSED
+    findings:
+    - G-06
+    depends_on: &id005
+    - AMD-0003
+    required_before: *id005
+    conflicts_with: []
+    enables:
+    - AMD-0009
+    application_order: 8
+  - id: AMD-0006
+    title: Event Catalog Completion
+    severity: high
+    status: PROPOSED
+    findings:
+    - G-09
+    depends_on: &id006
+    - AMD-0007
+    required_before: *id006
+    conflicts_with: []
+    enables:
+    - AMD-0002
+    application_order: 5
+  - id: AMD-0007
+    title: Entity Registration Reconciliation
+    severity: high
+    status: PROPOSED
+    findings:
+    - G-10
+    depends_on: &id007
+    - AMD-0010
+    required_before: *id007
+    conflicts_with: []
+    enables:
+    - AMD-0006
+    application_order: 4
+  - id: AMD-0008
+    title: Value Object Model
+    severity: medium
+    status: PROPOSED
+    findings:
+    - G-04
+    depends_on: &id008
+    - AMD-0011
+    required_before: *id008
+    conflicts_with: []
+    enables:
+    - AMD-0012
+    application_order: 11
+  - id: AMD-0009
+    title: State Machine Transition Completion
+    severity: medium
+    status: PROPOSED
+    findings:
+    - G-08
+    depends_on: &id009
+    - AMD-0005
+    required_before: *id009
+    conflicts_with: []
+    enables:
+    - AMD-0011
+    application_order: 9
+  - id: AMD-0010
+    title: Constitutional Metadata Standard
+    severity: medium
+    status: PROPOSED
+    findings:
+    - G-11
+    - G-12
+    - G-13
+    depends_on: &id010
+    - AMD-0004
+    required_before: *id010
+    conflicts_with: []
+    enables:
+    - AMD-0007
+    application_order: 3
+  - id: AMD-0011
+    title: Domain File Structure Normalization
+    severity: medium
+    status: PROPOSED
+    findings:
+    - G-15
+    depends_on: &id011
+    - AMD-0009
+    required_before: *id011
+    conflicts_with: []
+    enables:
+    - AMD-0008
+    application_order: 10
+  - id: AMD-0012
+    title: Inventory & Documentation Reconciliation
+    severity: low
+    status: PROPOSED
+    findings:
+    - G-14
+    depends_on: &id012
+    - AMD-0008
+    required_before: *id012
+    conflicts_with: []
+    enables: []
+    application_order: 12

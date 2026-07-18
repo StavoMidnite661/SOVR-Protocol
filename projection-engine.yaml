@@ -1,0 +1,793 @@
+# ============================================================
+# SOVR Financial OS — Projection Engine
+# File: projection-engine.yaml
+# Status: FROZEN
+# Build Phase: G
+# ============================================================
+# Defines every read model in the system.
+# Events describe reality. Projections interpret reality.
+# If a projection disagrees with the event log,
+# the event log is authoritative.
+#
+# Constitutional references:
+#   INV-006: Events describe reality. Projections interpret reality.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  file_id: "projection-engine"
+  status: CONSTITUTIONAL_FREEZE
+  build_phase: "G"
+  constitutional_references: [INV-006]
+  principle: "Events describe reality. Projections interpret reality. If projection disagrees with event log, event log is authoritative."
+
+# ============================================================
+# SECTION 2 — PROJECTION DEFINITIONS
+# ============================================================
+
+projections:
+
+  account_summary:
+    projection_id: PRJ-001
+    name: account_summary
+    source_domain: treasury
+    description: Treasury balances and activity per identity
+    source_events:
+      - treasury.transfer.requested
+      - treasury.transfer.authorized
+      - treasury.transfer.settled
+      - treasury.transfer.failed
+      - treasury.transfer.expired
+      - treasury.liquidity.warning
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys:
+        - "account:{account_id}"
+        - "identity:{identity_id}"
+        - "treasury:balances"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - treasury.transfer.settled
+        - treasury.transfer.compensation_required
+        - treasury.liquidity.warning
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        account_id: { type: string, format: uuid }
+        identity_id: { type: string, format: uuid }
+        total_balance: { type: decimal, precision: 18 }
+        available_balance: { type: decimal, precision: 18 }
+        reserved_balance: { type: decimal, precision: 18 }
+        pending_transfers_count: { type: integer }
+        last_activity_at: { type: timestamp }
+        currency_breakdown: { type: array, items: { type: object } }
+
+  portfolio:
+    projection_id: PRJ-002
+    name: portfolio
+    source_domain: vault
+    description: All assets held by an identity across all vaults
+    source_events:
+      - vault.asset.registered
+      - vault.asset.verified
+      - vault.asset.impaired
+      - vault.asset.write_down
+      - vault.ownership.transferred
+      - vault.valuation.updated
+      - vault.reserve.created
+      - vault.reserve.locked
+      - vault.reserve.released
+      - vault.reserve.expired
+      - vault.collateral.added
+      - vault.collateral.released
+      - vault.collateral.revalued
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 120
+      invalidation_keys:
+        - "portfolio:{identity_id}"
+        - "vault:{vault_id}:holdings"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - vault.ownership.transferred
+        - vault.valuation.updated
+        - vault.reserve.locked
+        - vault.reserve.released
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        identity_id: { type: string, format: uuid }
+        total_holdings_value: { type: decimal, precision: 18 }
+        total_collateral_value: { type: decimal, precision: 18 }
+        asset_count: { type: integer }
+        assets: { type: array, items: { type: object } }
+        risk_weighted_value: { type: decimal, precision: 18 }
+
+  treasury_dashboard:
+    projection_id: PRJ-003
+    name: treasury_dashboard
+    source_domain: treasury
+    description: System-wide treasury state and liquidity metrics
+    source_events:
+      - treasury.transfer.requested
+      - treasury.transfer.authorized
+      - treasury.transfer.rejected
+      - treasury.transfer.settled
+      - treasury.transfer.failed
+      - treasury.transfer.expired
+      - treasury.transfer.compensation_required
+      - treasury.liquidity.warning
+      - treasury.liquidity.allocated
+      - treasury.settlement.confirmed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 30
+      invalidation_keys:
+        - "treasury:dashboard"
+        - "treasury:liquidity"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - treasury.transfer.settled
+        - treasury.transfer.failed
+        - treasury.liquidity.warning
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        total_transfers_today: { type: integer }
+        total_volume_today: { type: decimal, precision: 18 }
+        pending_transfers: { type: integer }
+        failed_transfers_today: { type: integer }
+        liquidity_position: { type: object }
+        active_settlements: { type: integer }
+        pending_compensations: { type: integer }
+
+  audit_timeline:
+    projection_id: PRJ-004
+    name: audit_timeline
+    source_domain: ALL
+    description: Complete chronological audit trail across all domains
+    source_events: ALL_EVENTS
+    ordering: event_timestamp_asc
+    conflict_resolution: NONE  # Audit is append-only, no conflicts
+    rebuild_strategy: FULL_REPLAY_FROM_GENESIS
+    caching:
+      enabled: false
+    versioning:
+      strategy: IMMUTABLE_APPEND
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: NONE
+    output_schema:
+      type: object
+      fields:
+        event_id: { type: string, format: uuid }
+        event_name: { type: string }
+        timestamp: { type: timestamp }
+        actor_id: { type: string, format: uuid }
+        actor_type: { type: string }
+        source_domain: { type: string }
+        aggregate: { type: string }
+        aggregate_id: { type: string, format: uuid }
+        command_id: { type: string, format: uuid }
+        triggering_command: { type: string }
+        policy_decision_id: { type: string, format: uuid }
+        capability_id: { type: string }
+        retention_class: { type: string }
+
+  risk_dashboard:
+    projection_id: PRJ-005
+    name: risk_dashboard
+    source_domain: vault
+    description: Risk metrics across all domains
+    source_events:
+      - vault.asset.registered
+      - vault.asset.impaired
+      - vault.asset.write_down
+      - vault.valuation.updated
+      - vault.collateral.valued
+      - vault.collateral.margin_call
+      - vault.collateral.liquidation_initiated
+      - vault.reserve.expired
+      - treasury.liquidity.warning
+    ordering: event_timestamp_asc
+    conflict_resolution: MAX_VALUE  # Use highest risk assessment
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys:
+        - "risk:dashboard"
+        - "risk:asset:{asset_id}"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - vault.asset.impaired
+        - vault.collateral.margin_call
+        - vault.collateral.liquidation_initiated
+        - treasury.liquidity.warning
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        total_risk_exposure: { type: decimal, precision: 18 }
+        impaired_assets_count: { type: integer }
+        impaired_assets_value: { type: decimal, precision: 18 }
+        active_margin_calls: { type: integer }
+        collateral_coverage_ratio: { type: decimal, precision: 4 }
+        liquidity_warnings_active: { type: integer }
+        concentration_risk: { type: object }
+
+  vault_holdings:
+    projection_id: PRJ-006
+    name: vault_holdings
+    source_domain: vault
+    description: Current vault state, reserves, and collateral
+    source_events:
+      - vault.asset.registered
+      - vault.asset.verified
+      - vault.asset.rejected
+      - vault.asset.impaired
+      - vault.asset.write_down
+      - vault.reserve.created
+      - vault.reserve.locked
+      - vault.reserve.released
+      - vault.reserve.expired
+      - vault.custody.attested
+      - vault.custody.proof_expired
+      - vault.valuation.updated
+      - vault.collateral.added
+      - vault.collateral.released
+      - vault.collateral.revalued
+      - vault.reconciliation.completed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 120
+      invalidation_keys:
+        - "vault:holdings"
+        - "vault:{vault_id}:state"
+        - "asset:{asset_id}:state"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - vault.asset.impaired
+        - vault.reserve.locked
+        - vault.reserve.released
+        - vault.valuation.updated
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        total_assets_value: { type: decimal, precision: 18 }
+        total_reserves_locked: { type: decimal, precision: 18 }
+        total_collateral_held: { type: decimal, precision: 18 }
+        assets_by_type: { type: object }
+        assets_by_state: { type: object }
+        custody_proofs_active: { type: integer }
+        custody_proofs_expired: { type: integer }
+        last_reconciliation_at: { type: timestamp }
+
+  intent_queue:
+    projection_id: PRJ-007
+    name: intent_queue
+    source_domain: intent
+    description: Active intents and their processing states
+    source_events:
+      - intent.enriching.started
+      - intent.enriching.completed
+      - intent.enriching.failed
+      - intent.validation.completed
+      - intent.multi_step.step_completed
+      - intent.multi_step.completed
+      - intent.multi_step.failed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 10
+      invalidation_keys:
+        - "intent:queue"
+        - "intent:{intent_id}:state"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - intent.enriching.completed
+        - intent.validation.completed
+        - intent.multi_step.completed
+        - intent.multi_step.failed
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        intent_id: { type: string, format: uuid }
+        state: { type: string }
+        intent_type: { type: string }
+        actor_id: { type: string, format: uuid }
+        created_at: { type: timestamp }
+        current_step: { type: integer, required: false }
+        total_steps: { type: integer, required: false }
+        ambiguity_score: { type: decimal, precision: 4, required: false }
+        enrichment_complete: { type: boolean, required: false }
+
+  policy_decisions:
+    projection_id: PRJ-008
+    name: policy_decisions
+    source_domain: policy
+    description: Policy evaluation history and outcomes
+    source_events:
+      - policy.evaluation.completed
+      - policy.evaluation.denied
+      - policy.evaluation.escalated
+      - policy.evaluation.deferred
+      - policy.escalation.created
+      - policy.escalation.resolved
+      - policy.rule.activated
+      - policy.rule.deactivated
+    ordering: event_timestamp_asc
+    conflict_resolution: NONE
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 300
+      invalidation_keys:
+        - "policy:decisions"
+        - "policy:actor:{actor_id}"
+    versioning:
+      strategy: IMMUTABLE_APPEND
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: NONE
+    output_schema:
+      type: object
+      fields:
+        policy_decision_id: { type: string, format: uuid }
+        decision: { type: enum, values: [ALLOW, DENY, ESCALATE, DEFER] }
+        command_evaluated: { type: string }
+        actor_id: { type: string, format: uuid }
+        rules_evaluated: { type: array, items: { type: string } }
+        denied_reasons: { type: array, items: { type: string }, required: false }
+        evaluated_at: { type: timestamp }
+
+  agent_activity:
+    projection_id: PRJ-009
+    name: agent_activity
+    source_domain: agent
+    description: Agent execution history and audit envelopes
+    source_events:
+      - agent.registration.approved
+      - agent.execution.started
+      - agent.execution.completed
+      - agent.execution.failed
+      - agent.execution.escalated
+      - agent.capability.bound
+      - agent.capability.revoked
+      - agent.quota.exceeded
+      - agent.concurrency.limit_reached
+    ordering: event_timestamp_asc
+    conflict_resolution: NONE
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys:
+        - "agent:activity"
+        - "agent:{agent_id}:activity"
+    versioning:
+      strategy: IMMUTABLE_APPEND
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: NONE
+    output_schema:
+      type: object
+      fields:
+        agent_id: { type: string, format: uuid }
+        execution_id: { type: string, format: uuid, required: false }
+        action: { type: string }
+        status: { type: string }
+        model_version: { type: string, required: false }
+        intent_id: { type: string, format: uuid }
+        command_id: { type: string, format: uuid }
+        policy_decision_id: { type: string, format: uuid }
+        resources_changed: { type: array, items: { type: string }, required: false }
+        executed_at: { type: timestamp }
+        duration_ms: { type: integer, required: false }
+
+  governance_dashboard:
+    projection_id: PRJ-010
+    name: governance_dashboard
+    source_domain: governance
+    description: Governance metrics, escalations, and amendments
+    source_events:
+      - policy.escalation.created
+      - policy.escalation.resolved
+      - agent.execution.escalated
+      - payment.reconciliation.discrepancy
+      - hybrid.reorg.detected
+      - hybrid.reorg.resolved
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys:
+        - "governance:dashboard"
+        - "governance:escalations"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - policy.escalation.created
+        - policy.escalation.resolved
+        - agent.execution.escalated
+        - payment.reconciliation.discrepancy
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        active_escalations: { type: integer }
+        pending_resolutions: { type: integer }
+        resolved_today: { type: integer }
+        active_reorgs: { type: integer }
+        active_discrepancies: { type: integer }
+        agent_escalations_today: { type: integer }
+        average_resolution_time_ms: { type: integer, required: false }
+
+  payment_status:
+    projection_id: PRJ-011
+    name: payment_status
+    source_domain: payment
+    description: Payment execution status across all rails
+    source_events:
+      - payment.request.created
+      - payment.request.cancelled
+      - payment.execution.planned
+      - payment.execution.started
+      - payment.execution.completed
+      - payment.execution.failed
+      - payment.rail.prepared
+      - payment.rail.executed
+      - payment.rail.confirmed
+      - payment.rail.failed
+      - payment.reconciliation.started
+      - payment.reconciliation.completed
+      - payment.reconciliation.discrepancy
+      - payment.receipt.issued
+      - payment.compensation.started
+      - payment.compensation.completed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 10
+      invalidation_keys:
+        - "payment:status"
+        - "payment:{payment_request_id}:state"
+        - "payment:rail:{rail_type}:status"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - payment.execution.completed
+        - payment.execution.failed
+        - payment.rail.confirmed
+        - payment.rail.failed
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        payment_request_id: { type: string, format: uuid }
+        state: { type: string }
+        rail_type: { type: string, required: false }
+        amount: { type: decimal, precision: 18 }
+        created_at: { type: timestamp }
+        current_phase: { type: string, required: false }
+        rail_reference_id: { type: string, required: false }
+
+  settlement_summary:
+    projection_id: PRJ-012
+    name: settlement_summary
+    source_domain: payment
+    description: Settlement confirmations and failures across rails
+    source_events:
+      - payment.rail.confirmed
+      - payment.rail.failed
+      - payment.reconciliation.completed
+      - payment.reconciliation.discrepancy
+      - payment.receipt.issued
+      - hybrid.settlement.on_chain.confirmed
+      - hybrid.settlement.on_chain.failed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 120
+      invalidation_keys:
+        - "settlement:summary"
+        - "settlement:rail:{rail_type}"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - payment.rail.confirmed
+        - payment.rail.failed
+        - payment.reconciliation.discrepancy
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        rail_type: { type: string }
+        total_settled: { type: integer }
+        total_failed: { type: integer }
+        total_volume_settled: { type: decimal, precision: 18 }
+        total_fees: { type: decimal, precision: 18 }
+        pending_reconciliation: { type: integer }
+        active_discrepancies: { type: integer }
+        average_settlement_time_ms: { type: integer, required: false }
+
+  identity_directory:
+    projection_id: PRJ-013
+    name: identity_directory
+    source_domain: identity
+    description: Active identities, trust levels, and credentials
+    source_events:
+      - identity.actor.registered
+      - identity.actor.verified
+      - identity.actor.suspended
+      - identity.actor.revoked
+      - identity.credential.issued
+      - identity.credential.expired
+      - identity.credential.revoked
+      - identity.delegation.created
+      - identity.delegation.revoked
+      - identity.delegation.expired
+      - identity.session.created
+      - identity.session.terminated
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 300
+      invalidation_keys:
+        - "identity:directory"
+        - "identity:{identity_id}:state"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - identity.actor.verified
+        - identity.actor.suspended
+        - identity.actor.revoked
+        - identity.credential.revoked
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        identity_id: { type: string, format: uuid }
+        actor_type: { type: string }
+        state: { type: string }
+        trust_level: { type: string }
+        active_credentials: { type: integer }
+        active_delegations: { type: integer }
+        active_sessions: { type: integer }
+        verified_at: { type: timestamp, required: false }
+
+  compliance_report:
+    projection_id: PRJ-014
+    name: compliance_report
+    source_domain: ALL
+    description: Regulatory compliance metrics and violations
+    source_events: ALL_EVENTS
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 600
+      invalidation_keys:
+        - "compliance:report"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - policy.evaluation.denied
+        - agent.execution.escalated
+        - payment.reconciliation.discrepancy
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        total_policy_denials: { type: integer }
+        total_escalations: { type: integer }
+        total_agent_violations: { type: integer }
+        total_reconciliation_discrepancies: { type: integer }
+        compliance_rate_pct: { type: decimal, precision: 2 }
+        most_common_denial_reasons: { type: array, items: { type: string } }
+
+  liquidity_position:
+    projection_id: PRJ-015
+    name: liquidity_position
+    source_domain: treasury
+    description: Current liquidity state and warnings
+    source_events:
+      - treasury.liquidity.check
+      - treasury.liquidity.allocate
+      - treasury.liquidity.warning
+      - treasury.transfer.settled
+      - treasury.transfer.failed
+      - treasury.settlement.confirmed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 30
+      invalidation_keys:
+        - "liquidity:position"
+        - "liquidity:{currency}:position"
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events:
+        - treasury.liquidity.allocated
+        - treasury.liquidity.warning
+        - treasury.transfer.settled
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        total_liquidity: { type: decimal, precision: 18 }
+        available_liquidity: { type: decimal, precision: 18 }
+        reserved_liquidity: { type: decimal, precision: 18 }
+        pending_outflows: { type: decimal, precision: 18 }
+        pending_inflows: { type: decimal, precision: 18 }
+        warnings_active: { type: integer }
+        coverage_ratio: { type: decimal, precision: 4 }
+        by_currency: { type: object }
+
+# ============================================================
+# SECTION 3 — REPLAY PROTOCOL
+# ============================================================
+
+replay_protocol:
+
+  full_replay:
+    description: Replay all events from genesis to rebuild a projection
+    trigger: manual_or_scheduled
+    process:
+      - step: 1
+        action: DROP_PROJECTION_TABLE
+        constraint: "Atomic — original data preserved until rebuild completes"
+      - step: 2
+        action: FETCH_ALL_EVENTS_ORDERED
+        order_by: [aggregate_id, timestamp, event_id]
+      - step: 3
+        action: APPLY_EVENTS_SEQUENTIALLY
+        guarantee: DETERMINISTIC
+      - step: 4
+        action: VERIFY_PROJECTION_HASH
+        comparison: against_stored_hash
+      - step: 5
+        action: SWAP_PROJECTION_TABLE
+        atomic: true
+    consistency_guarantee: EVENTUALLY_CONSISTENT_WITHIN_100MS
+    timeout_per_1k_events_ms: 5000
+
+  incremental_replay:
+    description: Replay events from last checkpoint
+    trigger: on_invalidation_event
+    process:
+      - step: 1
+        action: READ_LAST_CHECKPOINT
+        fields: [last_event_id, last_timestamp, projection_hash]
+      - step: 2
+        action: FETCH_EVENTS_SINCE_CHECKPOINT
+        filter: event_id > last_event_id
+      - step: 3
+        action: APPLY_EVENTS_INCREMENTALLY
+      - step: 4
+        action: UPDATE_CHECKPOINT
+    checkpoint_interval: 1000_EVENTS
+    consistency_guarantee: EVENTUALLY_CONSISTENT_WITHIN_10MS
+
+  snapshot_replay:
+    description: Replay from last snapshot + events since snapshot
+    trigger: on_rebuild_request
+    process:
+      - step: 1
+        action: LOAD_LATEST_SNAPSHOT
+      - step: 2
+        action: FETCH_EVENTS_SINCE_SNAPSHOT
+      - step: 3
+        action: APPLY_EVENTS
+      - step: 4
+        action: TAKE_NEW_SNAPSHOT
+    snapshot_interval_ms: 3600000
+    snapshot_storage: dedicated_snapshot_table
+
+# ============================================================
+# SECTION 4 — CACHING ARCHITECTURE
+# ============================================================
+
+caching:
+  invalidation_strategy: EVENT_DRIVEN
+  cache_key_namespace_pattern: "sovr:{projection_name}:{key_component}"
+  ttl_by_projection_type:
+    REALTIME: 10
+    OPERATIONAL: 60
+    ANALYTICAL: 300
+    COMPLIANCE: 600
+    AUDIT: DISABLED
+  cache_backend: REDIS
+  cache_serialization: JSON
+  cache_compression: true
+  max_cache_size_mb: 512
+
+# ============================================================
+# SECTION 5 — CONSISTENCY GUARANTEES
+# ============================================================
+
+consistency:
+  model: EVENTUAL
+  max_lag_ms: 100
+  ordering_guarantee: PER_AGGREGATE_STRICT_ORDERING
+  cross_projection_consistency: EVENTUAL
+  conflict_resolution_strategies:
+    - strategy: LAST_WRITE_WINS
+      description: Later event overwrites earlier value for same aggregate field
+      applies_to: [account_summary, portfolio, vault_holdings, intent_queue, payment_status]
+    - strategy: MAX_VALUE
+      description: Use highest value when conflicting risk assessments exist
+      applies_to: [risk_dashboard]
+    - strategy: MIN_VALUE
+      description: Use lowest value for conservative risk estimates
+      applies_to: []
+    - strategy: SUM
+      description: Accumulate values across events
+      applies_to: [treasury_dashboard, settlement_summary]
+    - strategy: NONE
+      description: No conflict resolution — append-only projections
+      applies_to: [audit_timeline, policy_decisions, agent_activity]

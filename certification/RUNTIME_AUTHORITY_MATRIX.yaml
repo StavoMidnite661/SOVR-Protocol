@@ -1,0 +1,101 @@
+report:
+  title: Runtime Authority Matrix
+  metadata:
+    generated: 2026-07-17
+  content: |
+    # Runtime Authority Matrix
+    ## SOVR Financial OS — Phase XII Compiler Authority Verification
+    **Generated**: 2026-07-17
+    
+    ---
+    
+    ## Vault Transitions
+    
+    | Runtime Rule | YAML Source | Compiler Artifact | Test Evidence |
+    |---|---|---|---|
+    | `vaultState !== 'CREATED'` → reject CreateVault | 05_state-machines.yaml vault_lifecycle | STATE_MACHINE_CLASSES | tests/genesis/vault.test.ts (line 38) |
+    | `vaultState !== 'CREATED'` → reject DepositAsset | 05_state-machines.yaml vault_lifecycle | STATE_MACHINE_CLASSES | tests/genesis/vault.test.ts |
+    | `vaultState !== 'FUNDED' && vaultState !== 'LOCKED'` → reject ApproveRelease | 05_state-machines.yaml vault_lifecycle | STATE_MACHINE_CLASSES | tests/genesis/vault.test.ts |
+    | `vaultState !== 'AUTHORIZED'` → reject ExecuteRelease | 05_state-machines.yaml vault_lifecycle | STATE_MACHINE_CLASSES | tests/genesis/vault.test.ts |
+    | `vaultState !== 'DISBURSED'` → reject CloseVault | 05_state-machines.yaml vault_lifecycle | STATE_MACHINE_CLASSES | tests/genesis/vault.test.ts |
+    | releaseApprovals.size >= requiredApprovals → AUTHORIZED | 05_state-machines.yaml vault_lifecycle | STATE_MACHINE_CLASSES | tests/genesis/vault.test.ts |
+    | `!approvers.includes(approver)` → reject | 08_security-capabilities.yaml | CAPABILITY_ENGINE | tests/genesis/vault.test.ts (unauthorized approver) |
+    | `VaultCreated` event emitted | domains/vault.yaml | VAULT_EVENTS | tests/genesis/vault.test.ts |
+    | `AssetDeposited` event emitted | domains/vault.yaml | VAULT_EVENTS | tests/genesis/vault.test.ts |
+    | `ReleaseApproved` event emitted | domains/vault.yaml | VAULT_EVENTS | tests/genesis/vault.test.ts |
+    | `FundsReleased` event emitted | domains/vault.yaml | VAULT_EVENTS | tests/genesis/vault.test.ts |
+    | SHA-256 event hash | 01_constitution.yaml enforcement_model | invariant_constants | tests/security/event-integrity.test.ts |
+    
+    ---
+    
+    ## Ledger Rules
+    
+    | Runtime Rule | YAML Source | Compiler Artifact | Test Evidence |
+    |---|---|---|---|
+    | Double-entry: debit == credit | 02_domain-model.yaml Entity:Transaction | PRISMA_MODELS | tests/genesis/ledger.test.ts |
+    | Account balance = sum(entries) | 02_domain-model.yaml Entity:Account | PRISMA_MODELS | tests/genesis/ledger.test.ts |
+    | Transaction hash SHA-256 | 01_constitution.yaml enforcement_model | invariant_constants | packages/ledger/src/index.ts |
+    | Idempotent replay (same events → same state) | 04_event-catalog.yaml EventEnvelope | EVENT_CLASSES | tests/genesis/recovery.test.ts |
+    | Balance non-negative guard | 02_domain-model.yaml Account invariant | JSON_SCHEMAS | tests/genesis/ledger.test.ts |
+    
+    ---
+    
+    ## Authorization Rules
+    
+    | Runtime Rule | YAML Source | Compiler Artifact | Test Evidence |
+    |---|---|---|---|
+    | Role-based access (Role/Permission) | 08_security-capabilities.yaml | CAPABILITY_ENGINE | packages/security/src/rbac.ts |
+    | Actor must match capability scope | 08_security-capabilities.yaml | POLICY_ENGINE_BINDINGS | packages/security/src/authz.ts |
+    | API auth rejects unauthenticated | 08_security-capabilities.yaml | MIDDLEWARE_CHAIN | apps/api/src/index.ts |
+    | Vault approver must be in approvers list | domains/vault.yaml | VAULT_DOMAIN_SERVICE | tests/genesis/vault.test.ts |
+    
+    ---
+    
+    ## Event Rules
+    
+    | Runtime Rule | YAML Source | Compiler Artifact | Test Evidence |
+    |---|---|---|---|
+    | Event hash = SHA-256(payload, previousHash, timestamp, sequence) | 01_constitution.yaml + 04_event-catalog.yaml | invariant_constants | tests/security/event-integrity.test.ts |
+    | Chain: event.previousHash === priorEvent.hash | 04_event-catalog.yaml EventEnvelope | EVENT_CLASSES | packages/kernel/src/integrity/chain-verifier.ts |
+    | Sequence must be monotonic | 05_state-machines.yaml | STATE_MACHINE_CLASSES | packages/kernel/src/integrity/integrity-validator.ts |
+    | Duplicate event_id rejected | 04_event-catalog.yaml | EVENT_CLASSES | tests/genesis/event-store.test.ts |
+    | Immutable event log (no UPDATE/DELETE) | 01_constitution.yaml | enforcement_pipeline | packages/events/src/postgres.ts |
+    
+    ---
+    
+    ## Policy Rules
+    
+    | Runtime Rule | YAML Source | Compiler Artifact | Test Evidence |
+    |---|---|---|---|
+    | Policy rules evaluated as ALLOW/DENY/ESCALATE | domains/policy.yaml | POLICY_RULES_ENGINE | packages/security/src/policy.ts |
+    | Policy enforcement: strict or advisory | domains/policy.yaml | POLICY_RULES_ENGINE | packages/security/src/policy.ts |
+    
+    ---
+    
+    ## Governance Rules
+    
+    | Runtime Rule | YAML Source | Compiler Artifact | Test Evidence |
+    |---|---|---|---|
+    | Amendments require ratification board | 01_constitution.yaml governance_structure | governance_structure | governance/amendments/INDEX.yaml |
+    | Protocol version frozen at 1.0.0 | 00_protocol-manifest.yaml | protocol_metadata | package.json version 1.0.0 |
+    | DOMAIN_STATUS_MATRIX tracks implementation | management/PROJECT_CONTROL_BOARD.yaml | N/A (governance tracker) | DOMAIN_STATUS_MATRIX.yaml |
+    
+    ---
+    
+    ## Summary
+    
+    | Category | Rules Traced | YAML-Sourced | Hardcoded | Unmapped |
+    |---|---|---|---|---|
+    | Vault | 12 | 8 | 4 | 0 |
+    | Ledger | 5 | 5 | 0 | 0 |
+    | Authorization | 4 | 3 | 1 | 0 |
+    | Events | 5 | 5 | 0 | 0 |
+    | Policy | 2 | 2 | 0 | 0 |
+    | Governance | 3 | 3 | 0 | 0 |
+    | **Total** | **31** | **26** | **5** | **0** |
+    
+    **Hardcoded rules (5)**: See `HARDCODE_DEVIATION_REPORT.yaml`
+    **Unmapped rules (0)**: All runtime rules trace to YAML sources.
+    
+    **END OF MATRIX**
+    

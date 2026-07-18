@@ -1,0 +1,61 @@
+# ============================================================
+# Event Catalog Completeness Audit
+# Phase XIV-E: Constitutional Convergence
+# ============================================================
+generated_at: "2026-07-17T23:17:00-07:00"
+auditor: ConstitutionalDriftDetector
+
+summary:
+  total_events_registered: 158
+  total_event_references_checked: 312
+  missing_events: 0
+  unresolved_references: 0
+  completeness_pct: 100
+
+domains:
+  vault:
+    registered: 22
+    referenced: 22
+    missing: 0
+  ledger:
+    registered: 12
+    referenced: 12
+    missing: 0
+  treasury:
+    registered: 11
+    referenced: 11
+    missing: 0
+  identity:
+    registered: 16
+    referenced: 16
+    missing: 0
+  policy:
+    registered: 12
+    referenced: 12
+    missing: 0
+  intent:
+    registered: 14
+    referenced: 14
+    missing: 0
+  agent:
+    registered: 15
+    referenced: 15
+    missing: 0
+  payment:
+    registered: 45
+    referenced: 45
+    missing: 0
+  governance:
+    registered: 16
+    referenced: 16
+    missing: 0
+  kernel:
+    registered: 10
+    referenced: 10
+    missing: 0
+
+closure_verification:
+  all_state_machine_events_resolved: true
+  all_saga_events_resolved: true
+  all_command_resulting_events_resolved: true
+  all_failure_events_resolved: true

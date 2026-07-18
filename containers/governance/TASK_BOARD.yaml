@@ -1,0 +1,14 @@
+status: pending
+pending_tasks:
+  - id: "governance-001"
+    description: "Define aggregates"
+  - id: "governance-002"
+    description: "Implement commands"
+  - id: "governance-003"
+    description: "Emit events"
+  - id: "governance-004"
+    description: "Implement projections"
+  - id: "governance-005"
+    description: "Execute acceptance tests"
+in_progress_tasks: []
+completed_tasks: []

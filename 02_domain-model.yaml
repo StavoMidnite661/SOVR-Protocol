@@ -1,0 +1,2920 @@
+# ============================================================
+# SOVR Financial OS — Domain Model
+# File: 02_domain-model.yaml
+# Status: FROZEN — Phase J (Protocol Closure) complete
+# ============================================================
+# Defines the universe of entities that exist in SOVR.
+# This file is populated domain-by-domain.
+# Current domains: Vault, Ledger, Treasury, Identity, Policy, Intent, Agent, Payment
+# ============================================================
+
+domains:
+
+  # ========================================================
+  # VAULT DOMAIN ENTITIES
+  # ========================================================
+
+  vault:
+    name: Vault
+    description: Value Authority Domain — defines what SOVR recognizes as value
+
+    entities:
+
+      asset:
+        description: A unit of value recognized by SOVR
+        attributes:
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique asset identifier
+          asset_type:
+            type: enum
+            values: [cash, stablecoin, tokenized_asset, collateral_position, liquidity_position, external_claim]
+            required: true
+            description: Category of value
+          issuer_id:
+            type: string
+            format: uuid
+            required: true
+            description: Identity that introduced the asset into SOVR
+          ownership_id:
+            type: string
+            format: uuid
+            required: true
+            description: Current economic owner of the asset
+          beneficial_owner_id:
+            type: string
+            format: uuid
+            required: false
+            description: Beneficial owner if different from legal owner
+          custody_provider:
+            type: enum
+            values: [sovr_internal, on_chain, external_bank, third_party]
+            required: true
+            description: Who is physically/logically holding the asset
+          custody_location:
+            type: string
+            required: true
+            description: Specific location or address where asset is held
+          quantity:
+            type: decimal
+            precision: 18
+            required: false
+            description: Number of units (for tokenized/liquidity assets)
+          face_value:
+            type: decimal
+            precision: 2
+            required: false
+            description: Face value in native currency (for cash/stablecoin)
+          native_unit:
+            type: string
+            required: true
+            description: The unit in which this asset is denominated (e.g., USD, wei, shares)
+          precision:
+            type: integer
+            required: true
+            description: Decimal precision for this asset
+          risk_classification:
+            type: enum
+            values: [minimal, low, medium, medium_to_high, high]
+            required: true
+          valuation_source:
+            type: string
+            required: true
+            description: Source identifier for asset valuation
+          current_valuation:
+            type: decimal
+            precision: 18
+            required: false
+            description: Current trusted valuation in reference currency
+          valuation_updated_at:
+            type: timestamp
+            required: false
+          reserve_ratio:
+            type: decimal
+            precision: 4
+            required: true
+            description: Required reserve ratio for this asset type
+          state:
+            type: enum
+            values: [REGISTERED, VERIFIED, AVAILABLE, RESERVED, LOCKED, CONSUMED, RELEASED, RECONCILIATION_REQUIRED, REJECTED, IMPAIRED]
+            required: true
+            description: Current lifecycle state of the asset
+          registered_at:
+            type: timestamp
+            required: true
+          verified_at:
+            type: timestamp
+            required: false
+          last_reconciled_at:
+            type: timestamp
+            required: false
+        reference: domains/vault.yaml
+
+      reservation:
+        description: A soft or hard lock on a portion of an asset's value
+        attributes:
+          reservation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            references: vault.asset.asset_id
+          actor_id:
+            type: string
+            format: uuid
+            required: true
+            description: Who requested the reservation
+          amount:
+            type: decimal
+            precision: 18
+            required: true
+          state:
+            type: enum
+            values: [PENDING, ACTIVE, CONSUMED, EXPIRED, RELEASED, FAILED]
+            required: true
+          expiration:
+            type: timestamp
+            required: true
+          purpose:
+            type: string
+            required: true
+            description: Free-text reason for the reservation (audit)
+          initiating_command_id:
+            type: string
+            format: uuid
+            required: true
+          consuming_transaction_id:
+            type: string
+            format: uuid
+            required: false
+            description: Populated when reservation is consumed
+          lock_id:
+            type: string
+            format: uuid
+            required: false
+            description: Populated when reservation transitions to LOCKED
+          created_at:
+            type: timestamp
+            required: true
+          locked_at:
+            type: timestamp
+            required: false
+          consumed_at:
+            type: timestamp
+            required: false
+          released_at:
+            type: timestamp
+            required: false
+        reference: domains/vault.yaml
+
+      collateral_position:
+        description: An asset pledged as security for an obligation
+        attributes:
+          collateral_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            references: vault.asset.asset_id
+          owner_id:
+            type: string
+            format: uuid
+            required: true
+          obligation_id:
+            type: string
+            format: uuid
+            required: true
+            description: The obligation this collateral secures
+          gross_value:
+            type: decimal
+            precision: 18
+            required: true
+            description: Market value before haircut
+          effective_value:
+            type: decimal
+            precision: 18
+            required: true
+            description: Recognized value after haircut
+          haircut_rate:
+            type: decimal
+            precision: 6
+            required: true
+            description: Haircut applied (e.g., 0.15 = 15%)
+          quality_score:
+            type: decimal
+            precision: 4
+            required: true
+            description: Collateral quality score (0.0 to 1.0)
+          state:
+            type: enum
+            values: [PROPOSED, ACTIVE, MARGIN_CALL, LIQUIDATING, RELEASED, LIQUIDATED]
+            required: true
+          margin_ratio:
+            type: decimal
+            precision: 6
+            required: false
+            description: Current collateral / obligation ratio
+          created_at:
+            type: timestamp
+            required: true
+          last_valued_at:
+            type: timestamp
+            required: false
+        reference: domains/vault.yaml
+
+      custody_attestation:
+        description: Proof that an asset exists at a custody location
+        attributes:
+          attestation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            references: vault.asset.asset_id
+          custody_provider:
+            type: string
+            required: true
+          proof_type:
+            type: enum
+            values: [on_chain_balance_proof, off_chain_custodian_statement, internal_ledger_confirmation]
+            required: true
+          proof_hash:
+            type: string
+            required: true
+            description: Cryptographic hash of the attestation proof
+          attester_id:
+            type: string
+            format: uuid
+            required: true
+          attested_at:
+            type: timestamp
+            required: true
+          valid_until:
+            type: timestamp
+            required: true
+          block_height:
+            type: integer
+            required: false
+            description: Blockchain block height at time of attestation (if on-chain)
+        reference: domains/vault.yaml
+
+      valuation:
+        description: A trusted price assessment for an asset
+        attributes:
+          valuation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            references: vault.asset.asset_id
+          source_type:
+            type: enum
+            values: [oracle, internal_pricing, market_feed, manual]
+            required: true
+          source_id:
+            type: string
+            required: true
+            description: Identifier of the specific valuation source
+          price:
+            type: decimal
+            precision: 18
+            required: true
+          reference_currency:
+            type: string
+            required: true
+            description: Currency in which the price is denominated
+          confidence:
+            type: enum
+            values: [high, medium, low]
+            required: false
+          is_stale:
+            type: boolean
+            required: true
+          governance_approved:
+            type: boolean
+            required: false
+            description: Required for manual valuations
+          valued_at:
+            type: timestamp
+            required: true
+        reference: domains/vault.yaml
+
+      balance:
+        description: Computed view of an actor's holdings for a specific asset
+        attributes:
+          balance_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          actor_id:
+            type: string
+            format: uuid
+            required: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            references: vault.asset.asset_id
+          total_balance:
+            type: decimal
+            precision: 18
+            required: true
+          available_balance:
+            type: decimal
+            precision: 18
+            required: true
+          reserved_balance:
+            type: decimal
+            precision: 18
+            required: true
+          locked_balance:
+            type: decimal
+            precision: 18
+            required: true
+          encumbered_balance:
+            type: decimal
+            precision: 18
+            required: true
+          computed_at:
+            type: timestamp
+            required: true
+        reference: domains/vault.yaml
+
+      reconciliation_record:
+        description: Record of a vault reconciliation operation
+        attributes:
+          reconciliation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+          initiated_by:
+            type: string
+            format: uuid
+            required: true
+          scope:
+            type: enum
+            values: [single_asset, actor_holdings, full_vault]
+            required: true
+          state:
+            type: enum
+            values: [STARTED, IN_PROGRESS, COMPLETED, DISCREPANCY_FOUND, FAILED]
+            required: true
+          expected_value:
+            type: decimal
+            precision: 18
+            required: false
+          actual_value:
+            type: decimal
+            precision: 18
+            required: false
+          discrepancy_amount:
+            type: decimal
+            precision: 18
+            required: false
+          severity:
+            type: enum
+            values: [none, low, medium, high, critical]
+            required: false
+          started_at:
+            type: timestamp
+            required: true
+          completed_at:
+            type: timestamp
+            required: false
+        reference: domains/vault.yaml
+
+  # ========================================================
+  # LEDGER DOMAIN ENTITIES
+  # ========================================================
+
+  ledger:
+    name: Ledger
+    description: Immutable Financial History Domain — the financial truth domain
+    entities:
+
+      ledger:
+        description: Top-level financial record container
+        attributes:
+          ledger_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          name:
+            type: string
+            required: true
+          entity_id:
+            type: string
+            format: uuid
+            required: true
+          base_currency:
+            type: string
+            required: true
+          status:
+            type: enum
+            values: [ACTIVE, FROZEN, ARCHIVED]
+            required: true
+          created_at:
+            type: timestamp
+            required: true
+        reference: domains/ledger.yaml
+
+      journal:
+        description: A named collection of journal entries for a domain or subsystem
+        attributes:
+          journal_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          ledger_id:
+            type: string
+            format: uuid
+            required: true
+            references: ledger.ledger.ledger_id
+          name:
+            type: string
+            required: true
+          domain:
+            type: string
+            required: true
+          description:
+            type: string
+            required: false
+          status:
+            type: enum
+            values: [OPEN, CLOSING, CLOSED]
+            required: true
+          period_start:
+            type: timestamp
+            required: true
+          period_end:
+            type: timestamp
+            required: false
+        reference: domains/ledger.yaml
+
+      journal_entry:
+        description: A balanced double-entry record of a financial event
+        attributes:
+          entry_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          journal_id:
+            type: string
+            format: uuid
+            required: true
+            references: ledger.journal.journal_id
+          transaction_id:
+            type: string
+            format: uuid
+            required: true
+          event_reference:
+            type: string
+            format: uuid
+            required: true
+            description: The event that caused this entry
+          correlation_id:
+            type: string
+            format: uuid
+            required: true
+          causation_id:
+            type: string
+            format: uuid
+            required: true
+          description:
+            type: string
+            required: true
+          entry_type:
+            type: enum
+            values: [STANDARD, REVERSAL, CORRECTION, CLOSING, ADJUSTMENT]
+            required: true
+          status:
+            type: enum
+            values: [CREATED, VALIDATING, POSTED, SETTLED, RECONCILED]
+            required: true
+          posting_count:
+            type: integer
+            required: true
+          total_debits:
+            type: decimal
+            precision: 18
+            required: true
+          total_credits:
+            type: decimal
+            precision: 18
+            required: true
+          balanced:
+            type: boolean
+            required: true
+          created_at:
+            type: timestamp
+            required: true
+          posted_at:
+            type: timestamp
+            required: false
+          settled_at:
+            type: timestamp
+            required: false
+          reconciled_at:
+            type: timestamp
+            required: false
+          original_entry_id:
+            type: string
+            format: uuid
+            required: false
+            description: For REVERSAL and CORRECTION types
+          reversal_reason:
+            type: string
+            required: false
+          correction_description:
+            type: string
+            required: false
+          approved_by:
+            type: string
+            format: uuid
+            required: false
+          actor_context:
+            type: object
+            required: true
+            fields:
+              actor_id:
+                type: string
+                format: uuid
+              actor_type:
+                type: enum
+                values: [human, organization, ai_agent, service_account, governance, external_system, system]
+              identity_id:
+                type: string
+                format: uuid
+                required: false
+              agent_id:
+                type: string
+                format: uuid
+                required: false
+          authorization_context:
+            type: object
+            required: true
+            fields:
+              capability:
+                type: string
+              scope:
+                type: string
+              policy_result:
+                type: enum
+                values: [APPROVE, DENY, REQUIRE_APPROVAL]
+        reference: domains/ledger.yaml
+
+      posting:
+        description: A single debit or credit line within a journal entry
+        attributes:
+          posting_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          entry_id:
+            type: string
+            format: uuid
+            required: true
+            references: ledger.journal_entry.entry_id
+          account_id:
+            type: string
+            format: uuid
+            required: true
+            references: ledger.account.account_id
+          amount:
+            type: decimal
+            precision: 18
+            required: true
+          direction:
+            type: enum
+            values: [DEBIT, CREDIT]
+            required: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            references: vault.asset.asset_id
+          currency:
+            type: string
+            required: true
+          precision:
+            type: integer
+            required: true
+          description:
+            type: string
+            required: false
+          reference_type:
+            type: string
+            required: false
+          reference_id:
+            type: string
+            format: uuid
+            required: false
+        reference: domains/ledger.yaml
+
+      account:
+        description: A named container for tracking a category of financial activity
+        attributes:
+          account_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          account_code:
+            type: string
+            required: true
+          account_name:
+            type: string
+            required: true
+          account_type:
+            type: enum
+            values: [ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE, MEMORANDUM, RESERVE, COLLATERAL]
+            required: true
+          normal_balance:
+            type: enum
+            values: [DEBIT, CREDIT, NONE]
+            required: true
+          owner_id:
+            type: string
+            format: uuid
+            required: true
+          domain_ownership:
+            type: string
+            required: true
+          parent_account_id:
+            type: string
+            format: uuid
+            required: false
+          status:
+            type: enum
+            values: [ACTIVE, FROZEN, CLOSED]
+            required: true
+          debit_allowed:
+            type: boolean
+            required: true
+          credit_allowed:
+            type: boolean
+            required: true
+          max_balance:
+            type: decimal
+            precision: 18
+            required: false
+          min_balance:
+            type: decimal
+            precision: 18
+            required: false
+          requires_approval:
+            type: boolean
+            required: true
+          created_at:
+            type: timestamp
+            required: true
+        reference: domains/ledger.yaml
+
+      accounting_period:
+        description: A time-bounded interval for financial reporting
+        attributes:
+          period_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          ledger_id:
+            type: string
+            format: uuid
+            required: true
+            references: ledger.ledger.ledger_id
+          name:
+            type: string
+            required: true
+          start_date:
+            type: date
+            required: true
+          end_date:
+            type: date
+            required: true
+          status:
+            type: enum
+            values: [OPEN, CLOSING, CLOSED]
+            required: true
+          opening_balances_recorded:
+            type: boolean
+            required: true
+          closing_entries_recorded:
+            type: boolean
+            required: true
+        reference: domains/ledger.yaml
+
+      ledger_reconciliation:
+        description: A reconciliation process comparing ledger records against external sources
+        attributes:
+          reconciliation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          type:
+            type: enum
+            values: [internal, vault_reconciliation, treasury_reconciliation, external_reconciliation]
+            required: true
+          state:
+            type: enum
+            values: [MATCHED, MISMATCH_DETECTED, INVESTIGATION, ADJUSTMENT_REQUIRED, ADJUSTMENT_POSTED, RESOLVED, ESCALATED, COMPLETE]
+            required: true
+          severity:
+            type: enum
+            values: [none, low, medium, high, critical]
+            required: false
+          source_ledger_values:
+            type: object
+            required: false
+          external_values:
+            type: object
+            required: false
+          discrepancy_amount:
+            type: decimal
+            precision: 18
+            required: false
+          resolution_method:
+            type: enum
+            values: [auto_tolerance, adjustment, escalation, no_action_needed]
+            required: false
+          initiated_by:
+            type: string
+            format: uuid
+            required: true
+          started_at:
+            type: timestamp
+            required: true
+          resolved_at:
+            type: timestamp
+            required: false
+        reference: domains/ledger.yaml
+
+  # ========================================================
+  # TREASURY DOMAIN ENTITIES
+  # ========================================================
+
+  treasury:
+    name: Treasury
+    description: Controlled Movement Authority Domain
+    entities:
+
+      transfer_request:
+        description: The initial request to move value
+        attributes:
+          request_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          intent_id:
+            type: string
+            format: uuid
+            required: true
+          source_actor_id:
+            type: string
+            format: uuid
+            required: true
+          destination_actor_id:
+            type: string
+            format: uuid
+            required: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            references: vault.asset.asset_id
+          amount:
+            type: decimal
+            precision: 18
+            required: true
+          purpose:
+            type: string
+            required: true
+          urgency:
+            type: enum
+            values: [STANDARD, URGENT, SCHEDULED]
+            required: true
+          settlement_type:
+            type: enum
+            values: [INTERNAL, EXTERNAL]
+            required: true
+          requested_at:
+            type: timestamp
+            required: true
+          requested_by_actor_id:
+            type: string
+            format: uuid
+            required: true
+          requested_by_actor_type:
+            type: enum
+            values: [human, organization, ai_agent, service_account, governance, external_system]
+            required: true
+          requested_by_identity_id:
+            type: string
+            format: uuid
+            required: true
+          requested_by_agent_id:
+            type: string
+            format: uuid
+            required: false
+          status:
+            type: enum
+            values: [PENDING, ACCEPTED, REJECTED, EXPIRED]
+            required: true
+          policy_result:
+            type: enum
+            values: [APPROVE, DENY, REQUIRE_APPROVAL]
+            required: false
+          policy_evaluated_at:
+            type: timestamp
+            required: false
+          expiration:
+            type: timestamp
+            required: true
+        reference: domains/treasury.yaml
+
+      transfer_order:
+        description: The authorized, executable transfer instruction with full audit lineage
+        attributes:
+          order_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          request_id:
+            type: string
+            format: uuid
+            required: true
+            references: treasury.transfer_request.request_id
+          correlation_id:
+            type: string
+            format: uuid
+            required: true
+          source_actor_id:
+            type: string
+            format: uuid
+            required: true
+          destination_actor_id:
+            type: string
+            format: uuid
+            required: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            references: vault.asset.asset_id
+          amount:
+            type: decimal
+            precision: 18
+            required: true
+          vault_reservation_id:
+            type: string
+            format: uuid
+            required: false
+            references: vault.reservation.reservation_id
+          vault_lock_id:
+            type: string
+            format: uuid
+            required: false
+            references: vault.reservation.lock_id
+          ledger_entry_id:
+            type: string
+            format: uuid
+            required: false
+            references: ledger.journal_entry.entry_id
+          settlement_type:
+            type: enum
+            values: [INTERNAL, EXTERNAL]
+            required: true
+          state:
+            type: enum
+            values: [REQUESTED, AUTHORIZED, RESERVED, EXECUTING, PENDING_SETTLEMENT, SETTLED, REJECTED, EXPIRED, FAILED, COMPENSATION_REQUIRED, UNKNOWN_EXTERNAL_STATE]
+            required: true
+          authorized_by:
+            type: string
+            format: uuid
+            required: false
+          authorized_at:
+            type: timestamp
+            required: false
+          executed_at:
+            type: timestamp
+            required: false
+          settled_at:
+            type: timestamp
+            required: false
+          failure_reason:
+            type: string
+            required: false
+          audit_lineage:
+            type: object
+            required: false
+            fields:
+              identity_verification:
+                type: string
+                format: uuid
+              capability_check:
+                type: string
+                format: uuid
+              policy_evaluation:
+                type: string
+                format: uuid
+              vault_reservation:
+                type: string
+                format: uuid
+              ledger_posting:
+                type: string
+                format: uuid
+        reference: domains/treasury.yaml
+
+      liquidity_position:
+        description: System-wide liquidity state for an asset
+        attributes:
+          position_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+            references: vault.asset.asset_id
+          total_verified_value:
+            type: decimal
+            precision: 18
+            required: true
+          total_available:
+            type: decimal
+            precision: 18
+            required: true
+          total_reserved:
+            type: decimal
+            precision: 18
+            required: true
+          total_encumbered:
+            type: decimal
+            precision: 18
+            required: true
+          total_in_transit:
+            type: decimal
+            precision: 18
+            required: true
+          net_liquidity_ratio:
+            type: decimal
+            precision: 6
+            required: true
+          state:
+            type: enum
+            values: [NORMAL, WARNING, RESTRICTED, EMERGENCY_LOCK]
+            required: true
+          warning_threshold:
+            type: decimal
+            precision: 6
+            required: true
+          restricted_threshold:
+            type: decimal
+            precision: 6
+            required: true
+          emergency_threshold:
+            type: decimal
+            precision: 6
+            required: true
+          last_evaluated_at:
+            type: timestamp
+            required: true
+        reference: domains/treasury.yaml
+
+      settlement_instruction:
+        description: The instruction sent to Payment domain for external settlement
+        attributes:
+          instruction_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          order_id:
+            type: string
+            format: uuid
+            required: true
+            references: treasury.transfer_order.order_id
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+          amount:
+            type: decimal
+            precision: 18
+            required: true
+          destination_type:
+            type: string
+            required: true
+          destination_address:
+            type: string
+            required: true
+          rail:
+            type: string
+            required: true
+          reference:
+            type: string
+            required: false
+          vault_lock_id:
+            type: string
+            format: uuid
+            required: true
+          vault_reservation_id:
+            type: string
+            format: uuid
+            required: true
+          max_attempts:
+            type: integer
+            required: true
+          timeout:
+            type: integer
+            required: true
+          state:
+            type: enum
+            values: [PENDING, SUBMITTED, CONFIRMING, CONFIRMED, FAILED, UNKNOWN]
+            required: true
+          created_at:
+            type: timestamp
+            required: true
+        reference: domains/treasury.yaml
+
+      settlement_confirmation:
+        description: Evidence that settlement occurred
+        attributes:
+          confirmation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          instruction_id:
+            type: string
+            format: uuid
+            required: true
+            references: treasury.settlement_instruction.instruction_id
+          order_id:
+            type: string
+            format: uuid
+            required: true
+          source:
+            type: enum
+            values: [ledger, payment, on_chain]
+            required: true
+          confirmation_type:
+            type: enum
+            values: [INTERNAL, EXTERNAL, ATTESTATION]
+            required: true
+          reference_id:
+            type: string
+            format: uuid
+            required: true
+          confirmed_at:
+            type: timestamp
+            required: true
+          amount:
+            type: decimal
+            precision: 18
+            required: true
+          asset_id:
+            type: string
+            format: uuid
+            required: true
+          confidence:
+            type: enum
+            values: [DEFINITIVE, HIGH, LOW, UNKNOWN]
+            required: true
+        reference: domains/treasury.yaml
+
+      routing_decision:
+        description: Decision of how and where to settle a transfer
+        attributes:
+          decision_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          order_id:
+            type: string
+            format: uuid
+            required: true
+          settlement_type:
+            type: enum
+            values: [INTERNAL, EXTERNAL]
+            required: true
+          rail:
+            type: string
+            required: false
+          estimated_cost:
+            type: decimal
+            precision: 18
+            required: false
+          estimated_duration:
+            type: integer
+            required: false
+          risk_assessment:
+            type: enum
+            values: [LOW, MEDIUM, HIGH]
+            required: true
+          policy_constraints:
+            type: array
+            required: true
+          decided_at:
+            type: timestamp
+            required: true
+          decided_by:
+            type: enum
+            values: [system, policy_engine, governance]
+            required: true
+        reference: domains/treasury.yaml
+
+  # ========================================================
+  # PAYMENT DOMAIN ENTITIES — Pending Phase F
+  # ========================================================
+  payment:
+    name: Payment
+    description: External Payment Rail Domain
+    entities: []
+    reference: TBD
+
+  # ========================================================
+  # IDENTITY DOMAIN ENTITIES
+  # ========================================================
+  identity:
+    name: Identity
+    description: Actor Identification Domain
+    entities:
+
+      actor:
+        description: The core identity entity
+        attributes:
+          identity_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique identity identifier
+          actor_type:
+            type: enum
+            values: [human, organization, ai_agent, service_account, governance, external_system]
+            required: true
+            description: Type of actor
+          state:
+            type: enum
+            values: [PENDING_VERIFICATION, VERIFYING, ACTIVE, SUSPENDED, REVOKED, ARCHIVED]
+            required: true
+            description: Current lifecycle state
+          display_name:
+            type: string
+            required: true
+            description: Human-readable display name
+          legal_identifier:
+            type: string
+            required: false
+            description: Legal/tax ID for human/organization
+          primary_contact:
+            type: string
+            required: false
+            description: Primary contact information
+          trust_level:
+            type: enum
+            values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+            required: true
+            description: Trust classification level
+          governance_approved_by:
+            type: string
+            format: uuid
+            required: false
+            description: Who approved this identity
+          registered_at:
+            type: timestamp
+            required: true
+            description: Registration timestamp
+          verified_at:
+            type: timestamp
+            required: false
+            description: Verification timestamp
+          suspended_at:
+            type: timestamp
+            required: false
+            description: Suspension timestamp
+          revoked_at:
+            type: timestamp
+            required: false
+            description: Revocation timestamp
+          revoked_reason:
+            type: string
+            required: false
+            description: Reason for revocation
+          metadata:
+            type: object
+            required: false
+            description: Arbitrary metadata
+        reference: domains/identity.yaml
+
+      credential:
+        description: Authentication credential bound to an identity
+        attributes:
+          credential_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique credential identifier
+          identity_id:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Owning identity
+          credential_type:
+            type: enum
+            values: [cryptographic_key, biometric_binding, hardware_token, delegated_token, governance_credential]
+            required: true
+            description: Type of credential
+          state:
+            type: enum
+            values: [ACTIVE, EXPIRED, REVOKED, SUSPENDED, ROTATED]
+            required: true
+            description: Current credential state
+          trust_level:
+            type: enum
+            values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+            required: true
+            description: Trust level conferred by this credential
+          authentication_factor:
+            type: enum
+            values: [KNOWLEDGE, POSSESSION, INHERENCE, DELEGATED, GOVERNANCE]
+            required: true
+            description: Authentication factor category
+          binding_strength:
+            type: enum
+            values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+            required: true
+            description: Strength of identity binding
+          expires_at:
+            type: timestamp
+            required: true
+            description: Credential expiration timestamp
+          revocable:
+            type: boolean
+            required: true
+            description: Whether the credential can be revoked
+          scope_restrictions:
+            type: array
+            required: false
+            description: Restrictions on credential scope
+          max_delegation_depth:
+            type: integer
+            required: true
+            description: Maximum delegation chain depth
+          issued_at:
+            type: timestamp
+            required: true
+            description: Issuance timestamp
+          issued_by:
+            type: string
+            format: uuid
+            required: true
+            description: Identity that issued this credential
+          last_used_at:
+            type: timestamp
+            required: false
+            description: Last usage timestamp
+        reference: domains/identity.yaml
+
+      trust_anchor:
+        description: Root of trust for identity verification
+        attributes:
+          trust_anchor_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique trust anchor identifier
+          anchor_type:
+            type: enum
+            values: [GOVERNANCE_ROOT, ORGANIZATION_CA, EXTERNAL_CA, SYSTEM_INTERNAL]
+            required: true
+            description: Classification of trust anchor
+          anchor_label:
+            type: string
+            required: true
+            description: Human-readable label
+          public_key_material:
+            type: string
+            required: true
+            description: Public key or certificate material
+          key_algorithm:
+            type: enum
+            values: [ed25519, secp256k1, rsa_4096]
+            required: true
+            description: Cryptographic algorithm
+          key_usage:
+            type: enum
+            values: [AUTHENTICATION, SIGNING, ENCRYPTION, CERTIFICATE_AUTHORITY]
+            required: true
+            description: Intended key usage
+          trust_level_issued:
+            type: enum
+            values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+            required: true
+            description: Trust level this anchor can issue
+          scope_of_trust:
+            type: array
+            required: true
+            description: Domains or identities this anchor covers
+          issued_by:
+            type: string
+            format: uuid
+            required: true
+            description: Identity that registered this anchor
+          valid_from:
+            type: timestamp
+            required: true
+            description: Validity start timestamp
+          valid_until:
+            type: timestamp
+            required: true
+            description: Validity end timestamp
+          revocation_check_url:
+            type: string
+            required: false
+            description: URL for revocation status checks
+          status:
+            type: enum
+            values: [ACTIVE, REVOKED, EXPIRED]
+            required: true
+            description: Current trust anchor status
+          governance_approval_id:
+            type: string
+            format: uuid
+            required: false
+            description: Governance approval reference
+        reference: domains/identity.yaml
+
+      delegation:
+        description: Delegation of capabilities from one identity to another
+        attributes:
+          delegation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique delegation identifier
+          delegator_id:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Identity granting the delegation
+          delegate_id:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Identity receiving the delegation
+          delegated_capabilities:
+            type: array
+            required: true
+            description: List of capability pattern and scope restriction objects
+          max_delegation_depth:
+            type: integer
+            required: true
+            description: Maximum depth for sub-delegation
+          conditions:
+            type: object
+            required: false
+            description: Delegation conditions including time, amount, and purpose restrictions
+          state:
+            type: enum
+            values: [PENDING_ACCEPTANCE, ACTIVE, EXPIRED, REVOKED]
+            required: true
+            description: Current delegation state
+          revocable_by_delegator:
+            type: boolean
+            required: true
+            description: Always true for financial delegations
+          audit_requirement:
+            type: enum
+            values: [STANDARD, ENHANCED, FULL]
+            required: true
+            description: Level of audit logging required
+          created_at:
+            type: timestamp
+            required: true
+            description: Creation timestamp
+          accepted_at:
+            type: timestamp
+            required: false
+            description: Acceptance timestamp
+          revoked_at:
+            type: timestamp
+            required: false
+            description: Revocation timestamp
+          revoked_by:
+            type: string
+            format: uuid
+            required: false
+            description: Identity that revoked the delegation
+          current_depth:
+            type: integer
+            required: true
+            description: Current depth in delegation chain
+          parent_delegation_id:
+            type: string
+            format: uuid
+            required: false
+            description: Parent delegation for chained delegations
+        reference: domains/identity.yaml
+
+      session:
+        description: An active authentication session
+        attributes:
+          session_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique session identifier
+          identity_id:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Authenticated identity
+          credential_id:
+            type: string
+            format: uuid
+            required: true
+            references: identity.credential.credential_id
+            description: Credential used for authentication
+          authentication_method:
+            type: enum
+            values: [password, mfa, biometric, hardware_key, delegated, cryptographic_signature, mutual_tls, api_key, webhook_verification, multi_signature, governance_credential]
+            required: true
+            description: Method used to authenticate
+          trust_level:
+            type: enum
+            values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+            required: true
+            description: Trust level of this session
+          binding_strength:
+            type: enum
+            values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+            required: true
+            description: Identity binding strength
+          state:
+            type: enum
+            values: [ACTIVE, EXPIRED, REVOKED, TERMINATED]
+            required: true
+            description: Current session state
+          created_at:
+            type: timestamp
+            required: true
+            description: Session creation timestamp
+          last_activity_at:
+            type: timestamp
+            required: true
+            description: Last activity timestamp
+          expires_at:
+            type: timestamp
+            required: true
+            description: Session expiration timestamp
+          max_session_duration:
+            type: integer
+            required: true
+            description: Maximum session duration in seconds
+          idle_timeout:
+            type: integer
+            required: true
+            description: Idle timeout in seconds
+          capabilities_granted:
+            type: array
+            required: false
+            description: Capabilities granted in this session
+          delegation_chain:
+            type: array
+            required: false
+            description: List of delegation chain entries
+          concurrent_session_limit:
+            type: integer
+            required: true
+            description: Maximum concurrent sessions allowed
+          source_ip:
+            type: string
+            required: false
+            description: Source IP address
+          device_fingerprint:
+            type: string
+            required: false
+            description: Device fingerprint hash
+          geo_location:
+            type: string
+            required: false
+            description: Geographic location
+        reference: domains/identity.yaml
+
+      authentication_context:
+        description: Output object capturing the full authentication context
+        attributes:
+          identity_id:
+            type: string
+            format: uuid
+            required: true
+            description: Authenticated identity
+          actor_type:
+            type: enum
+            values: [human, organization, ai_agent, service_account, governance, external_system]
+            required: true
+            description: Type of actor
+          authentication_method:
+            type: enum
+            values: [password, mfa, biometric, hardware_key, delegated, cryptographic_signature, mutual_tls, api_key, webhook_verification, multi_signature, governance_credential]
+            required: true
+            description: Authentication method used
+          credential_id:
+            type: string
+            format: uuid
+            required: true
+            description: Credential used
+          trust_level:
+            type: enum
+            values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+            required: true
+            description: Trust level established
+          binding_strength:
+            type: enum
+            values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+            required: true
+            description: Identity binding strength
+          authenticated_at:
+            type: timestamp
+            required: true
+            description: Authentication timestamp
+          session_id:
+            type: string
+            format: uuid
+            required: true
+            description: Associated session
+          expires_at:
+            type: timestamp
+            required: true
+            description: Context expiration timestamp
+          delegation_chain:
+            type: array
+            required: true
+            description: Full delegation chain
+          ip_address:
+            type: string
+            required: false
+            description: Client IP address
+          device_fingerprint:
+            type: string
+            required: false
+            description: Device fingerprint
+          geo_location:
+            type: string
+            required: false
+            description: Geographic location
+        reference: domains/identity.yaml
+
+  # ========================================================
+  # POLICY DOMAIN ENTITIES
+  # ========================================================
+  policy:
+    name: Policy
+    description: Rule Evaluation Domain
+    entities:
+
+      policy_rule:
+        description: A single policy rule for authorization, risk, or compliance
+        attributes:
+          rule_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique rule identifier
+          rule_name:
+            type: string
+            required: true
+            description: Dot-notation name for the rule
+          description:
+            type: string
+            required: true
+            description: Human-readable rule description
+          category:
+            type: enum
+            values: [AUTHORIZATION, RISK, COMPLIANCE, OPERATIONAL, GOVERNANCE, CONSTITUTIONAL]
+            required: true
+            description: Rule category
+          priority:
+            type: integer
+            required: true
+            description: Rule priority for ordering
+          evaluation_order:
+            type: integer
+            required: true
+            description: Order within the policy set
+          condition_type:
+            type: enum
+            values: [ALWAYS, IF_FIELD, IF_STATE, IF_THRESHOLD, IF_PATTERN, IF_ABSENCE, COMPOSITE]
+            required: true
+            description: Type of condition to evaluate
+          condition_field:
+            type: string
+            required: false
+            description: Field to evaluate in condition
+          condition_operator:
+            type: enum
+            values: [EQ, NEQ, GT, GTE, LT, LTE, IN, NOT_IN, MATCHES, CONTAINS, ABSENT, PRESENT]
+            required: false
+            description: Comparison operator
+          condition_value:
+            type: string
+            required: false
+            description: Expected condition value
+          composite_operator:
+            type: enum
+            values: [AND, OR, NOT]
+            required: false
+            description: Operator for composite conditions
+          action:
+            type: enum
+            values: [ALLOW, DENY, ESCALATE, DEFER, REQUIRE_CONDITION, REQUIRE_APPROVAL]
+            required: true
+            description: Action when rule matches
+          escalation_target:
+            type: enum
+            values: [GOVERNANCE, HUMAN_OPERATOR, COMPLIANCE_OFFICER, NONE]
+            required: true
+            description: Target for escalation actions
+          compliance_mapping:
+            type: array
+            required: false
+            description: External compliance framework mappings
+          constitutional_reference:
+            type: string
+            required: false
+            description: Reference to constitutional invariant
+          active:
+            type: boolean
+            required: true
+            description: Whether the rule is active
+          effective_from:
+            type: timestamp
+            required: true
+            description: When the rule becomes effective
+          effective_until:
+            type: timestamp
+            required: false
+            description: When the rule stops being effective
+          version:
+            type: string
+            format: semver
+            required: true
+            description: Rule version
+          last_modified_by:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Identity that last modified this rule
+          last_modified_at:
+            type: timestamp
+            required: true
+            description: Last modification timestamp
+          state:
+            type: enum
+            values: [DRAFT, ACTIVE, INACTIVE, ARCHIVED]
+            required: true
+            description: Current rule lifecycle state
+        reference: domains/policy.yaml
+
+      policy_set:
+        description: A named collection of policy rules with evaluation strategy
+        attributes:
+          set_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique policy set identifier
+          name:
+            type: string
+            required: true
+            description: Policy set name
+          description:
+            type: string
+            required: true
+            description: Human-readable description
+          domain_scope:
+            type: enum
+            values: [GLOBAL, VAULT, TREASURY, LEDGER, IDENTITY, AGENT, PAYMENT, GOVERNANCE]
+            required: true
+            description: Domain this policy set applies to
+          rule_ids:
+            type: array
+            required: true
+            description: List of policy rule identifiers
+          evaluation_strategy:
+            type: enum
+            values: [FIRST_MATCH, ALL_MUST_PASS, MAJORITY, WEIGHTED_SCORE]
+            required: true
+            description: How rules in the set are combined
+          conflict_resolution:
+            type: enum
+            values: [MOST_RESTRICTIVE, LEAST_RESTRICTIVE, PRIORITY_ORDER, ESCALATE]
+            required: true
+            description: How conflicting rule outcomes are resolved
+          active:
+            type: boolean
+            required: true
+            description: Whether the policy set is active
+          governance_approved:
+            type: boolean
+            required: true
+            description: Whether governance has approved this set
+          version:
+            type: string
+            format: semver
+            required: true
+            description: Policy set version
+          created_at:
+            type: timestamp
+            required: true
+            description: Creation timestamp
+        reference: domains/policy.yaml
+
+      policy_evaluation:
+        description: A single policy evaluation event
+        attributes:
+          evaluation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique evaluation identifier
+          policy_set_id:
+            type: string
+            format: uuid
+            required: true
+            references: policy.policy_set.set_id
+            description: Policy set that was evaluated
+          authorization_context_id:
+            type: string
+            format: uuid
+            required: true
+            description: Authorization context from Identity domain
+          command_id:
+            type: string
+            format: uuid
+            required: true
+            description: Command being evaluated
+          decision:
+            type: enum
+            values: [ALLOW, DENY, ESCALATE, DEFER]
+            required: true
+            description: Final policy decision
+          confidence:
+            type: enum
+            values: [CERTAIN, HIGH, MEDIUM, LOW]
+            required: true
+            description: Confidence in the decision
+          rules_evaluated:
+            type: integer
+            required: true
+            description: Total number of rules evaluated
+          rules_passed:
+            type: integer
+            required: true
+            description: Number of rules that passed
+          rules_failed:
+            type: integer
+            required: true
+            description: Number of rules that failed
+          risk_assessment_id:
+            type: string
+            format: uuid
+            required: false
+            description: Associated risk assessment
+          deterministic_hash:
+            type: string
+            required: true
+            description: Hash for deterministic replay verification
+          state:
+            type: enum
+            values: [IDLE, GATHERING_CONTEXT, EVALUATING_RULES, COMPUTING_DECISION, DECISION_RENDERED, ARCHIVED]
+            required: true
+            description: Current evaluation state
+          evaluation_duration_ms:
+            type: integer
+            required: true
+            description: Duration of the evaluation in milliseconds
+          evaluated_at:
+            type: timestamp
+            required: true
+            description: Evaluation timestamp
+        reference: domains/policy.yaml
+
+      policy_escalation:
+        description: An escalation triggered during policy evaluation
+        attributes:
+          escalation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique escalation identifier
+          evaluation_id:
+            type: string
+            format: uuid
+            required: true
+            references: policy.policy_evaluation.evaluation_id
+            description: Policy evaluation that triggered escalation
+          escalation_reason:
+            type: enum
+            values: [NO_MATCHING_POLICY, CONFLICTING_RULES, RISK_THRESHOLD, COMPLIANCE_AMBIGUITY, NOVEL_OPERATION, GOVERNANCE_REQUIRED]
+            required: true
+            description: Reason for the escalation
+          escalation_target:
+            type: enum
+            values: [GOVERNANCE, HUMAN_OPERATOR, COMPLIANCE_OFFICER]
+            required: true
+            description: Who must resolve the escalation
+          required_resolution:
+            type: enum
+            values: [MANUAL_APPROVAL, POLICY_UPDATE, GOVERNANCE_DIRECTIVE]
+            required: true
+            description: Type of resolution required
+          deadline:
+            type: timestamp
+            required: true
+            description: Resolution deadline
+          auto_deny_after_deadline:
+            type: boolean
+            required: true
+            description: Whether to auto-deny if deadline passes
+          state:
+            type: enum
+            values: [PENDING, UNDER_REVIEW, RESOLVED, EXPIRED, AUTO_DENIED]
+            required: true
+            description: Current escalation state
+          created_at:
+            type: timestamp
+            required: true
+            description: Escalation creation timestamp
+          resolved_at:
+            type: timestamp
+            required: false
+            description: Resolution timestamp
+          resolved_by:
+            type: string
+            format: uuid
+            required: false
+            description: Identity that resolved the escalation
+        reference: domains/policy.yaml
+
+  # ========================================================
+  # AGENT DOMAIN ENTITIES
+  # ========================================================
+  agent:
+    name: Agent
+    description: AI Financial Operator Domain
+    entities:
+
+      agent_instance:
+        description: A running AI agent instance
+        attributes:
+          agent_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique agent identifier
+          agent_name:
+            type: string
+            required: true
+            description: Human-readable agent name
+          agent_type:
+            type: enum
+            values: [FINANCIAL_ANALYST, TREASURY_OPERATOR, COMPLIANCE_MONITOR, RECONCILIATION, REPORTING, CUSTOM]
+            required: true
+            description: Functional classification of the agent
+          model_type:
+            type: string
+            required: true
+            description: Underlying AI model type
+          model_version:
+            type: string
+            required: true
+            description: Version of the AI model
+          owner_id:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Identity that owns this agent
+          operator_id:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Identity that operates this agent
+          state:
+            type: enum
+            values: [REGISTERED, ACTIVATING, ACTIVE, EXECUTING, PAUSED, SUSPENDED, TERMINATED, ARCHIVED, FAILED, ESCALATED]
+            required: true
+            description: Current agent lifecycle state
+          registration_id:
+            type: string
+            format: uuid
+            required: true
+            references: agent.agent_registration.registration_id
+            description: Governance registration reference
+          trust_level:
+            type: enum
+            values: [NONE, LOW, MEDIUM, HIGH]
+            required: true
+            description: Trust level assigned to this agent
+          governance_approved:
+            type: boolean
+            required: true
+            description: Whether governance has approved this agent
+          governance_approval_id:
+            type: string
+            format: uuid
+            required: false
+            description: Governance approval reference
+          created_at:
+            type: timestamp
+            required: true
+            description: Agent creation timestamp
+          activated_at:
+            type: timestamp
+            required: false
+            description: Activation timestamp
+          last_execution_at:
+            type: timestamp
+            required: false
+            description: Last command execution timestamp
+          terminated_at:
+            type: timestamp
+            required: false
+            description: Termination timestamp
+          termination_reason:
+            type: string
+            required: false
+            description: Reason for termination
+        reference: domains/agent.yaml
+
+      agent_registration:
+        description: Governance registration for a proposed agent
+        attributes:
+          registration_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique registration identifier
+          agent_name:
+            type: string
+            required: true
+            description: Proposed agent name
+          agent_type:
+            type: enum
+            values: [FINANCIAL_ANALYST, TREASURY_OPERATOR, COMPLIANCE_MONITOR, RECONCILIATION, REPORTING, CUSTOM]
+            required: true
+            description: Proposed agent type
+          model_type:
+            type: string
+            required: true
+            description: Proposed AI model type
+          model_version:
+            type: string
+            required: true
+            description: Proposed AI model version
+          proposed_by:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Identity proposing the agent
+          proposed_capabilities:
+            type: array
+            required: true
+            description: List of capability and scope proposals with justification
+          governance_review_status:
+            type: enum
+            values: [PENDING, APPROVED, REJECTED, CONDITIONAL]
+            required: true
+            description: Governance review outcome
+          governance_reviewer_id:
+            type: string
+            format: uuid
+            required: false
+            description: Identity that reviewed the proposal
+          state:
+            type: enum
+            values: [SUBMITTED, UNDER_REVIEW, APPROVED, REJECTED, CONDITIONAL, WITHDRAWN]
+            required: true
+            description: Current registration state
+          submitted_at:
+            type: timestamp
+            required: true
+            description: Submission timestamp
+          reviewed_at:
+            type: timestamp
+            required: false
+            description: Review completion timestamp
+        reference: domains/agent.yaml
+
+      capability_binding:
+        description: Binding of a capability to an agent instance
+        attributes:
+          binding_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique binding identifier
+          agent_id:
+            type: string
+            format: uuid
+            required: true
+            references: agent.agent_instance.agent_id
+            description: Agent the capability is bound to
+          capability_id:
+            type: string
+            required: true
+            description: The capability being bound
+          scope_pattern:
+            type: string
+            required: true
+            description: Scope pattern for the capability
+          granted_by:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Identity that granted the binding
+          granted_at:
+            type: timestamp
+            required: true
+            description: Granting timestamp
+          expires_at:
+            type: timestamp
+            required: false
+            description: Binding expiration timestamp
+          conditions:
+            type: array
+            required: false
+            description: Conditions on the capability binding
+          revocable:
+            type: boolean
+            required: true
+            description: Whether the binding can be revoked
+          state:
+            type: enum
+            values: [ACTIVE, EXPIRED, REVOKED]
+            required: true
+            description: Current binding state
+        reference: domains/agent.yaml
+
+      agent_audit_envelope:
+        description: Immutable audit record of a single agent execution
+        attributes:
+          execution_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique execution identifier
+          agent_id:
+            type: string
+            format: uuid
+            required: true
+            references: agent.agent_instance.agent_id
+            description: Agent that executed
+          identity_id:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Identity on behalf of which the agent acted
+          intent_id:
+            type: string
+            format: uuid
+            required: true
+            references: intent.intent.intent_id
+            description: Intent that triggered the execution
+          command_id:
+            type: string
+            format: uuid
+            required: true
+            description: Command executed by the agent
+          policy_decision_id:
+            type: string
+            format: uuid
+            required: true
+            references: policy.policy_evaluation.evaluation_id
+            description: Policy decision authorizing the execution
+          capability_id:
+            type: string
+            required: true
+            description: Capability used for the execution
+          authorization_context_id:
+            type: string
+            format: uuid
+            required: true
+            description: Authorization context
+          resources_used:
+            type: object
+            required: true
+            description: Resource consumption metrics
+          execution_result:
+            type: enum
+            values: [SUCCESS, FAILURE, ESCALATED, TIMEOUT, PARTIAL]
+            required: true
+            description: Outcome of the execution
+          execution_time_ms:
+            type: integer
+            required: true
+            description: Execution duration in milliseconds
+          constitutional_rules:
+            type: array
+            required: true
+            description: Constitutional rules evaluated during execution
+          model_version:
+            type: string
+            required: true
+            description: AI model version used
+          input_summary:
+            type: string
+            required: true
+            description: Summary of agent input
+          output_summary:
+            type: string
+            required: true
+            description: Summary of agent output
+          state_changes:
+            type: array
+            required: true
+            description: List of state changes caused by execution
+          error_detail:
+            type: string
+            required: false
+            description: Error details if execution failed
+          executed_at:
+            type: timestamp
+            required: true
+            description: Execution start timestamp
+          completed_at:
+            type: timestamp
+            required: false
+            description: Execution completion timestamp
+        reference: domains/agent.yaml
+
+      execution_quota:
+        description: Resource and scope limits for an agent within a time period
+        attributes:
+          quota_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique quota identifier
+          agent_id:
+            type: string
+            format: uuid
+            required: true
+            references: agent.agent_instance.agent_id
+            description: Agent the quota applies to
+          period:
+            type: enum
+            values: [HOURLY, DAILY, WEEKLY, MONTHLY]
+            required: true
+            description: Quota reset period
+          max_commands:
+            type: integer
+            required: true
+            description: Maximum commands allowed per period
+          max_financial_value:
+            type: decimal
+            precision: 18
+            required: true
+            description: Maximum financial value allowed per period
+          max_distinct_actors_affected:
+            type: integer
+            required: true
+            description: Maximum distinct actors the agent can affect per period
+          max_asset_types:
+            type: integer
+            required: true
+            description: Maximum asset types the agent can touch per period
+          commands_executed:
+            type: integer
+            required: true
+            description: Commands executed in the current period
+          financial_value_moved:
+            type: decimal
+            precision: 18
+            required: true
+            description: Financial value moved in the current period
+          reset_at:
+            type: timestamp
+            required: true
+            description: Next quota reset timestamp
+          enforced:
+            type: boolean
+            required: true
+            description: Whether the quota is actively enforced
+        reference: domains/agent.yaml
+
+  # ========================================================
+  # GOVERNANCE DOMAIN ENTITIES
+  # ========================================================
+  governance:
+    name: Governance
+    description: Constitutional Oversight Domain
+    entities:
+
+      governance_proposal:
+        description: A proposed governance action requiring review and approval
+        attributes:
+          proposal_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          proposal_type:
+            type: enum
+            values: [CONSTITUTIONAL_AMENDMENT, POLICY_RULE_CREATE, POLICY_RULE_MODIFY, CAPABILITY_GRANT, CAPABILITY_REVOKE, AGENT_APPROVAL, AGENT_OVERRIDE, BOUNDARY_SYSTEM_APPROVAL, EMERGENCY_HALT, AUDIT_INVESTIGATION]
+            required: true
+          proposed_by:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+          target_domain:
+            type: enum
+            values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, GOVERNANCE, SYSTEM]
+            required: true
+          state:
+            type: enum
+            values: [DRAFT, PENDING_REVIEW, APPROVED, REJECTED, EXPIRED, IMPLEMENTED, CANCELLED]
+            required: true
+          required_approvals:
+            type: integer
+            required: true
+          current_approvals:
+            type: integer
+            required: true
+            default: 0
+          approval_threshold:
+            type: enum
+            values: [SINGLE, MAJORITY, UNANIMOUS]
+            required: true
+          expires_at:
+            type: timestamp
+            required: true
+          implemented_at:
+            type: timestamp
+            required: false
+          created_at:
+            type: timestamp
+            required: true
+        reference: domains/governance.yaml
+
+      governance_amendment:
+        description: A proposed change to the constitutional framework
+        attributes:
+          amendment_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          amendment_number:
+            type: string
+            required: true
+            unique: true
+          section:
+            type: enum
+            values: [INVARIANTS, CONFLICT_RESOLUTION, AUTHORITY_MODEL, FINANCIAL_INTEGRITY, AGENT_GOVERNANCE, GOVERNANCE_STRUCTURE, RUNTIME_ENFORCEMENT, PROTECTED_ARTICLES]
+            required: true
+          proposed_by:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+          state:
+            type: enum
+            values: [PROPOSED, UNDER_REVIEW, VOTING, APPROVED, REJECTED, RATIFIED, EXPIRED]
+            required: true
+          voting_ends_at:
+            type: timestamp
+            required: true
+          ratified_at:
+            type: timestamp
+            required: false
+          created_at:
+            type: timestamp
+            required: true
+        reference: domains/governance.yaml
+
+      governance_override:
+        description: A governance override of an agent decision or system behavior
+        attributes:
+          override_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          override_type:
+            type: enum
+            values: [AGENT_DECISION_OVERRIDE, POLICY_EXCEPTION, CAPABILITY_SUSPENSION, TRANSACTION_BLOCK, EMERGENCY_HALT]
+            required: true
+          target_type:
+            type: enum
+            values: [AGENT, POLICY_RULE, CAPABILITY, TRANSACTION, SYSTEM]
+            required: true
+          target_id:
+            type: string
+            format: uuid
+            required: true
+          issued_by:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+          effective_from:
+            type: timestamp
+            required: true
+          expires_at:
+            type: timestamp
+            required: false
+          state:
+            type: enum
+            values: [ACTIVE, EXPIRED, LIFTED, CANCELLED]
+            required: true
+          created_at:
+            type: timestamp
+            required: true
+        reference: domains/governance.yaml
+
+      emergency_halt:
+        description: A record of an emergency system halt
+        attributes:
+          halt_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          triggered_by:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+          trigger_reason:
+            type: enum
+            values: [ACTIVE_BREACH, ASSET_INTEGRITY_COMPROMISED, REGULATORY_MANDATE, SYSTEMIC_FAILURE]
+            required: true
+          affected_domains:
+            type: array
+            items:
+              type: enum
+              values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, ALL]
+            required: true
+          state:
+            type: enum
+            values: [ACTIVE, PARTIALLY_LIFTED, LIFTED, EXPIRED]
+            required: true
+          initiated_at:
+            type: timestamp
+            required: true
+          expires_at:
+            type: timestamp
+            required: true
+          lifted_at:
+            type: timestamp
+            required: false
+          post_action_review_required:
+            type: boolean
+            required: true
+            default: true
+          post_action_review_completed:
+            type: boolean
+            required: true
+            default: false
+        reference: domains/governance.yaml
+
+      audit_record:
+        description: A governance-initiated audit record
+        attributes:
+          audit_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          audit_type:
+            type: enum
+            values: [ROUTINE, INVESTIGATIVE, COMPLIANCE, EMERGENCY, CONSTITUTIONAL]
+            required: true
+          initiated_by:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+          target_domains:
+            type: array
+            items:
+              type: enum
+              values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, ALL]
+            required: true
+          start_date:
+            type: timestamp
+            required: true
+          end_date:
+            type: timestamp
+            required: false
+          state:
+            type: enum
+            values: [PENDING, IN_PROGRESS, COMPLETED, ESCALATED]
+            required: true
+          created_at:
+            type: timestamp
+            required: true
+          completed_at:
+            type: timestamp
+            required: false
+        reference: domains/governance.yaml
+
+      escalation:
+        description: A governance escalation record
+        attributes:
+          escalation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          source_domain:
+            type: enum
+            values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, GOVERNANCE]
+            required: true
+          source_event_id:
+            type: string
+            format: uuid
+            required: true
+          reason:
+            type: string
+            required: true
+          submitted_by:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+          state:
+            type: enum
+            values: [PENDING, UNDER_REVIEW, RESOLVED, EXPIRED, AUTO_DENIED]
+            required: true
+          resolution:
+            type: object
+            required: false
+          resolved_by:
+            type: string
+            format: uuid
+            required: false
+            references: identity.actor.identity_id
+          resolved_at:
+            type: timestamp
+            required: false
+          created_at:
+            type: timestamp
+            required: true
+        reference: domains/governance.yaml
+
+  # ========================================================
+  # INTENT DOMAIN ENTITIES
+  # ========================================================
+  intent:
+    name: Intent
+    description: Intention Translation Domain
+    entities:
+
+      intent:
+        description: A user or agent intent to perform an action
+        attributes:
+          intent_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique intent identifier
+          intent_type:
+            type: enum
+            values: [COMPLETE, PARTIAL, CONDITIONAL, DELEGATED, SCHEDULED, MULTI_STEP]
+            required: true
+            description: Type of intent
+          actor_id:
+            type: string
+            format: uuid
+            required: true
+            references: identity.actor.identity_id
+            description: Identity originating the intent
+          authorization_context_id:
+            type: string
+            format: uuid
+            required: true
+            description: Authorization context from Identity domain
+          policy_decision_id:
+            type: string
+            format: uuid
+            required: true
+            references: policy.policy_evaluation.evaluation_id
+            description: Policy decision for this intent
+          objective:
+            type: string
+            required: true
+            description: Natural language or structured objective
+          domain_target:
+            type: enum
+            values: [VAULT, TREASURY, LEDGER, PAYMENT, IDENTITY, POLICY, AGENT, GOVERNANCE]
+            required: true
+            description: Target domain for the intent
+          payload:
+            type: object
+            required: true
+            description: Domain-specific payload varying by target
+          confidence:
+            type: enum
+            values: [CERTAIN, HIGH, MEDIUM, LOW, AMBIGUOUS]
+            required: true
+            description: Confidence in intent interpretation
+          state:
+            type: enum
+            values: [RECEIVED, ENRICHING, VALIDATING, READY, CONVERTED_TO_COMMAND, FAILED, CANCELLED, EXPIRED, ARCHIVED]
+            required: true
+            description: Current intent lifecycle state
+          priority:
+            type: enum
+            values: [IMMEDIATE, HIGH, NORMAL, LOW, DEFERRED]
+            required: true
+            description: Intent processing priority
+          conditions:
+            type: array
+            required: false
+            description: Conditions that must be met
+          schedule:
+            type: object
+            required: false
+            description: Execution schedule for scheduled intents
+          steps:
+            type: array
+            required: false
+            description: Ordered steps for multi-step intents
+          delegation_id:
+            type: string
+            format: uuid
+            required: false
+            references: identity.delegation.delegation_id
+            description: Associated delegation
+          original_actor_id:
+            type: string
+            format: uuid
+            required: false
+            description: Original actor for delegated intents
+          converted_command_id:
+            type: string
+            format: uuid
+            required: false
+            description: Command generated from this intent
+          error_detail:
+            type: string
+            required: false
+            description: Error details if intent failed
+          created_at:
+            type: timestamp
+            required: true
+            description: Intent creation timestamp
+          enriched_at:
+            type: timestamp
+            required: false
+            description: Enrichment completion timestamp
+          validated_at:
+            type: timestamp
+            required: false
+            description: Validation completion timestamp
+          converted_at:
+            type: timestamp
+            required: false
+            description: Command conversion timestamp
+          archived_at:
+            type: timestamp
+            required: false
+            description: Archive timestamp
+          expires_at:
+            type: timestamp
+            required: false
+            description: Intent expiration timestamp
+        reference: domains/intent.yaml
+
+      enrichment_step:
+        description: A single step in the intent enrichment pipeline
+        attributes:
+          step_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique step identifier
+          intent_id:
+            type: string
+            format: uuid
+            required: true
+            references: intent.intent.intent_id
+            description: Parent intent being enriched
+          step_type:
+            type: enum
+            values: [FIELD_RESOLUTION, ENTITY_LOOKUP, AMOUNT_NORMALIZATION, CURRENCY_CONVERSION, COUNTERPARTY_RESOLUTION, SCOPE_EXPANSION, CONTEXT_ENRICHMENT]
+            required: true
+            description: Type of enrichment step
+          input_fields:
+            type: array
+            required: true
+            description: Fields consumed by this step
+          output_fields:
+            type: array
+            required: true
+            description: Fields produced by this step
+          data_source:
+            type: enum
+            values: [VAULT, IDENTITY, TREASURY, LEDGER, EXTERNAL_ORACLE, POLICY]
+            required: true
+            description: Source domain for data lookup
+          required:
+            type: boolean
+            required: true
+            description: Whether this step must succeed
+          retryable:
+            type: boolean
+            required: true
+            description: Whether the step can be retried
+          timeout_ms:
+            type: integer
+            required: true
+            description: Step timeout in milliseconds
+          state:
+            type: enum
+            values: [PENDING, IN_PROGRESS, COMPLETED, FAILED, SKIPPED]
+            required: true
+            description: Current step state
+          result:
+            type: object
+            required: false
+            description: Step result data
+          error:
+            type: string
+            required: false
+            description: Error message if step failed
+          executed_at:
+            type: timestamp
+            required: false
+            description: Step execution timestamp
+          duration_ms:
+            type: integer
+            required: false
+            description: Step execution duration in milliseconds
+        reference: domains/intent.yaml
+
+      intent_validation:
+        description: Validation result for an intent
+        attributes:
+          validation_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique validation identifier
+          intent_id:
+            type: string
+            format: uuid
+            required: true
+            references: intent.intent.intent_id
+            description: Intent being validated
+          overall_result:
+            type: enum
+            values: [VALID, INVALID, VALID_WITH_WARNINGS, REQUIRES_HUMAN_REVIEW]
+            required: true
+            description: Overall validation outcome
+          blocking_failures:
+            type: integer
+            required: true
+            description: Count of blocking validation failures
+          warnings:
+            type: integer
+            required: true
+            description: Count of validation warnings
+          validated_at:
+            type: timestamp
+            required: true
+            description: Validation timestamp
+        reference: domains/intent.yaml
+
+      command_conversion:
+        description: Conversion of an intent into an executable command
+        attributes:
+          conversion_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique conversion identifier
+          intent_id:
+            type: string
+            format: uuid
+            required: true
+            references: intent.intent.intent_id
+            description: Source intent
+          command_id:
+            type: string
+            format: uuid
+            required: true
+            description: Generated command identifier
+          command_name:
+            type: string
+            required: true
+            description: Fully qualified command name
+          command_payload:
+            type: object
+            required: true
+            description: Command payload
+          conversion_confidence:
+            type: enum
+            values: [DIRECT, INFERRED, ASSUMED]
+            required: true
+            description: Confidence in the conversion
+          assumptions_made:
+            type: array
+            required: true
+            description: List of assumptions made during conversion
+          human_confirmation_required:
+            type: boolean
+            required: true
+            description: Whether human confirmation is needed
+          confirmed_by:
+            type: string
+            format: uuid
+            required: false
+            references: identity.actor.identity_id
+            description: Identity that confirmed the conversion
+          converted_at:
+            type: timestamp
+            required: true
+            description: Conversion timestamp
+        reference: domains/intent.yaml
+
+  # ========================================================
+  # PAYMENT DOMAIN ENTITIES (Phase E — Mechanical Registration)
+  # ========================================================
+
+  payment:
+    name: Payment
+    description: Execution Boundary Domain — bridges constitutional runtime to external financial systems
+
+    entities:
+
+      payment_request:
+        description: A request to execute a payment through an external rail
+        attributes:
+          payment_request_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+            description: Globally unique payment request identifier
+          source_transfer_id:
+            type: string
+            format: uuid
+            required: true
+            description: References treasury.transfer.transfer_id
+          execution_plan_id:
+            type: string
+            format: uuid
+            required: false
+            description: Populated after routing
+          rail_type:
+            type: enum
+            values: [ACH, FEDNOW, WIRE, RTP, CARD, BLOCKCHAIN, INTERNAL_TRANSFER, STABLECOIN, SWIFT, SEPA, CASH_SETTLEMENT, FUTURE_ADAPTER]
+            required: false
+            description: Populated after routing
+          amount:
+            type: object
+            required: true
+            description: Polymorphic value matching vault value model
+          sender:
+            type: object
+            required: true
+            description: Sender identity and account reference
+          recipient:
+            type: object
+            required: true
+            description: Recipient identity and rail account reference
+          urgency:
+            type: enum
+            values: [IMMEDIATE, STANDARD, BATCH]
+            required: true
+          retry_policy:
+            type: object
+            required: true
+            description: Retry configuration
+          state:
+            type: enum
+            values: [RECEIVED, PLANNING, ROUTING, PREPARING, EXECUTING, CONFIRMING, RECONCILING, SETTLED, FAILED, COMPENSATING, REVERSED, CANCELLED]
+            required: true
+          constitutional_gates_passed:
+            type: object
+            required: true
+            description: Record of which constitutional gates were passed
+          created_at:
+            type: timestamp
+            required: true
+          updated_at:
+            type: timestamp
+            required: true
+          completed_at:
+            type: timestamp
+            required: false
+        reference: domains/payment.yaml
+
+      execution_plan:
+        description: A routing and execution plan for a payment request
+        attributes:
+          execution_plan_id:
+            type: string
+            format: uuid
+            required: true
+            unique: true
+          payment_request_id:
+            type: string
+            format: uuid
+            required: true
+          selected_rail:
+            type: enum
+            values: [ACH, FEDNOW, WIRE, RTP, CARD, BLOCKCHAIN, INTERNAL_TRANSFER, STABLECOIN, SWIFT, SEPA, CASH_SETTLEMENT, FUTURE_ADAPTER]
+            required: true
+          routing_decision:
+            type: object
+            required: true
+            description: Full routing evaluation with scores and criteria
+          step_sequence:
+            type: array
+            required: true
+            description: Ordered adapter execution steps
+          estimated_settlement_time_ms:
+            type: integer
+            required: true
+          compensation_strategy:
+            type: enum
+            values: [SEQUENTIAL_REVERSE, PARALLEL_ROLLBACK, MANUAL_ESCALATION]
+            required: true
+          state:
+            type: enum
+            values: [DRAFT, APPROVED, EXECUTING, COMPLETED, FAILED]
+            required: true
+          created_at:
+            type: timestamp
+            required: true
+        reference: domains/payment.yaml
+

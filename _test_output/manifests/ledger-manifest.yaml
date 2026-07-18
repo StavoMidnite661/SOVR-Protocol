@@ -1,0 +1,20 @@
+{
+  "domain": "ledger",
+  "buildId": "5678ed61edbc97e3",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "artifacts": [
+    {
+      "file": "state-machines/ledger-state-machine.ts",
+      "hash": "cfef36676d986db1"
+    },
+    {
+      "file": "commands/ledger-commands.ts",
+      "hash": "c14c32ae95e545b6"
+    },
+    {
+      "file": "events/ledger-events.ts",
+      "hash": "67c486f34a026485"
+    }
+  ],
+  "sourceHash": "e0ea57fc2e49623c"
+}

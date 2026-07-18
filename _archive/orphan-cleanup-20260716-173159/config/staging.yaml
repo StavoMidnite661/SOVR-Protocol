@@ -1,0 +1,151 @@
+# SOVR Financial OS — Staging Configuration
+# Phase: X.1 — Production Configuration System
+
+database:
+  host: ${DATABASE_HOST:staging-postgres.sovr.internal}
+  port: 5432
+  name: sovr_protocol_staging
+  user: ${DATABASE_USER:sovr_staging}
+  password: ${DATABASE_PASSWORD}
+  pool:
+    min: 2
+    max: 10
+    idleTimeoutMs: 30000
+    connectionTimeoutMs: 5000
+  ssl:
+    enabled: true
+    rejectUnauthorized: true
+  migrations:
+    directory: migrations
+    statementTimeout: 30000
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention: 7
+    verifyAfterBackup: true
+
+eventStore:
+  type: postgres
+  postgres:
+    schema: public
+  streaming:
+    enabled: true
+    consumerGroup: sovr-processors-staging
+    checkpointInterval: 1000
+    deadLetterQueue:
+      enabled: true
+      maxRetries: 3
+      retryBackoffMs: 1000
+    backpressure:
+      maxBufferSize: 5000
+      slowConsumerThresholdMs: 5000
+
+ledger:
+  currency: USD
+  precision: 2
+  autoPost: true
+  integrityCheckEnabled: true
+
+vault:
+  states:
+    - CREATED
+    - FUNDED
+    - LOCKED
+    - AUTHORIZED
+    - PENDING
+    - SETTLED
+    - REVERSED
+    - CLOSED
+    - FAILED
+    - CANCELLED
+    - EXPIRED
+  multiSigRequired: true
+  defaultApprovalCount: 2
+  timeoutMs: 86400000
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    algorithm: HS256
+    expirationMs: 3600000
+    refreshExpirationMs: 86400000
+    issuer: sovr-financial-os-staging
+    audience: sovr-api-staging
+  session:
+    enabled: true
+    maxConcurrent: 5
+    expirationMs: 1800000
+  encryption:
+    algorithm: aes-256-gcm
+    keyRotationIntervalDays: 30
+  rbac:
+    enabled: true
+    requireMfaForAdmin: false
+  apiKeys:
+    enabled: true
+
+api:
+  port: 3001
+  host: 0.0.0.0
+  cors:
+    enabled: true
+    origins:
+      - "https://staging.sovr.internal"
+  rateLimit:
+    enabled: true
+    windowMs: 60000
+    max: 200
+    skipSuccessfulRequests: false
+  timeout:
+    requestMs: 30000
+    keepAliveMs: 5000
+  bodyLimit: 1mb
+  requestId:
+    enabled: true
+  version:
+    enabled: true
+    supportedVersions:
+      - "1.0"
+      - "1.1"
+
+metrics:
+  enabled: true
+  port: 9090
+  path: /metrics
+  exporters:
+    prometheus:
+      enabled: true
+  intervalMs: 15000
+
+logging:
+  level: info
+  format: json
+  outputs:
+    - console
+  fields:
+    include:
+      - timestamp
+      - level
+      - service
+      - traceId
+      - correlationId
+    redact:
+      - password
+      - secret
+      - token
+
+audit:
+  enabled: true
+  chain: true
+  retentionDays: 365
+  signing:
+    enabled: true
+    algorithm: HMAC-SHA256
+
+featureFlags:
+  experimentalFeatures: false
+  betaAPIs: true
+  streamingEnabled: true
+  projectionRebuild: false
+  externalIntegrations: false
+  webDashboard: false

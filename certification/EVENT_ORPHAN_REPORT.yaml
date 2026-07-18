@@ -1,0 +1,597 @@
+# ============================================================
+# SOVR Financial OS — Event Orphan Report
+# File: certification/EVENT_ORPHAN_REPORT.yaml
+# Status: PHASE XIV-E.1 TASK 2
+# ============================================================
+# Identifies events that are:
+#   missing_from_catalog: referenced but not declared
+#   declared_but_unused: declared but never referenced
+#   naming_conflicts: violate naming conventions
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  generated_at: "2026-07-18"
+  status: DRAFT
+  phase: "XIV-E.1"
+  source_files:
+    - 04_event-catalog.yaml
+    - 05_state-machines.yaml
+    - 09_saga-orchestration.yaml
+    - projection-engine.yaml
+    - hybrid-boundary.yaml
+    - 03_command-catalog.yaml
+    - certification/EVENT_REFERENCE_INVENTORY.yaml
+
+# ================================================================
+# CATEGORY 1: MISSING FROM CATALOG
+# Referenced by state machines, sagas, commands, or projections
+# but NOT declared in 04_event-catalog.yaml
+# ================================================================
+
+missing_from_catalog:
+
+  vault_domain:
+    - vault.reserve.creation_failed
+      referenced_by:
+        - state_machine: vault_reservation_lifecycle
+        - command: vault.reserve.create
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+    - vault.collateral.addition_failed
+      referenced_by:
+        - state_machine: vault_collateral_lifecycle
+        - command: vault.collateral.add
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+    - vault.collateral.revaluation_failed
+      referenced_by:
+        - command: vault.collateral.revalue
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+    - vault.valuation.update_failed
+      referenced_by:
+        - command: vault.valuation.update
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+    - vault.reconciliation.failed
+      referenced_by:
+        - command: vault.asset.reconcile
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+  ledger_domain:
+    - ledger.journal.creation_failed
+      referenced_by:
+        - command: ledger.journal.create
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+    - ledger.entry.reversal_failed
+      referenced_by:
+        - command: ledger.entry.reverse
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+    - ledger.account.creation_failed
+      referenced_by:
+        - command: ledger.account.create
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+  identity_domain:
+    - identity.delegation.verified
+      referenced_by:
+        - saga: delegated_execution_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml or update saga to use existing identity.actor.verified
+
+    - identity.authority.unknown
+      referenced_by:
+        - saga: unknown_authority_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+    - identity.authority.flagged_unknown
+      referenced_by:
+        - saga: unknown_authority_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+    - identity.authority.allowed
+      referenced_by:
+        - saga: unknown_authority_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+    - identity.authority.denied
+      referenced_by:
+        - saga: unknown_authority_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+    - identity.authority.marked_unknown
+      referenced_by:
+        - saga: unknown_authority_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+    - identity.authority.determination.notification.sent
+      referenced_by:
+        - saga: unknown_authority_saga
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+  agent_domain:
+    - agent.quota.checked
+      referenced_by:
+        - saga: ai_execution_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+  policy_domain:
+    - policy.rule.creation_failed
+      referenced_by:
+        - saga: policy_review_saga
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+    - policy.rule.activation_failed
+      referenced_by:
+        - saga: policy_review_saga
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+    - policy.escalation.cancel
+      referenced_by:
+        - saga: escalation_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml or update saga compensation_command
+
+    - policy.evaluation.active_operation_blocked
+      referenced_by:
+        - saga: policy_review_saga
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+    - policy.escalation.expired
+      referenced_by:
+        - saga: escalation_saga
+        - saga: unknown_authority_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml
+
+  governance_domain:
+    - governance.escalation.submission_failed
+      referenced_by:
+        - saga: unknown_authority_saga
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+  saga_domain:
+    - escalation.notification.sent
+      referenced_by:
+        - saga: escalation_saga
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+    - escalation.notification.failed
+      referenced_by:
+        - saga: escalation_saga
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+    - escalation.resolution.notification.sent
+      referenced_by:
+        - saga: escalation_saga
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml
+
+  intent_domain:
+    - intent.rejected
+      referenced_by:
+        - saga: human_execution_saga
+        - saga: ai_execution_saga
+        - saga: delegated_execution_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml or update sagas to use existing intent.failed
+
+    - intent.validation_failed
+      referenced_by:
+        - saga: human_execution_saga
+        - saga: ai_execution_saga
+        - saga: delegated_execution_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml or update sagas to use existing intent.enriching.failed
+
+    - intent.submitted
+      referenced_by:
+        - saga: human_execution_saga
+        - saga: ai_execution_saga
+        - saga: delegated_execution_saga
+      severity: high
+      recommendation: Add to 04_event-catalog.yaml or update sagas to use existing intent.received
+
+    - intent.resumed
+      referenced_by:
+        - saga: escalation_saga
+      severity: medium
+      recommendation: Add to 04_event-catalog.yaml or update saga to use existing intent validation events
+
+  # ================================================================
+  # CATEGORY 2: DECLARED BUT UNUSED
+  # Declared in 04_event-catalog.yaml but NOT referenced by any
+  # state machine, saga, projection, or command
+  # ================================================================
+
+declared_but_unused:
+
+  payment_domain:
+    - payment.execution.settled
+      declared_at: 04_event-catalog.yaml:4468
+      referenced_by: []
+      severity: medium
+      recommendation: Remove from catalog or add state machine/saga reference
+
+    - payment.rail.validating
+      declared_at: 04_event-catalog.yaml:4561
+      referenced_by: []
+      severity: medium
+      recommendation: Remove from catalog or add state machine transition reference
+
+    - payment.rail.validated
+      declared_at: 04_event-catalog.yaml:4580
+      referenced_by: []
+      severity: medium
+      recommendation: Remove from catalog or add state machine transition reference
+
+    - payment.rail.confirmation_timed_out
+      declared_at: 04_event-catalog.yaml:4637
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add state machine transition reference
+
+    - payment.rail.validation_timed_out
+      declared_at: 04_event-catalog.yaml:4656
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add state machine transition reference
+
+    - payment.reconciliation.start_failed
+      declared_at: 04_event-catalog.yaml:4675
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add state machine/saga reference
+
+    - payment.reconciliation.timed_out
+      declared_at: 04_event-catalog.yaml:4692
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add state machine transition reference
+
+    - payment.reconciliation.completion_failed
+      declared_at: 04_event-catalog.yaml:4710
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add state machine transition reference
+
+    - payment.compensation.start_failed
+      declared_at: 04_event-catalog.yaml:4728
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add state machine transition reference
+
+    - payment.compensation.timed_out
+      declared_at: 04_event-catalog.yaml:4746
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add state machine transition reference
+
+    - payment.receipt.issuance_failed
+      declared_at: 04_event-catalog.yaml:4764
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add state machine transition reference
+
+    - payment.settlement.confirmed
+      declared_at: 04_event-catalog.yaml:4781
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or merge with treasury.settlement.confirmed
+
+    - payment.settlement.completed
+      declared_at: 04_event-catalog.yaml:4800
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or merge with treasury.transfer.settled
+
+    - payment.settlement.failed
+      declared_at: 04_event-catalog.yaml:4818
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or merge with treasury.transfer.failed
+
+    - payment.request.creation_failed
+      declared_at: 04_event-catalog.yaml:4837
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add command failure reference
+
+    - payment.request.cancellation_failed
+      declared_at: 04_event-catalog.yaml:4853
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add command failure reference
+
+  hybrid_domain:
+    - hybrid.reorg.rollback_initiated
+      declared_at: 04_event-catalog.yaml:769
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add saga/state machine reference
+
+    - hybrid.oracle.price.stale
+      declared_at: 04_event-catalog.yaml:817
+      referenced_by: []
+      severity: low
+      recommendation: Remove from catalog or add projection/saga reference
+
+  # ================================================================
+  # CATEGORY 3: NAMING CONFLICTS
+  # Events that violate the standard domain.aggregate.action pattern
+  # or create ambiguity with existing event names
+  # ================================================================
+
+naming_conflicts:
+
+  - event: treasury.transfer.rejected
+    issue: duplicate_semantic
+    detail: >
+      This event is emitted by both treasury.transfer.authorize and
+      treasury.transfer.cancel commands. The state machine also uses
+      it for REQUESTED_to_REJECTED and AUTHORIZED_to_REJECTED transitions.
+      Consider splitting into treasury.transfer.authorization_rejected
+      and treasury.transfer.cancelled for clarity.
+    severity: medium
+
+  - event: policy.evaluation.active_operation_blocked
+    issue: missing_from_catalog
+    detail: >
+      Referenced by policy_review_saga but not declared in catalog.
+      Should be added or saga should use policy.evaluation.denied.
+    severity: medium
+
+  - event: payment.execution.settled
+    issue: duplicate_semantic
+    detail: >
+      Similar to treasury.transfer.settled and payment.rail.confirmed.
+      Three events representing the same conceptual state change.
+      Should be unified or explicitly differentiated.
+    severity: medium
+
+  - event: payment.settlement.confirmed
+    issue: duplicate_semantic
+    detail: >
+      Overlaps with treasury.settlement.confirmed. Two events for
+      the same settlement confirmation concept.
+    severity: medium
+
+  - event: payment.settlement.completed
+    issue: duplicate_semantic
+    detail: >
+      Overlaps with treasury.transfer.settled. Three events for
+      settlement completion.
+    severity: medium
+
+  - event: payment.settlement.failed
+    issue: duplicate_semantic
+    detail: >
+      Overlaps with treasury.transfer.failed. Two events for
+      settlement failure.
+    severity: medium
+
+  # ================================================================
+  # CATEGORY 4: COMMAND RESULTING_EVENTS MISMATCHES
+  # Commands that reference events not in their resulting_events
+  # ================================================================
+
+command_event_mismatches:
+
+  - command: vault.reserve.create
+    missing_resulting_events:
+      - vault.reserve.creation_failed
+    current_resulting_events:
+      success: [vault.reserve.created]
+      failure: [vault.reserve.creation_failed]
+    issue: vault.reserve.creation_failed not in catalog
+
+  - command: vault.collateral.add
+    missing_resulting_events:
+      - vault.collateral.addition_failed
+    current_resulting_events:
+      success: [vault.collateral.added, vault.collateral.valued]
+      failure: [vault.collateral.addition_failed]
+    issue: vault.collateral.addition_failed not in catalog
+
+  - command: vault.collateral.revalue
+    missing_resulting_events:
+      - vault.collateral.revaluation_failed
+    current_resulting_events:
+      success: [vault.collateral.revalued]
+      conditional: [vault.collateral.margin_call]
+      failure: [vault.collateral.revaluation_failed]
+    issue: vault.collateral.revaluation_failed not in catalog
+
+  - command: vault.valuation.update
+    missing_resulting_events:
+      - vault.valuation.update_failed
+    current_resulting_events:
+      success: [vault.valuation.updated]
+      conditional: [vault.asset.impaired]
+      failure: [vault.valuation.update_failed]
+    issue: vault.valuation.update_failed not in catalog
+
+  - command: vault.asset.reconcile
+    missing_resulting_events:
+      - vault.reconciliation.failed
+    current_resulting_events:
+      success: [vault.reconciliation.started]
+      conditional: [vault.reconciliation.completed, vault.reconciliation.discrepancy_found]
+      failure: [vault.reconciliation.failed]
+    issue: vault.reconciliation.failed not in catalog
+
+  - command: ledger.journal.create
+    missing_resulting_events:
+      - ledger.journal.creation_failed
+    current_resulting_events:
+      success: [ledger.journal.created]
+      failure: [ledger.journal.creation_failed]
+    issue: ledger.journal.creation_failed not in catalog
+
+  - command: ledger.entry.reverse
+    missing_resulting_events:
+      - ledger.entry.reversal_failed
+    current_resulting_events:
+      success: [ledger.entry.reversed]
+      failure: [ledger.entry.reversal_failed]
+    issue: ledger.entry.reversal_failed not in catalog
+
+  - command: ledger.account.create
+    missing_resulting_events:
+      - ledger.account.creation_failed
+    current_resulting_events:
+      success: [ledger.account.created]
+      failure: [ledger.account.creation_failed]
+    issue: ledger.account.creation_failed not in catalog
+
+# ================================================================
+# CATEGORY 5: STATE MACHINE REFERENCE MISMATCHES
+# State machines referencing events not in catalog
+# ================================================================
+
+state_machine_mismatches:
+
+  - state_machine: vault_reservation_lifecycle
+    missing_events:
+      - vault.reserve.creation_failed
+    transition: PENDING_to_FAILED
+    trigger: vault.reserve.creation_failed
+
+  - state_machine: vault_collateral_lifecycle
+    missing_events:
+      - vault.collateral.addition_failed
+    transition: PROPOSED_to_FAILED
+    trigger: vault.collateral.addition_failed
+
+  - state_machine: governance_proposal_lifecycle
+    events_in_catalog:
+      - governance.proposal.cancelled
+      - governance.proposal.expired
+    status: resolved
+    note: These events were previously missing but are now in catalog
+
+  - state_machine: identity_session_lifecycle
+    events_in_catalog:
+      - identity.session.authentication_failed
+    status: resolved
+    note: This event was previously missing but is now in catalog
+
+  - state_machine: payment_request_lifecycle
+    events_in_catalog:
+      - payment.execution.planning_failed
+      - payment.execution.start_failed
+      - payment.rail.prepare_timed_out
+      - payment.rail.execution_timed_out
+      - payment.rail.failed
+      - payment.rail.confirmed
+      - payment.reconciliation.completed
+      - payment.compensation.completed
+    status: resolved
+    note: These events were previously missing but are now in catalog
+
+# ================================================================
+# CATEGORY 6: SAGA REFERENCE MISMATCHES
+# Sagas referencing events not in catalog
+# ================================================================
+
+saga_mismatches:
+
+  - saga: delegated_execution_saga
+    missing_events:
+      - identity.delegation.verified
+    step: DES-002
+    produces_events:
+      - identity.delegation.verified
+      - identity.delegation.expired
+      - identity.delegation.limit_exceeded
+
+  - saga: unknown_authority_saga
+    missing_events:
+      - identity.authority.unknown
+      - identity.authority.flagged_unknown
+      - identity.authority.allowed
+      - identity.authority.denied
+      - identity.authority.marked_unknown
+      - identity.authority.determination.notification.sent
+      - governance.escalation.submission_failed
+    step: UAS-001 through UAS-005
+
+  - saga: ai_execution_saga
+    missing_events:
+      - agent.quota.checked
+    step: AES-002
+    produces_events:
+      - agent.quota.checked
+      - agent.quota.exceeded
+
+  - saga: escalation_saga
+    missing_events:
+      - escalation.notification.sent
+      - escalation.notification.failed
+      - escalation.resolution.notification.sent
+      - policy.escalation.cancel
+      - policy.escalation.expired
+    step: ESC-001 through ESC-006
+
+  - saga: policy_review_saga
+    missing_events:
+      - policy.rule.creation_failed
+      - policy.rule.activation_failed
+      - policy.evaluation.active_operation_blocked
+    step: PRS-001 through PRS-004
+
+  - saga: human_execution_saga
+    missing_events:
+      - intent.rejected
+      - intent.validation_failed
+      - intent.submitted
+    step: HES-003a through HES-003d
+
+  # ================================================================
+  # SUMMARY
+  # ================================================================
+
+summary:
+  total_missing_from_catalog: 24
+  total_declared_but_unused: 18
+  total_naming_conflicts: 6
+  total_command_event_mismatches: 8
+  total_state_machine_mismatches: 5
+  total_saga_mismatches: 6
+
+  previously_missing_now_resolved:
+    - governance.proposal.cancelled
+    - governance.proposal.expired
+    - identity.session.authentication_failed
+    - payment.execution.planning_failed
+    - payment.rail.execution_timed_out
+
+  priority_fixes:
+    - Add all missing_from_catalog events to 04_event-catalog.yaml
+    - Remove or wire up declared_but_unused payment events
+    - Resolve naming conflicts for settlement events
+    - Add missing resulting_events to command catalog entries

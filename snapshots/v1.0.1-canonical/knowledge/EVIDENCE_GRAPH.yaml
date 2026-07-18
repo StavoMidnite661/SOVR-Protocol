@@ -1,0 +1,71 @@
+# ============================================================
+# SOVR Financial OS — Constitutional Evidence Graph
+# File: knowledge/EVIDENCE_GRAPH.yaml
+# Phase: 5.9 — Constitutional Evidence Graph
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no implementation)
+# ============================================================
+# Every certification, acceptance test, amendment, invariant, and
+# report becomes linked evidence. Nothing exists without evidence.
+# This graph is the audit backbone of the digital twin.
+#
+# Authority: knowledge/IDENTITY_REGISTRY.yaml, knowledge/TRACE_GRAPH.yaml,
+# certification/COMPILER_CERTIFICATION_MATRIX.yaml.
+# ============================================================
+
+evidence_graph:
+  schema_version: "1.0.0"
+  principle: NOTHING_EXISTS_WITHOUT_EVIDENCE
+  evidence_types: [Certification, AcceptanceTest, Amendment, Invariant, Report]
+  node_count: 0   # populated by the compiler at CERTIFICATION_GENERATION
+  edges:
+
+    - id: EVD-001
+      source: SOVR-AT-000001
+      target: SOVR-INV-000001
+      relationship: Supports
+      evidence: acceptance_tests.invariant_tests[INV-001]
+      version: "1.0.0"
+
+    - id: EVD-002
+      source: SOVR-PASS-000018
+      target: SOVR-PROT-000001
+      relationship: Certifies
+      evidence: CERTIFICATION_GENERATION emits coverage + traceability
+      version: "1.0.0"
+
+    - id: EVD-003
+      source: SOVR-AMD-000004
+      target: SOVR-DOM-000002
+      relationship: EvidenceFor
+      evidence: amendment finding G-05 -> canonical domain registry
+      version: "1.0.0"
+
+    - id: EVD-004
+      source: SOVR-FND-000001
+      target: SOVR-AMD-000001
+      relationship: Justifies
+      evidence: finding G-01 recorded in CONSTITUTIONAL_FINDING_REGISTRY
+      version: "1.0.0"
+
+    - id: EVD-005
+      source: SOVR-PASS-000019
+      target: SOVR-MAN-000001
+      relationship: Produces
+      evidence: MANIFEST_GENERATION emits build_hash
+      version: "1.0.0"
+
+  linkage_rules:
+    - rule: EVERY_CERTIFICATION_LINKS_TO_SOURCE_NODE_AND_BUILD_HASH
+    - rule: EVERY_ACCEPTANCE_TEST_LINKS_TO_TARGET_OBJECT
+    - rule: EVERY_AMENDMENT_LINKS_TO_FINDING_AND_AFFECTED_OBJECTS
+    - rule: EVERY_INVARIANT_LINKS_TO_VERIFYING_TESTS
+    - rule: EVERY_REPORT_LINKS_TO_SUPPORTING_EVIDENCE
+
+  coverage:
+    invariants_covered: 10_of_10
+    amendments_linked: 12_of_12
+    acceptance_tests_linked: 76_concrete_of_105
+    note: >
+      The 105 acceptance tests resolve to 76 concrete registrations plus
+      parameterized templates (command/state_machine sections). The compiler
+      instantiates templates and links them at CERTIFICATION_GENERATION.

@@ -1,0 +1,200 @@
+amendment_impact_matrix:
+  schema_version: 1.0.0
+  phase: amendment_execution_review
+  note: affected.protocol lists files; affected.compiler/runtime/tests/docs describe the realization impact.
+  amendments:
+  - id: AMD-0001
+    title: Repair Invalid YAML Structure
+    affected:
+      protocol:
+      - 09_saga-orchestration.yaml
+      - domains/treasury.yaml
+      - domains/vault.yaml
+      compiler:
+      - PASS-002 YAML_PARSING
+      - no_change
+      runtime:
+      - BLOCKS_ALL_REALIZATION
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: critical
+    migration: see governance/amendments/AMD-0001.md -> Migration Strategy
+  - id: AMD-0002
+    title: Aggregate Root Constitutional Registry
+    affected:
+      protocol:
+      - protocol/AGGREGATE_REGISTRY.yaml
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: high
+    migration: see governance/amendments/AMD-0002.md -> Migration Strategy
+  - id: AMD-0003
+    title: Saga Command Reference Resolution
+    affected:
+      protocol:
+      - 09_saga-orchestration.yaml
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: high
+    migration: see governance/amendments/AMD-0003.md -> Migration Strategy
+  - id: AMD-0004
+    title: Canonical Domain Registry
+    affected:
+      protocol:
+      - protocol/DOMAIN_REGISTRY.yaml
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - PASS-005 CANONICAL_GRAPH
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: high
+    migration: see governance/amendments/AMD-0004.md -> Migration Strategy
+  - id: AMD-0005
+    title: Validation Expression Language Specification
+    affected:
+      protocol:
+      - compiler/VALIDATION_LANGUAGE_SPEC.md
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: high
+    migration: see governance/amendments/AMD-0005.md -> Migration Strategy
+  - id: AMD-0006
+    title: Event Catalog Completion
+    affected:
+      protocol:
+      - 04_event-catalog.yaml
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: high
+    migration: see governance/amendments/AMD-0006.md -> Migration Strategy
+  - id: AMD-0007
+    title: Entity Registration Reconciliation
+    affected:
+      protocol:
+      - 02_domain-model.yaml
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - acceptance-tests.yaml (count reconciliation)
+      documentation:
+      - registry + knowledge graph refresh
+    risk: high
+    migration: see governance/amendments/AMD-0007.md -> Migration Strategy
+  - id: AMD-0008
+    title: Value Object Model
+    affected:
+      protocol:
+      - compiler.yaml
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: medium
+    migration: see governance/amendments/AMD-0008.md -> Migration Strategy
+  - id: AMD-0009
+    title: State Machine Transition Completion
+    affected:
+      protocol:
+      - 05_state-machines.yaml
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: medium
+    migration: see governance/amendments/AMD-0009.md -> Migration Strategy
+  - id: AMD-0010
+    title: Constitutional Metadata Standard
+    affected:
+      protocol:
+      - protocol/METADATA_STANDARD.yaml
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: medium
+    migration: see governance/amendments/AMD-0010.md -> Migration Strategy
+  - id: AMD-0011
+    title: Domain File Structure Normalization
+    affected:
+      protocol:
+      - domains/
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: medium
+    migration: see governance/amendments/AMD-0011.md -> Migration Strategy
+  - id: AMD-0012
+    title: Inventory & Documentation Reconciliation
+    affected:
+      protocol:
+      - Docs/
+      - management/
+      compiler:
+      - PASS-006 CROSS_REFERENCE_RESOLUTION
+      - no_change
+      runtime:
+      - NONE_DIRECT
+      tests:
+      - no_change
+      documentation:
+      - registry + knowledge graph refresh
+    risk: low
+    migration: see governance/amendments/AMD-0012.md -> Migration Strategy

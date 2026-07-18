@@ -1,0 +1,1041 @@
+acceptance_tests:
+
+  - test_id: INV-001-T001
+    category: invariant
+    invariant: INV-001
+    domain: event_store
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Modification rejected with IMMUTABLE_VIOLATION
+
+  - test_id: INV-001-T002
+    category: invariant
+    invariant: INV-001
+    domain: event_store
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Deletion rejected with IMMUTABLE_VIOLATION
+
+  - test_id: INV-001-T003
+    category: invariant
+    invariant: INV-001
+    domain: event_store
+    command: any financial command
+    event: any
+    state_machine: null
+    capability: null
+    expected_result: At least one event published per state change
+
+  - test_id: INV-001-T004
+    category: invariant
+    invariant: INV-001
+    domain: event_store
+    command: null
+    event: any new event
+    state_machine: null
+    capability: null
+    expected_result: Monotonically increasing sequence number
+
+  - test_id: INV-002-T001
+    category: invariant
+    invariant: INV-002
+    domain: ledger
+    command: ledger.entry.post
+    event: ledger.entry.posted
+    state_machine: journal_entry_lifecycle
+    capability: ledger.entry.post
+    expected_result: Balanced entry accepted
+
+  - test_id: INV-002-T002
+    category: invariant
+    invariant: INV-002
+    domain: ledger
+    command: ledger.entry.post
+    event: ledger.entry.rejected
+    state_machine: journal_entry_lifecycle
+    capability: ledger.entry.post
+    expected_result: Unbalanced entry rejected with BALANCE_VIOLATION
+
+  - test_id: INV-002-T003
+    category: invariant
+    invariant: INV-002
+    domain: ledger
+    command: ledger.entry.post
+    event: ledger.entry.rejected
+    state_machine: journal_entry_lifecycle
+    capability: ledger.entry.post
+    expected_result: Zero-amount entry rejected with ZERO_AMOUNT_VIOLATION
+
+  - test_id: INV-003-T001
+    category: invariant
+    invariant: INV-003
+    domain: policy
+    command: any
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: context-dependent
+    expected_result: Actor within authority succeeds
+
+  - test_id: INV-003-T002
+    category: invariant
+    invariant: INV-003
+    domain: policy
+    command: any
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: context-dependent
+    expected_result: Actor without capability rejected
+
+  - test_id: INV-003-T003
+    category: invariant
+    invariant: INV-003
+    domain: policy
+    command: any
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: context-dependent
+    expected_result: Wrong scope rejected
+
+  - test_id: INV-003-T004
+    category: invariant
+    invariant: INV-003
+    domain: policy
+    command: any
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: context-dependent
+    expected_result: Exceeding granted authority rejected
+
+  - test_id: INV-004-T001
+    category: invariant
+    invariant: INV-004
+    domain: agent
+    command: agent.capability.bind (forbidden)
+    event: agent.action.audited
+    state_machine: agent_lifecycle
+    capability: null
+    expected_result: Agent cannot create capabilities
+
+  - test_id: INV-004-T002
+    category: invariant
+    invariant: INV-004
+    domain: agent
+    command: agent.capability.bind (forbidden)
+    event: agent.action.audited
+    state_machine: agent_lifecycle
+    capability: null
+    expected_result: Agent cannot grant capabilities
+
+  - test_id: INV-004-T003
+    category: invariant
+    invariant: INV-004
+    domain: agent
+    command: agent.capability.bind (forbidden)
+    event: agent.action.audited
+    state_machine: agent_lifecycle
+    capability: null
+    expected_result: Agent cannot modify own capabilities
+
+  - test_id: INV-004-T004
+    category: invariant
+    invariant: INV-004
+    domain: agent
+    command: agent.governance.override (forbidden)
+    event: agent.action.audited
+    state_machine: agent_lifecycle
+    capability: null
+    expected_result: Agent cannot escalate own permissions
+
+  - test_id: INV-005-T001
+    category: invariant
+    invariant: INV-005
+    domain: audit
+    command: any financial command
+    event: any financial event
+    state_machine: null
+    capability: null
+    expected_result: Complete audit trail produced
+
+  - test_id: INV-005-T002
+    category: invariant
+    invariant: INV-005
+    domain: audit
+    command: any financial command
+    event: any financial event
+    state_machine: null
+    capability: null
+    expected_result: Actor identity recorded in audit trail
+
+  - test_id: INV-005-T003
+    category: invariant
+    invariant: INV-005
+    domain: governance
+    command: governance.audit.query
+    event: any
+    state_machine: null
+    capability: governance.audit.query
+    expected_result: Complete event chain returned to governance
+
+  - test_id: INV-006-T001
+    category: invariant
+    invariant: INV-006
+    domain: projection
+    command: null
+    event: any
+    state_machine: null
+    capability: null
+    expected_result: Projection rebuilt from event log on disagreement
+
+  - test_id: INV-006-T002
+    category: invariant
+    invariant: INV-006
+    domain: event_store
+    command: any
+    event: any
+    state_machine: null
+    capability: null
+    expected_result: Event does not mutate aggregate root
+
+  - test_id: INV-007-T001
+    category: invariant
+    invariant: INV-007
+    domain: constitutional
+    command: any optimization proposal
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Optimization compromising safety rejected
+
+  - test_id: INV-007-T002
+    category: invariant
+    invariant: INV-007
+    domain: conflict_resolution
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Asset security wins over operational efficiency
+
+  - test_id: INV-008-T001
+    category: invariant
+    invariant: INV-008
+    domain: command_bus
+    command: any
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: All four gates evaluated in order
+
+  - test_id: INV-008-T002
+    category: invariant
+    invariant: INV-008
+    domain: command_bus
+    command: any
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Gate failure stops pipeline
+
+  - test_id: INV-008-T003
+    category: invariant
+    invariant: INV-008
+    domain: command_catalog
+    command: all commands
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: All commands have constitutional_gates set to true
+
+  - test_id: INV-009-T001
+    category: invariant
+    invariant: INV-009
+    domain: payment
+    command: payment.status.query
+    event: payment.execution.unknown
+    state_machine: payment_lifecycle
+    capability: payment.reconcile
+    expected_result: State represented as UNKNOWN, not assumed success
+
+  - test_id: INV-009-T002
+    category: invariant
+    invariant: INV-009
+    domain: governance
+    command: null
+    event: payment.execution.unknown
+    state_machine: payment_lifecycle
+    capability: null
+    expected_result: UNKNOWN state escalated to governance
+
+  - test_id: INV-010-T001
+    category: invariant
+    invariant: INV-010
+    domain: agent
+    command: direct service call (forbidden)
+    event: agent.action.audited
+    state_machine: agent_lifecycle
+    capability: null
+    expected_result: Bypass attempt rejected with CONSTITUTIONAL_BYPASS_ATTEMPT
+
+  - test_id: INV-010-T002
+    category: invariant
+    invariant: INV-010
+    domain: agent
+    command: any approved command
+    event: agent.action.audited
+    state_machine: agent_lifecycle
+    capability: context-dependent
+    expected_result: Command flows through all four gates
+
+  - test_id: SAGA-HE-T001
+    category: saga
+    invariant: INV-008
+    domain: intent
+    command: context-dependent
+    event: context-dependent
+    state_machine: null
+    capability: context-dependent
+    expected_result: Human execution saga completes successfully
+
+  - test_id: SAGA-HE-T002
+    category: saga
+    invariant: INV-003
+    domain: identity
+    command: context-dependent
+    event: identity.session.authentication_failed
+    state_machine: null
+    capability: null
+    expected_result: Saga terminates with UNAUTHENTICATED
+
+  - test_id: SAGA-HE-T003
+    category: saga
+    invariant: INV-003
+    domain: policy
+    command: context-dependent
+    event: policy.evaluation.escalated
+    state_machine: null
+    capability: null
+    expected_result: Saga terminates with UNAUTHORIZED
+
+  - test_id: SAGA-HE-T004
+    category: saga
+    invariant: INV-007
+    domain: context-dependent
+    command: context-dependent
+    event: context-dependent
+    state_machine: null
+    capability: null
+    expected_result: Compensation reverses all domain-side effects
+
+  - test_id: SAGA-AI-T001
+    category: saga
+    invariant: INV-010
+    domain: agent
+    command: context-dependent
+    event: agent.action.audited
+    state_machine: null
+    capability: context-dependent
+    expected_result: AI saga completes with complete audit envelope
+
+  - test_id: SAGA-AI-T002
+    category: saga
+    invariant: INV-004
+    domain: agent
+    command: agent capability escalation (forbidden)
+    event: agent.action.audited
+    state_machine: null
+    capability: null
+    expected_result: Agent flagged, governance notified
+
+  - test_id: SAGA-AI-T003
+    category: saga
+    invariant: INV-005
+    domain: agent
+    command: any
+    event: agent.action.audited
+    state_machine: null
+    capability: null
+    expected_result: Audit envelope contains all 10 required fields
+
+  - test_id: SAGA-DE-T001
+    category: saga
+    invariant: INV-003
+    domain: identity
+    command: context-dependent
+    event: identity.session.created
+    state_machine: null
+    capability: null
+    expected_result: Full delegation chain recorded
+
+  - test_id: SAGA-DE-T002
+    category: saga
+    invariant: INV-003
+    domain: identity
+    command: context-dependent
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: null
+    expected_result: Delegation cannot expand authority
+
+  - test_id: SAGA-ES-T001
+    category: saga
+    invariant: INV-003
+    domain: governance
+    command: null
+    event: policy.evaluation.escalated
+    state_machine: null
+    capability: null
+    expected_result: Escalation record created, governance notified
+
+  - test_id: SAGA-ES-T002
+    category: saga
+    invariant: INV-003
+    domain: governance
+    command: context-dependent
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: null
+    expected_result: Command re-evaluated with resolution context
+
+  - test_id: SAGA-PR-T001
+    category: saga
+    invariant: INV-003
+    domain: policy
+    command: context-dependent
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: null
+    expected_result: Deferred command re-evaluated when conditions met
+
+  - test_id: SAGA-UA-T001
+    category: saga
+    invariant: INV-003
+    domain: identity
+    command: context-dependent
+    event: identity.authority.unknown
+    state_machine: null
+    capability: null
+    expected_result: Command quarantined, governance alerted
+
+  - test_id: SAGA-PE-T001
+    category: saga
+    invariant: INV-007
+    domain: payment
+    command: treasury.transfer.execute
+    event: treasury.transfer.settled
+    state_machine: payment_lifecycle
+    capability: payment.initiate
+    expected_result: Payment execution saga completes successfully
+
+  - test_id: SAGA-PE-T002
+    category: saga
+    invariant: INV-007
+    domain: payment
+    command: treasury.transfer.execute
+    event: treasury.transfer.failed
+    state_machine: payment_lifecycle
+    capability: payment.initiate
+    expected_result: Compensation initiated, transfer reversed
+
+  - test_id: SAGA-PE-T003
+    category: saga
+    invariant: INV-009
+    domain: payment
+    command: null
+    event: payment.execution.unknown
+    state_machine: payment_lifecycle
+    capability: payment.reconcile
+    expected_result: State marked UNKNOWN, governance escalated
+
+  - test_id: SM-{domain}-{aggregate}-T001
+    category: state_machine
+    invariant: null
+    domain: vault, ledger, treasury, identity, policy, intent, agent, payment
+    command: valid transition command
+    event: corresponding event
+    state_machine: "{aggregate}_lifecycle"
+    capability: context-dependent
+    expected_result: Valid transition succeeds
+
+  - test_id: SM-{domain}-{aggregate}-T002
+    category: state_machine
+    invariant: null
+    domain: vault, ledger, treasury, identity, policy, intent, agent, payment
+    command: invalid transition command
+    event: null
+    state_machine: "{aggregate}_lifecycle"
+    capability: null
+    expected_result: Invalid transition rejected with STATE_MACHINE_VIOLATION
+
+  - test_id: SM-{domain}-{aggregate}-T003
+    category: state_machine
+    invariant: null
+    domain: vault, ledger, treasury, identity, policy, intent, agent, payment
+    command: sequence of valid commands
+    event: sequence of events
+    state_machine: "{aggregate}_lifecycle"
+    capability: context-dependent
+    expected_result: Terminal state reachable
+
+  - test_id: SM-{domain}-{aggregate}-T004
+    category: state_machine
+    invariant: null
+    domain: vault, ledger, treasury, identity, policy, intent, agent, payment
+    command: null
+    event: null
+    state_machine: "{aggregate}_lifecycle"
+    capability: null
+    expected_result: Non-terminal states have non-empty allowed_commands
+
+  - test_id: SM-{domain}-{aggregate}-T005
+    category: state_machine
+    invariant: null
+    domain: vault, ledger, treasury, identity, policy, intent, agent, payment
+    command: null
+    event: timeout event
+    state_machine: "{aggregate}_lifecycle"
+    capability: null
+    expected_result: Timeout transition fires
+
+  - test_id: CMD-{cmd_id}-T001
+    category: command
+    invariant: INV-008
+    domain: context-dependent
+    command: "{cmd_id}"
+    event: success event for command
+    state_machine: null
+    capability: command.minimum_capability
+    expected_result: Valid command accepted
+
+  - test_id: CMD-{cmd_id}-T002
+    category: command
+    invariant: INV-008
+    domain: context-dependent
+    command: "{cmd_id}"
+    event: failure event for command
+    state_machine: null
+    capability: null
+    expected_result: Missing required payload rejected
+
+  - test_id: CMD-{cmd_id}-T003
+    category: command
+    invariant: INV-008
+    domain: context-dependent
+    command: "{cmd_id}"
+    event: failure event for command
+    state_machine: null
+    capability: null
+    expected_result: Command rejected at identity gate
+
+  - test_id: CMD-{cmd_id}-T004
+    category: command
+    invariant: INV-001
+    domain: context-dependent
+    command: "{cmd_id}"
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Duplicate command_id rejected
+
+  - test_id: EVT-ENV-T001
+    category: event
+    invariant: INV-005
+    domain: all
+    command: null
+    event: any
+    state_machine: null
+    capability: null
+    expected_result: All 17 envelope fields present
+
+  - test_id: EVT-ENV-T002
+    category: event
+    invariant: INV-001
+    domain: event_store
+    command: null
+    event: any
+    state_machine: null
+    capability: null
+    expected_result: Event immutable after publication
+
+  - test_id: EVT-ENV-T003
+    category: event
+    invariant: INV-001
+    domain: event_store
+    command: null
+    event: E2
+    state_machine: null
+    capability: null
+    expected_result: Causation chain unbroken
+
+  - test_id: EVT-ENV-T004
+    category: event
+    invariant: INV-001
+    domain: event_store
+    command: C
+    event: E
+    state_machine: null
+    capability: null
+    expected_result: Triggering command traceable
+
+  - test_id: EVT-ENV-T005
+    category: event
+    invariant: INV-003
+    domain: policy
+    command: any authorized command
+    event: E
+    state_machine: null
+    capability: null
+    expected_result: Policy decision link complete
+
+  - test_id: POL-T001
+    category: policy
+    invariant: INV-003
+    domain: policy
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Deterministic evaluation
+
+  - test_id: POL-T002
+    category: policy
+    invariant: INV-003
+    domain: policy
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: ALLOW outcome for valid context
+
+  - test_id: POL-T003
+    category: policy
+    invariant: INV-003
+    domain: policy
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: DENY outcome for missing capability
+
+  - test_id: POL-T004
+    category: policy
+    invariant: INV-003
+    domain: policy
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: ESCALATE outcome for rule requiring review
+
+  - test_id: POL-T005
+    category: policy
+    invariant: INV-003
+    domain: policy
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: DEFER outcome for missing context
+
+  - test_id: POL-T006
+    category: policy
+    invariant: INV-003
+    domain: policy
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Deactivated rule skipped
+
+  - test_id: POL-T007
+    category: policy
+    invariant: INV-003
+    domain: policy
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Policy set evaluated in defined order
+
+  - test_id: CAP-T001
+    category: capability
+    invariant: INV-003
+    domain: policy
+    command: context-dependent
+    event: null
+    state_machine: null
+    capability: context-dependent
+    expected_result: Valid scope succeeds
+
+  - test_id: CAP-T002
+    category: capability
+    invariant: INV-003
+    domain: policy
+    command: context-dependent
+    event: null
+    state_machine: null
+    capability: context-dependent
+    expected_result: Invalid scope fails
+
+  - test_id: CAP-T003
+    category: capability
+    invariant: INV-003
+    domain: policy
+    command: context-dependent
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Missing capability fails
+
+  - test_id: CAP-T004
+    category: capability
+    invariant: INV-003
+    domain: policy
+    command: context-dependent
+    event: null
+    state_machine: null
+    capability: context-dependent
+    expected_result: Wildcard scope matches
+
+  - test_id: CAP-T005
+    category: capability
+    invariant: INV-004
+    domain: agent
+    command: agent.capability.bind (forbidden)
+    event: agent.action.audited
+    state_machine: null
+    capability: null
+    expected_result: Agent self-grant rejected
+
+  - test_id: PRJ-T001
+    category: projection
+    invariant: INV-006
+    domain: projection
+    command: null
+    event: E1, E2
+    state_machine: null
+    capability: null
+    expected_result: Projection reflects all events correctly
+
+  - test_id: PRJ-T002
+    category: projection
+    invariant: INV-006
+    domain: projection
+    command: null
+    event: all events from genesis
+    state_machine: null
+    capability: null
+    expected_result: Full replay produces same result as incremental
+
+  - test_id: PRJ-T003
+    category: projection
+    invariant: INV-006
+    domain: projection
+    command: null
+    event: E
+    state_machine: null
+    capability: null
+    expected_result: Invalidation triggers correctly
+
+  - test_id: PRJ-T004
+    category: projection
+    invariant: null
+    domain: projection
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Cache hit/miss behavior correct
+
+  - test_id: PRJ-T005
+    category: projection
+    invariant: INV-006
+    domain: projection
+    command: null
+    event: E
+    state_machine: null
+    capability: null
+    expected_result: Cross-projection consistency maintained
+
+  - test_id: DC-VT-T001
+    category: domain_contract
+    invariant: INV-007
+    domain: vault, treasury
+    command: treasury.transfer.request
+    event: treasury.transfer.requested
+    state_machine: transfer_order_lifecycle
+    capability: treasury.transfer.initiate
+    expected_result: Asset exists and is available before transfer
+
+  - test_id: DC-VT-T002
+    category: domain_contract
+    invariant: INV-007
+    domain: vault, treasury
+    command: treasury.transfer.reserve
+    event: treasury.transfer.reserved
+    state_machine: transfer_order_lifecycle
+    capability: vault.reserve.create
+    expected_result: Reserve confirmed before execution
+
+  - test_id: DC-TL-T001
+    category: domain_contract
+    invariant: INV-002
+    domain: treasury, ledger
+    command: ledger.entry.post
+    event: ledger.entry.posted
+    state_machine: journal_entry_lifecycle
+    capability: ledger.entry.post
+    expected_result: Balanced entries before posting
+
+  - test_id: DC-IP-T001
+    category: domain_contract
+    invariant: INV-003
+    domain: identity, policy
+    command: policy.set.evaluate
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: policy.set.evaluate
+    expected_result: Valid auth context produced
+
+  - test_id: DC-PI-T001
+    category: domain_contract
+    invariant: INV-003
+    domain: policy, intent
+    command: policy.set.evaluate
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: policy.set.evaluate
+    expected_result: Valid policy decision produced
+
+  - test_id: DC-IA-T001
+    category: domain_contract
+    invariant: INV-008
+    domain: intent, agent
+    command: context-dependent
+    event: intent.converted
+    state_machine: null
+    capability: context-dependent
+    expected_result: Converted command is valid
+
+  - test_id: DC-AT-T001
+    category: domain_contract
+    invariant: INV-004
+    domain: agent, treasury
+    command: treasury.transfer.execute
+    event: treasury.transfer.executing
+    state_machine: null
+    capability: context-dependent
+    expected_result: Bounded execution within quota
+
+  - test_id: DC-TL-T002
+    category: domain_contract
+    invariant: INV-005
+    domain: treasury, ledger
+    command: treasury.settlement.confirm
+    event: treasury.transfer.settled
+    state_machine: transfer_order_lifecycle
+    capability: treasury.settlement.confirm
+    expected_result: Ledger entry references treasury transfer_id
+
+  - test_id: DC-LA-T001
+    category: domain_contract
+    invariant: INV-005
+    domain: ledger, governance
+    command: governance.audit.query
+    event: any
+    state_machine: null
+    capability: governance.audit.query
+    expected_result: Complete event chain returned
+
+  - test_id: CMP-T001
+    category: compiler_output
+    invariant: null
+    domain: compiler
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Generated TypeScript compiles with zero errors
+
+  - test_id: CMP-T002
+    category: compiler_output
+    invariant: null
+    domain: compiler
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Prisma models match entity definitions
+
+  - test_id: CMP-T003
+    category: compiler_output
+    invariant: null
+    domain: compiler
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: OpenAPI spec matches command definitions
+
+  - test_id: CMP-T004
+    category: compiler_output
+    invariant: null
+    domain: compiler
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: JSON schemas validate against meta-schema
+
+  - test_id: CMP-T005
+    category: compiler_output
+    invariant: null
+    domain: compiler
+    command: null
+    event: all events
+    state_machine: null
+    capability: null
+    expected_result: Kafka topics cover all events
+
+  - test_id: CMP-T006
+    category: compiler_output
+    invariant: null
+    domain: compiler
+    command: null
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Test skeletons reference correct artifacts
+
+  - test_id: CA-PA-T001
+    category: constitutional_article
+    invariant: INV-002
+    domain: ledger
+    command: ledger.entry.post
+    event: ledger.entry.posted
+    state_machine: journal_entry_lifecycle
+    capability: ledger.entry.post
+    expected_result: Ledger integrity enforced
+
+  - test_id: CA-PA-T002
+    category: constitutional_article
+    invariant: INV-001
+    domain: event_store
+    command: null
+    event: any
+    state_machine: null
+    capability: null
+    expected_result: Event immutability enforced
+
+  - test_id: CA-PA-T003
+    category: constitutional_article
+    invariant: INV-002
+    domain: ledger
+    command: ledger.entry.post
+    event: ledger.entry.rejected
+    state_machine: journal_entry_lifecycle
+    capability: ledger.entry.post
+    expected_result: Double-entry enforced
+
+  - test_id: CA-PA-T004
+    category: constitutional_article
+    invariant: INV-005
+    domain: audit
+    command: any financial command
+    event: any
+    state_machine: null
+    capability: null
+    expected_result: Audit trail enforced
+
+  - test_id: CA-PA-T005
+    category: constitutional_article
+    invariant: INV-007
+    domain: constitutional
+    command: any optimization
+    event: null
+    state_machine: null
+    capability: null
+    expected_result: Value preservation enforced
+
+  - test_id: CA-PA-T006
+    category: constitutional_article
+    invariant: INV-004
+    domain: agent
+    command: agent.capability.bind (forbidden)
+    event: agent.action.audited
+    state_machine: null
+    capability: null
+    expected_result: Agent authority prohibition enforced
+
+  - test_id: CA-PA-T007
+    category: constitutional_article
+    invariant: INV-006
+    domain: projection
+    command: null
+    event: any
+    state_machine: null
+    capability: null
+    expected_result: Event does not mutate enforced
+
+  - test_id: CA-GS-T001
+    category: constitutional_article
+    invariant: INV-003
+    domain: governance
+    command: governance action
+    event: governance.proposal.created
+    state_machine: null
+    capability: governance.oversight.review
+    expected_result: Governance authority boundaries enforced
+
+  - test_id: CA-GS-T002
+    category: constitutional_article
+    invariant: INV-003
+    domain: governance
+    command: policy parameter adjustment
+    event: policy.rule.updated
+    state_machine: null
+    capability: governance.oversight.review
+    expected_result: Operational governance within bounds
+
+  - test_id: CA-GS-T003
+    category: constitutional_article
+    invariant: INV-003
+    domain: governance
+    command: null
+    event: governance.emergency.expired
+    state_machine: null
+    capability: governance.emergency.halt
+    expected_result: Emergency powers time-limited
+
+  - test_id: CA-AG-T001
+    category: constitutional_article
+    invariant: INV-005
+    domain: agent
+    command: any agent action
+    event: agent.action.audited
+    state_machine: null
+    capability: null
+    expected_result: Audit envelope complete with 10 fields
+
+  - test_id: CA-AG-T002
+    category: constitutional_article
+    invariant: INV-004
+    domain: agent
+    command: any approaching limit
+    event: agent.limit.escalated
+    state_machine: null
+    capability: null
+    expected_result: Escalation triggered at boundary
+
+  - test_id: CA-AG-T003
+    category: constitutional_article
+    invariant: INV-004
+    domain: agent
+    command: agent-issued command
+    event: policy.evaluation.completed
+    state_machine: null
+    capability: null
+    expected_result: Agent not in approval chain for own commands

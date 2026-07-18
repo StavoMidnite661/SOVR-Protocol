@@ -1,0 +1,98 @@
+review_board:
+
+  authority:
+
+    name: SOVR Amendment Review Board
+
+    purpose: >
+      Formal decision authority for constitutional amendment review.
+      Ensures all proposed amendments undergo mandatory constitutional,
+      technical, security, and operational review before ratification.
+      No amendment enters effect without board approval.
+
+  members:
+
+    - role: constitutional_reviewer
+
+      responsibility: >
+        Validates amendment against constitutional invariants, protected
+        articles, and authority model. Ensures no amendment exceeds granted
+        authority or violates immutable principles.
+
+    - role: technical_reviewer
+
+      responsibility: >
+        Validates amendment technical correctness, compiler impact, runtime
+        implications, and dependency ordering. Ensures no regression in
+        compiler pipeline, semantic contract, or deterministic guarantees.
+
+    - role: security_reviewer
+
+      responsibility: >
+        Validates amendment security posture, authorization boundaries,
+        identity and capability implications. Ensures no privilege escalation
+        or access control degradation.
+
+    - role: operational_reviewer
+
+      responsibility: >
+        Validates amendment operational feasibility, migration complexity,
+        rollback capability, and acceptance criteria. Ensures amendment can
+        be executed without production disruption.
+
+    - role: governance_secretary
+
+      responsibility: >
+        Manages amendment lifecycle, records votes, emits governance events,
+        maintains amendment registry, and certifies migration evidence.
+        Ensures full audit trail and traceability.
+
+  approval_states:
+
+    - proposed
+
+    - technical_review
+
+    - security_review
+
+    - governance_review
+
+    - ratified
+
+    - rejected
+
+    - superseded
+
+  required_reviews:
+
+    constitutional: required for constitutional_amendment and boundary_amendment
+
+    technical: required for all amendment types
+
+    security: required for constitutional_amendment and boundary_amendment
+
+    operational: required for all amendment types
+
+  approval_rules:
+
+    minimum_reviews: 4
+
+    required_signatures: 3
+
+    unanimous_required_for:
+
+      - constitutional_amendment
+
+      - boundary_amendment affecting PROTECTED_ARTICLES
+
+    majority_acceptable_for:
+
+      - policy_amendment
+
+      - operational_amendment
+
+    quorum: all_active_members
+
+    cooling_period_days: 14
+
+    public_comment_period_days: 30

@@ -1,0 +1,1447 @@
+# ============================================================
+# SOVR Financial OS — Saga Orchestration
+# File: 09_saga-orchestration.yaml
+# Status: FROZEN
+# Build Phase: D (Security & Intelligence Subsystem)
+# ============================================================
+# Defines distributed transaction coordination sagas.
+# Sagas ensure atomicity across domain boundaries.
+# Each saga is a sequence of steps with compensation
+# paths for failure recovery.
+#
+# Constitutional references:
+#   INV-005: Every financial action must produce an auditable event trail
+#   INV-007: Value preservation outranks execution speed
+#   INV-009: Unknown financial states must be represented explicitly
+# ============================================================
+
+sagas:
+
+  # ============================================================
+  # SAGA 1 — HUMAN EXECUTION SAGA
+  # ============================================================
+  # Full pipeline for human-initiated financial operations.
+  # Compensation: reverse steps 5→4→3→2
+  # Steps 1 and 2 (Identity, Policy) are read-only gate checks
+  # and do not require compensation.
+  # ============================================================
+
+  - saga_id: human_execution_saga
+    description: >
+      Full pipeline for human-initiated financial operations.
+      Orchestrates identity authentication, policy evaluation,
+      intent normalization, domain command execution, and
+      ledger recording. Compensation reverses from ledger
+      back through intent to policy evaluation.
+    trigger:
+      event: command.received
+      condition: actor_type == human
+    domain: intent
+    compensation_strategy: SEQUENTIAL_REVERSE
+    final_states:
+      - COMPLETED
+      - FAILED
+      - COMPENSATED
+    constitutional_gates:
+      - INV-003
+      - INV-005
+      - INV-007
+      - INV-008
+    steps:
+      - step_id: HES-001
+        step_name: authenticate_actor
+        step_type: PARTICIPANT
+        target_domain: identity
+        command: identity.session.create
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 200
+          backoff_multiplier: 2.0
+        compensation_command: null
+        on_failure: HALT
+        produces_events:
+          - identity.session.created
+          - identity.session.authentication_failed
+      - step_id: HES-002
+        step_name: evaluate_authorization
+        step_type: PARTICIPANT
+        target_domain: policy
+        command: policy.set.evaluate
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: null
+        on_failure: ESCALATE
+        produces_events:
+          - policy.evaluation.completed
+          - policy.evaluation.escalated
+      - step_id: HES-003a
+        step_name: submit_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.submit
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 100
+          backoff_multiplier: 1.5
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.submitted
+          - intent.rejected
+      - step_id: HES-003b
+        step_name: enrich_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.enrich
+        timeout_ms: 15000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 1000
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.enriching.started
+          - intent.enriching.completed
+      - step_id: HES-003c
+        step_name: validate_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.validate
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.validated
+          - intent.validation_failed
+      - step_id: HES-003d
+        step_name: convert_intent_to_command
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.convert_to_command
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.converted_to_command
+      - step_id: HES-004
+        step_name: execute_domain_command
+        step_type: PARTICIPANT
+        target_domain: treasury
+        command: treasury.transfer.execute
+        timeout_ms: 30000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 2000
+          backoff_multiplier: 1.0
+        compensation_command: treasury.transfer.compensate
+        on_failure: COMPENSATE
+        produces_events:
+          - treasury.transfer.executing
+          - treasury.transfer.settled
+          - treasury.transfer.failed
+      - step_id: HES-005
+        step_name: record_ledger_truth
+        step_type: PARTICIPANT
+        target_domain: ledger
+        command: ledger.journal.create
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 3
+          backoff_ms: 500
+          backoff_multiplier: 2.0
+        compensation_command: ledger.journal.reverse
+        on_failure: ESCALATE
+        produces_events:
+          - ledger.journal.created
+          - ledger.journal.creation_failed
+      - step_id: HES-006
+        step_name: confirm_completion
+        step_type: NOTIFICATION
+        target_domain: audit
+        command: null
+        timeout_ms: 3000
+        retry_strategy:
+          max_retries: 3
+          backoff_ms: 1000
+          backoff_multiplier: 1.0
+        compensation_command: null
+        on_failure: HALT
+        produces_events:
+          - saga.human_execution.completed
+
+  # ============================================================
+  # SAGA 2 — AI EXECUTION SAGA
+  # ============================================================
+  # Pipeline for agent-initiated operations. Adds agent audit
+  # envelope, quota checks, and concurrency validation.
+  # Compensation: same as human saga but also emits
+  # agent.execution.failed event.
+  # ============================================================
+
+  - saga_id: ai_execution_saga
+    description: >
+      Pipeline for agent-initiated financial operations.
+      Extends human execution pipeline with agent session
+      verification, quota and concurrency checks, agent
+      audit envelope wrapping, and dedicated agent
+      completion/failure tracking.
+    trigger:
+      event: command.received
+      condition: actor_type == ai_agent
+    domain: agent
+    compensation_strategy: SEQUENTIAL_REVERSE
+    final_states:
+      - COMPLETED
+      - FAILED
+      - COMPENSATED
+      - ESCALATED
+    constitutional_gates:
+      - INV-003
+      - INV-004
+      - INV-005
+      - INV-007
+      - INV-008
+      - INV-010
+    steps:
+      - step_id: AES-001
+        step_name: verify_agent_session
+        step_type: PARTICIPANT
+        target_domain: identity
+        command: identity.session.create
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 200
+          backoff_multiplier: 2.0
+        compensation_command: null
+        on_failure: HALT
+        produces_events:
+          - identity.session.created
+          - identity.session.authentication_failed
+      - step_id: AES-002
+        step_name: check_agent_quotas_and_concurrency
+        step_type: PARTICIPANT
+        target_domain: agent
+        command: system.internal.quota_check
+        timeout_ms: 3000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: null
+        on_failure: HALT
+        produces_events:
+          - agent.quota.checked
+          - agent.quota.exceeded
+      - step_id: AES-003
+        step_name: evaluate_policy_with_agent_context
+        step_type: PARTICIPANT
+        target_domain: policy
+        command: policy.set.evaluate
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: null
+        on_failure: ESCALATE
+        produces_events:
+          - policy.evaluation.completed
+          - policy.evaluation.escalated
+      - step_id: AES-004a
+        step_name: submit_agent_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.submit
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 100
+          backoff_multiplier: 1.5
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.submitted
+          - intent.rejected
+      - step_id: AES-004b
+        step_name: enrich_agent_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.enrich
+        timeout_ms: 15000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 1000
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.enriching.started
+          - intent.enriching.completed
+      - step_id: AES-004c
+        step_name: validate_agent_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.validate
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.validated
+          - intent.validation_failed
+      - step_id: AES-004d
+        step_name: convert_agent_intent_to_command
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.convert_to_command
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.converted_to_command
+      - step_id: AES-005
+        step_name: execute_with_audit_envelope
+        step_type: PARTICIPANT
+        target_domain: agent
+        command: agent.execution.execute
+        timeout_ms: 60000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 5000
+          backoff_multiplier: 1.0
+        compensation_command: agent.execution.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - agent.execution.started
+          - agent.execution.completed
+          - agent.execution.failed
+      - step_id: AES-006
+        step_name: execute_wrapped_domain_command
+        step_type: PARTICIPANT
+        target_domain: treasury
+        command: treasury.transfer.execute
+        timeout_ms: 30000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 2000
+          backoff_multiplier: 1.0
+        compensation_command: treasury.transfer.compensate
+        on_failure: COMPENSATE
+        produces_events:
+          - treasury.transfer.executing
+          - treasury.transfer.settled
+          - treasury.transfer.failed
+      - step_id: AES-007
+        step_name: record_agent_ledger_truth
+        step_type: PARTICIPANT
+        target_domain: ledger
+        command: ledger.journal.create
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 3
+          backoff_ms: 500
+          backoff_multiplier: 2.0
+        compensation_command: ledger.journal.reverse
+        on_failure: ESCALATE
+        produces_events:
+          - ledger.journal.created
+          - ledger.journal.creation_failed
+      - step_id: AES-008
+        step_name: complete_agent_execution
+        step_type: PARTICIPANT
+        target_domain: agent
+        command: system.internal.execution_complete
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 1000
+          backoff_multiplier: 1.0
+        compensation_command: null
+        on_failure: HALT
+        produces_events:
+          - agent.execution.completed
+
+  # ============================================================
+  # SAGA 3 — DELEGATED EXECUTION SAGA
+  # ============================================================
+  # Pipeline for delegated operations. Adds delegation chain
+  # verification, active delegation checks, and original actor
+  # authorization verification within delegation context.
+  # Compensation: reverse from step 7→4 (identity/policy are
+  # read-only gate checks).
+  # ============================================================
+
+  - saga_id: delegated_execution_saga
+    description: >
+      Pipeline for delegated financial operations. Extends
+      human execution with delegation chain verification,
+      delegation active status and limit checks, policy
+      evaluation with delegation context, and verification
+      that the original actor's authorization is valid within
+      the delegation boundary.
+    trigger:
+      event: command.received
+      condition: actor_type == human AND delegation_context != null
+    domain: intent
+    compensation_strategy: SEQUENTIAL_REVERSE
+    final_states:
+      - COMPLETED
+      - FAILED
+      - COMPENSATED
+      - ESCALATED
+    constitutional_gates:
+      - INV-003
+      - INV-005
+      - INV-007
+      - INV-008
+    steps:
+      - step_id: DES-001
+        step_name: verify_delegation_chain
+        step_type: PARTICIPANT
+        target_domain: identity
+        command: identity.session.create
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 200
+          backoff_multiplier: 2.0
+        compensation_command: null
+        on_failure: HALT
+        produces_events:
+          - identity.session.created
+          - identity.session.authentication_failed
+      - step_id: DES-002
+        step_name: verify_delegation_active_and_within_limits
+        step_type: PARTICIPANT
+        target_domain: identity
+        command: system.internal.delegation_verify
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 500
+          backoff_multiplier: 1.5
+        compensation_command: null
+        on_failure: HALT
+        produces_events:
+          - identity.delegation.verified
+          - identity.delegation.expired
+          - identity.delegation.limit_exceeded
+      - step_id: DES-003
+        step_name: evaluate_policy_with_delegation_context
+        step_type: PARTICIPANT
+        target_domain: policy
+        command: policy.set.evaluate
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: null
+        on_failure: ESCALATE
+        produces_events:
+          - policy.evaluation.completed
+          - policy.evaluation.escalated
+      - step_id: DES-004a
+        step_name: submit_delegated_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.submit
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 100
+          backoff_multiplier: 1.5
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.submitted
+          - intent.rejected
+      - step_id: DES-004b
+        step_name: enrich_delegated_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.enrich
+        timeout_ms: 15000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 1000
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.enriching.started
+          - intent.enriching.completed
+      - step_id: DES-004c
+        step_name: validate_delegated_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: intent.validate
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.validated
+          - intent.validation_failed
+      - step_id: DES-005
+        step_name: verify_original_actor_authorization
+        step_type: PARTICIPANT
+        target_domain: policy
+        command: policy.set.evaluate
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - policy.evaluation.completed
+          - policy.evaluation.denied
+      - step_id: DES-006
+        step_name: execute_delegated_domain_command
+        step_type: PARTICIPANT
+        target_domain: treasury
+        command: treasury.transfer.execute
+        timeout_ms: 30000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 2000
+          backoff_multiplier: 1.0
+        compensation_command: treasury.transfer.compensate
+        on_failure: COMPENSATE
+        produces_events:
+          - treasury.transfer.executing
+          - treasury.transfer.settled
+          - treasury.transfer.failed
+      - step_id: DES-007
+        step_name: record_delegated_ledger_truth
+        step_type: PARTICIPANT
+        target_domain: ledger
+        command: ledger.journal.create
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 3
+          backoff_ms: 500
+          backoff_multiplier: 2.0
+        compensation_command: ledger.journal.reverse
+        on_failure: ESCALATE
+        produces_events:
+          - ledger.journal.created
+          - ledger.journal.creation_failed
+
+  # ============================================================
+  # SAGA 4 — ESCALATION SAGA
+  # ============================================================
+  # Handles policy escalation resolution. Triggered when a
+  # policy evaluation produces an ESCALATE decision. Notifies
+  # escalation target, waits for resolution with configurable
+  # timeout, applies resolution, and resumes or cancels the
+  # original intent.
+  # ============================================================
+
+  - saga_id: escalation_saga
+    description: >
+      Handles policy escalation resolution. Triggered by
+      policy.evaluation.escalated events. Notifies the
+      configured escalation target (governance, human operator,
+      or compliance officer), waits for resolution within a
+      configurable timeout (auto-denies on expiry if configured),
+      applies the resolution decision, resumes or cancels the
+      original intent, and notifies the original actor.
+    trigger:
+      event: policy.evaluation.escalated
+      condition: null
+    domain: policy
+    compensation_strategy: SEQUENTIAL_REVERSE
+    final_states:
+      - COMPLETED
+      - FAILED
+      - TIMED_OUT
+    constitutional_gates:
+      - INV-005
+      - INV-007
+      - INV-008
+    steps:
+      - step_id: ESC-001
+        step_name: create_escalation_record
+        step_type: PARTICIPANT
+        target_domain: policy
+        command: system.internal.escalation_create
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 500
+          backoff_multiplier: 1.5
+        compensation_command: policy.escalation.cancel
+        on_failure: MARK_UNKNOWN
+        produces_events:
+          - policy.escalation.created
+      - step_id: ESC-002
+        step_name: notify_escalation_target
+        step_type: NOTIFICATION
+        target_domain: governance
+        command: null
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 3
+          backoff_ms: 2000
+          backoff_multiplier: 2.0
+        compensation_command: null
+        on_failure: ESCALATE
+        produces_events:
+          - escalation.notification.sent
+          - escalation.notification.failed
+      - step_id: ESC-003
+        step_name: wait_for_resolution
+        step_type: TIMEOUT
+        target_domain: policy
+        command: null
+        timeout_ms: 86400000
+        retry_strategy:
+          max_retries: 0
+          backoff_ms: 0
+          backoff_multiplier: 1.0
+        compensation_command: policy.escalation.expire
+        on_failure: MARK_UNKNOWN
+        produces_events:
+          - policy.escalation.resolved
+          - policy.escalation.expired
+      - step_id: ESC-004
+        step_name: apply_escalation_resolution
+        step_type: PARTICIPANT
+        target_domain: policy
+        command: policy.escalation.resolve
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 1000
+          backoff_multiplier: 1.0
+        compensation_command: null
+        on_failure: ESCALATE
+        produces_events:
+          - policy.escalation.resolved
+      - step_id: ESC-005
+        step_name: resume_or_cancel_intent
+        step_type: PARTICIPANT
+        target_domain: intent
+        command: system.internal.intent_resume
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: intent.cancel
+        on_failure: COMPENSATE
+        produces_events:
+          - intent.resumed
+          - intent.cancelled
+      - step_id: ESC-006
+        step_name: notify_original_actor
+        step_type: NOTIFICATION
+        target_domain: identity
+        command: null
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 3
+          backoff_ms: 1000
+          backoff_multiplier: 1.5
+        compensation_command: null
+        on_failure: HALT
+        produces_events:
+          - escalation.resolution.notification.sent
+
+  # ============================================================
+  # SAGA 5 — POLICY REVIEW SAGA
+  # ============================================================
+  # Handles governance policy review process. Creates a new
+  # policy rule, activates it, notifies affected domains, and
+  # verifies no active operations are blocked by the new rule.
+  # Compensation: deactivates the rule if it breaks active ops.
+  # ============================================================
+
+  - saga_id: policy_review_saga
+    description: >
+      Handles governance policy review process. Governs the
+      safe introduction of new policy rules by creating the
+      rule in DRAFT state, activating it, notifying all
+      affected domains, and verifying that no currently active
+      operations are blocked by the newly activated rule. If
+      active operations are disrupted, the rule is automatically
+      deactivated as compensation.
+    trigger:
+      event: governance.policy_rule_review_requested
+      condition: null
+    domain: policy
+    compensation_strategy: SEQUENTIAL_REVERSE
+    final_states:
+      - COMPLETED
+      - FAILED
+      - COMPENSATED
+    constitutional_gates:
+      - INV-003
+      - INV-005
+      - INV-007
+      - INV-008
+    steps:
+      - step_id: PRS-001
+        step_name: create_policy_rule
+        step_type: PARTICIPANT
+        target_domain: policy
+        command: policy.rule.create
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 1000
+          backoff_multiplier: 2.0
+        compensation_command: policy.rule.archive
+        on_failure: HALT
+        produces_events:
+          - policy.rule.created
+          - policy.rule.creation_failed
+      - step_id: PRS-002
+        step_name: activate_policy_rule
+        step_type: PARTICIPANT
+        target_domain: policy
+        command: policy.rule.activate
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 500
+          backoff_multiplier: 1.0
+        compensation_command: policy.rule.deactivate
+        on_failure: COMPENSATE
+        produces_events:
+          - policy.rule.activated
+          - policy.rule.activation_failed
+      - step_id: PRS-003
+        step_name: notify_affected_domains
+        step_type: NOTIFICATION
+        target_domain: governance
+        command: null
+        timeout_ms: 15000
+        retry_strategy:
+          max_retries: 3
+          backoff_ms: 2000
+          backoff_multiplier: 2.0
+        compensation_command: null
+        on_failure: ESCALATE
+        produces_events:
+          - governance.policy_rule.activated.notification.sent
+      - step_id: PRS-004
+        step_name: verify_no_active_operations_blocked
+        step_type: PARTICIPANT
+        target_domain: policy
+        command: policy.set.evaluate
+        timeout_ms: 30000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 2000
+          backoff_multiplier: 1.0
+        compensation_command: policy.rule.deactivate
+        on_failure: COMPENSATE
+        produces_events:
+          - policy.evaluation.completed
+          - policy.evaluation.active_operation_blocked
+
+  # ============================================================
+  # SAGA 6 — UNKNOWN AUTHORITY SAGA
+  # ============================================================
+  # Handles cases where authority cannot be determined (INV-009).
+  # Flags the unknown authority, escalates to governance, waits
+  # for governance determination, applies the decision (ALLOW,
+  # DENY, or MARK_UNKNOWN), and notifies the actor.
+  # Compensation: rejects the command if governance cannot
+  # determine authority.
+  # ============================================================
+
+  - saga_id: unknown_authority_saga
+    description: >
+      Handles cases where authority cannot be determined,
+      per INV-009. Flags the unknown authority state,
+      escalates to governance for determination, waits
+      for a governance decision within a configurable timeout,
+      applies the governance decision (ALLOW, DENY, or
+      MARK_UNKNOWN), and notifies the original actor. If
+      governance cannot determine authority, the command
+      is rejected via compensation.
+    trigger:
+      event: identity.authority.unknown
+      condition: null
+    domain: identity
+    compensation_strategy: SEQUENTIAL_REVERSE
+    final_states:
+      - COMPLETED
+      - FAILED
+      - TIMED_OUT
+      - ESCALATED
+    constitutional_gates:
+      - INV-005
+      - INV-007
+      - INV-008
+      - INV-009
+    steps:
+      - step_id: UAS-001
+        step_name: flag_unknown_authority
+        step_type: PARTICIPANT
+        target_domain: identity
+        command: system.internal.flag_unknown_authority
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 500
+          backoff_multiplier: 1.5
+        compensation_command: identity.authority.reject
+        on_failure: MARK_UNKNOWN
+        produces_events:
+          - identity.authority.unknown
+          - identity.authority.flagged_unknown
+      - step_id: UAS-002
+        step_name: escalate_to_governance
+        step_type: ESCALATION
+        target_domain: governance
+        command: system.internal.escalation_submit
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 2
+          backoff_ms: 2000
+          backoff_multiplier: 2.0
+        compensation_command: governance.escalation.cancel
+        on_failure: MARK_UNKNOWN
+        produces_events:
+          - governance.escalation.submitted
+          - governance.escalation.submission_failed
+      - step_id: UAS-003
+        step_name: wait_for_governance_determination
+        step_type: TIMEOUT
+        target_domain: governance
+        command: null
+        timeout_ms: 86400000
+        retry_strategy:
+          max_retries: 0
+          backoff_ms: 0
+          backoff_multiplier: 1.0
+        compensation_command: identity.authority.reject
+        on_failure: MARK_UNKNOWN
+        produces_events:
+          - governance.escalation.resolved
+          - governance.escalation.expired
+      - step_id: UAS-004
+        step_name: apply_governance_decision
+        step_type: PARTICIPANT
+        target_domain: identity
+        command: system.internal.apply_governance_decision
+        timeout_ms: 10000
+        retry_strategy:
+          max_retries: 1
+          backoff_ms: 1000
+          backoff_multiplier: 1.0
+        compensation_command: identity.authority.reject
+        on_failure: MARK_UNKNOWN
+        produces_events:
+          - identity.authority.allowed
+          - identity.authority.denied
+          - identity.authority.marked_unknown
+      - step_id: UAS-005
+        step_name: notify_actor
+        step_type: NOTIFICATION
+        target_domain: identity
+        command: null
+        timeout_ms: 5000
+        retry_strategy:
+          max_retries: 3
+          backoff_ms: 1000
+          backoff_multiplier: 1.5
+        compensation_command: null
+        on_failure: HALT
+        produces_events:
+          - identity.authority.determination.notification.sent
+
+
+# ============================================================
+# SAGA INVARIANTS
+# ============================================================
+
+saga_invariants:
+  - id: SI-001
+    rule: Every saga step MUST produce an auditable event
+    enforcement: saga coordinator verifies event emission before proceeding
+    constitutional_reference: INV-005
+
+  - id: SI-002
+    rule: Saga compensation MUST be idempotent
+    enforcement: all compensation commands check for already-compensated state
+
+  - id: SI-003
+    rule: Saga timeout MUST default to safe action (deny or mark unknown)
+    enforcement: timeout handler invokes compensation or marks state as unknown
+    constitutional_reference: INV-007, INV-009
+
+  - id: SI-004
+    rule: Saga MUST NOT skip constitutional gates
+    enforcement: each step validates constitutional gates before execution
+    constitutional_reference: INV-008
+
+  - id: SI-005
+    rule: Saga failure MUST produce a complete failure event
+    enforcement: saga coordinator emits saga.failed with full step trace
+    constitutional_reference: INV-005
+
+
+# ============================================================
+# SAGA EXECUTION ENTITY
+# ============================================================
+
+saga_execution:
+  description: >
+    Runtime representation of a single saga instance.
+    Every saga invocation produces exactly one saga_execution
+    record that tracks state through the saga lifecycle.
+  schema:
+    saga_execution_id:
+      type: string
+      format: uuid
+      required: true
+      unique: true
+      description: Globally unique saga execution identifier
+    saga_type:
+      type: string
+      required: true
+      description: Fully qualified saga_id referencing the saga definition
+    state:
+      type: enum
+      values:
+        - PENDING
+        - EXECUTING
+        - COMPENSATING
+        - COMPLETED
+        - FAILED
+        - ESCALATED
+        - TIMED_OUT
+      required: true
+      description: Current lifecycle state of the saga execution
+    current_step:
+      type: integer
+      format: uint32
+      required: true
+      description: Zero-based index of the currently executing or last-executed step
+    total_steps:
+      type: integer
+      format: uint32
+      required: true
+      description: Total number of steps in the saga definition
+    trigger_event_id:
+      type: string
+      format: uuid
+      required: true
+      description: The event_id that triggered this saga (causation reference)
+    trigger_identity_id:
+      type: string
+      format: uuid
+      required: true
+      description: The identity_id of the actor who caused the triggering event
+    steps_completed:
+      type: array
+      items:
+        type: object
+        fields:
+          step_id:
+            type: string
+            required: true
+            description: Step identifier from the saga definition
+          completed_at:
+            type: timestamp
+            required: true
+            description: When this step completed (domain time)
+          result:
+            type: enum
+            values: [SUCCESS, FAILED, SKIPPED, TIMED_OUT]
+            required: true
+            description: Outcome of the step execution
+          event_ids:
+            type: array
+            items:
+              type: string
+              format: uuid
+            required: true
+            description: All event IDs produced by this step
+      required: true
+      description: Ordered list of completed steps with their results
+    steps_failed:
+      type: array
+      items:
+        type: object
+        fields:
+          step_id:
+            type: string
+            required: true
+            description: Step identifier that failed
+          failed_at:
+            type: timestamp
+            required: true
+            description: When the step failed (domain time)
+          error_code:
+            type: string
+            required: true
+            description: Machine-readable error classification
+          error_message:
+            type: string
+            required: true
+            description: Human-readable error description
+          retry_attempt:
+            type: integer
+            format: uint32
+            required: true
+            description: Which retry attempt was active when failure occurred
+      required: false
+      description: Ordered list of steps that failed during execution
+    compensation_initiated:
+      type: boolean
+      required: true
+      description: Whether compensation has been initiated for this saga execution
+    started_at:
+      type: timestamp
+      required: true
+      description: When the saga execution began (domain time)
+    completed_at:
+      type: timestamp
+      required: false
+      description: When the saga execution reached a terminal state (domain time)
+    error_detail:
+      type: string
+      required: false
+      description: Detailed error information if the saga reached a failure state
+    constitutional_rules_checked:
+      type: array
+      items:
+        type: object
+        fields:
+          invariant_id:
+            type: string
+            required: true
+            description: Constitutional invariant identifier (e.g., INV-005)
+          step_id:
+            type: string
+            required: true
+            description: Step at which this invariant was checked
+          result:
+            type: enum
+            values: [PASSED, FAILED, NOT_APPLICABLE]
+            required: true
+            description: Result of the constitutional gate check
+          checked_at:
+            type: timestamp
+            required: true
+            description: When the check was performed (domain time)
+      required: true
+      description: Complete record of all constitutional rule evaluations performed during this saga
+saga_templates:
+    - saga_id: internal_transfer_saga
+      description: >
+        Orchestrates internal SOVR-to-SOVR transfers.
+        Triggered when treasury.transfer.authorized has settlement=INTERNAL.
+      trigger:
+        event: treasury.transfer.authorized
+        condition: settlement == INTERNAL
+      domain: treasury
+      compensation_strategy: SEQUENTIAL_REVERSE
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+      steps:
+        - step: 1
+          name: Reserve Value
+          command: treasury.transfer.reserve
+          compensation: treasury.transfer.release
+        - step: 2
+          name: Execute Transfer
+          command: treasury.transfer.execute
+          compensation: treasury.transfer.compensate
+        - step: 3
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse
+    - saga_id: external_transfer_saga
+      description: >
+        Orchestrates external SOVR-to-external-system transfers.
+        Triggered when treasury.transfer.authorized has settlement=EXTERNAL.
+      trigger:
+        event: treasury.transfer.authorized
+        condition: settlement == EXTERNAL
+      domain: treasury
+      compensation_strategy: SEQUENTIAL_REVERSE
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+      steps:
+        - step: 1
+          name: Reserve Value
+          command: treasury.transfer.reserve
+          compensation: treasury.transfer.release
+        - step: 2
+          name: Prepare Payment
+          command: payment.execution.prepare
+          compensation: payment.execution.compensate
+        - step: 3
+          name: Execute Payment
+          command: payment.execution.execute
+          compensation: payment.execution.compensate
+        - step: 4
+          name: Confirm Settlement
+          command: payment.execution.confirm
+          compensation: payment.execution.compensate
+        - step: 5
+          name: Reconcile
+          command: payment.reconciliation.start
+          compensation: payment.execution.compensate
+        - step: 6
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse
+        - step: 7
+          name: Issue Receipt
+          command: payment.receipt.issue
+          compensation: payment.execution.compensate
+    - saga_id: asset_registration_saga
+      description: >
+        Orchestrates the complete asset registration workflow.
+        Triggered by vault.asset.register command.
+      trigger:
+        command: vault.asset.register
+      domain: vault
+      compensation_strategy: SEQUENTIAL_REVERSE
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+      steps:
+        - step: 1
+          name: Register Asset
+          command: vault.asset.register
+          compensation: vault.asset.reject
+        - step: 2
+          name: Verify Asset
+          command: vault.asset.verify
+          compensation: vault.asset.reject
+        - step: 3
+          name: Create Custody Attestation
+          command: vault.custody.attest
+          compensation: vault.asset.reject
+        - step: 4
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse
+    - saga_id: asset_verification_saga
+      description: >
+        Orchestrates asset verification with rollback compensation.
+        Triggered by vault.asset.verify command.
+      trigger:
+        command: vault.asset.verify
+      domain: vault
+      compensation_strategy: ROLLBACK
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+      steps:
+        - step: 1
+          name: Verify Asset
+          command: vault.asset.verify
+          compensation: vault.asset.reject
+        - step: 2
+          name: Attest Custody
+          command: vault.custody.attest
+          compensation: vault.asset.reject
+        - step: 3
+          name: Update Valuation
+          command: vault.valuation.update
+          compensation: vault.asset.reject
+        - step: 4
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse
+        - step: 5
+          name: Update Balance
+          command: vault.balance.update
+          compensation: vault.asset.reject
+    - saga_id: identity_actor_onboarding_saga
+      description: >
+        Orchestrates the complete identity actor onboarding workflow.
+        Triggered by identity.actor.create command.
+      trigger:
+        command: identity.actor.create
+      domain: identity
+      compensation_strategy: SEQUENTIAL_REVERSE
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+      steps:
+        - step: 1
+          name: Create Actor
+          command: identity.actor.create
+          compensation: identity.actor.revoke
+        - step: 2
+          name: Issue Credential
+          command: identity.credential.issue
+          compensation: identity.credential.revoke
+        - step: 3
+          name: Create Session
+          command: identity.session.create
+          compensation: identity.session.terminate
+        - step: 4
+          name: Register Trust Anchor
+          command: identity.trust_anchor.register
+          compensation: identity.actor.archive
+        - step: 5
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse
+    - saga_id: delegation_setup_saga
+      description: >
+        Orchestrates delegation setup with rollback compensation.
+        Triggered by identity.delegation.create command.
+      trigger:
+        command: identity.delegation.create
+      domain: identity
+      compensation_strategy: ROLLBACK
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+      steps:
+        - step: 1
+          name: Create Delegation
+          command: identity.delegation.create
+          compensation: identity.delegation.revoke
+        - step: 2
+          name: Bind Capability
+          command: agent.capability.bind
+          compensation: agent.capability.revoke
+        - step: 3
+          name: Validate Scope
+          command: policy.set.evaluate
+          compensation: identity.delegation.revoke
+        - step: 4
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse
+    - saga_id: payment_adapter_execution_saga
+      description: >
+        Orchestrates payment adapter execution lifecycle.
+        Triggered by payment.execution.execute command.
+      trigger:
+        command: payment.execution.execute
+      domain: payment
+      compensation_strategy: SEQUENTIAL_REVERSE
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+      steps:
+        - step: 1
+          name: Prepare Rail
+          command: payment.execution.prepare
+          compensation: payment.execution.compensate
+        - step: 2
+          name: Execute Rail
+          command: payment.execution.execute
+          compensation: payment.execution.compensate
+        - step: 3
+          name: Confirm Settlement
+          command: payment.execution.confirm
+          compensation: payment.execution.compensate
+        - step: 4
+          name: Reconcile
+          command: payment.reconciliation.start
+          compensation: payment.execution.compensate
+        - step: 5
+          name: Issue Receipt
+          command: payment.receipt.issue
+          compensation: payment.execution.compensate
+        - step: 6
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse
+    - saga_id: cross_chain_settlement_saga
+      description: >
+        Orchestrates cross-chain blockchain settlement.
+        Triggered by hybrid.blockchain.settlement.requested event.
+      trigger:
+        event: hybrid.blockchain.settlement.requested
+      domain: hybrid
+      compensation_strategy: SEQUENTIAL_REVERSE
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+        - INV-009
+      steps:
+        - step: 1
+          name: Prepare On-Chain Transaction
+          command: hybrid.blockchain.prepare
+          compensation: hybrid.blockchain.rollback
+        - step: 2
+          name: Submit Transaction
+          command: hybrid.blockchain.submit
+          compensation: hybrid.blockchain.rollback
+        - step: 3
+          name: Wait for Confirmations
+          event: hybrid.blockchain.confirmed
+          compensation: hybrid.blockchain.rollback
+        - step: 4
+          name: Verify Finality
+          command: hybrid.blockchain.verify_finality
+          compensation: hybrid.blockchain.rollback
+        - step: 5
+          name: Update Vault Reserve
+          command: vault.reserve.create
+          compensation: vault.reserve.release
+        - step: 6
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse
+        - step: 7
+          name: Notify Domains
+          event: hybrid.blockchain.settlement.completed
+          compensation: governance.escalation.submit
+    - saga_id: oracle_reading_saga
+      description: >
+        Orchestrates oracle price feed reading with rollback compensation.
+        Triggered by vault.valuation.update command.
+      trigger:
+        command: vault.valuation.update
+      domain: vault
+      compensation_strategy: ROLLBACK
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+      steps:
+        - step: 1
+          name: Request Oracle Price
+          command: hybrid.oracle.request_price
+          compensation: vault.valuation.revert
+        - step: 2
+          name: Validate Price Feed
+          command: hybrid.oracle.validate
+          compensation: vault.valuation.revert
+        - step: 3
+          name: Attest Price
+          command: vault.valuation.update
+          compensation: vault.valuation.revert
+        - step: 4
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse
+    - saga_id: vault_reconciliation_saga
+      description: >
+        Orchestrates periodic or triggered vault reconciliation.
+        Triggered by vault.reconciliation.trigger event or scheduler.
+      trigger:
+        event: vault.reconciliation.trigger
+      domain: vault
+      compensation_strategy: SEQUENTIAL_REVERSE
+      final_states:
+        - COMPLETED
+        - FAILED
+        - COMPENSATED
+      constitutional_gates:
+        - INV-003
+        - INV-005
+        - INV-007
+        - INV-008
+        - INV-009
+      steps:
+        - step: 1
+          name: Query External Custody
+          command: vault.asset.reconcile
+          compensation: vault.reconciliation.cancel
+        - step: 2
+          name: Compare with Internal State
+          command: vault.reconciliation.compare
+          compensation: vault.reconciliation.cancel
+        - step: 3
+          name: Resolve Discrepancies
+          command: vault.reconciliation.resolve
+          compensation: vault.reconciliation.cancel
+        - step: 4
+          name: Update Vault State
+          command: vault.asset.reconcile
+          compensation: vault.reconciliation.cancel
+        - step: 5
+          name: Record in Ledger
+          command: ledger.entry.post
+          compensation: ledger.entry.reverse

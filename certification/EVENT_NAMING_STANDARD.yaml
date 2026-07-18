@@ -1,0 +1,345 @@
+# ============================================================
+# SOVR Financial OS — Event Naming Standard
+# File: certification/EVENT_NAMING_STANDARD.yaml
+# Status: PHASE XIV-E.1 TASK 5
+# ============================================================
+# Enforces the canonical event naming convention:
+#   domain.aggregate.action
+#
+# All events in 04_event-catalog.yaml MUST conform to this
+# standard. The semantic-validator.ts enforces this as ERROR.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  generated_at: "2026-07-18"
+  status: FROZEN
+  phase: "XIV-E.1"
+  authority: 04_event-catalog.yaml
+  enforcement: semantic-validator.ts
+
+# ================================================================
+# CANONICAL PATTERN
+# ================================================================
+
+canonical_pattern: "domain.aggregate.action"
+
+pattern_explanation:
+  domain:
+    description: The bounded context that owns the aggregate
+    examples: [vault, ledger, treasury, identity, policy, intent, agent, payment, governance, hybrid, kernel]
+    constraint: lowercase, single word, matches domain name in protocol
+
+  aggregate:
+    description: The entity or aggregate root within the domain
+    examples: [asset, reserve, collateral, journal, entry, account, transfer, actor, credential, session, delegation, rule, evaluation, escalation, intent, instance, registration, payment_request, execution, rail, reconciliation, receipt, proposal, amendment, emergency_halt, audit_record, capability_grant, blockchain_boundary, oracle_price, attestation, reorg_event, fork_event, system_health, saga_instance]
+    constraint: lowercase, snake_case within aggregate name if needed (e.g., emergency_halt)
+
+  action:
+    description: The state change or fact being recorded
+    examples: [registered, verified, rejected, impaired, created, locked, released, expired, added, valued, revalued, margin_call, liquidation_initiated, attested, proof_expired, updated, started, completed, failed, submitted, approved, escalated, deferred, cancelled, archived, bound, revoked, exceeded, prepared, executed, confirmed, timed_out, discrepancy, issued, compensated, settled, denied, activated, deactivated, halted, lifted, queried, reviewed, granted, resolved, expired]
+    constraint: lowercase, past tense or adjective phrase describing the fact
+
+# ================================================================
+# VALID EXAMPLES
+# ================================================================
+
+valid_examples:
+
+  - vault.asset.registered
+    domain: vault
+    aggregate: asset
+    action: registered
+
+  - vault.reserve.locked
+    domain: vault
+    aggregate: reserve
+    action: locked
+
+  - vault.collateral.margin_call
+    domain: vault
+    aggregate: collateral
+    action: margin_call
+
+  - ledger.entry.posted
+    domain: ledger
+    aggregate: entry
+    action: posted
+
+  - ledger.account.frozen
+    domain: ledger
+    aggregate: account
+    action: frozen
+
+  - treasury.transfer.settled
+    domain: treasury
+    aggregate: transfer
+    action: settled
+
+  - treasury.liquidity.warning
+    domain: treasury
+    aggregate: liquidity
+    action: warning
+
+  - identity.actor.verified
+    domain: identity
+    aggregate: actor
+    action: verified
+
+  - identity.session.created
+    domain: identity
+    aggregate: session
+    action: created
+
+  - identity.delegation.expired
+    domain: identity
+    aggregate: delegation
+    action: expired
+
+  - policy.rule.activated
+    domain: policy
+    aggregate: rule
+    action: activated
+
+  - policy.evaluation.escalated
+    domain: policy
+    aggregate: evaluation
+    action: escalated
+
+  - policy.escalation.resolved
+    domain: policy
+    aggregate: escalation
+    action: resolved
+
+  - intent.enriching.completed
+    domain: intent
+    aggregate: enriching
+    action: completed
+
+  - intent.converted_to_command
+    domain: intent
+    aggregate: converted_to_command
+    action: (none - aggregate includes action context)
+    note: This is a compound aggregate name. Valid because the action context is inherent in the aggregate state.
+
+  - agent.execution.started
+    domain: agent
+    aggregate: execution
+    action: started
+
+  - agent.capability.bound
+    domain: agent
+    aggregate: capability
+    action: bound
+
+  - agent.quota.exceeded
+    domain: agent
+    aggregate: quota
+    action: exceeded
+
+  - payment.request.cancelled
+    domain: payment
+    aggregate: request
+    action: cancelled
+
+  - payment.execution.completed
+    domain: payment
+    aggregate: execution
+    action: completed
+
+  - payment.rail.confirmed
+    domain: payment
+    aggregate: rail
+    action: confirmed
+
+  - payment.reconciliation.discrepancy
+    domain: payment
+    aggregate: reconciliation
+    action: discrepancy
+
+  - governance.proposal.approved
+    domain: governance
+    aggregate: proposal
+    action: approved
+
+  - governance.emergency_halt.issued
+    domain: governance
+    aggregate: emergency_halt
+    action: issued
+
+  - hybrid.oracle.price.fetched
+    domain: hybrid
+    aggregate: oracle_price
+    action: fetched
+
+  - hybrid.reorg.detected
+    domain: hybrid
+    aggregate: reorg
+    action: detected
+
+  - saga.compensated
+    domain: kernel (saga)
+    aggregate: saga
+    action: compensated
+
+  - system.health.halted
+    domain: kernel
+    aggregate: health
+    action: halted
+
+# ================================================================
+# INVALID EXAMPLES
+# ================================================================
+
+invalid_examples:
+
+  - name: AssetRegistered
+    issue: missing_dots
+    detail: Uses PascalCase instead of dot-separated lowercase
+
+  - name: PaymentDone
+    issue: missing_dots
+    detail: Uses PascalCase and non-standard action name
+
+  - name: TransferComplete
+    issue: missing_dots
+    detail: Uses PascalCase and non-standard action name
+
+  - name: vault.Asset.Registered
+    issue: mixed_case
+    detail: Uses uppercase segments
+
+  - name: VAULT.ASSET.REGISTERED
+    issue: uppercase
+    detail: Uses uppercase
+
+  - name: vault-asset-registered
+    issue: wrong_delimiter
+    detail: Uses hyphens instead of dots
+
+  - name: vault_asset_registered
+    issue: wrong_delimiter
+    detail: Uses underscores instead of dots
+
+  - name: vault.asset.Registered
+    issue: mixed_case
+    detail: Action segment uses PascalCase
+
+# ================================================================
+# CURRENT VIOLATIONS IN CATALOG
+# ================================================================
+
+current_violations:
+
+  - event: vault.transaction.created
+    status: proposed
+    issue: not_yet_in_catalog
+    detail: >
+      This event follows the standard but is not yet in 04_event-catalog.yaml.
+      It is defined in the vault_transaction_lifecycle state machine.
+
+  - event: vault.transaction.funding_requested
+    status: proposed
+    issue: not_yet_in_catalog
+    detail: Follows standard but not yet in catalog
+
+  - event: vault.transaction.funding_pending
+    status: proposed
+    issue: not_yet_in_catalog
+    detail: Follows standard but not yet in catalog
+
+  - event: vault.transaction.funded
+    status: proposed
+    issue: not_yet_in_catalog
+    detail: Follows standard but not yet in catalog
+
+  - event: vault.transaction.release_pending
+    status: proposed
+    issue: not_yet_in_catalog
+    detail: Follows standard but not yet in catalog
+
+  - event: vault.transaction.release_authorized
+    status: proposed
+    issue: not_yet_in_catalog
+    detail: Follows standard but not yet in catalog
+
+  - event: vault.transaction.disbursed
+    status: proposed
+    issue: not_yet_in_catalog
+    detail: Follows standard but not yet in catalog
+
+  - event: vault.transaction.closed
+    status: proposed
+    issue: not_yet_in_catalog
+    detail: Follows standard but not yet in catalog
+
+  - event: vault.transaction.failed
+    status: proposed
+    issue: not_yet_in_catalog
+    detail: Follows standard but not yet in catalog
+
+# ================================================================
+# VALIDATION RULES
+# ================================================================
+
+validation_rules:
+
+  - rule: THREE_SEGMENT_MINIMUM
+    description: Event names MUST have at least 3 segments separated by dots
+    pattern: "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$"
+    severity: ERROR
+
+  - rule: LOWERCASE_ONLY
+    description: All segments MUST be lowercase
+    pattern: "^[a-z][a-z0-9_]*$"
+    severity: ERROR
+
+  - rule: DOMAIN_MUST_MATCH_REGISTERED_DOMAIN
+    description: First segment MUST match a registered domain name
+    allowed_values: [vault, ledger, treasury, identity, policy, intent, agent, payment, governance, hybrid, kernel]
+    severity: ERROR
+
+  - rule: NO_EMPTY_SEGMENTS
+    description: No segment may be empty (no consecutive dots, no leading/trailing dots)
+    pattern: "^[^.]+\\.[^.]+\\.(.+)$"
+    severity: ERROR
+
+  - rule: AGGREGATE_NOT_VERB
+    description: Aggregate segment SHOULD be a noun, not a verb
+    examples:
+      valid: [asset, reserve, transfer, session, proposal]
+      invalid: [register, transfer, create, approve]
+    severity: WARNING
+
+  - rule: ACTION_NOT_NOUN
+    description: Action segment SHOULD be a verb or state adjective, not a noun
+    examples:
+      valid: [registered, verified, completed, failed, confirmed]
+      invalid: [creation, approval, completion, failure]
+    severity: WARNING
+
+  - rule: COMPOUND_AGGREGATES_UNDERSCORE
+    description: If aggregate name is compound, use underscore not dot
+    examples:
+      valid: [emergency_halt, execution_plan, payment_request]
+      invalid: [emergency.halt, execution.plan]
+    severity: WARNING
+
+# ================================================================
+# SEMANTIC VALIDATOR ENFORCEMENT
+# ================================================================
+
+semantic_validator_enforcement:
+
+  check_name: EVENT_NAME_STANDARD
+  severity: ERROR
+  file: packages/compiler/src/validator/semantic-validator.ts
+  method: checkEventNameStandard()
+  description: Validates all event names conform to domain.aggregate.action pattern
+
+  promoted_warnings:
+    - EVENT_NAME_STANDARD
+    - UNKNOWN_EVENT_REFERENCE
+    - MISSING_PROJECTION
+    - COMMAND_GATES_COMPLETENESS
+    - MISSING_INVARIANT

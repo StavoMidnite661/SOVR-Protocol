@@ -1,0 +1,123 @@
+report:
+  title: Compiler Input Trace
+  metadata:
+    generated: 2026-07-17
+  content: |
+    # Compiler Input Trace
+    ## SOVR Financial OS — Phase XII Compiler Authority Verification
+    **Generated**: 2026-07-17
+    **Phase**: XII — Compiler Authority Verification
+    
+    ---
+    
+    ## Source File Registry
+    
+    ### Protocol Layer (FROZEN)
+    
+    | source_file | artifact_type | consumer | generated_outputs | runtime_dependencies | validation_status |
+    |---|---|---|---|---|---|
+    | 00_protocol-manifest.yaml | PROTOCOL_IDENTITY | compiler | protocol_metadata, domain_registry, layer_map, build_phases, validation_config | packages/kernel, packages/protocol | VERIFIED |
+    | 01_constitution.yaml | CONSTITUTIONAL_LAW | compiler, runtime | invariant_constants, conflict_resolution_engine, authority_model, enforcement_pipeline, governance_structure | packages/kernel, packages/security | VERIFIED |
+    | 02_domain-model.yaml | ENTITY_DEFINITIONS | compiler | TYPESCRIPT_TYPES, PRISMA_MODELS, SQL_MIGRATIONS, JSON_SCHEMAS | packages/kernel, packages/events, packages/ledger | VERIFIED |
+    | 03_command-catalog.yaml | COMMAND_DEFINITIONS | compiler | COMMAND_CLASSES, VALIDATION_LIBRARY, FASTIFY_ROUTES, OPENAPI_SPEC | packages/api, apps/api | VERIFIED |
+    | 04_event-catalog.yaml | EVENT_DEFINITIONS | compiler | EVENT_CLASSES, KAFKA_TOPICS, REDIS_STREAMS, JSON_SCHEMAS | packages/events | VERIFIED |
+    | 05_state-machines.yaml | STATE_MACHINE_DEFINITIONS | compiler | STATE_MACHINE_CLASSES, WORKFLOW_DEFINITIONS | packages/vault | VERIFIED |
+    | 08_security-capabilities.yaml | CAPABILITY_DEFINITIONS | compiler | CAPABILITY_ENGINE, POLICY_ENGINE_BINDINGS, MIDDLEWARE_CHAIN | packages/security, apps/api | VERIFIED |
+    | 09_saga-orchestration.yaml | SAGA_DEFINITIONS | compiler | SAGA_ORCHESTRATORS, COMPENSATION_HANDLERS, TEMPORAL_WORKFLOWS | packages/compiler/runtime | VERIFIED |
+    | 11_governance-amendments.yaml | AMENDMENT_REGISTRY | compiler | amendment_application_log | governance/ | VERIFIED |
+    | 12_domain-contracts.yaml | CONTRACT_DEFINITIONS | compiler | DOMAIN_SERVICE_INTERFACES, CONTRACT_VALIDATORS, DEPENDENCY_INJECTION_CONFIG | packages/* | VERIFIED |
+    | 13_compiler-adr.yaml | COMPILER_ADR | compiler | compiler_architecture_decisions | packages/compiler | VERIFIED |
+    | hybrid-boundary.yaml | BOUNDARY_SPECIFICATION | compiler | CHAIN_BOUNDARY_INTERFACES, ORACLE_INTERFACES, REORG_HANDLERS, FORK_DETECTOR | packages/compiler/runtime | VERIFIED |
+    | projection-engine.yaml | PROJECTION_SPECIFICATION | compiler | READ_MODEL_CLASSES, PROJECTION_HANDLERS, REPLAY_SERVICE, CACHE_INVALIDATION_CONFIG | packages/runtime | VERIFIED |
+    | acceptance-tests.yaml | TEST_SPECIFICATION | compiler | TEST_SKELETONS, TEST_FIXTURES, COVERAGE_CONFIG | tests/ | VERIFIED |
+    
+    ### Domain Layer (FROZEN — AMD-0004)
+    
+    | source_file | artifact_type | consumer | generated_outputs | runtime_dependencies | validation_status |
+    |---|---|---|---|---|---|
+    | domains/vault.yaml | DOMAIN_SPECIFICATION | compiler | VAULT_AGGREGATE_ROOTS, VAULT_DOMAIN_SERVICE, VAULT_EVENTS, VAULT_PROJECTIONS | packages/vault | VERIFIED |
+    | domains/ledger.yaml | DOMAIN_SPECIFICATION | compiler | LEDGER_AGGREGATE_ROOTS, LEDGER_DOMAIN_SERVICE, LEDGER_EVENTS, LEDGER_PROJECTIONS | packages/ledger | VERIFIED |
+    | domains/treasury.yaml | DOMAIN_SPECIFICATION | compiler | TREASURY_AGGREGATE_ROOTS, TREASURY_DOMAIN_SERVICE, TREASURY_EVENTS, TREASURY_PROJECTIONS | packages/treasury | VERIFIED |
+    | domains/identity.yaml | DOMAIN_SPECIFICATION | compiler | IDENTITY_AGGREGATE_ROOTS, IDENTITY_DOMAIN_SERVICE, IDENTITY_EVENTS | packages/security | VERIFIED |
+    | domains/policy.yaml | DOMAIN_SPECIFICATION | compiler | POLICY_AGGREGATE_ROOTS, POLICY_DOMAIN_SERVICE, POLICY_EVENTS, POLICY_RULES_ENGINE | packages/security | VERIFIED |
+    | domains/intent.yaml | DOMAIN_SPECIFICATION | compiler | INTENT_AGGREGATE_ROOTS, INTENT_DOMAIN_SERVICE, INTENT_EVENTS | packages/agent | VERIFIED |
+    | domains/agent.yaml | DOMAIN_SPECIFICATION | compiler | AGENT_AGGREGATE_ROOTS, AGENT_DOMAIN_SERVICE, AGENT_EVENTS | packages/agent | VERIFIED |
+    | domains/payment.yaml | DOMAIN_SPECIFICATION | compiler | PAYMENT_AGGREGATE_ROOTS, PAYMENT_DOMAIN_SERVICE, PAYMENT_EVENTS, RAIL_ADAPTER_INTERFACES | packages/payment | VERIFIED |
+    | domains/governance.yaml | DOMAIN_SPECIFICATION | compiler | GOVERNANCE_AGGREGATE_ROOTS, GOVERNANCE_DOMAIN_SERVICE | governance/ | VERIFIED |
+    
+    ### Protocol Registry Layer (GOVERNANCE_DRAFT)
+    
+    | source_file | artifact_type | consumer | generated_outputs | runtime_dependencies | validation_status |
+    |---|---|---|---|---|---|
+    | protocol/DOMAIN_REGISTRY.yaml | DOMAIN_REGISTRY | compiler | domain_resolution, canonical_domain_map | packages/compiler | GOVERNANCE_DRAFT |
+    | protocol/AGGREGATE_REGISTRY.yaml | AGGREGATE_REGISTRY | compiler | aggregate_root_declarations | packages/kernel | GOVERNANCE_DRAFT |
+    | protocol/METADATA_STANDARD.yaml | METADATA_STANDARD | compiler | meta_block_validator | all packages | GOVERNANCE_DRAFT |
+    | protocol/ACCEPTANCE_STANDARD.yaml | ACCEPTANCE_STANDARD | compiler | test_skeleton_templates | tests/ | GOVERNANCE_DRAFT |
+    | protocol/CANONICAL_AUTHORITY_MODEL.yaml | AUTHORITY_MODEL | compiler | authority_resolution_engine | packages/kernel | VERIFIED |
+    
+    ### Compiler Control Layer
+    
+    | source_file | artifact_type | consumer | generated_outputs | runtime_dependencies | validation_status |
+    |---|---|---|---|---|---|
+    | compiler/compiler.yaml | COMPILER_SPEC | compiler | compilation_pipeline, all outputs | packages/compiler | VERIFIED (FROZEN) |
+    | compiler/SEMANTIC_COMPILER_CONTRACT.yaml | SEMANTIC_CONTRACT | compiler | validation_rules, failure_modes | packages/compiler | GOVERNANCE_DRAFT |
+    | compiler/GENERATOR_REGISTRY.yaml | GENERATOR_REGISTRY | compiler | generator_dispatch_order | packages/compiler | ARCHITECTURE_ONLY |
+    | compiler/BUILD_MANIFEST.yaml | BUILD_MANIFEST | compiler | build_hash, artifact_count | certification/ | VERIFIED |
+    | compiler/ERROR_TAXONOMY.yaml | ERROR_TAXONOMY | compiler | error_handling_strategies | packages/compiler | VERIFIED |
+    | compiler/PASS_REGISTRY.yaml | PASS_REGISTRY | compiler | compiler_pass_records | certification/ | VERIFIED |
+    | compiler/COMPILER_MANIFEST.yaml | COMPILER_MANIFEST | compiler | compiler_scope, capabilities | packages/compiler | VERIFIED |
+    
+    ---
+    
+    ## Trace Summary
+    
+    - **Total source files traced**: 28
+    - **FROZEN protocol files**: 14 (00-13, hybrid-boundary, projection-engine, acceptance-tests, CANONICAL_AUTHORITY_MODEL)
+    - **Domain files**: 9
+    - **Compiler control files**: 7
+    - **Protocol registry files**: 4 (GOVERNANCE_DRAFT)
+    - **Compiler package**: builds cleanly (`tsc -b` exit 0)
+    - **Compiler runtime package**: builds cleanly (`tsc -b` exit 0)
+    - **Generated artifacts from YAML**: NONE YET (compiler stub returns empty ParsedProtocol)
+    - **Runtime packages implementing YAML intent**: 14 packages built
+    
+    ---
+    
+    ## Gap Analysis
+    
+    | YAML Source | Declared Output | Actual Runtime Implementation | Gap |
+    |---|---|---|---|
+    | 02_domain-model.yaml | TYPESCRIPT_TYPES | packages/kernel/src/types.ts | PARTIAL — types hand-written, not compiler-generated |
+    | 03_command-catalog.yaml | COMMAND_CLASSES | packages/vault/src/index.ts (hand-written) | PARTIAL — commands embedded in aggregates |
+    | 04_event-catalog.yaml | EVENT_CLASSES | packages/events/src/* | PARTIAL — events inline in store |
+    | 05_state-machines.yaml | STATE_MACHINE_CLASSES | packages/vault/src/index.ts (hardcoded) | PARTIAL — state machine inline in aggregate |
+    | 08_security-capabilities.yaml | CAPABILITY_ENGINE | packages/security/src/* | PARTIAL — hand-written |
+    | 09_saga-orchestration.yaml | SAGA_ORCHESTRATORS | NONE | OPEN — no saga implementation |
+    | 12_domain-contracts.yaml | DOMAIN_SERVICE_INTERFACES | packages/*/src/index.ts | PARTIAL — interfaces hand-written |
+    | domains/*.yaml | domain aggregates | packages/*/src/index.ts | PARTIAL — aggregates hand-written |
+    | compiler.yaml | all outputs | CompilerEngine returns empty ParsedProtocol | OPEN — compiler not wired to YAML inputs |
+    
+    ---
+    
+    ## Verification Evidence
+    
+    ```bash
+    # Compiler build
+    cd packages/compiler && npx tsc -b
+    # Result: exit 0
+    
+    # Compiler runtime build
+    cd packages/compiler/runtime && npx tsc -b
+    # Result: exit 0
+    
+    # All packages build
+    npm run build
+    # Result: exit 0
+    
+    # Tests
+    npm test
+    # Result: 19 suites, 71 tests PASS
+    ```
+    
+    **END OF TRACE**
+    

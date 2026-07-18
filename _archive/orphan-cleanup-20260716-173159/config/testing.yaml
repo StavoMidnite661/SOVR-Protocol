@@ -1,0 +1,110 @@
+# SOVR Financial OS — Testing Configuration
+# Phase: X.1 — Production Configuration System
+
+database:
+  type: memory
+  pool:
+    min: 1
+    max: 1
+
+eventStore:
+  type: memory
+  streaming:
+    enabled: false
+
+ledger:
+  currency: USD
+  precision: 2
+  autoPost: true
+  integrityCheckEnabled: true
+
+vault:
+  states:
+    - CREATED
+    - FUNDED
+    - LOCKED
+    - AUTHORIZED
+    - PENDING
+    - SETTLED
+    - REVERSED
+    - CLOSED
+    - FAILED
+    - CANCELLED
+    - EXPIRED
+  multiSigRequired: true
+  defaultApprovalCount: 2
+  timeoutMs: 3600000
+
+security:
+  jwt:
+    secret: test_jwt_secret
+    algorithm: HS256
+    expirationMs: 3600000
+    refreshExpirationMs: 86400000
+    issuer: sovr-financial-os-test
+    audience: sovr-api-test
+  session:
+    enabled: false
+  encryption:
+    algorithm: aes-256-gcm
+    keyRotationIntervalDays: 1
+  rbac:
+    enabled: true
+    requireMfaForAdmin: false
+  apiKeys:
+    enabled: false
+
+api:
+  port: 3001
+  host: 0.0.0.0
+  cors:
+    enabled: true
+    origins:
+      - "*"
+  rateLimit:
+    enabled: false
+  timeout:
+    requestMs: 5000
+    keepAliveMs: 1000
+  bodyLimit: 1mb
+  requestId:
+    enabled: true
+  version:
+    enabled: true
+    supportedVersions:
+      - "1.0"
+      - "1.1"
+
+metrics:
+  enabled: false
+
+logging:
+  level: warn
+  format: json
+  outputs:
+    - console
+  fields:
+    include:
+      - timestamp
+      - level
+      - service
+      - correlationId
+    redact:
+      - password
+      - secret
+      - token
+
+audit:
+  enabled: true
+  chain: true
+  retentionDays: 30
+  signing:
+    enabled: false
+
+featureFlags:
+  experimentalFeatures: true
+  betaAPIs: true
+  streamingEnabled: false
+  projectionRebuild: false
+  externalIntegrations: false
+  webDashboard: false

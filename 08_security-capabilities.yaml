@@ -1,0 +1,2253 @@
+# ============================================================
+# SOVR Financial OS — Security Capabilities
+# File: 08_security-capabilities.yaml
+# Status: FROZEN
+# Build Phase: D (Security & Intelligence Subsystem)
+# ============================================================
+# Defines all capabilities (permissions) in SOVR.
+# Capabilities are the unit of authority in the system.
+# No actor may perform an action without holding the
+# corresponding capability scoped to the target resource.
+#
+# Constitutional references:
+#   INV-003: No actor may exceed granted authority
+#   INV-004: No agent may create, grant, or modify financial authority
+#   INV-008: Gates 2-3 — capability and scope validation
+# ============================================================
+
+---
+meta:
+  schema_version: "1.0.0"
+  file_id: "08_security-capabilities"
+  total_capabilities: 106
+  build_phase: "D"
+  status: CONSTITUTIONAL_FREEZE
+
+enums:
+  domain:
+    - VAULT
+    - LEDGER
+    - TREASURY
+    - IDENTITY
+    - POLICY
+    - INTENT
+    - AGENT
+    - PAYMENT
+    - GOVERNANCE
+  action:
+    - CREATE
+    - READ
+    - UPDATE
+    - DELETE
+    - EXECUTE
+    - GOVERN
+    - AUDIT
+  risk_level:
+    - NONE
+    - LOW
+    - MEDIUM
+    - HIGH
+    - CRITICAL
+  actor_type:
+    - human
+    - organization
+    - ai_agent
+    - service_account
+    - governance
+    - external_system
+    - system
+
+scope_pattern_language:
+  syntax: "{resource_type}:{resource_id}:{field}"
+  wildcards:
+    - token: "*"
+      matches: "any single segment value"
+    - token: "self"
+      matches: "the actor's own resource identifier"
+    - token: "**"
+      matches: "any remaining path segments recursively"
+  examples:
+    - pattern: "actor:self:*"
+      meaning: "the actor's own identity, all fields"
+    - pattern: "asset:{asset_id}:*"
+      meaning: "a specific asset, all fields"
+    - pattern: "actor:*:trust_level"
+      meaning: "any actor's trust level field"
+    - pattern: "ledger:account:{account_id}"
+      meaning: "a specific ledger account"
+    - pattern: "policy:rule:*"
+      meaning: "all policy rules"
+  enforcement:
+    gate: "INV-008"
+    stage: "gate_3_scope_validation"
+    rule: "scope patterns are matched at INV-008 gate 3 before command execution"
+
+capabilities:
+
+  # -----------------------------------------------------------
+  # DOMAIN: VAULT (7 capabilities)
+  # -----------------------------------------------------------
+  - capability_id: vault.asset.create
+    description: "Register new assets in the vault"
+    domain: VAULT
+    resource_type: "asset"
+    action: CREATE
+    scope_pattern: "asset:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: vault.asset.verify
+    description: "Verify asset existence and provenance"
+    domain: VAULT
+    resource_type: "asset"
+    action: GOVERN
+    scope_pattern: "asset:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: vault.asset.read
+    description: "Query asset state and metadata"
+    domain: VAULT
+    resource_type: "asset"
+    action: READ
+    scope_pattern: "asset:{asset_id}:*"
+    grantable_by:
+      - governance
+      - system
+    default_for_actor_types:
+      human:
+        scope: "asset:self:*"
+      organization:
+        scope: "asset:self:*"
+      ai_agent:
+        scope: "asset:self:*"
+      service_account:
+        scope: "asset:*:state"
+      governance:
+        scope: "asset:*:*"
+      external_system:
+        scope: "asset:*:state"
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: vault.reserve.create
+    description: "Create asset reservations against available balance"
+    domain: VAULT
+    resource_type: "reserve"
+    action: CREATE
+    scope_pattern: "asset:{asset_id}:reserve"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "asset:self:reserve"
+      organization:
+        scope: "asset:self:reserve"
+      ai_agent:
+        scope: "asset:self:reserve"
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: vault.reserve.release
+    description: "Release previously created asset reservations"
+    domain: VAULT
+    resource_type: "reserve"
+    action: UPDATE
+    scope_pattern: "reserve:{reserve_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "reserve:self:*"
+      organization:
+        scope: "reserve:self:*"
+      ai_agent:
+        scope: "reserve:self:*"
+    constitutional_constraint: "INV-003"
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: vault.valuation.update
+    description: "Update asset valuations"
+    domain: VAULT
+    resource_type: "asset"
+    action: UPDATE
+    scope_pattern: "asset:{asset_id}:valuation"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "asset:self:valuation"
+        conditions:
+          - "valuation_delta_pct <= configured_threshold"
+          - "source_authority in [approved_oracle_list]"
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: true
+    agent_execution_conditions:
+      - "must reference approved valuation source"
+      - "delta must be within configured tolerance band"
+    delegable: true
+    max_delegation_depth: 0
+
+  - capability_id: vault.asset.reconcile
+    description: "Initiate vault asset reconciliation"
+    domain: VAULT
+    resource_type: "asset"
+    action: EXECUTE
+    scope_pattern: "asset:{asset_id}:reconciliation"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "asset:self:reconciliation"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  # -----------------------------------------------------------
+  # DOMAIN: LEDGER (4 capabilities)
+  # -----------------------------------------------------------
+  - capability_id: ledger.journal.create
+    description: "Create journal entries in the ledger"
+    domain: LEDGER
+    resource_type: "journal_entry"
+    action: CREATE
+    scope_pattern: "ledger:*:journal"
+    grantable_by:
+      - governance
+      - system
+    default_for_actor_types:
+      service_account:
+        scope: "ledger:self:journal"
+      ai_agent:
+        scope: "ledger:self:journal"
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: ledger.journal.read
+    description: "Query journal entries"
+    domain: LEDGER
+    resource_type: "journal_entry"
+    action: READ
+    scope_pattern: "ledger:{ledger_id}:journal"
+    grantable_by:
+      - governance
+      - system
+    default_for_actor_types:
+      governance:
+        scope: "ledger:*:journal"
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: ledger.reconcile.initiate
+    description: "Initiate ledger reconciliation process"
+    domain: LEDGER
+    resource_type: "ledger"
+    action: EXECUTE
+    scope_pattern: "ledger:{ledger_id}:reconciliation"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "ledger:self:reconciliation"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: ledger.account.read
+    description: "Query account balances and ledger account state"
+    domain: LEDGER
+    resource_type: "account"
+    action: READ
+    scope_pattern: "ledger:account:{account_id}"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "ledger:account:self"
+      organization:
+        scope: "ledger:account:self"
+      ai_agent:
+        scope: "ledger:account:self"
+      service_account:
+        scope: "ledger:account:self"
+      governance:
+        scope: "ledger:account:*"
+      external_system:
+        scope: "ledger:account:self"
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 2
+
+  # -----------------------------------------------------------
+  # DOMAIN: TREASURY (4 capabilities)
+  # -----------------------------------------------------------
+  - capability_id: treasury.transfer.initiate
+    description: "Initiate treasury transfers between accounts"
+    domain: TREASURY
+    resource_type: "transfer"
+    action: EXECUTE
+    scope_pattern: "treasury:transfer:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "treasury:transfer:self"
+      organization:
+        scope: "treasury:transfer:self"
+      ai_agent:
+        scope: "treasury:transfer:self"
+        conditions:
+          - "amount <= per_transfer_limit"
+          - "daily_cumulative <= daily_limit"
+      service_account:
+        scope: "treasury:transfer:self"
+    constitutional_constraint: "INV-003"
+    risk_level: CRITICAL
+    governance_approval_required: false
+    agent_executable: true
+    agent_execution_conditions:
+      - "amount must not exceed per-transfer limit"
+      - "cumulative daily amount must not exceed daily cap"
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: treasury.transfer.approve
+    description: "Approve pending treasury transfers"
+    domain: TREASURY
+    resource_type: "transfer"
+    action: GOVERN
+    scope_pattern: "treasury:transfer:{transfer_id}:approval"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: treasury.liquidity.manage
+    description: "Manage liquidity pools and liquidity allocation"
+    domain: TREASURY
+    resource_type: "liquidity_pool"
+    action: UPDATE
+    scope_pattern: "treasury:liquidity:{pool_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "treasury:liquidity:{pool_id}:allocation"
+        conditions:
+          - "rebalance_within_tolerance"
+          - "no_cross_pool_transfer_without_approval"
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: true
+    agent_execution_conditions:
+      - "must operate within configured rebalance tolerance"
+      - "cross-pool transfers require prior governance approval"
+    delegable: true
+    max_delegation_depth: 0
+
+  - capability_id: treasury.settlement.confirm
+    description: "Confirm final settlement of transfers"
+    domain: TREASURY
+    resource_type: "settlement"
+    action: EXECUTE
+    scope_pattern: "treasury:settlement:{settlement_id}:*"
+    grantable_by:
+      - governance
+      - system
+    default_for_actor_types:
+      ai_agent:
+        scope: "treasury:settlement:self:*"
+      service_account:
+        scope: "treasury:settlement:self:*"
+      external_system:
+        scope: "treasury:settlement:self:status"
+    constitutional_constraint: null
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  # -----------------------------------------------------------
+  # DOMAIN: IDENTITY (10 capabilities)
+  # -----------------------------------------------------------
+  - capability_id: identity.actor.create
+    description: "Register new actors in the system"
+    domain: IDENTITY
+    resource_type: "actor"
+    action: CREATE
+    scope_pattern: "actor:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: identity.actor.verify
+    description: "Verify actor identity and credentials"
+    domain: IDENTITY
+    resource_type: "actor"
+    action: GOVERN
+    scope_pattern: "actor:{actor_id}:identity"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: identity.actor.suspend
+    description: "Suspend actors, preventing all operations"
+    domain: IDENTITY
+    resource_type: "actor"
+    action: UPDATE
+    scope_pattern: "actor:{actor_id}:status"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: identity.actor.revoke
+    description: "Permanently revoke actors from the system"
+    domain: IDENTITY
+    resource_type: "actor"
+    action: DELETE
+    scope_pattern: "actor:{actor_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: identity.credential.issue
+    description: "Issue credentials to actors"
+    domain: IDENTITY
+    resource_type: "credential"
+    action: CREATE
+    scope_pattern: "credential:*:*"
+    grantable_by:
+      - governance
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: identity.credential.revoke
+    description: "Revoke credentials from actors"
+    domain: IDENTITY
+    resource_type: "credential"
+    action: DELETE
+    scope_pattern: "credential:{credential_id}:*"
+    grantable_by:
+      - governance
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: identity.session.create
+    description: "Create authentication sessions for actors"
+    domain: IDENTITY
+    resource_type: "session"
+    action: CREATE
+    scope_pattern: "session:self:*"
+    grantable_by:
+      - system
+    default_for_actor_types:
+      human:
+        scope: "session:self:*"
+      organization:
+        scope: "session:self:*"
+      ai_agent:
+        scope: "session:self:*"
+      service_account:
+        scope: "session:self:*"
+      governance:
+        scope: "session:self:*"
+      external_system:
+        scope: "session:self:*"
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+    derivation_note: "Derived from actor state — not explicitly granted. System issues session capability upon successful authentication."
+
+  - capability_id: identity.delegation.create
+    description: "Create delegation relationships between actors"
+    domain: IDENTITY
+    resource_type: "delegation"
+    action: CREATE
+    scope_pattern: "delegation:self:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "delegation:self:*"
+      organization:
+        scope: "delegation:self:*"
+    constitutional_constraint: "INV-003"
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: false
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: identity.trust_anchor.create
+    description: "Register trust anchors in the identity subsystem"
+    domain: IDENTITY
+    resource_type: "trust_anchor"
+    action: CREATE
+    scope_pattern: "trust_anchor:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: identity.actor.read
+    description: "Query actor information and identity state"
+    domain: IDENTITY
+    resource_type: "actor"
+    action: READ
+    scope_pattern: "actor:{actor_id}:identity"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "actor:self:identity"
+      organization:
+        scope: "actor:self:identity"
+      ai_agent:
+        scope: "actor:self:identity"
+      service_account:
+        scope: "actor:self:identity"
+      governance:
+        scope: "actor:*:identity"
+      external_system:
+        scope: "actor:self:identity"
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  # -----------------------------------------------------------
+  # DOMAIN: POLICY (6 capabilities)
+  # -----------------------------------------------------------
+  - capability_id: policy.rule.create
+    description: "Create policy rules in the policy engine"
+    domain: POLICY
+    resource_type: "policy_rule"
+    action: CREATE
+    scope_pattern: "policy:rule:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: policy.rule.update
+    description: "Update existing policy rules"
+    domain: POLICY
+    resource_type: "policy_rule"
+    action: UPDATE
+    scope_pattern: "policy:rule:{rule_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: policy.set.evaluate
+    description: "Request policy evaluation against a policy set"
+    domain: POLICY
+    resource_type: "policy_set"
+    action: EXECUTE
+    scope_pattern: "policy:set:{set_id}:evaluate"
+    grantable_by:
+      - governance
+      - system
+    default_for_actor_types:
+      ai_agent:
+        scope: "policy:set:active:evaluate"
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 0
+
+  - capability_id: policy.escalation.resolve
+    description: "Resolve policy escalations and exceptions"
+    domain: POLICY
+    resource_type: "escalation"
+    action: GOVERN
+    scope_pattern: "policy:escalation:{escalation_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: policy.compliance.create
+    description: "Register compliance requirements in the policy subsystem"
+    domain: POLICY
+    resource_type: "compliance_requirement"
+    action: CREATE
+    scope_pattern: "policy:compliance:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: policy.rule.read
+    description: "Read policy rules and compliance requirements"
+    domain: POLICY
+    resource_type: "policy_rule"
+    action: READ
+    scope_pattern: "policy:rule:{rule_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "policy:rule:active:*"
+      organization:
+        scope: "policy:rule:active:*"
+      ai_agent:
+        scope: "policy:rule:active:*"
+      service_account:
+        scope: "policy:rule:active:*"
+      governance:
+        scope: "policy:rule:*:*"
+      external_system:
+        scope: "policy:rule:active:*"
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  # -----------------------------------------------------------
+  # DOMAIN: INTENT (4 capabilities)
+  # -----------------------------------------------------------
+  - capability_id: intent.submit
+    description: "Submit intents to the intent processor"
+    domain: INTENT
+    resource_type: "intent"
+    action: CREATE
+    scope_pattern: "intent:self:*"
+    grantable_by:
+      - system
+    default_for_actor_types:
+      human:
+        scope: "intent:self:*"
+      organization:
+        scope: "intent:self:*"
+      ai_agent:
+        scope: "intent:self:*"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: intent.convert
+    description: "Convert validated intent to executable command"
+    domain: INTENT
+    resource_type: "intent"
+    action: EXECUTE
+    scope_pattern: "intent:{intent_id}:convert"
+    grantable_by:
+      - system
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+    restriction_note: "System-internal only. No agent or human may hold this capability."
+
+  - capability_id: intent.cancel
+    description: "Cancel pending or in-progress intents"
+    domain: INTENT
+    resource_type: "intent"
+    action: DELETE
+    scope_pattern: "intent:self:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "intent:self:*"
+      organization:
+        scope: "intent:self:*"
+      ai_agent:
+        scope: "intent:self:*"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: intent.read
+    description: "Query intent state and processing status"
+    domain: INTENT
+    resource_type: "intent"
+    action: READ
+    scope_pattern: "intent:{intent_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "intent:self:*"
+      organization:
+        scope: "intent:self:*"
+      ai_agent:
+        scope: "intent:self:*"
+      service_account:
+        scope: "intent:self:*"
+      governance:
+        scope: "intent:*:*"
+      external_system:
+        scope: "intent:self:*"
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  # -----------------------------------------------------------
+  # DOMAIN: AGENT (7 capabilities)
+  # -----------------------------------------------------------
+  - capability_id: agent.register
+    description: "Register new AI agents in the system"
+    domain: AGENT
+    resource_type: "agent"
+    action: CREATE
+    scope_pattern: "agent:*:*"
+    grantable_by:
+      - governance
+      - human
+    default_for_actor_types:
+      human:
+        scope: "agent:self:*"
+      organization:
+        scope: "agent:self:*"
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: agent.activate
+    description: "Activate registered agents for operation"
+    domain: AGENT
+    resource_type: "agent"
+    action: UPDATE
+    scope_pattern: "agent:{agent_id}:status"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: agent.terminate
+    description: "Permanently terminate agents from the system"
+    domain: AGENT
+    resource_type: "agent"
+    action: DELETE
+    scope_pattern: "agent:{agent_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: agent.capability.bind
+    description: "Bind capabilities to agents"
+    domain: AGENT
+    resource_type: "agent_capability"
+    action: UPDATE
+    scope_pattern: "agent:{agent_id}:capabilities"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: agent.capability.revoke
+    description: "Revoke capabilities from agents"
+    domain: AGENT
+    resource_type: "agent_capability"
+    action: DELETE
+    scope_pattern: "agent:{agent_id}:capabilities:{capability_id}"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: agent.quota.update
+    description: "Update agent operational quotas and limits"
+    domain: AGENT
+    resource_type: "agent_quota"
+    action: UPDATE
+    scope_pattern: "agent:{agent_id}:quota"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: agent.governance.override
+    description: "Issue governance override for agent operations"
+    domain: AGENT
+    resource_type: "agent"
+    action: GOVERN
+    scope_pattern: "agent:{agent_id}:governance_override"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  # -----------------------------------------------------------
+  # DOMAIN: PAYMENT (2 capabilities)
+  # -----------------------------------------------------------
+  - capability_id: payment.initiate
+    description: "Initiate external payments to external systems"
+    domain: PAYMENT
+    resource_type: "payment"
+    action: EXECUTE
+    scope_pattern: "payment:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "payment:self:*"
+        conditions:
+          - "amount <= per_payment_limit"
+      organization:
+        scope: "payment:self:*"
+        conditions:
+          - "amount <= per_payment_limit"
+      ai_agent:
+        scope: "payment:self:*"
+        conditions:
+          - "amount <= per_payment_limit"
+          - "recipient in approved_payee_list"
+    constitutional_constraint: "INV-003"
+    risk_level: CRITICAL
+    governance_approval_required: false
+    agent_executable: true
+    agent_execution_conditions:
+      - "amount must not exceed per-payment limit"
+      - "recipient must be in approved payee list"
+      - "must comply with applicable policy rules"
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: payment.reconcile
+    description: "Reconcile external payments with internal records"
+    domain: PAYMENT
+    resource_type: "payment"
+    action: EXECUTE
+    scope_pattern: "payment:{payment_id}:reconciliation"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "payment:self:reconciliation"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  # -----------------------------------------------------------
+  # DOMAIN: GOVERNANCE (3 capabilities)
+  # -----------------------------------------------------------
+  - capability_id: governance.audit.query
+    description: "Query audit logs and compliance records"
+    domain: GOVERNANCE
+    resource_type: "audit_log"
+    action: READ
+    scope_pattern: "audit:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "audit:self:*"
+      governance:
+        scope: "audit:*:*"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: governance.oversight.review
+    description: "Review overall system state and health"
+    domain: GOVERNANCE
+    resource_type: "system_state"
+    action: AUDIT
+    scope_pattern: "governance:oversight:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:oversight:*"
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: governance.emergency.halt
+    description: "Emergency system halt — stops all operations"
+    domain: GOVERNANCE
+    resource_type: "system"
+    action: GOVERN
+    scope_pattern: "governance:emergency:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:emergency:*"
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: vault.asset.reject
+    description: "Reject a registered asset that fails verification"
+    domain: VAULT
+    resource_type: "asset"
+    action: GOVERN
+    scope_pattern: "asset:{asset_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: vault.asset.impair
+    description: "Mark an asset as impaired"
+    domain: VAULT
+    resource_type: "asset"
+    action: GOVERN
+    scope_pattern: "asset:{asset_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-007"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: vault.reserve.lock
+    description: "Lock a pending reservation, committing the value"
+    domain: VAULT
+    resource_type: "reservation"
+    action: EXECUTE
+    scope_pattern: "reservation:{reservation_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: vault.reserve.consume
+    description: "Consume a locked reservation for a completed operation"
+    domain: VAULT
+    resource_type: "reservation"
+    action: EXECUTE
+    scope_pattern: "reservation:{reservation_id}:*"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: vault.collateral.add
+    description: "Add collateral to a position"
+    domain: VAULT
+    resource_type: "collateral"
+    action: CREATE
+    scope_pattern: "collateral:{collateral_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.journal.post
+    description: "Post a balanced journal entry to the ledger"
+    domain: LEDGER
+    resource_type: "journal_entry"
+    action: CREATE
+    scope_pattern: "journal:{journal_id}:*"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: CRITICAL
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.journal.reverse
+    description: "Reverse a posted journal entry"
+    domain: LEDGER
+    resource_type: "journal_entry"
+    action: EXECUTE
+    scope_pattern: "journal_entry:{entry_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.journal.compensate
+    description: "Create a compensating journal entry"
+    domain: LEDGER
+    resource_type: "journal_entry"
+    action: EXECUTE
+    scope_pattern: "journal_entry:{entry_id}:*"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.account.freeze
+    description: "Freeze a ledger account"
+    domain: LEDGER
+    resource_type: "account"
+    action: GOVERN
+    scope_pattern: "account:{account_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.period.close
+    description: "Close an accounting period"
+    domain: LEDGER
+    resource_type: "accounting_period"
+    action: GOVERN
+    scope_pattern: "period:{period_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.balance.query
+    description: "Query account balance"
+    domain: LEDGER
+    resource_type: "account_balance"
+    action: READ
+    scope_pattern: "account:{account_id}:*"
+    grantable_by:
+      - system
+    default_for_actor_types:
+      human:
+        scope: "account:self:*"
+      organization:
+        scope: "account:organization:*"
+    constitutional_constraint: "INV-006"
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+# ============================================================
+# CONVERGENCE PATCH — Missing Capabilities
+# Phase XIV-E: Constitutional Convergence
+# ============================================================
+# The following capabilities are referenced by commands in
+# 03_command-catalog.yaml but were not previously registered.
+# Each entry closes a gap identified during the E2E audit.
+# ============================================================
+
+  # -----------------------------------------------------------
+  # DOMAIN: GOVERNANCE (additional capabilities)
+  # -----------------------------------------------------------
+  - capability_id: governance.proposal.create
+    description: "Create governance proposals for system changes"
+    domain: GOVERNANCE
+    resource_type: "proposal"
+    action: CREATE
+    scope_pattern: "governance:proposal:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:proposal:*"
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: governance.proposal.approve
+    description: "Approve governance proposals"
+    domain: GOVERNANCE
+    resource_type: "proposal"
+    action: GOVERN
+    scope_pattern: "governance:proposal:{proposal_id}:approval"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:proposal:*:approval"
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: governance.proposal.reject
+    description: "Reject governance proposals"
+    domain: GOVERNANCE
+    resource_type: "proposal"
+    action: GOVERN
+    scope_pattern: "governance:proposal:{proposal_id}:rejection"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:proposal:*:rejection"
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: governance.amend.propose
+    description: "Propose constitutional amendments"
+    domain: GOVERNANCE
+    resource_type: "amendment"
+    action: CREATE
+    scope_pattern: "governance:amendment:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:amendment:*"
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: governance.amend.ratify
+    description: "Ratify approved constitutional amendments"
+    domain: GOVERNANCE
+    resource_type: "amendment"
+    action: GOVERN
+    scope_pattern: "governance:amendment:{amendment_id}:ratification"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:amendment:*:ratification"
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: governance.capability.grant
+    description: "Grant capabilities to actors"
+    domain: GOVERNANCE
+    resource_type: "capability_grant"
+    action: CREATE
+    scope_pattern: "governance:capability:*:grant"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:capability:*:grant"
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: governance.capability.revoke
+    description: "Revoke capabilities from actors"
+    domain: GOVERNANCE
+    resource_type: "capability_grant"
+    action: DELETE
+    scope_pattern: "governance:capability:*:revoke"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:capability:*:revoke"
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: governance.escalation.resolve
+    description: "Resolve governance escalations"
+    domain: GOVERNANCE
+    resource_type: "escalation"
+    action: GOVERN
+    scope_pattern: "governance:escalation:{escalation_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:escalation:*:*"
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: governance.policy.review
+    description: "Review and audit policy compliance"
+    domain: GOVERNANCE
+    resource_type: "policy_review"
+    action: AUDIT
+    scope_pattern: "governance:policy:*:review"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      governance:
+        scope: "governance:policy:*:review"
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  # -----------------------------------------------------------
+  # DOMAIN: IDENTITY (additional capabilities)
+  # -----------------------------------------------------------
+  - capability_id: identity.actor.archive
+    description: "Archive revoked or inactive actors"
+    domain: IDENTITY
+    resource_type: "actor"
+    action: UPDATE
+    scope_pattern: "actor:{actor_id}:archive"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: identity.delegation.revoke
+    description: "Revoke delegation relationships"
+    domain: IDENTITY
+    resource_type: "delegation"
+    action: DELETE
+    scope_pattern: "delegation:{delegation_id}:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "delegation:self:*"
+      organization:
+        scope: "delegation:self:*"
+    constitutional_constraint: "INV-003"
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: identity.session.terminate
+    description: "Terminate active authentication sessions"
+    domain: IDENTITY
+    resource_type: "session"
+    action: DELETE
+    scope_pattern: "session:{session_id}:*"
+    grantable_by:
+      - governance
+      - system
+    default_for_actor_types:
+      human:
+        scope: "session:self:*"
+      organization:
+        scope: "session:self:*"
+      governance:
+        scope: "session:*:*"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  # -----------------------------------------------------------
+  # DOMAIN: INTENT (additional capabilities)
+  # -----------------------------------------------------------
+  - capability_id: intent.validate
+    description: "Validate intent parameters and feasibility"
+    domain: INTENT
+    resource_type: "intent"
+    action: EXECUTE
+    scope_pattern: "intent:{intent_id}:validate"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+    restriction_note: "System-internal validation stage."
+
+  - capability_id: intent.enrich
+    description: "Enrich intent with resolved context and parameters"
+    domain: INTENT
+    resource_type: "intent"
+    action: EXECUTE
+    scope_pattern: "intent:{intent_id}:enrich"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+    restriction_note: "System-internal enrichment stage."
+
+  - capability_id: intent.multi_step.create
+    description: "Create multi-step intent orchestration plans"
+    domain: INTENT
+    resource_type: "multi_step_intent"
+    action: CREATE
+    scope_pattern: "intent:multi_step:*"
+    grantable_by:
+      - system
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "intent:multi_step:self:*"
+      organization:
+        scope: "intent:multi_step:self:*"
+      ai_agent:
+        scope: "intent:multi_step:self:*"
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: intent.multi_step.advance
+    description: "Advance multi-step intent to next stage"
+    domain: INTENT
+    resource_type: "multi_step_intent"
+    action: EXECUTE
+    scope_pattern: "intent:multi_step:{intent_id}:advance"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+    restriction_note: "System-internal stage advancement."
+
+  - capability_id: intent.archive
+    description: "Archive completed or cancelled intents"
+    domain: INTENT
+    resource_type: "intent"
+    action: UPDATE
+    scope_pattern: "intent:{intent_id}:archive"
+    grantable_by:
+      - system
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  # -----------------------------------------------------------
+  # DOMAIN: LEDGER (additional capabilities)
+  # -----------------------------------------------------------
+  - capability_id: ledger.entry.post
+    description: "Post balanced entries to the general ledger"
+    domain: LEDGER
+    resource_type: "ledger_entry"
+    action: CREATE
+    scope_pattern: "ledger:entry:*"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: CRITICAL
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.entry.reverse
+    description: "Reverse a posted ledger entry"
+    domain: LEDGER
+    resource_type: "ledger_entry"
+    action: EXECUTE
+    scope_pattern: "ledger:entry:{entry_id}:reverse"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.entry.correct
+    description: "Apply corrections to ledger entries"
+    domain: LEDGER
+    resource_type: "ledger_entry"
+    action: EXECUTE
+    scope_pattern: "ledger:entry:{entry_id}:correct"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.account.manage
+    description: "Create and manage ledger accounts"
+    domain: LEDGER
+    resource_type: "account"
+    action: CREATE
+    scope_pattern: "ledger:account:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.journal.manage
+    description: "Manage journal lifecycle (close, archive)"
+    domain: LEDGER
+    resource_type: "journal_entry"
+    action: UPDATE
+    scope_pattern: "ledger:journal:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.period.manage
+    description: "Open and close accounting periods"
+    domain: LEDGER
+    resource_type: "accounting_period"
+    action: GOVERN
+    scope_pattern: "ledger:period:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-002"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: ledger.reconcile
+    description: "Reconcile ledger accounts against external sources"
+    domain: LEDGER
+    resource_type: "ledger"
+    action: EXECUTE
+    scope_pattern: "ledger:*:reconcile"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "ledger:self:reconcile"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  # -----------------------------------------------------------
+  # DOMAIN: PAYMENT (additional capabilities)
+  # -----------------------------------------------------------
+  - capability_id: payment.request.create
+    description: "Create payment requests"
+    domain: PAYMENT
+    resource_type: "payment_request"
+    action: CREATE
+    scope_pattern: "payment:request:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "payment:request:self:*"
+      organization:
+        scope: "payment:request:self:*"
+      ai_agent:
+        scope: "payment:request:self:*"
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: payment.request.cancel
+    description: "Cancel pending payment requests"
+    domain: PAYMENT
+    resource_type: "payment_request"
+    action: DELETE
+    scope_pattern: "payment:request:{request_id}:cancel"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "payment:request:self:cancel"
+      organization:
+        scope: "payment:request:self:cancel"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: payment.execution.plan
+    description: "Plan payment execution routes and strategy"
+    domain: PAYMENT
+    resource_type: "payment_execution"
+    action: CREATE
+    scope_pattern: "payment:execution:*:plan"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+    restriction_note: "System-internal planning stage."
+
+  - capability_id: payment.execution.execute
+    description: "Execute planned payments through payment rails"
+    domain: PAYMENT
+    resource_type: "payment_execution"
+    action: EXECUTE
+    scope_pattern: "payment:execution:{execution_id}:execute"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: CRITICAL
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: payment.execution.confirm
+    description: "Confirm successful payment execution"
+    domain: PAYMENT
+    resource_type: "payment_execution"
+    action: EXECUTE
+    scope_pattern: "payment:execution:{execution_id}:confirm"
+    grantable_by:
+      - system
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: null
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: payment.execution.compensate
+    description: "Compensate failed payment executions"
+    domain: PAYMENT
+    resource_type: "payment_execution"
+    action: EXECUTE
+    scope_pattern: "payment:execution:{execution_id}:compensate"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: payment.reconciliation.initiate
+    description: "Initiate payment reconciliation process"
+    domain: PAYMENT
+    resource_type: "payment_reconciliation"
+    action: CREATE
+    scope_pattern: "payment:reconciliation:*"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "payment:reconciliation:self:*"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: payment.reconciliation.complete
+    description: "Complete payment reconciliation with resolution"
+    domain: PAYMENT
+    resource_type: "payment_reconciliation"
+    action: EXECUTE
+    scope_pattern: "payment:reconciliation:{reconciliation_id}:complete"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: payment.receipt.issue
+    description: "Issue payment receipts for settled payments"
+    domain: PAYMENT
+    resource_type: "payment_receipt"
+    action: CREATE
+    scope_pattern: "payment:receipt:*"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  # -----------------------------------------------------------
+  # DOMAIN: POLICY (additional capabilities)
+  # -----------------------------------------------------------
+  - capability_id: policy.rule.activate
+    description: "Activate a draft policy rule"
+    domain: POLICY
+    resource_type: "policy_rule"
+    action: UPDATE
+    scope_pattern: "policy:rule:{rule_id}:activate"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: policy.rule.deactivate
+    description: "Deactivate an active policy rule"
+    domain: POLICY
+    resource_type: "policy_rule"
+    action: UPDATE
+    scope_pattern: "policy:rule:{rule_id}:deactivate"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: policy.set.create
+    description: "Create policy evaluation sets"
+    domain: POLICY
+    resource_type: "policy_set"
+    action: CREATE
+    scope_pattern: "policy:set:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  # -----------------------------------------------------------
+  # DOMAIN: TREASURY (additional capabilities)
+  # -----------------------------------------------------------
+  - capability_id: treasury.transfer.request
+    description: "Request a treasury transfer"
+    domain: TREASURY
+    resource_type: "transfer"
+    action: CREATE
+    scope_pattern: "treasury:transfer:*:request"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "treasury:transfer:self:request"
+      organization:
+        scope: "treasury:transfer:self:request"
+      ai_agent:
+        scope: "treasury:transfer:self:request"
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: treasury.transfer.authorize
+    description: "Authorize requested treasury transfers"
+    domain: TREASURY
+    resource_type: "transfer"
+    action: GOVERN
+    scope_pattern: "treasury:transfer:{transfer_id}:authorize"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: treasury.transfer.reserve
+    description: "Reserve funds for an authorized transfer"
+    domain: TREASURY
+    resource_type: "transfer"
+    action: EXECUTE
+    scope_pattern: "treasury:transfer:{transfer_id}:reserve"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: treasury.transfer.execute
+    description: "Execute authorized and reserved treasury transfers"
+    domain: TREASURY
+    resource_type: "transfer"
+    action: EXECUTE
+    scope_pattern: "treasury:transfer:{transfer_id}:execute"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: CRITICAL
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: treasury.transfer.cancel
+    description: "Cancel pending or reserved treasury transfers"
+    domain: TREASURY
+    resource_type: "transfer"
+    action: DELETE
+    scope_pattern: "treasury:transfer:{transfer_id}:cancel"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      human:
+        scope: "treasury:transfer:self:cancel"
+      organization:
+        scope: "treasury:transfer:self:cancel"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: treasury.transfer.compensate
+    description: "Compensate failed treasury transfers"
+    domain: TREASURY
+    resource_type: "transfer"
+    action: EXECUTE
+    scope_pattern: "treasury:transfer:{transfer_id}:compensate"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: treasury.liquidity.read
+    description: "Query liquidity pool state and allocations"
+    domain: TREASURY
+    resource_type: "liquidity_pool"
+    action: READ
+    scope_pattern: "treasury:liquidity:*:read"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "treasury:liquidity:*:read"
+      governance:
+        scope: "treasury:liquidity:*:read"
+    constitutional_constraint: null
+    risk_level: LOW
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  # -----------------------------------------------------------
+  # DOMAIN: VAULT (additional capabilities)
+  # -----------------------------------------------------------
+  - capability_id: vault.collateral.create
+    description: "Create collateral positions"
+    domain: VAULT
+    resource_type: "collateral"
+    action: CREATE
+    scope_pattern: "collateral:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: vault.collateral.evaluate
+    description: "Evaluate collateral adequacy and value"
+    domain: VAULT
+    resource_type: "collateral"
+    action: EXECUTE
+    scope_pattern: "collateral:{collateral_id}:evaluate"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "collateral:self:evaluate"
+    constitutional_constraint: "INV-007"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: vault.collateral.release
+    description: "Release collateral positions"
+    domain: VAULT
+    resource_type: "collateral"
+    action: DELETE
+    scope_pattern: "collateral:{collateral_id}:release"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: vault.reconcile
+    description: "Initiate vault-wide reconciliation process"
+    domain: VAULT
+    resource_type: "vault"
+    action: EXECUTE
+    scope_pattern: "vault:*:reconcile"
+    grantable_by:
+      - governance
+    default_for_actor_types:
+      ai_agent:
+        scope: "vault:self:reconcile"
+    constitutional_constraint: null
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: true
+    delegable: true
+    max_delegation_depth: 1
+
+  - capability_id: vault.valuation.manage
+    description: "Manage valuation models and parameters"
+    domain: VAULT
+    resource_type: "valuation"
+    action: UPDATE
+    scope_pattern: "vault:valuation:*:manage"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  # -----------------------------------------------------------
+  # SYSTEM META-CAPABILITY
+  # -----------------------------------------------------------
+  - capability_id: system.internal
+    description: "System-internal capability for automated pipeline operations"
+    domain: GOVERNANCE
+    resource_type: "system"
+    action: EXECUTE
+    scope_pattern: "system:internal:*"
+    grantable_by:
+      - system
+    default_for_actor_types: {}
+    constitutional_constraint: null
+    risk_level: NONE
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+    restriction_note: "Automatically assigned to system-internal pipeline steps. Not grantable to any actor."
+# -----------------------------------------------------------
+# CAPABILITY MATRIX
+# -----------------------------------------------------------
+# Maps actor types to the capability IDs they can hold.
+# governance has implicit wildcard access to all capabilities.
+# -----------------------------------------------------------
+
+capability_matrix:
+  human:
+    - vault.asset.read
+    - vault.reserve.create
+    - vault.reserve.release
+    - treasury.transfer.initiate
+    - identity.delegation.create
+    - intent.submit
+    - intent.cancel
+    - agent.register
+    - payment.initiate
+    - ledger.account.read
+    - identity.actor.read
+    - policy.rule.read
+    - intent.read
+
+  organization:
+    - vault.asset.read
+    - vault.reserve.create
+    - vault.reserve.release
+    - treasury.transfer.initiate
+    - identity.delegation.create
+    - intent.submit
+    - intent.cancel
+    - agent.register
+    - payment.initiate
+    - ledger.account.read
+    - identity.actor.read
+    - policy.rule.read
+    - intent.read
+
+  ai_agent:
+    - vault.asset.read
+    - vault.reserve.create
+    - vault.reserve.release
+    - treasury.transfer.initiate
+    - intent.submit
+    - intent.cancel
+    - ledger.account.read
+    - vault.asset.reconcile
+    - treasury.settlement.confirm
+    - vault.valuation.update
+    - policy.set.evaluate
+    - identity.actor.read
+    - policy.rule.read
+    - intent.read
+    - governance.audit.query
+    - payment.reconcile
+    - ledger.journal.create
+    - ledger.reconcile.initiate
+    - ledger.journal.read
+
+  service_account:
+    - vault.asset.read
+    - treasury.transfer.initiate
+    - ledger.account.read
+    - ledger.journal.create
+    - treasury.settlement.confirm
+    - identity.actor.read
+    - policy.rule.read
+    - intent.read
+
+  governance:
+    - "*"
+
+  external_system:
+    - vault.asset.read
+    - ledger.account.read
+    - treasury.settlement.confirm
+    - identity.actor.read
+    - policy.rule.read
+
+# -----------------------------------------------------------
+# CONDITIONAL CAPABILITY CONSTRAINTS
+# -----------------------------------------------------------
+# Some capabilities have conditional grants for specific actor types.
+# These constraints are enforced at INV-008 gate 2 (capability check)
+# and gate 3 (scope validation).
+# -----------------------------------------------------------
+
+conditional_constraints:
+  - capability_id: treasury.transfer.initiate
+    actor_type: ai_agent
+    conditions:
+      - id: "CT-TRANSFER-001"
+        description: "Per-transfer amount limit"
+        constraint: "amount <= actor.quota.per_transfer_max"
+      - id: "CT-TRANSFER-002"
+        description: "Daily cumulative amount limit"
+        constraint: "sum(actor.transfers_today.amounts) <= actor.quota.daily_max"
+      - id: "CT-TRANSFER-003"
+        description: "No self-transfer"
+        constraint: "transfer.source_account != transfer.destination_account"
+
+  - capability_id: vault.valuation.update
+    actor_type: ai_agent
+    conditions:
+      - id: "CT-VAL-001"
+        description: "Approved valuation source"
+        constraint: "valuation.source in actor.config.approved_oracle_list"
+      - id: "CT-VAL-002"
+        description: "Valuation delta within tolerance"
+        constraint: "abs(valuation.new_value - valuation.previous_value) / valuation.previous_value <= actor.config.valuation_tolerance_pct"
+
+  - capability_id: payment.initiate
+    actor_type: ai_agent
+    conditions:
+      - id: "CT-PAY-001"
+        description: "Per-payment amount limit"
+        constraint: "amount <= actor.quota.per_payment_max"
+      - id: "CT-PAY-002"
+        description: "Approved payee requirement"
+        constraint: "payment.recipient in actor.config.approved_payee_list"
+      - id: "CT-PAY-003"
+        description: "Policy compliance check"
+        constraint: "policy.evaluate(payment_context).decision == ALLOW"
+

@@ -1,0 +1,14 @@
+status: pending
+pending_tasks:
+  - id: "vault-001"
+    description: "Define aggregates"
+  - id: "vault-002"
+    description: "Implement commands"
+  - id: "vault-003"
+    description: "Emit events"
+  - id: "vault-004"
+    description: "Implement projections"
+  - id: "vault-005"
+    description: "Execute acceptance tests"
+in_progress_tasks: []
+completed_tasks: []

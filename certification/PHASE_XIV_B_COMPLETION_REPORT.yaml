@@ -1,0 +1,59 @@
+phase:
+  XIV-B
+
+compiler_authority:
+  status:
+    complete: true
+    evidence: certification/VAULT_COMPILER_AUTHORITY_CERTIFICATION.yaml
+    certification: certification/COMPILER_AUTHORITY_AUDIT.yaml
+
+manual_runtime_logic:
+  status:
+    removed: true
+    evidence:
+      - packages/vault/src/index.ts no longer contains VAULT_STATE_MACHINE
+      - packages/vault/src/index.ts no longer contains switch(command.type)
+      - CommandExecutor replaces manual routing
+
+generated_runtime:
+  status:
+    active: true
+    evidence:
+      - packages/runtime/generated/vault-state-machine.ts
+      - packages/runtime/CommandExecutor.ts
+      - generated/state-machines/
+      - generated/commands/
+      - generated/events/
+      - generated/policies/
+      - generated/manifests/
+
+domains:
+  vault:
+    compiled: true
+    evidence: certification/VAULT_COMPILER_AUTHORITY_CERTIFICATION.yaml
+  treasury:
+    compiled: true
+    evidence: certification/DOMAIN_COMPILER_COMPLETENESS.yaml
+  payment:
+    compiled: true
+    evidence: certification/DOMAIN_COMPILER_COMPLETENESS.yaml
+  agent:
+    compiled: true
+    evidence: certification/DOMAIN_COMPILER_COMPLETENESS.yaml
+
+tests:
+  yaml_validation:
+    status: PASS
+    command: npm run protocol:validate
+  compiler_execution:
+    status: PASS
+    command: npm run protocol:compile
+  replay:
+    status: PASS
+    command: jest tests/compiler/replay-determinism.test.ts
+    evidence: certification/REPLAY_DETERMINISM_PHASE_XIV_B.yaml
+  authority_audit:
+    status: PASS
+    evidence: certification/COMPILER_AUTHORITY_AUDIT.yaml
+
+final_status: COMPLETE

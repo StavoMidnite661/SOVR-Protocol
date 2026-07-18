@@ -1,0 +1,14 @@
+status: pending
+pending_tasks:
+  - id: "compiler-001"
+    description: "Define aggregates"
+  - id: "compiler-002"
+    description: "Implement commands"
+  - id: "compiler-003"
+    description: "Emit events"
+  - id: "compiler-004"
+    description: "Implement projections"
+  - id: "compiler-005"
+    description: "Execute acceptance tests"
+in_progress_tasks: []
+completed_tasks: []

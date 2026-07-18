@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sovr-system
+  labels:
+    name: sovr-system
+    app.kubernetes.io/name: sovr
+    app.kubernetes.io/part-of: sovr-financial-os

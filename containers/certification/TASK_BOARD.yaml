@@ -1,0 +1,14 @@
+status: pending
+pending_tasks:
+  - id: "certification-001"
+    description: "Define aggregates"
+  - id: "certification-002"
+    description: "Implement commands"
+  - id: "certification-003"
+    description: "Emit events"
+  - id: "certification-004"
+    description: "Implement projections"
+  - id: "certification-005"
+    description: "Execute acceptance tests"
+in_progress_tasks: []
+completed_tasks: []

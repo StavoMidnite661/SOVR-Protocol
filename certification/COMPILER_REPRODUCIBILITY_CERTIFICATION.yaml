@@ -1,0 +1,19 @@
+certification:
+  name: Compiler Reproducibility Certification
+
+tests:
+  identical_input:
+    runs:
+      - run_001
+      - run_002
+
+  comparison:
+    source_hash_equal: true
+    artifact_hash_equal: true
+
+compiler:
+  version: '1.0.0'
+  build_id: 'reproducible'
+
+result:
+  status: PASS

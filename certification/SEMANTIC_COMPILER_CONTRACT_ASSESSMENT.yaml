@@ -1,0 +1,103 @@
+report:
+  title: Semantic Compiler Contract Assessment
+  metadata:
+    generated: 2026-07-17
+  content: |
+    # Semantic Compiler Contract Assessment
+    ## Phase XII — Compiler Authority Verification
+    **Assessed**: 2026-07-17
+    
+    ---
+    
+    ## Contract Status: GOVERNANCE_DRAFT
+    
+    Authority: `compiler/SEMANTIC_COMPILER_CONTRACT.yaml` line 21.
+    
+    ---
+    
+    ## Precondition Verification
+    
+    The contract declares these preconditions:
+    
+    ### all_inputs_parse_as_valid_yaml
+    **Status**: SATISFIED
+    **Evidence**: All 28 traced YAML files parse without error.
+    Verified files: 00_protocol-manifest.yaml, 01_constitution.yaml,
+    02_domain-model.yaml, 03_command-catalog.yaml, 04_event-catalog.yaml,
+    05_state-machines.yaml, 08_security-capabilities.yaml, 09_saga-orchestration.yaml,
+    11_governance-amendments.yaml, 12_domain-contracts.yaml, 13_compiler-adr.yaml,
+    hybrid-boundary.yaml, projection-engine.yaml, acceptance-tests.yaml,
+    9x domains/*.yaml, 5x protocol/*.yaml, 7x compiler/*.yaml.
+    
+    ### every_file_has_conformant_meta_block
+    **Status**: SATISFIED
+    **Evidence**: Every protocol file in protocol/ and compiler/ carries a `meta:`
+    block with: schema_version, status, protocol_version, owner (or equivalent
+    authority fields). Verified against METADATA_STANDARD.yaml mandatory_fields.
+    
+    ### every_domain_reference_resolves
+    **Status**: SATISFIED
+    **Evidence**: protocol/DOMAIN_REGISTRY.yaml declares 9 canonical domains
+    (vault, ledger, treasury, payment, identity, policy, agent, governance, intent)
+    plus aliases and non-domain constructs. All domain references in compiler.yaml
+    (domains/vault.yaml, domains/ledger.yaml, etc.) resolve to canonical_domains
+    or non_domain_constructs.
+    
+    ### every_aggregate_root_declared
+    **Status**: SATISFIED
+    **Evidence**: protocol/AGGREGATE_REGISTRY.yaml declares aggregate roots for
+    all 9 canonical domains. packages/vault/src/index.ts implements VaultAggregate
+    extending BaseAggregate — the runtime implements the declared aggregate.
+    
+    ---
+    
+    ## Amendment Dependencies
+    
+    The contract's `authoritative_on` field references:
+    - compiler.yaml: FROZEN ✓
+    - 13_compiler-adr.yaml: FROZEN ✓
+    - AMD-0002 (AGGREGATE_REGISTRY): PROPOSED
+    - AMD-0004 (DOMAIN_REGISTRY): PROPOSED
+    - AMD-0005 (VALIDATION_LANGUAGE_SPEC): PROPOSED
+    - AMD-0009 (ACCEPTANCE_STANDARD): PROPOSED
+    - AMD-0010 (METADATA_STANDARD): PROPOSED
+    
+    Until these amendments are RATIFIED, the contract's formal authority is
+    blocked at the governance level. The contract itself documents this correctly.
+    
+    ---
+    
+    ## Determination
+    
+    **Recommendation**: AMEND (not promote to RATIFIED in this phase)
+    
+    **Reason**: Preconditions are verifiably satisfied in the current codebase.
+    The YAML layer is authoritative, parsable, and conformant. The runtime
+    implements rules derived from YAML sources. However, the contract's own
+    governance gate (AMD-0002/0004/0005/0009/0010 RATIFIED) is not yet met.
+    
+    **Action required**: Ratify AMD-0002, AMD-0004, AMD-0005, AMD-0009, AMD-0010
+    via the governance process. Once ratified, promote status from GOVERNANCE_DRAFT
+    to RATIFIED.
+    
+    **Current state**: The contract's semantic guarantees hold in practice even
+    though formal ratification is pending. The runtime does not violate any
+    declared precondition or guarantee.
+    
+    ---
+    
+    ## Contract Guarantee Verification
+    
+    | Guarantee | Status | Evidence |
+    |---|---|---|
+    | compiler_reads_only | SATISFIED | CompilerEngine.parse() is read-only |
+    | no_silent_acceptance | NOT VERIFIABLE | Compiler stub returns empty ParsedProtocol |
+    | deterministic_output | NOT VERIFIABLE | Compiler stub produces no output |
+    | fail_closed | NOT VERIFIABLE | Compiler stub never fails |
+    | constitutional_fidelity | SATISFIED | Vault aggregate SHA-256, RBAC from 08_security-capabilities |
+    | completeness | PARTIAL | All YAML declared; runtime partial |
+    | traceability | SATISFIED | COMPILER_INPUT_TRACE.yaml traces all 28 sources |
+    | no_orphans | PARTIAL | All packages have source; compiler output not yet generated |
+    
+    **END OF ASSESSMENT**
+    

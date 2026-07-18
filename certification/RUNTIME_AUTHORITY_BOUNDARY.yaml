@@ -1,0 +1,78 @@
+runtime_authority:
+
+  constitutional:
+    description: Decisions derived from constitutional YAML
+    rules:
+      - name: state_transitions
+        source: 05_state-machines.yaml
+        runtime: packages/vault/src/index.ts
+        mechanism: GeneratedStateMachine.transition()
+      - name: permissions
+        source: 08_security-capabilities.yaml
+        runtime: packages/security/src/rbac.ts
+        mechanism: Role/Permission checks
+      - name: events
+        source: 04_event-catalog.yaml
+        runtime: packages/vault/src/index.ts
+        mechanism: Event emission from state transitions
+      - name: invariants
+        source: 01_constitution.yaml
+        runtime: packages/kernel/src/aggregate.ts
+        mechanism: Invariant validation
+
+  operational:
+    description: Decisions derived from operational requirements, not governance
+    rules:
+      - name: database_connections
+        runtime: packages/events/src/postgres.ts
+      - name: retries
+        runtime: packages/runtime/src/index.ts
+      - name: logging
+        runtime: packages/runtime/src/index.ts
+      - name: timestamps
+        runtime: packages/kernel/src/aggregate.ts
+
+  prohibited:
+    description: Business rules and governance decisions MUST NOT be hardcoded in runtime
+    rules:
+      - name: business_rules
+        status: eliminated_from_vault
+        evidence: vault state machine now generated
+      - name: governance_decisions
+        status: partial
+        evidence: |
+            DEV-001: Vault state machine definition still inline
+            DEV-006: Command dispatch still uses switch()
+            DEV-007: Protocol registries still static
+
+boundary_violations:
+  - id: BV-001
+    file: packages/vault/src/index.ts
+    line: 15-127
+    description: VAULT_STATE_MACHINE constant defined inline instead of generated
+    severity: high
+    remediation: StateMachineCompiler.generateVault() should produce this artifact
+
+  - id: BV-002
+    file: packages/vault/src/index.ts
+    line: 173-188
+    description: receive() uses switch(command.type) instead of generated command catalog
+    severity: high
+    remediation: Wire GeneratedCommandCatalog into VaultAggregate
+
+  - id: BV-003
+    file: packages/protocol/src/index.ts
+    line: 1-91
+    description: Hardcoded CANONICAL_DOMAINS, PROTOCOL_ENTITIES, etc.
+    severity: medium
+    remediation: Replace with imports from generated catalogs
+
+runtime_execution_model:
+  constitution: 01_constitution.yaml
+  compiler: packages/compiler
+  runtime: packages/runtime
+  evidence: |
+    The runtime executes state transitions via GeneratedStateMachine.
+    The constitution defines allowed transitions in 05_state-machines.yaml.
+    The compiler reads YAML and produces TypeScript artifacts.
+    The runtime imports and executes those artifacts.

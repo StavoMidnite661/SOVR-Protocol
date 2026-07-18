@@ -1,0 +1,84 @@
+# ============================================================
+# SOVR Financial OS — Engineering Lifecycle Specification
+# File: management/ENGINEERING_LIFECYCLE.yaml
+# Phase: 5.8 — Engineering Lifecycle Specification
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no implementation)
+# ============================================================
+# Every artifact progresses through a deterministic lifecycle. The
+# compiler consumes lifecycle state; an artifact in DRAFT is not
+# certifiable, and one in DEPRECATED is not generated.
+#
+# Authority: management/ENGINEERING_CHANGE_PROCESS.md,
+# management/REPOSITORY_STATE_MACHINE.yaml. On divergence, ECP prevails.
+# ============================================================
+
+engineering_lifecycle:
+  schema_version: "1.0.0"
+  principle: THE_COMPILER_CONSUMES_LIFECYCLE_STATE
+  states:
+    - state: DRAFT
+      description: Authored, not yet reviewed.
+      compiler_visibility: IGNORED
+      next: [REVIEW]
+    - state: REVIEW
+      description: Under constitutional/peer review.
+      compiler_visibility: IGNORED
+      next: [RATIFIED]
+    - state: RATIFIED
+      description: Approved by governance (amendment) or owner (artifact).
+      compiler_visibility: READ
+      next: [CERTIFIED]
+    - state: CERTIFIED
+      description: Passed verification layers; evidence attached.
+      compiler_visibility: READ
+      next: [IMPLEMENTED]
+    - state: IMPLEMENTED
+      description: Realized by compiler/runtime.
+      compiler_visibility: GENERATED
+      next: [VALIDATED]
+    - state: VALIDATED
+      description: Acceptance tests pass; coverage met.
+      compiler_visibility: GENERATED
+      next: [RELEASED]
+    - state: RELEASED
+      description: Promoted to production.
+      compiler_visibility: EMITTED
+      next: [DEPRECATED, ARCHIVED]
+    - state: DEPRECATED
+      description: Scheduled for retirement; still operable.
+      compiler_visibility: READ_ONLY
+      next: [ARCHIVED]
+    - state: ARCHIVED
+      description: Frozen for audit; no longer generated.
+      compiler_visibility: NONE
+      next: []
+
+  transitions:
+    - { from: DRAFT, to: REVIEW, trigger: submit_for_review }
+    - { from: REVIEW, to: RATIFIED, trigger: approval, guard: no_open_findings }
+    - { from: RATIFIED, to: CERTIFIED, trigger: verification_pass, guard: all_layers_pass }
+    - { from: CERTIFIED, to: IMPLEMENTED, trigger: compiled, guard: deterministic_build_ok }
+    - { from: IMPLEMENTED, to: VALIDATED, trigger: tests_pass, guard: coverage_target_met }
+    - { from: VALIDATED, to: RELEASED, trigger: promote }
+    - { from: RELEASED, to: DEPRECATED, trigger: deprecate }
+    - { from: DEPRECATED, to: ARCHIVED, trigger: archive }
+
+  lifecycle_by_object_type:
+    Protocol: [RATIFIED, CERTIFIED]
+    Domain: [RATIFIED, CERTIFIED, IMPLEMENTED, VALIDATED, RELEASED]
+    Aggregate: [RATIFIED, CERTIFIED, IMPLEMENTED, VALIDATED, RELEASED]
+    Command: [RATIFIED, CERTIFIED, IMPLEMENTED, VALIDATED, RELEASED]
+    Event: [RATIFIED, CERTIFIED, IMPLEMENTED, VALIDATED, RELEASED]
+    Capability: [RATIFIED, CERTIFIED, IMPLEMENTED, VALIDATED, RELEASED]
+    Invariant: [RATIFIED, CERTIFIED]
+    Amendment: [DRAFT, REVIEW, RATIFIED]
+    AcceptanceTest: [RATIFIED, CERTIFIED, VALIDATED]
+    CompilerPass: [RATIFIED, CERTIFIED]
+    Generator: [RATIFIED, CERTIFIED, IMPLEMENTED]
+
+  compiler_contract: >
+    The compiler reads only objects at lifecycle state >= RATIFIED and
+    generates only for states in {IMPLEMENTED, VALIDATED, RELEASED}.
+    DRAFT/REVIEW artifacts are invisible to compilation; DEPRECATED/ARCHIVED
+    artifacts are excluded from generation. This prevents half-formed or
+    retired objects from entering the runtime.

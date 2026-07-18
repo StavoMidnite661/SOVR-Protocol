@@ -1,0 +1,29 @@
+current_phase: "Phase 1 — Program Governance Layer II"
+active_domains:
+  - Governance (metadata containerization)
+active_tasks:
+  - id: GOV-003
+    description: Repository State Machine
+  - id: GOV-004
+    description: Container Ownership Metadata
+  - id: GOV-005
+    description: Dependency Registry
+  - id: GOV-006
+    description: Session Context System
+  - id: GOV-007
+    description: Domain Readiness Matrix
+  - id: GOV-008
+    description: Cross-Domain Contract Registry
+  - id: GOV-009
+    description: Specification Traceability
+  - id: GOV-010
+    description: Global Milestone System
+  - id: GOV-011
+    description: Drift Detection Framework
+  - id: GOV-012
+    description: Repository Navigation Index
+  - id: GOV-013
+    description: Engineering Dashboard
+  - id: GOV-014
+    description: Program Governance Certification
+blockers: []

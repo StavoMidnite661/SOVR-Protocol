@@ -1,0 +1,25 @@
+domain:
+  vault
+
+state_machine:
+  source:
+    constitutional_yaml: 05_state-machines.yaml
+
+runtime:
+  implementation:
+    generated: packages/runtime/generated/vault-state-machine.ts
+
+manual_state_machine:
+  exists:
+    false
+
+status:
+  certified: true
+
+verification:
+  - test: runtime loads generated machine
+    result: PASS
+  - test: no inline machine exists
+    result: PASS
+  - test: generated state machine source marked as generated
+    result: PASS

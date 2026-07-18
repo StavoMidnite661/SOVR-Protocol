@@ -1,0 +1,35 @@
+{
+  "phase": "XIV-D.1",
+  "timestamp": "2026-07-18T06:28:56.953Z",
+  "steps": {
+    "YAML_VALIDATION": true,
+    "COMPILER_BUILD": true,
+    "PROTOCOL_COMPILE": true,
+    "RUNTIME_TESTS": true
+  },
+  "artifact_integrity": {
+    "vault": {
+      "current": "3a3627661a3e4c05b58df9782b368225167d3ae1afda83f0d70d390aba79b766",
+      "golden": "3a3627661a3e4c05b58df9782b368225167d3ae1afda83f0d70d390aba79b766",
+      "match": true
+    },
+    "treasury": {
+      "current": "6553f38e8ed2191e99e69d327a4ff106e7eb62964a46ad1ff4ed973bfa1a7e9c",
+      "golden": "6553f38e8ed2191e99e69d327a4ff106e7eb62964a46ad1ff4ed973bfa1a7e9c",
+      "match": true
+    },
+    "payment": {
+      "current": "ab7d84c6bbc3ccdf4fbb51f14a5eba9bc9b8745b46562be992379820e4a7d3c7",
+      "golden": "ab7d84c6bbc3ccdf4fbb51f14a5eba9bc9b8745b46562be992379820e4a7d3c7",
+      "match": true
+    },
+    "agent": {
+      "current": "086fa1a1ed9e0b09cc33aa888972d03ce8462e52fe9ad1cc62d6ab23ab17b408",
+      "golden": "086fa1a1ed9e0b09cc33aa888972d03ce8462e52fe9ad1cc62d6ab23ab17b408",
+      "match": true
+    }
+  },
+  "final": {
+    "certified": true
+  }
+}

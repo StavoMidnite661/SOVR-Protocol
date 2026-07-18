@@ -1,0 +1,281 @@
+# ============================================================
+# SOVR Financial OS — Constitutional Ontology
+# File: knowledge/ONTOLOGY.yaml
+# Phase: 5.1 — Constitutional Ontology
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no implementation)
+# ============================================================
+# Defines every constitutional object type in the SOVR knowledge
+# graph. Each type declares identity, parent/child types, relationships,
+# required metadata, versioning, ownership, and compiler/certification
+# visibility. This ontology is the schema of the digital twin.
+#
+# Authority: compiler.yaml, SEMANTIC_COMPILER_CONTRACT.yaml,
+# knowledge/IDENTITY_REGISTRY.yaml, knowledge/KNOWLEDGE_GRAPH.yaml.
+# On divergence, frozen protocol specs prevail.
+# ============================================================
+
+ontology:
+  schema_version: "1.0.0"
+  protocol_version: "1.0.0"
+  id_prefix_rule: "SOVR-<TYPE>-<6DIGIT>"   # see IDENTITY_REGISTRY.yaml
+  invariant: EVERY_OBJECT_HAS_A_TYPE_AND_A_GLOBAL_ID
+
+types:
+
+  - type: Protocol
+    identity: SOVR-PROT
+    parent_types: []
+    child_types: [Domain, Entity, Aggregate, Command, Event, Policy, Capability,
+      StateMachine, Invariant, AcceptanceTest, CompilerPass, Generator,
+      Amendment, Finding, Manifest]
+    relationships: [Defines, Supersedes]
+    required_metadata: [schema_version, protocol_version, status]
+    versioning: protocol_version (semver)
+    ownership: governance
+    compiler_visibility: READ_ONLY
+    certification_visibility: AUTHORITATIVE
+
+  - type: Domain
+    identity: SOVR-DOM
+    parent_types: [Protocol]
+    child_types: [Entity, Aggregate, Command, Event, Capability, StateMachine, Policy]
+    relationships: [Contains, References]
+    required_metadata: [domain_id, canonical_flag]
+    versioning: protocol_version
+    ownership: domain_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Aggregate
+    identity: SOVR-AGG
+    parent_types: [Domain]
+    child_types: [Entity, Event, Command, StateMachine]
+    relationships: [Owns, ProtectedBy, Uses, BelongsTo]
+    required_metadata: [aggregate_id, root_entity, state_machine, invariants]
+    versioning: protocol_version
+    ownership: domain_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Entity
+    identity: SOVR-ENT
+    parent_types: [Domain, Aggregate]
+    child_types: [ValueObject]
+    relationships: [ReferencedBy, PartOf]
+    required_metadata: [entity_id, fields]
+    versioning: protocol_version
+    ownership: domain_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: ValueObject
+    identity: SOVR-VO
+    parent_types: [Entity, Aggregate]
+    child_types: []
+    relationships: [ComposedIn]
+    required_metadata: [value_object_id, fields]
+    versioning: protocol_version
+    ownership: domain_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Command
+    identity: SOVR-CMD
+    parent_types: [Aggregate, Domain]
+    child_types: [Event]
+    relationships: [References, Requires, Produces, ProtectedBy]
+    required_metadata: [command_id, aggregate, capability, constitutional_gates]
+    versioning: protocol_version
+    ownership: domain_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Event
+    identity: SOVR-EVT
+    parent_types: [Aggregate, Domain]
+    child_types: [Projection]
+    relationships: [References, ConsumedBy, ProducedBy]
+    required_metadata: [event_id, aggregate, envelope_fields]
+    versioning: protocol_version
+    ownership: domain_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Policy
+    identity: SOVR-POL
+    parent_types: [Domain]
+    child_types: []
+    relationships: [RequiredBy, Evaluates]
+    required_metadata: [policy_id, rules, evaluation_order]
+    versioning: protocol_version
+    ownership: policy_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Capability
+    identity: SOVR-CAP
+    parent_types: [Domain]
+    child_types: []
+    relationships: [RequiredBy, Grants]
+    required_metadata: [capability_id, scope_pattern, resource_type, action]
+    versioning: protocol_version
+    ownership: security_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Saga
+    identity: SOVR-SAG
+    parent_types: [Domain]
+    child_types: [Command]
+    relationships: [Orchestrates, Compensates]
+    required_metadata: [saga_id, steps, compensation_handlers]
+    versioning: protocol_version
+    ownership: domain_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+    note: 16 sagas declared in inventory; not individually enumerated until
+          AMD-0001 repairs 09_saga-orchestration.yaml (G-01).
+
+  - type: StateMachine
+    identity: SOVR-SM
+    parent_types: [Aggregate, Domain]
+    child_types: []
+    relationships: [TransitionsOn, UsedBy]
+    required_metadata: [state_machine_id, states, transitions, terminal_states]
+    versioning: protocol_version
+    ownership: domain_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Projection
+    identity: SOVR-PRJ
+    parent_types: [Event]
+    child_types: []
+    relationships: [Handles, RebuildsFrom]
+    required_metadata: [projection_id, source_events]
+    versioning: protocol_version
+    ownership: projection_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Repository
+    identity: SOVR-REP
+    parent_types: [Protocol]
+    child_types: [Entity, Aggregate]
+    relationships: [Persists, Loads]
+    required_metadata: [repository_id, aggregate]
+    versioning: protocol_version
+    ownership: platform_team
+    compiler_visibility: READ
+    certification_visibility: CERTIFIED
+
+  - type: Invariant
+    identity: SOVR-INV
+    parent_types: [Protocol]
+    child_types: []
+    relationships: [ProtectedBy, CitedBy, ViolatedBy]
+    required_metadata: [invariant_id, rule, enforcement_point]
+    versioning: protocol_version
+    ownership: governance
+    compiler_visibility: READ
+    certification_visibility: AUTHORITATIVE
+
+  - type: AcceptanceTest
+    identity: SOVR-AT
+    parent_types: [Protocol]
+    child_types: []
+    relationships: [Verifies, Certifies]
+    required_metadata: [test_id, target, assertions]
+    versioning: protocol_version
+    ownership: qa_team
+    compiler_visibility: READ
+    certification_visibility: EVIDENCE
+
+  - type: Certification
+    identity: SOVR-CERT
+    parent_types: [Protocol]
+    child_types: []
+    relationships: [Certifies, EvidenceFor]
+    required_metadata: [certification_id, scope, level, evidence]
+    versioning: compiler_version
+    ownership: certification_team
+    compiler_visibility: EMITTED
+    certification_visibility: EVIDENCE
+
+  - type: CompilerPass
+    identity: SOVR-PASS
+    parent_types: [Protocol]
+    child_types: []
+    relationships: [Consumes, Produces, DependsOn, Certifies]
+    required_metadata: [pass_id, phase, consumes, produces, deterministic]
+    versioning: compiler_version
+    ownership: compiler_team
+    compiler_visibility: DEFINITION
+    certification_visibility: GOVERNED
+
+  - type: Generator
+    identity: SOVR-GEN
+    parent_types: [CompilerPass]
+    child_types: []
+    relationships: [Produces, DependsOn]
+    required_metadata: [generator_id, consumes, produces, version]
+    versioning: compiler_version
+    ownership: compiler_team
+    compiler_visibility: DEFINITION
+    certification_visibility: GOVERNED
+
+  - type: Amendment
+    identity: SOVR-AMD
+    parent_types: [Protocol]
+    child_types: []
+    relationships: [Addresses, Affects, Supersedes]
+    required_metadata: [amendment_id, findings, severity, status]
+    versioning: target_protocol_version
+    ownership: governance
+    compiler_visibility: READ
+    certification_visibility: GOVERNED
+
+  - type: Finding
+    identity: SOVR-FND
+    parent_types: [Protocol]
+    child_types: []
+    relationships: [AddressedBy, Violates]
+    required_metadata: [finding_id, title, severity]
+    versioning: protocol_version
+    ownership: governance
+    compiler_visibility: READ
+    certification_visibility: GOVERNED
+
+  - type: Evidence
+    identity: SOVR-EVD
+    parent_types: [Certification, AcceptanceTest, Report]
+    child_types: []
+    relationships: [Supports, ProducedBy]
+    required_metadata: [evidence_id, source, claim]
+    versioning: build_hash
+    ownership: certification_team
+    compiler_visibility: EMITTED
+    certification_visibility: EVIDENCE
+
+  - type: Manifest
+    identity: SOVR-MAN
+    parent_types: [Protocol]
+    child_types: []
+    relationships: [Summarizes, References]
+    required_metadata: [manifest_id, build_hash, input_hashes, ir_hash]
+    versioning: compiler_version
+    ownership: compiler_team
+    compiler_visibility: EMITTED
+    certification_visibility: EVIDENCE
+
+# ------------------------------------------------------------
+# VISIBILITY LEGEND
+# ------------------------------------------------------------
+visibility_legend:
+  READ_ONLY: protocol is immutable constitutional truth
+  READ: object is consumed by the compiler
+  DEFINITION: object is a compiler/architectural definition
+  EMITTED: object is produced by the compiler at build time
+  GOVERNED: object is subject to governance/amendment control
+  AUTHORITATIVE: object is the final constitutional authority
+  EVIDENCE: object supports certification/traceability

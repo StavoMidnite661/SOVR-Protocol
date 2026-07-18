@@ -1,0 +1,636 @@
+# ============================================================
+# SOVR Financial OS — Compiler Specification
+# File: compiler.yaml
+# Status: FROZEN
+# Build Phase: H
+# ============================================================
+# The compiler consumes YAML specifications and produces
+# runtime artifacts. This is what makes SOVR AI-generatable.
+#
+# The compiler is the bridge between specification and
+# implementation. An AI coding agent (or human) can generate
+# production code from a single authoritative specification.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  file_id: "compiler"
+  status: CONSTITUTIONAL_FREEZE
+  build_phase: "H"
+  description: "Protocol compiler specification. Consumes YAML specs, produces runtime artifacts."
+  runtime: TYPESCRIPT_NODE
+  framework: FASTIFY
+  orm: PRISMA
+  event_streaming: KAFKA
+  cache: REDIS
+  workflow: TEMPORAL
+
+# ============================================================
+# SECTION 2 — INPUT SOURCES
+# ============================================================
+
+inputs:
+  - file: 00_protocol-manifest.yaml
+    artifact_type: PROTOCOL_IDENTITY
+    required: true
+    produces:
+      - protocol_metadata
+      - domain_registry
+      - layer_map
+      - build_phases
+      - validation_config
+    compilation_stage: PARSE
+
+  - file: 01_constitution.yaml
+    artifact_type: CONSTITUTIONAL_LAW
+    required: true
+    produces:
+      - invariant_constants
+      - conflict_resolution_engine
+      - authority_model
+      - enforcement_pipeline
+      - governance_structure
+      - agent_governance_rules
+    compilation_stage: PARSE
+
+  - file: 02_domain-model.yaml
+    artifact_type: ENTITY_DEFINITIONS
+    required: true
+    produces:
+      - TYPESCRIPT_TYPES
+      - PRISMA_MODELS
+      - SQL_MIGRATIONS
+      - JSON_SCHEMAS
+    compilation_stage: TRANSFORM
+
+  - file: 03_command-catalog.yaml
+    artifact_type: COMMAND_DEFINITIONS
+    required: true
+    produces:
+      - COMMAND_CLASSES
+      - VALIDATION_LIBRARY
+      - FASTIFY_ROUTES
+      - OPENAPI_SPEC
+    compilation_stage: TRANSFORM
+
+  - file: 04_event-catalog.yaml
+    artifact_type: EVENT_DEFINITIONS
+    required: true
+    produces:
+      - EVENT_CLASSES
+      - KAFKA_TOPICS
+      - REDIS_STREAMS
+      - JSON_SCHEMAS
+    compilation_stage: TRANSFORM
+
+  - file: 05_state-machines.yaml
+    artifact_type: STATE_MACHINE_DEFINITIONS
+    required: true
+    produces:
+      - STATE_MACHINE_CLASSES
+      - WORKFLOW_DEFINITIONS
+    compilation_stage: TRANSFORM
+
+  - file: 08_security-capabilities.yaml
+    artifact_type: CAPABILITY_DEFINITIONS
+    required: true
+    produces:
+      - CAPABILITY_ENGINE
+      - POLICY_ENGINE_BINDINGS
+      - MIDDLEWARE_CHAIN
+    compilation_stage: TRANSFORM
+
+  - file: 09_saga-orchestration.yaml
+    artifact_type: SAGA_DEFINITIONS
+    required: true
+    produces:
+      - SAGA_ORCHESTRATORS
+      - COMPENSATION_HANDLERS
+      - TEMPORAL_WORKFLOWS
+    compilation_stage: TRANSFORM
+
+  - file: 12_domain-contracts.yaml
+    artifact_type: CONTRACT_DEFINITIONS
+    required: true
+    produces:
+      - DOMAIN_SERVICE_INTERFACES
+      - CONTRACT_VALIDATORS
+      - DEPENDENCY_INJECTION_CONFIG
+    compilation_stage: TRANSFORM
+
+  - file: domains/vault.yaml
+    artifact_type: DOMAIN_SPECIFICATION
+    required: true
+    domain: vault
+    produces:
+      - VAULT_AGGREGATE_ROOTS
+      - VAULT_DOMAIN_SERVICE
+      - VAULT_EVENTS
+      - VAULT_PROJECTIONS
+    compilation_stage: TRANSFORM
+
+  - file: domains/ledger.yaml
+    artifact_type: DOMAIN_SPECIFICATION
+    required: true
+    domain: ledger
+    produces:
+      - LEDGER_AGGREGATE_ROOTS
+      - LEDGER_DOMAIN_SERVICE
+      - LEDGER_EVENTS
+      - LEDGER_PROJECTIONS
+    compilation_stage: TRANSFORM
+
+  - file: domains/treasury.yaml
+    artifact_type: DOMAIN_SPECIFICATION
+    required: true
+    domain: treasury
+    produces:
+      - TREASURY_AGGREGATE_ROOTS
+      - TREASURY_DOMAIN_SERVICE
+      - TREASURY_EVENTS
+      - TREASURY_PROJECTIONS
+    compilation_stage: TRANSFORM
+
+  - file: domains/identity.yaml
+    artifact_type: DOMAIN_SPECIFICATION
+    required: true
+    domain: identity
+    produces:
+      - IDENTITY_AGGREGATE_ROOTS
+      - IDENTITY_DOMAIN_SERVICE
+      - IDENTITY_EVENTS
+    compilation_stage: TRANSFORM
+
+  - file: domains/policy.yaml
+    artifact_type: DOMAIN_SPECIFICATION
+    required: true
+    domain: policy
+    produces:
+      - POLICY_AGGREGATE_ROOTS
+      - POLICY_DOMAIN_SERVICE
+      - POLICY_EVENTS
+      - POLICY_RULES_ENGINE
+    compilation_stage: TRANSFORM
+
+  - file: domains/intent.yaml
+    artifact_type: DOMAIN_SPECIFICATION
+    required: true
+    domain: intent
+    produces:
+      - INTENT_AGGREGATE_ROOTS
+      - INTENT_DOMAIN_SERVICE
+      - INTENT_EVENTS
+    compilation_stage: TRANSFORM
+
+  - file: domains/agent.yaml
+    artifact_type: DOMAIN_SPECIFICATION
+    required: true
+    domain: agent
+    produces:
+      - AGENT_AGGREGATE_ROOTS
+      - AGENT_DOMAIN_SERVICE
+      - AGENT_EVENTS
+    compilation_stage: TRANSFORM
+
+  - file: domains/payment.yaml
+    artifact_type: DOMAIN_SPECIFICATION
+    required: true
+    domain: payment
+    produces:
+      - PAYMENT_AGGREGATE_ROOTS
+      - PAYMENT_DOMAIN_SERVICE
+      - PAYMENT_EVENTS
+      - RAIL_ADAPTER_INTERFACES
+    compilation_stage: TRANSFORM
+
+  - file: hybrid-boundary.yaml
+    artifact_type: BOUNDARY_SPECIFICATION
+    required: true
+    produces:
+      - CHAIN_BOUNDARY_INTERFACES
+      - ORACLE_INTERFACES
+      - REORG_HANDLERS
+      - FORK_DETECTOR
+    compilation_stage: TRANSFORM
+
+  - file: projection-engine.yaml
+    artifact_type: PROJECTION_SPECIFICATION
+    required: true
+    produces:
+      - READ_MODEL_CLASSES
+      - PROJECTION_HANDLERS
+      - REPLAY_SERVICE
+      - CACHE_INVALIDATION_CONFIG
+    compilation_stage: TRANSFORM
+
+  - file: acceptance-tests.yaml
+    artifact_type: TEST_SPECIFICATION
+    required: true
+    produces:
+      - TEST_SKELETONS
+      - TEST_FIXTURES
+      - COVERAGE_CONFIG
+    compilation_stage: TRANSFORM
+
+# ============================================================
+# SECTION 3 — OUTPUT ARTIFACTS
+# ============================================================
+
+outputs:
+
+  typescript_types:
+    output_type: TYPE_DEFINITIONS
+    source_files:
+      - 02_domain-model.yaml
+      - domains/*.yaml
+    template: ENTITY_TO_TYPESCRIPT
+    conventions:
+      enum_style: UPPER_SNAKE_CASE
+      interface_prefix: "I"
+      type_prefix: ""
+      nullable: OPTIONAL_PARAMETER
+      field_naming: camelCase
+    file_pattern: "src/types/{domain}/{entity}.ts"
+    compile_check: TSC_NO_ERROR
+
+  validation_library:
+    output_type: RUNTIME_VALIDATION
+    source_files:
+      - 02_domain-model.yaml
+      - 03_command-catalog.yaml
+    template: ZOD_SCHEMAS
+    conventions:
+      schema_prefix: "{entity}Schema"
+      command_schema_prefix: "{CommandName}Schema"
+      error_format: SOVR_VALIDATION_ERROR
+    file_pattern: "src/validation/{domain}/{entity}.schema.ts"
+    compile_check: TSC_NO_ERROR
+    test_coverage: REQUIRED
+
+  fastify_routes:
+    output_type: API_ROUTES
+    source_files:
+      - 03_command-catalog.yaml
+      - 08_security-capabilities.yaml
+    template: FASTIFY_CONTROLLER
+    conventions:
+      route_pattern: "/api/v1/{domain}/{aggregate}"
+      method_mapping:
+        create: POST
+        read: GET
+        update: PATCH
+        delete: DELETE
+        execute: POST
+      middleware_chain:
+        - AUTH
+        - CAPABILITY
+        - SCOPE
+        - POLICY
+        - RATE_LIMIT
+      middleware_enforcement: INV_008_GATES
+      response_format:
+        success: { status: 200, body: { data, meta } }
+        created: { status: 201, body: { data, meta } }
+        validation_error: { status: 422, body: { error, details } }
+        unauthorized: { status: 401, body: { error } }
+        forbidden: { status: 403, body: { error, capability_required } }
+        policy_denied: { status: 403, body: { error, policy_decision_id } }
+        not_found: { status: 404, body: { error } }
+        internal_error: { status: 500, body: { error, correlation_id } }
+    file_pattern: "src/routes/{domain}/{aggregate}.route.ts"
+    compile_check: TSC_NO_ERROR
+
+  openapi_spec:
+    output_type: API_DOCUMENTATION
+    source_files:
+      - 03_command-catalog.yaml
+      - 02_domain-model.yaml
+      - 04_event-catalog.yaml
+    template: OPENAPI_3_1
+    output_file: "openapi.yaml"
+    conventions:
+      security_scheme: BEARER_JWT
+      tag_per_domain: true
+      operation_id_pattern: "{domain}_{aggregate}_{action}"
+      response_schema_ref: "#/components/schemas/"
+
+  json_schemas:
+    output_type: SCHEMA_DEFINITIONS
+    source_files:
+      - 02_domain-model.yaml
+      - 03_command-catalog.yaml
+      - 04_event-catalog.yaml
+    template: JSON_SCHEMA_DRAFT_2020_12
+    file_pattern: "schemas/{domain}/{entity}.schema.json"
+    conventions:
+      id_pattern: "sovr://{domain}/{entity}/{version}"
+      required_fields: explicitly_marked
+      enum_values: UPPER_SNAKE_CASE
+
+  event_classes:
+    output_type: DOMAIN_EVENTS
+    source_files:
+      - 04_event-catalog.yaml
+      - domains/*.yaml
+    template: TYPESCRIPT_EVENT_CLASS
+    conventions:
+      class_name_pattern: "{Aggregate}{Action}Event"
+      envelope_composition: true
+      import_envelope_from: "src/events/event-envelope"
+      factory_method: create
+    file_pattern: "src/events/{domain}/{aggregate}.events.ts"
+    compile_check: TSC_NO_ERROR
+
+  command_classes:
+    output_type: DOMAIN_COMMANDS
+    source_files:
+      - 03_command-catalog.yaml
+    template: TYPESCRIPT_COMMAND_CLASS
+    conventions:
+      class_name_pattern: "{Aggregate}{Action}Command"
+      validation: ZOD
+      constitutional_gates: MANDATORY_FIELD
+      id_generation: ULID
+    file_pattern: "src/commands/{domain}/{aggregate}.commands.ts"
+    compile_check: TSC_NO_ERROR
+
+  aggregate_roots:
+    output_type: DOMAIN_AGGREGATES
+    source_files:
+      - 02_domain-model.yaml
+      - 05_state-machines.yaml
+      - domains/*.yaml
+    template: EVENT_SOURCED_AGGREGATE
+    conventions:
+      class_name_pattern: "{Entity}Aggregate"
+      state_machine_integration: true
+      event_application: APPEND_ONLY
+      method_naming:
+        apply_event: "apply{EventName}"
+        handle_command: "handle{CommandName}"
+      error_on_invalid_state: STATE_MACHINE_VIOLATION_ERROR
+    file_pattern: "src/aggregates/{domain}/{entity}.aggregate.ts"
+    compile_check: TSC_NO_ERROR
+
+  read_models:
+    output_type: PROJECTIONS
+    source_files:
+      - projection-engine.yaml
+    template: EVENT_HANDLER_PROJECTION
+    conventions:
+      class_name_pattern: "{Name}Projection"
+      rebuild_support: true
+      checkpoint_support: true
+      event_handler_naming: "on{EventName}"
+    file_pattern: "src/projections/{name}.projection.ts"
+    compile_check: TSC_NO_ERROR
+
+  prisma_models:
+    output_type: DATABASE_MODELS
+    source_files:
+      - 02_domain-model.yaml
+    template: PRISMA_SCHEMA
+    conventions:
+      table_naming: snake_case_plural
+      relation_naming: camelCase
+      id_type: UUID
+      timestamps: true
+      soft_delete: false
+      json_fields:
+        - metadata
+        - projection_data
+        - constitutional_gates_passed
+    output_file: "prisma/schema.prisma"
+
+  sql_migrations:
+    output_type: DATABASE_MIGRATIONS
+    source_files:
+      - 02_domain-model.yaml
+    template: POSTGRESQL_MIGRATION
+    conventions:
+      up_down_pairs: true
+      idempotent: true
+      indexes:
+        - aggregate_id
+        - source_domain
+        - event_timestamp
+        - correlation_id
+        - actor_id
+    file_pattern: "migrations/{timestamp}_{description}.sql"
+
+  kafka_topics:
+    output_type: EVENT_STREAMING
+    source_files:
+      - 04_event-catalog.yaml
+    template: KAFKA_TOPIC_CONFIG
+    conventions:
+      topic_naming: "sovr.{domain}.{aggregate}.{event_type}"
+      partition_key: aggregate_id
+      retention:
+        financial: PERMANENT
+        audit: PERMANENT
+        operational: 7_DAYS
+        system: 1_DAY
+      compaction: true
+      replication_factor: 3
+      min_in_sync_replicas: 2
+    file_pattern: "config/kafka/topics.yaml"
+
+  redis_streams:
+    output_type: REALTIME_STREAMING
+    source_files:
+      - 04_event-catalog.yaml
+      - 09_saga-orchestration.yaml
+    template: REDIS_STREAM_CONFIG
+    conventions:
+      stream_naming: "sovr:stream:{domain}:{aggregate}"
+      consumer_group: "sovr-{service_name}"
+      max_length: 100000
+      consumer_ack_timeout_ms: 30000
+    file_pattern: "config/redis/streams.yaml"
+
+  workflow_definitions:
+    output_type: WORKFLOW_ORCHESTRATION
+    source_files:
+      - 09_saga-orchestration.yaml
+      - 05_state-machines.yaml
+    template: TEMPORAL_WORKFLOW
+    conventions:
+      workflow_name_pattern: "{SagaName}Workflow"
+      activity_name_pattern: "{StepName}Activity"
+      compensation: EXPLICIT_COMPENSATION_ACTIVITY
+      timeout_handling: TEMPORAL_ACTIVITY_TIMEOUT
+      retry_policy: EXPONENTIAL_BACKOFF
+    file_pattern: "src/workflows/{saga_name}.workflow.ts"
+
+  policy_engine:
+    output_type: POLICY_EVALUATION
+    source_files:
+      - 08_security-capabilities.yaml
+      - domains/policy.yaml
+      - 01_constitution.yaml
+    template: RULES_ENGINE
+    conventions:
+      rule_format: CER_LIKE
+      determinism_guarantee: PURE_FUNCTION
+      evaluation_order: DEFINED_IN_RULE_SET
+      output_types: [ALLOW, DENY, ESCALATE, DEFER]
+    file_pattern: "src/policy/engine.ts"
+
+  capability_engine:
+    output_type: CAPABILITY_CHECKING
+    source_files:
+      - 08_security-capabilities.yaml
+    template: CAPABILITY_CHECKER
+    conventions:
+      scope_resolution: PATTERN_MATCHING
+      cache: REDIS
+      cache_ttl_ms: 300000
+      wildcard_support: true
+    file_pattern: "src/security/capability-engine.ts"
+
+  test_skeletons:
+    output_type: TEST_INFRASTRUCTURE
+    source_files:
+      - acceptance-tests.yaml
+    template: VITEST_TEST_SUITE
+    conventions:
+      file_pattern: "tests/{category}/{name}.test.ts"
+      assertion_style: EXPECT
+      coverage_target: 95
+      fixture_pattern: "tests/fixtures/{domain}.fixture.ts"
+      mock_pattern: "tests/mocks/{service}.mock.ts"
+    compile_check: TSC_NO_ERROR
+
+  documentation:
+    output_type: HUMAN_READABLE_DOCS
+    source_files: ALL
+    template: MARKDOWN_FROM_YAML
+    file_pattern: "docs/{section}/{topic}.md"
+    conventions:
+      include_code_examples: true
+      include_diagrams: false
+      api_reference_from_openapi: true
+
+# ============================================================
+# SECTION 4 — COMPILATION PIPELINE
+# ============================================================
+
+compilation_pipeline:
+
+  stages:
+    - stage: PARSE
+      description: Load and parse all YAML source files
+      actions:
+        - YAML_PARSE
+        - SCHEMA_VALIDATION
+        - SYNTAX_CHECK
+      error_action: ABORT_WITH_PARSE_ERROR
+      outputs: [parsed_ast]
+
+    - stage: VALIDATE
+      description: Validate all parsed content against rules
+      actions:
+        - REFERENCE_INTEGRITY_CHECK
+        - CROSS_FILE_CROSS_REFERENCE
+        - ENUM_VALUE_VALIDATION
+        - REQUIRED_FIELD_CHECK
+        - DUPLICATE_DETECTION
+      error_action: ABORT_WITH_VALIDATION_ERROR
+      outputs: [validated_ast]
+      validation_rules:
+        - rule: ALL_ENTITY_REFERENCES_RESOLVE
+          check: every entity reference in commands/events/state_machines exists in domain-model
+        - rule: ALL_COMMAND_REFERENCES_RESOLVE
+          check: every command reference in events/state_machines/sagas exists in command-catalog
+        - rule: ALL_EVENT_REFERENCES_RESOLVE
+          check: every event reference in sagas/projections exists in event-catalog
+        - rule: ALL_CAPABILITY_REFERENCES_RESOLVE
+          check: every capability reference in commands exists in security-capabilities
+        - rule: ALL_INVARIANT_REFERENCES_RESOLVE
+          check: every invariant reference exists in constitution
+        - rule: ALL_STATE_MACHINE_COVERAGE
+          check: every state has at least one exit unless terminal
+        - rule: EVENT_ENVELOPE_COMPLETENESS
+          check: every event includes all envelope fields
+        - rule: COMMAND_GATES_COMPLETENESS
+          check: every command includes constitutional_gates block
+
+    - stage: RESOLVE
+      description: Build complete dependency graph and resolve all references
+      actions:
+        - DEPENDENCY_GRAPH_BUILD
+        - TOPOLOGICAL_SORT
+        - REFERENCE_EXPANSION
+        - TYPE_RESOLUTION
+      error_action: ABORT_WITH_RESOLUTION_ERROR
+      outputs: [resolved_ast, dependency_graph]
+
+    - stage: TRANSFORM
+      description: Apply templates to produce code artifacts
+      actions:
+        - TEMPLATE_SELECTION
+        - CODE_GENERATION
+        - IMPORT_RESOLUTION
+        - NAMESPACE_ASSIGNMENT
+      error_action: ABORT_WITH_GENERATION_ERROR
+      outputs: [generated_source_files]
+      parallel: true
+
+    - stage: GENERATE
+      description: Write generated artifacts to output directories
+      actions:
+        - FILE_WRITE
+        - DIRECTORY_CREATION
+        - CONFIG_GENERATION
+      error_action: ABORT_WITH_IO_ERROR
+      outputs: [written_files]
+
+    - stage: VERIFY
+      description: Post-generation verification
+      actions:
+        - TYPESCRIPT_COMPILE_CHECK
+        - IMPORT_CIRCULARITY_CHECK
+        - TEST_COMPILE_CHECK
+        - COVERAGE_THRESHOLD_CHECK
+        - ARTIFACT_COUNT_VALIDATION
+      error_action: REPORT_WARNINGS
+      outputs: [verification_report]
+
+# ============================================================
+# SECTION 5 — EXTENSIBILITY
+# ============================================================
+
+extensibility:
+  custom_templates:
+    registration: TEMPLATE_REGISTRY_YAML
+    hook_points:
+      - PRE_PARSE
+      - POST_PARSE
+      - PRE_TRANSFORM
+      - POST_TRANSFORM
+      - PRE_GENERATE
+      - POST_GENERATE
+    template_interface:
+      name: string
+      input_schema: object
+      output_pattern: string
+      transform_function: string
+
+  output_type_plugins:
+    registration: PLUGIN_REGISTRY_YAML
+    interface:
+      name: string
+      source_files: array
+      template: string
+      conventions: object
+      file_pattern: string
+
+  custom_validators:
+    registration: VALIDATOR_REGISTRY_YAML
+    interface:
+      name: string
+      rule: string
+      check: string
+      severity: enum
+      error_message: string

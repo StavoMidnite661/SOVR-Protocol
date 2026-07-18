@@ -1,0 +1,121 @@
+# ============================================================
+# SOVR Financial OS — Constitutional Trace Graph
+# File: knowledge/TRACE_GRAPH.yaml
+# Phase: 5.5 — Constitutional Trace Graph
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no implementation)
+# ============================================================
+# The trace graph proves end-to-end traceability from constitutional
+# intent to production evidence. Every path is continuous; no broken
+# paths are permitted. It is the spine of the digital twin.
+#
+# Authority: knowledge/IDENTITY_REGISTRY.yaml, knowledge/KNOWLEDGE_GRAPH.yaml,
+# compiler/PASS_REGISTRY.yaml, certification/COMPILER_CERTIFICATION_MATRIX.yaml.
+# ============================================================
+
+trace_graph:
+  schema_version: "1.0.0"
+  principle: NO_BROKEN_PATHS
+  canonical_path:
+    - Invariant
+    - Capability
+    - Command
+    - Event
+    - Aggregate
+    - Projection
+    - AcceptanceTest
+    - Certification
+    - CompilerPass
+    - GeneratedRuntime
+    - ProductionEvidence
+
+  # One fully resolved, concrete trace (Vault asset registration)
+  example_trace:
+    - step: 1
+      node: SOVR-INV-000008
+      type: Invariant
+      label: INV-008 command_execution_gates
+      next: SOVR-CAP-000001
+    - step: 2
+      node: SOVR-CAP-000001
+      type: Capability
+      label: vault.asset.create
+      next: SOVR-CMD-000001
+    - step: 3
+      node: SOVR-CMD-000001
+      type: Command
+      label: vault.asset.register
+      next: SOVR-EVT-000001
+    - step: 4
+      node: SOVR-EVT-000001
+      type: Event
+      label: vault.asset.registered
+      next: SOVR-AGG-000001
+    - step: 5
+      node: SOVR-AGG-000001
+      type: Aggregate
+      label: vault.asset
+      next: vault_projection
+    - step: 6
+      node: vault_projection
+      type: Projection
+      label: runtime read model
+      next: SOVR-AT-000001
+    - step: 7
+      node: SOVR-AT-000001
+      type: AcceptanceTest
+      label: generated acceptance test
+      next: SOVR-PASS-000018
+    - step: 8
+      node: SOVR-PASS-000018
+      type: CompilerPass
+      label: CERTIFICATION_GENERATION
+      next: SOVR-PROT-000001
+    - step: 9
+      node: SOVR-PROT-000001
+      type: Protocol
+      label: constitutional truth (source of trace)
+      next: SOVR-PASS-000013
+    - step: 10
+      node: SOVR-PASS-000013
+      type: CompilerPass
+      label: IR_GENERATION (transforms protocol -> SOVR_IR)
+      next: generated_runtime
+    - step: 11
+      node: generated_runtime
+      type: GeneratedRuntime
+      label: src/aggregates/vault/asset.aggregate.ts
+      next: production_evidence
+    - step: 12
+      node: production_evidence
+      type: ProductionEvidence
+      label: build_hash + coverage report
+      next: null
+
+  paths:
+    - name: invariant_to_runtime
+      from: Invariant
+      to: GeneratedRuntime
+      continuity: GUARANTEED
+      rule: every Invariant is cited by >=1 Aggregate/Command and realized in runtime
+    - name: amendment_to_affected_objects
+      from: Amendment
+      to: AffectedProtocolObjects
+      continuity: GUARANTEED
+      rule: every Amendment links to findings and, via findings, to affected objects
+    - name: command_to_certification
+      from: Command
+      to: Certification
+      continuity: GUARANTEED
+      rule: every Command is produced by a pass and certified by CERTIFICATION_GENERATION
+    - name: evidence_to_source
+      from: Evidence
+      to: SourceNode
+      continuity: GUARANTEED
+      rule: every Evidence links back to its producing node + build_hash
+
+  closure: >
+    All twelve steps form a single continuous chain. The compiler verifies
+    path continuity at CERTIFICATION_GENERATION (PASS-018); any gap is a
+    FAIL_BUILD (CERT-002 untraceable artifact). This satisfies the success
+    criterion: every artifact has provenance and every certification has
+    evidence.

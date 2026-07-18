@@ -1,0 +1,1455 @@
+# ============================================================
+# SOVR Financial OS — Vault Domain Specification
+# File: domains/vault.yaml
+# Status: FROZEN
+# Build Phase: B
+# Domain Priority: 1 (Foundation)
+# ============================================================
+# The Vault is the Value Authority Domain of SOVR.
+# It defines what the system recognizes as value,
+# who controls it, how it is reserved, how it can be
+# transformed, and under what conditions it can move.
+#
+# All other domains depend on Vault for asset existence,
+# reserve confirmation, and value authority.
+# ============================================================
+
+domain:
+  name: vault
+  version: 1.0.0
+  description: >
+    The Value Authority Domain. Defines what SOVR recognizes as value,
+    manages asset custody, tracks ownership, enforces reserve integrity,
+    administers collateral, and controls value movement authorization.
+  constitutional_references:
+    invariants: [INV-001, INV-002, INV-003, INV-005, INV-007, INV-008, INV-009]
+    financial_integrity: [asset_existence, reserve_sufficiency, uniqueness]
+    conflict_resolution_rank: 2  # asset_security
+
+# ============================================================
+# SECTION 1 — ATOMIC VALUE MODEL
+# ============================================================
+# Defines the canonical representation of value in SOVR.
+# This is the foundation on which all financial operations rest.
+#
+# Design Decision: SOVR uses a POLYMORPHIC VALUE MODEL.
+# There is no single canonical unit that all value must be
+# converted to. Instead, each asset type has its own native
+# unit, and the Vault tracks equivalences between them.
+#
+# Rationale: Forcing all value into a single unit (e.g., USD)
+# creates conversion risk, rounding errors, and a single point
+# of valuation failure. Polymorphic value respects that
+# different asset types have different properties.
+# ============================================================
+
+value_model:
+
+  # The base accounting unit is not a currency — it is a
+  # quantized representation of any asset's smallest unit.
+  base_accounting_unit:
+    name: sovr_unit
+    description: >
+      The smallest indivisible unit in which any SOVR asset
+      is quantized. Each asset type defines its own scale
+      relative to this unit.
+    precision: 18  # max decimal precision for any value representation
+    rounding: floor  # never round up in financial calculations
+
+  precision:
+    standard: 8    # default precision for most assets
+    high: 18       # for tokenized assets requiring sub-atomic precision
+    currency: 2    # for fiat-denominated assets
+    collateral: 4  # for collateral valuations
+
+  # Valuation determines the reference price of an asset
+  # for purposes of reserve ratios, collateral calculations,
+  # and cross-asset comparisons.
+  valuation:
+    trusted_sources:
+      - source_type: oracle
+        description: Decentralized price oracle feed
+        required_attestations: 3
+        staleness_threshold: 300s  # 5 minutes
+        fallback: latest_available
+      - source_type: internal_pricing
+        description: SOVR-internal reference price for system assets
+        required_attestations: 1
+        staleness_threshold: never  # internal prices are authoritative
+        fallback: none
+      - source_type: market_feed
+        description: External market data provider
+        required_attestations: 2
+        staleness_threshold: 60s
+        fallback: oracle
+      - source_type: manual
+        description: Human-set price for exotic or illiquid assets
+        required_attestations: 1
+        staleness_threshold: 86400s  # 24 hours
+        fallback: none
+        governance_approval_required: true
+
+    valuation_rules:
+      - No asset may be used in a financial operation without a
+        current, trusted valuation (or explicitly marked as
+        unpriced and restricted from operations that require pricing).
+      - Valuation changes produce audit events but do not
+        trigger automatic transactions.
+      - Stale valuations trigger a VAULT_WARNING and restrict
+        the asset from new operations until refreshed.
+
+  # Conversion rules define how value moves between asset types.
+  # Conversions are ALWAYS explicit operations, never implicit.
+  conversion_rules:
+    - Conversions require an explicit command.
+    - Conversions produce a journal entry recording both sides.
+    - Conversions are NOT atomic with the originating operation.
+      A transfer and a conversion are separate operations.
+    - Conversion rates are locked at the time of the conversion
+      command and recorded in the journal entry.
+    - No conversion may result in negative balance on either side.
+    - Conversions between asset types with different risk
+      classifications require policy evaluation.
+
+  supported_conversion_types:
+    - fiat_to_stablecoin
+    - stablecoin_to_fiat
+    - tokenized_asset_to_stablecoin
+    - collateral_release_to_available
+    - liquidity_position_to_reserve
+
+  # The polymorphic asset model: SOVR tracks value in its
+  # native representation, with equivalences for comparison.
+  polymorphic_representation:
+    rule: >
+      Value is stored in the native unit of its asset type.
+      Cross-asset comparisons use the valuation layer.
+      The Vault never silently converts between asset types.
+    example:
+      asset: USD
+      native_unit: dollars
+      amount: 1000.00
+      precision: 2
+      valuation_reference: 1.00 USD per USD
+    example:
+      asset: sFIAT_USD
+      native_unit: wei  # 1e-18
+      amount: 1000000000000000000000  # 1000 sFIAT
+      precision: 18
+      valuation_reference: 1.00 USD per sFIAT
+
+# ============================================================
+# SECTION 2 — ASSET REGISTRY
+# ============================================================
+# Defines the universe of asset types that SOVR recognizes.
+# Assets must be registered before they can be used.
+# ============================================================
+
+asset_registry:
+
+  # Asset types define categories of value with distinct
+  # behavioral properties.
+  asset_types:
+
+    cash:
+      description: Fiat currency held in custody
+      custody_requirements: full_reserve
+      valuation_method: par_value  # 1:1 with face value
+      risk_classification: minimal
+      reserve_requirements: 100_percent
+      allowed_operations:
+        - register
+        - verify
+        - reserve
+        - lock
+        - release
+        - transfer
+        - reconcile
+      native_precision: 2
+      examples: [USD, EUR, GBP, JPY]
+
+    stablecoin:
+      description: Tokenized fiat-pegged digital asset
+      custody_requirements: on_chain_verified
+      valuation_method: oracle_with_peg_validation
+      risk_classification: low
+      reserve_requirements: 100_percent
+      allowed_operations:
+        - register
+        - verify
+        - reserve
+        - lock
+        - release
+        - transfer
+        - convert
+        - reconcile
+      native_precision: 18
+      examples: [sFIAT_USD, sFIAT_EUR, USDC, USDT]
+
+    tokenized_asset:
+      description: Blockchain-represented ownership of a real-world or digital asset
+      custody_requirements: on_chain_or_vault
+      valuation_method: oracle_or_manual
+      risk_classification: medium
+      reserve_requirements: varies_by_asset
+      allowed_operations:
+        - register
+        - verify
+        - reserve
+        - lock
+        - release
+        - transfer
+        - collateralize
+        - reconcile
+      native_precision: 18
+      examples: [real_estate_token, commodity_token, equity_token]
+
+    collateral_position:
+      description: An asset pledged as security for an obligation
+      custody_requirements: locked_holding
+      valuation_method: marked_to_market
+      risk_classification: varies_by_underlying
+      reserve_requirements: 100_percent_plus_haircut
+      allowed_operations:
+        - register
+        - verify
+        - value_collateral
+        - apply_haircut
+        - trigger_liquidation
+        - release_collateral
+        - reconcile
+      native_precision: 4
+      examples: [margin_collateral, loan_collateral, settlement_collateral]
+
+    liquidity_position:
+      description: A claim on pooled liquidity (e.g., AMM pool, lending pool)
+      custody_requirements: pool_membership_verified
+      valuation_method: pool_nav
+      risk_classification: medium_to_high
+      reserve_requirements: varies_by_pool
+      allowed_operations:
+        - register
+        - verify
+        - reserve
+        - withdraw
+        - reconcile
+      native_precision: 18
+      examples: [amm_pool_position, lending_pool_deposit, staking_position]
+
+    external_claim:
+      description: A receivable or claim on an external system or counterparty
+      custody_requirements: attestation_required
+      valuation_method: face_value_or_oracle
+      risk_classification: medium_to_high
+      reserve_requirements: varies
+      allowed_operations:
+        - register
+        - verify
+        - reserve
+        - settle
+        - write_off
+        - reconcile
+      native_precision: 2
+      examples: [bank_receivable, payment_claim, settlement_claim]
+
+  # Individual asset entries in the registry
+  assets: []  # Populated at runtime via vault.asset.register commands
+
+  # Asset registration requirements
+  registration_requirements:
+    required_fields:
+      - asset_id
+      - asset_type  # must match an entry in asset_types above
+      - issuer
+      - face_value  # for cash, stablecoin
+      - quantity     # for tokenized assets
+      - custody_location
+      - ownership_id
+      - valuation_source
+      - risk_classification_override  # optional, defaults to type default
+    validation_rules:
+      - asset_id must be globally unique
+      - asset_type must be a recognized type
+      - issuer must be a verified identity
+      - face_value/quantity must be positive
+      - custody_location must be a registered custody target
+      - ownership_id must reference a verified identity
+    post_registration:
+      - asset enters REGISTERED state
+      - vault.asset.registered event emitted
+      - verification workflow initiated if auto_verify is false
+
+# ============================================================
+# SECTION 3 — OWNERSHIP AND CUSTODY MODEL
+# ============================================================
+# Critical distinction: ownership, custody, and control are
+# three separate concepts in SOVR. They may or may not be
+# held by the same actor.
+# ============================================================
+
+ownership_custody_model:
+
+  # OWNERSHIP — who has the economic right to the asset
+  ownership:
+    definition: >
+      The legal/economic right to an asset's value.
+      The owner is entitled to the benefits (income, appreciation)
+      and bears the risks (impairment, loss) of the asset.
+    authority:
+      - approve_transfers_of_own_assets
+      - authorize_collateralization
+      - authorize_reservation
+      - designate_beneficial_owner
+      - transfer_ownership  # requires authorization
+    transfer_requires:
+      - current_owner_authorization
+      - new_owner_identity_verification
+      - policy_evaluation
+      - balanced_journal_entry
+    events_produced:
+      - vault.ownership.transferred
+
+  # BENEFICIAL OWNERSHIP — who benefits economically
+  beneficial_ownership:
+    definition: >
+      The party that enjoys the economic benefits of an asset
+      even if legal ownership is held by another party (e.g.,
+      a custodian or nominee).
+    authority:
+      - receive_income_from_asset
+      - be consulted on material_decisions
+    disclosure_required: true
+    regulatory_reporting: required_in_most_jurisdictions
+
+  # CUSTODY — who physically/logically holds the asset
+  custody:
+    definition: >
+      The responsibility for safekeeping an asset.
+      A custodian holds the asset but does not own it.
+      The custodian must follow the owner's authorized instructions.
+    authority:
+      - hold_asset
+      - confirm_existence
+      - report_on_asset_state
+      - execute_authorized_transfers
+    forbidden:
+      - transfer_without_owner_authorization
+      - commingle_with_other_assets
+      - pledge_or_encumber_without_authorization
+    custody_providers:
+      - sovr_internal  # SOVR's own vault infrastructure
+      - on_chain       # Blockchain-based custody
+      - external_bank  # Traditional banking custody
+      - third_party    # Licensed custodian
+    custody_proof:
+      method: attestation
+      frequency: on_demand_and_periodic
+      period: 86400s  # daily proof
+    events_produced:
+      - vault.custody.attested
+      - vault.custody.proof_expired
+
+  # CONTROL — who can direct actions on the asset
+  control:
+    definition: >
+      The practical ability to direct operations on an asset.
+      Control may be delegated from ownership without
+      transferring ownership (e.g., via agent delegation).
+    authority_levels:
+      full_control:
+        description: Can perform all permitted operations
+        requires: ownership_or_delegated_full_control
+      transfer_control:
+        description: Can initiate transfers only
+        requires: ownership_or_transfer_authorization
+      reserve_control:
+        description: Can create and manage reservations
+        requires: ownership_or_reservation_authorization
+      view_control:
+        description: Can read asset state only
+        requires: any_verified_identity_with_scope
+    delegation:
+      allowed: true
+      requires: owner_authorization
+      max_delegation_depth: 3
+      audit_trail: mandatory
+      revocable: true
+
+  # The three-way distinction enforced:
+  separation_rule: >
+    Ownership, custody, and control are separate attributes
+    of every asset. No operation may assume they are held by
+    the same actor. The Vault must independently verify
+    authority for each dimension before any operation.
+
+# ============================================================
+# SECTION 4 — RESERVE MANAGEMENT
+# ============================================================
+# Reserves are the mechanism by which the Vault guarantees
+# that value exists before it is committed to movement.
+# ============================================================
+
+reserve_management:
+
+  reserve_states:
+
+    UNVERIFIED:
+      description: Asset registered but not yet confirmed to exist
+      allowed_operations:
+        - verify
+        - reject
+      transitions_to: [VERIFIED, REJECTED]
+
+    VERIFIED:
+      description: Asset confirmed to exist, available for reservation
+      allowed_operations:
+        - create_reservation
+        - update_valuation
+        - initiate_reconciliation
+      transitions_to: [AVAILABLE, RECONCILIATION_REQUIRED, REJECTED]
+
+    AVAILABLE:
+      description: Asset verified and available for operations
+      allowed_operations:
+        - create_reservation
+        - update_valuation
+        - initiate_collaralization
+        - initiate_transfer
+      transitions_to: [RESERVED, RECONCILIATION_REQUIRED]
+
+    RESERVED:
+      description: Portion of asset value reserved for a pending operation
+      allowed_operations:
+        - lock_reservation
+        - release_reservation
+        - update_reservation
+        - consume_reservation
+      transitions_to: [LOCKED, AVAILABLE, RECONCILIATION_REQUIRED]
+
+    LOCKED:
+      description: Reservation fully locked, awaiting consuming transaction
+      allowed_operations:
+        - consume_reservation
+        - release_reservation  # only if consuming transaction fails
+      transitions_to: [CONSUMED, AVAILABLE, RECONCILIATION_REQUIRED]
+
+    CONSUMED:
+      description: Reservation consumed by a completed financial operation
+      allowed_operations:
+        - finalize
+      transitions_to: [AVAILABLE]
+
+    RECONCILIATION_REQUIRED:
+      description: Vault state may be inconsistent with external reality
+      allowed_operations:
+        - reconcile
+        - flag_for_governance
+      transitions_to: [AVAILABLE, LOCKED, VERIFIED]
+
+  # Reserve proofs and attestation
+  reserve_proofs:
+    method: cryptographic_attestation
+    proof_types:
+      - on_chain_balance_proof
+      - off_chain_custodian_statement
+      - internal_ledger_confirmation
+    attestation_requirements:
+      - proof must reference specific asset_id and block_height/timestamp
+      - proof must be signed by a trusted attester
+      - proof must be stored immutably in the event log
+      - stale proofs (older than attestation_period) trigger re-attestation
+    attestation_period: 86400s  # 24 hours
+
+  # Reserve ratios
+  reserve_ratios:
+    definition: >
+      The minimum ratio of verified assets to outstanding obligations.
+      Different asset types and operations may have different ratios.
+    defaults:
+      full_reserve_assets: 1.0  # 100% backing required
+      collateral_assets: 1.0   # 100% plus haircut
+      liquidity_positions: 0.8  # 80% recognized
+    override: governance_can_adjust_per_asset
+
+  # Impairment handling
+  impairment:
+    definition: >
+      When an asset's realizable value falls below its book value.
+    detection_triggers:
+      - valuation_drop_exceeding_threshold
+      - attestation_failure
+      - custodian_default
+      - regulatory_freeze
+    actions:
+      - mark_to_market
+      - restrict_operations
+      - notify_governance
+      - trigger_reconciliation
+      - write_down_if_permanent
+    events_produced:
+      - vault.asset.impaired
+      - vault.asset.write_down
+
+  # Reconciliation triggers
+  reconciliation_triggers:
+    - scheduled_periodic:
+        interval: 86400s
+    - attestation_failure
+    - valuation_discrepancy_exceeding: 0.01%  # 1 basis point
+    - external_system_mismatch
+    - governance_request
+    - post_settlement_verification
+
+# ============================================================
+# SECTION 5 — COLLATERAL FRAMEWORK
+# ============================================================
+# Collateral is a special use of Vault assets where the asset
+# is pledged to secure an obligation. Collateralized assets
+# have additional restrictions on movement and require
+# ongoing valuation monitoring.
+# ============================================================
+
+collateral_framework:
+
+  eligibility:
+    minimum_quality_score: 0.6
+    score_factors:
+      - asset_type_risk_weight: 0.3
+      - custody_security: 0.25
+      - valuation_reliability: 0.2
+      - liquidity: 0.15
+      - issuer_creditworthiness: 0.1
+    eligible_asset_types:
+      - cash
+      - stablecoin
+      - tokenized_asset  # if quality_score passes
+      - liquidity_position  # if quality_score passes
+    ineligible_asset_types:
+      - external_claim  # too uncertain for collateral
+      - unverified_assets
+
+  valuation:
+    method: marked_to_market
+    frequency: continuous_for_high_risk, periodic_for_low_risk
+    high_risk_revaluation_interval: 300s  # 5 minutes
+    low_risk_revaluation_interval: 86400s  # 24 hours
+    sources: inherit_from_value_model_valuation
+
+  risk:
+
+    # Haircuts reduce the recognized value of collateral
+    # to account for volatility and liquidation costs.
+    haircut_rules:
+      cash:
+        default_haircut: 0.0  # 0%
+        description: Cash is accepted at full value
+      stablecoin:
+        default_haircut: 0.02  # 2%
+        description: Small haircut for peg risk
+      tokenized_asset:
+        default_haircut: 0.15  # 15%
+        description: Higher haircut for price volatility
+        adjustable_range: [0.05, 0.50]
+      liquidity_position:
+        default_haircut: 0.10  # 10%
+        description: Moderate haircut for liquidity risk
+        adjustable_range: [0.05, 0.40]
+      external_claim:
+        default_haircut: 0.30  # 30%
+        description: High haircut for counterparty risk
+
+    # Concentration limits prevent over-reliance on a single asset
+    concentration_limits:
+      max_single_asset_exposure: 0.25  # 25% of total collateral
+      max_single_type_exposure: 0.60  # 60% in one asset type
+      max_single_issuer_exposure: 0.40  # 40% from one issuer
+
+  # Margin calls and liquidation
+  margin_management:
+    maintenance_ratio: 0.80  # collateral must cover 80% of obligation
+    initial_ratio: 1.00     # initial collateral must cover 100%
+    margin_call_trigger: when_ratio_falls_below_maintenance
+    margin_call_actions:
+      - notify_ownership
+      - pause_new_operations
+      - require_additional_collateral_or_reduction
+      - if_unresolved_within: 86400s
+        then: initiate_liquidation
+    liquidation:
+      trigger: margin_call_unresolved
+      method: orderly_liquidation
+      priority_order:
+        1: cover_obligation
+        2: return_remaining_to_owner
+      governance_notification: mandatory
+      audit_trail: full
+
+  collateral_release:
+    conditions:
+      - obligation_fully_satisfied
+      - margin_ratio_above_initial
+      - no_pending_operations
+    process:
+      - verify_release_conditions
+      - update_collateral_record
+      - emit vault.collateral.released event
+      - asset returns to AVAILABLE state
+
+# ============================================================
+# SECTION 6 — VAULT LOCKS AND RESERVATIONS
+# ============================================================
+# Locks and reservations are the mechanism that guarantees
+# value is available before Treasury or Payment attempts
+# to move it. This is the critical bridge between Vault
+# and the execution layer.
+# ============================================================
+
+lock_and_reservation_model:
+
+  # The value lifecycle
+  value_lifecycle:
+    available_value:
+      description: >
+        Value that is verified, not reserved, and can be
+        committed to new operations immediately.
+      queryable: true
+    reserved_value:
+      description: >
+        Value that has been soft-locked for a specific operation
+        but can still be released if the operation fails or expires.
+      queryable: true
+      releaseable: true
+    locked_value:
+      description: >
+        Value that is hard-locked for a specific consuming
+        transaction. It can only be released if the consuming
+        transaction explicitly fails.
+      queryable: true
+      releaseable: only_on_transaction_failure
+    released_value:
+      description: >
+        Value that was previously reserved or locked and has
+        been returned to the available pool.
+      queryable: true
+
+  # Reservation specification
+  reservation:
+    required_fields:
+      - reservation_id: globally unique identifier
+      - initiating_command_id: the command that created this reservation
+      - actor_id: who requested the reservation
+      - asset_id: which asset is being reserved
+      - amount: how much value is reserved
+      - expiration: when the reservation expires if unconsumed
+      - purpose: why the reservation exists (free text, for audit)
+      - consuming_transaction_id: null until consumed, then populated
+    validation_rules:
+      - amount must be positive
+      - amount must not exceed available balance
+      - expiration must be in the future
+      - actor must have reserve_control authority on the asset
+      - no conflicting active reservation for the same asset portion
+      - asset must be in AVAILABLE state
+
+    lifecycle:
+      states:
+        - PENDING:   reservation created, awaiting lock
+        - ACTIVE:    reservation locked, value committed
+        - CONSUMED:  reservation consumed by a transaction
+        - EXPIRED:   reservation expired without being consumed
+        - RELEASED:  reservation explicitly released
+        - FAILED:    reservation failed validation or system error
+
+      transitions:
+        PENDING:
+          - to: ACTIVE
+            trigger: vault.reserve.lock command
+            condition: validation passes
+          - to: FAILED
+            trigger: validation failure
+          - to: EXPIRED
+            trigger: expiration timer
+        ACTIVE:
+          - to: CONSUMED
+            trigger: consuming transaction completes
+          - to: RELEASED
+            trigger: vault.reserve.release command
+            condition: consuming transaction failed or cancelled
+          - to: EXPIRED
+            trigger: expiration timer
+        EXPIRED:
+          - to: RELEASED
+            trigger: automatic (release on expiry)
+            produces_event: vault.reserve.expired
+
+    expiration_policy:
+      default_duration: 3600s  # 1 hour
+      max_duration: 86400s     # 24 hours
+      renewal:
+        allowed: true
+        requires: actor_authorization
+        max_renewals: 3
+      auto_release: true
+      auto_release_produces_event: true
+
+  # Lock specification
+  lock:
+    definition: >
+      A hard lock on reserved value. Once locked, the value
+      can only move to the consuming transaction or be
+      explicitly released on transaction failure.
+    required_fields:
+      - lock_id: globally unique
+      - reservation_id: references the parent reservation
+      - asset_id
+      - amount
+      - locking_command_id
+      - expected_consuming_transaction_id
+    properties:
+      - atomic with the lock command
+      - non-transferable
+      - non-renewable
+      - explicit release only
+    release_conditions:
+      - consuming_transaction_completes  # normal path
+      - consuming_transaction_fails      # error path
+      - name: governance_override
+        requires: emergency_powers
+
+  # Balance computation
+  balance_computation:
+    total_balance: >
+      Sum of all verified units of an asset owned by an actor.
+    available_balance: >
+      total_balance minus sum of all ACTIVE and PENDING reservations.
+    locked_balance: >
+      Sum of all LOCKED reservations.
+    reserved_balance: >
+      Sum of all PENDING and ACTIVE reservations.
+    encumbered_balance: >
+      locked_balance plus collateral_positions.
+    formula: |
+      available = total - reserved - locked - encumbered
+      reserved = sum(active_reservations.amount + pending_reservations.amount)
+      locked   = sum(locked_reservations.amount)
+      encumbered = sum(collateral_positions.effective_value)
+
+# ============================================================
+# SECTION 7 — VAULT STATE MACHINES
+# ============================================================
+# See 05_state-machines.yaml for the formal state machine
+# definitions. This section documents the state machines
+# that belong to the Vault domain.
+# ============================================================
+
+state_machines:
+
+  asset_lifecycle:
+    description: Manages the lifecycle of an asset from registration through operational use
+    states: [REGISTERED, VERIFIED, AVAILABLE, RESERVED, LOCKED, CONSUMED, RELEASED, RECONCILIATION_REQUIRED, REJECTED, IMPAIRED]
+    initial_state: REGISTERED
+    final_states: [REJECTED, IMPAIRED]
+    defined_in: 05_state-machines.yaml
+
+  reservation_lifecycle:
+    description: Manages the lifecycle of a value reservation
+    states: [PENDING, ACTIVE, CONSUMED, EXPIRED, RELEASED, FAILED]
+    initial_state: PENDING
+    final_states: [EXPIRED, FAILED]
+    defined_in: 05_state-machines.yaml
+
+  collateral_lifecycle:
+    description: Manages the lifecycle of a collateral position
+    states: [PROPOSED, ACTIVE, MARGIN_CALL, LIQUIDATING, RELEASED, LIQUIDATED]
+    initial_state: PROPOSED
+    final_states: [RELEASED, LIQUIDATED]
+    defined_in: 05_state-machines.yaml
+
+  transaction_lifecycle:
+    description: >
+      Manages the lifecycle of a vault funding/disbursement transaction.
+      This is a SEPARATE aggregate from asset lifecycle. It tracks
+      the flow of value into, within, and out of the vault for a
+      specific transaction instance.
+    states: [CREATED, FUNDING_REQUESTED, FUNDING_PENDING, FUNDED, RELEASE_PENDING, RELEASE_AUTHORIZED, DISBURSED, CLOSED]
+    initial_state: CREATED
+    final_states: [CLOSED, FAILED]
+    defined_in: 05_state-machines.yaml
+
+# ============================================================
+# SECTION 7 — AGGREGATE REGISTRY
+# ============================================================
+# Explicit separation of Vault aggregates to prevent lifecycle
+# collision. Asset and Transaction are distinct aggregates with
+# distinct lifecycles.
+# ============================================================
+
+aggregates:
+
+  asset:
+    description: >
+      The asset aggregate tracks the existence, verification,
+      valuation, and operational state of a single asset held
+      in the vault. It does NOT track funding or disbursement.
+    lifecycle: vault_asset_lifecycle
+    state_machine: vault_asset_lifecycle
+    events:
+      - vault.asset.registered
+      - vault.asset.verified
+      - vault.asset.rejected
+      - vault.asset.impaired
+      - vault.asset.write_down
+      - vault.valuation.updated
+      - vault.ownership.transferred
+      - vault.custody.attested
+      - vault.custody.proof_expired
+      - vault.reconciliation.started
+      - vault.reconciliation.completed
+      - vault.reconciliation.discrepancy_found
+
+  reservation:
+    description: >
+      The reservation aggregate tracks a value reservation from
+      creation through lock, consumption, or release. It is a
+      sub-aggregate of asset operations.
+    lifecycle: vault_reservation_lifecycle
+    state_machine: vault_reservation_lifecycle
+    events:
+      - vault.reserve.created
+      - vault.reserve.locked
+      - vault.reserve.released
+      - vault.reserve.expired
+
+  collateral:
+    description: >
+      The collateral aggregate tracks a collateral position from
+      proposal through active use, margin calls, and liquidation.
+    lifecycle: vault_collateral_lifecycle
+    state_machine: vault_collateral_lifecycle
+    events:
+      - vault.collateral.added
+      - vault.collateral.valued
+      - vault.collateral.revalued
+      - vault.collateral.released
+      - vault.collateral.margin_call
+      - vault.collateral.liquidation_initiated
+
+  transaction:
+    description: >
+      The transaction aggregate tracks a vault funding or disbursement
+      transaction from creation through funding, authorization,
+      disbursement, and closure. This is SEPARATE from the asset
+      lifecycle and the reservation lifecycle.
+    lifecycle: vault_transaction_lifecycle
+    state_machine: vault_transaction_lifecycle
+    events:
+      - vault.transaction.created
+      - vault.transaction.funding_requested
+      - vault.transaction.funding_pending
+      - vault.transaction.funded
+      - vault.transaction.release_pending
+      - vault.transaction.release_authorized
+      - vault.transaction.disbursed
+      - vault.transaction.closed
+      - vault.transaction.failed
+    note: >
+      These events are NOT in the current 04_event-catalog.yaml.
+      They represent a distinct lifecycle from asset lifecycle
+      and should be added to the catalog before implementation.
+
+# ============================================================
+# SECTION 8 — VAULT COMMANDS
+# ============================================================
+# See 03_command-catalog.yaml for full command definitions.
+# This section lists the commands belonging to the Vault domain.
+# ============================================================
+
+commands:
+
+  vault.asset.register:
+    description: Register a new asset into the SOVR Vault
+    issuer: any_actor_with_vault_management_capability
+    capability_required: vault.asset.create
+    scope_required: custody_location
+    validation:
+      - asset_id globally unique
+      - asset_type recognized
+      - issuer identity verified
+      - quantity or face_value positive
+      - custody_location registered
+    produces:
+      - vault.asset.registered
+    failure_produces:
+      - vault.asset.registration_failed
+
+  vault.asset.verify:
+    description: Verify the existence and correctness of a registered asset
+    issuer: custody_provider_or_governance
+    capability_required: vault.asset.verify
+    scope_required: asset_id
+    validation:
+      - asset exists in REGISTERED state
+      - attestation proof provided
+      - attester is trusted
+    produces:
+      - vault.asset.verified
+      - vault.custody.attested
+    failure_produces:
+      - vault.asset.rejected
+
+  vault.asset.reject:
+    description: Reject a registered asset that fails verification
+    issuer: custody_provider_or_governance
+    capability_required: vault.asset.verify
+    scope_required: asset_id
+    validation:
+      - asset exists in REGISTERED or VERIFIED state
+      - rejection reason provided
+    produces:
+      - vault.asset.rejected
+    failure_produces:
+      - vault.asset.rejection_failed
+
+  vault.reserve.create:
+    description: Create a reservation against available value
+    issuer: actor_with_reserve_control
+    capability_required: vault.reserve.create
+    scope_required: asset_id
+    validation:
+      - asset in AVAILABLE state
+      - actor has reserve_control authority
+      - amount positive and does not exceed available_balance
+      - no conflicting reservation
+    produces:
+      - vault.reserve.created
+    failure_produces:
+      - vault.reserve.creation_failed
+
+  vault.reserve.lock:
+    description: Lock a pending reservation, committing the value
+    issuer: actor_with_reserve_control
+    capability_required: vault.reserve.lock
+    scope_required: asset_id
+    validation:
+      - reservation in PENDING state
+      - reservation not expired
+      - available_balance still sufficient
+    produces:
+      - vault.reserve.locked
+    failure_produces:
+      - vault.reserve.lock_failed
+
+  vault.reserve.release:
+    description: Release a reservation, returning value to available pool
+    issuer: actor_with_reserve_control_or_governance
+    capability_required: vault.reserve.release
+    scope_required: asset_id
+    validation:
+      - reservation in ACTIVE or PENDING state
+      - release reason provided if ACTIVE (expected consuming transaction failed)
+    produces:
+      - vault.reserve.released
+    failure_produces:
+      - vault.reserve.release_failed
+
+  vault.reserve.expire:
+    description: System-generated command when a reservation expires
+    issuer: system
+    capability_required: system.internal
+    validation:
+      - reservation in PENDING or ACTIVE state
+      - current time exceeds expiration
+    produces:
+      - vault.reserve.expired
+    failure_produces: none  # system command cannot fail
+
+  vault.collateral.add:
+    description: Pledge an asset as collateral for an obligation
+    issuer: asset_owner
+    capability_required: vault.collateral.create
+    scope_required: asset_id
+    validation:
+      - asset meets collateral eligibility
+      - ownership verified
+      - collateral quality score meets minimum
+      - no conflicting collateral position
+      - concentration limits not exceeded
+    produces:
+      - vault.collateral.added
+      - vault.collateral.valued
+    failure_produces:
+      - vault.collateral.addition_failed
+
+  vault.collateral.remove:
+    description: Release collateral after obligation is satisfied
+    issuer: asset_owner_or_obligation_holder
+    capability_required: vault.collateral.release
+    scope_required: asset_id
+    validation:
+      - collateral position exists
+      - release conditions met (obligation satisfied or reduced)
+      - margin ratio remains above maintenance after release
+    produces:
+      - vault.collateral.released
+    failure_produces:
+      - vault.collateral.release_failed
+
+  vault.collateral.revalue:
+    description: Update collateral valuation (triggered by market changes)
+    issuer: system_or_governance
+    capability_required: vault.collateral.evaluate
+    scope_required: asset_id
+    validation:
+      - collateral position exists
+      - new valuation source is trusted
+      - valuation not stale
+    produces:
+      - vault.collateral.revalued
+      - vault.collateral.margin_call  (if ratio falls below maintenance)
+    failure_produces:
+      - vault.collateral.revaluation_failed
+
+  vault.asset.reconcile:
+    description: Initiate reconciliation of vault state against external reality
+    issuer: governance_or_system
+    capability_required: vault.reconcile
+    scope_required: asset_id
+    validation:
+      - reconciliation not already in progress for this asset
+      - external proof or data provided
+    produces:
+      - vault.reconciliation.started
+      - vault.reconciliation.completed  (on success)
+      - vault.reconciliation.discrepancy_found  (on mismatch)
+    failure_produces:
+      - vault.reconciliation.failed
+
+  vault.valuation.update:
+    description: Update the trusted valuation of an asset
+    issuer: system_or_governance
+    capability_required: vault.valuation.manage
+    scope_required: asset_id
+    validation:
+      - asset exists
+      - valuation source is trusted
+      - valuation not stale
+      - governance approval if manual source
+    produces:
+      - vault.valuation.updated
+    failure_produces:
+      - vault.valuation.update_failed
+
+# ============================================================
+# SECTION 9 — VAULT EVENTS
+# ============================================================
+# See 04_event-catalog.yaml for full event definitions.
+# This section lists the events belonging to the Vault domain.
+# All events follow the constitutional event envelope.
+# ============================================================
+
+events:
+
+  vault.asset.registered:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: A new asset has been registered in the Vault
+    data:
+      - asset_id
+      - asset_type
+      - issuer_id
+      - quantity_or_face_value
+      - custody_location
+      - ownership_id
+      - valuation_source
+      - risk_classification
+      - registered_at
+
+  vault.asset.verified:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been verified to exist and be correct
+    data:
+      - asset_id
+      - verifier_id
+      - attestation_proof_hash
+      - verified_at
+      - verification_method
+
+  vault.asset.rejected:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been rejected during verification
+    data:
+      - asset_id
+      - rejector_id
+      - reason
+      - rejected_at
+
+  vault.asset.impaired:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been marked as impaired
+    data:
+      - asset_id
+      - previous_value
+      - impaired_value
+      - impairment_reason
+      - detected_at
+
+  vault.asset.write_down:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been permanently written down
+    data:
+      - asset_id
+      - previous_book_value
+      - new_book_value
+      - write_down_amount
+      - approved_by
+      - written_down_at
+
+  vault.reserve.created:
+    aggregate: reservation
+    source_domain: vault
+    version: 1.0.0
+    description: A value reservation has been created
+    data:
+      - reservation_id
+      - asset_id
+      - actor_id
+      - amount
+      - expiration
+      - purpose
+      - created_at
+
+  vault.reserve.locked:
+    aggregate: reservation
+    source_domain: vault
+    version: 1.0.0
+    description: A reservation has been locked, committing the value
+    data:
+      - reservation_id
+      - lock_id
+      - asset_id
+      - amount
+      - expected_consuming_transaction_id
+      - locked_at
+
+  vault.reserve.released:
+    aggregate: reservation
+    source_domain: vault
+    version: 1.0.0
+    description: A reservation has been released, returning value to available pool
+    data:
+      - reservation_id
+      - asset_id
+      - amount
+      - release_reason
+      - released_at
+
+  vault.reserve.expired:
+    aggregate: reservation
+    source_domain: vault
+    version: 1.0.0
+    description: A reservation has expired without being consumed
+    data:
+      - reservation_id
+      - asset_id
+      - amount
+      - expired_at
+
+  vault.collateral.added:
+    aggregate: collateral
+    source_domain: vault
+    version: 1.0.0
+    description: An asset has been pledged as collateral
+    data:
+      - collateral_id
+      - asset_id
+      - owner_id
+      - obligation_id
+      - gross_value
+      - effective_value  # after haircut
+      - haircut_applied
+      - added_at
+
+  vault.collateral.valued:
+    aggregate: collateral
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral has been valued or revalued
+    data:
+      - collateral_id
+      - asset_id
+      - previous_effective_value
+      - new_effective_value
+      - valuation_source
+      - valued_at
+
+  vault.collateral.revalued:
+    aggregate: collateral
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral valuation has changed
+    data:
+      - collateral_id
+      - asset_id
+      - previous_value
+      - new_value
+      - value_change
+      - valuation_source
+      - revalued_at
+
+  vault.collateral.released:
+    aggregate: collateral
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral has been released
+    data:
+      - collateral_id
+      - asset_id
+      - release_reason
+      - released_at
+
+  vault.collateral.margin_call:
+    aggregate: collateral
+    source_domain: vault
+    version: 1.0.0
+    description: A margin call has been triggered on a collateral position
+    data:
+      - collateral_id
+      - asset_id
+      - current_ratio
+      - maintenance_ratio
+      - shortfall_amount
+      - deadline
+      - called_at
+
+  vault.collateral.liquidation_initiated:
+    aggregate: collateral
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral liquidation has begun
+    data:
+      - collateral_id
+      - asset_id
+      - liquidation_reason
+      - initiated_at
+      - expected_proceeds
+
+  vault.custody.attested:
+    aggregate: custody
+    source_domain: vault
+    version: 1.0.0
+    description: Custody has been attested (proof of asset existence)
+    data:
+      - asset_id
+      - custody_provider
+      - attestation_proof_hash
+      - attested_at
+      - attestation_valid_until
+
+  vault.custody.proof_expired:
+    aggregate: custody
+    source_domain: vault
+    version: 1.0.0
+    description: A custody attestation has expired
+    data:
+      - asset_id
+      - custody_provider
+      - expired_at
+
+  vault.valuation.updated:
+    aggregate: valuation
+    source_domain: vault
+    version: 1.0.0
+    description: An asset valuation has been updated
+    data:
+      - asset_id
+      - previous_valuation
+      - new_valuation
+      - valuation_source
+      - source_type
+      - updated_at
+
+  vault.reconciliation.started:
+    aggregate: reconciliation
+    source_domain: vault
+    version: 1.0.0
+    description: A vault reconciliation has been initiated
+    data:
+      - reconciliation_id
+      - asset_id
+      - initiated_by
+      - scope
+      - started_at
+
+  vault.reconciliation.completed:
+    aggregate: reconciliation
+    source_domain: vault
+    version: 1.0.0
+    description: A vault reconciliation has completed successfully
+    data:
+      - reconciliation_id
+      - asset_id
+      - items_reconciled
+      - completed_at
+
+  vault.reconciliation.discrepancy_found:
+    aggregate: reconciliation
+    source_domain: vault
+    version: 1.0.0
+    description: A discrepancy was found during reconciliation
+    data:
+      - reconciliation_id
+      - asset_id
+      - expected_value
+      - actual_value
+      - discrepancy_amount
+      - severity
+      - detected_at
+
+  vault.ownership.transferred:
+    aggregate: ownership
+    source_domain: vault
+    version: 1.0.0
+    description: Ownership of an asset has been transferred
+    data:
+      - asset_id
+      - previous_owner_id
+      - new_owner_id
+      - authorized_by
+      - transferred_at
+
+# ============================================================
+# SECTION 10 — DOMAIN CONTRACT OUTPUTS
+# ============================================================
+# See 12_domain-contracts.yaml for full contract definitions.
+# This section documents the Vault's coupling contracts.
+# ============================================================
+
+domain_contracts:
+
+  vault_to_treasury:
+    description: >
+      Treasury depends on Vault to confirm that value exists
+      and is available before initiating any movement.
+    vault_guarantees:
+      - asset_exists_and_verified
+      - reservation_created_and_locked
+      - available_balance_confirmed
+      - ownership_authority_confirmed
+      - lock_id_provided_for_deduplication
+    treasury_requires:
+      - vault_lock_id
+      - reservation_id
+      - asset_id
+      - amount
+      - expiration_timestamp
+      - actor_authorization_context
+      - transaction_intent_reference
+    failure_protocol:
+      - if_vault_cannot_confirm: treasury.command.rejected
+      - if_reservation_expired_before_consume: treasury.command.rejected
+      - if_ownership_disputed: treasury.command.halted_and_escalated
+
+  vault_to_ledger:
+    description: >
+      Ledger depends on Vault for authoritative asset state
+      when recording financial events.
+    vault_guarantees:
+      - asset_state_at_time_of_event
+      - balance_before_operation
+      - reservation_status
+      - custody_attestation_reference
+    ledger_requires:
+      - event_id_for_correlation
+      - asset_id
+      - amount
+      - operation_type
+    failure_protocol:
+      - if_vault_state_unknown: ledger.records_as_pending
+
+  vault_to_policy:
+    description: >
+      Policy engine depends on Vault for asset context when
+      evaluating rules.
+    vault_guarantees:
+      - current_asset_state
+      - available_balance
+      - reserve_status
+      - collateral_positions
+      - risk_classification
+    policy_requires:
+      - asset_id
+      - actor_id
+      - operation_type
+      - amount
+    failure_protocol:
+      - if_vault_unavailable: policy_defaults_to_deny
+
+  vault_to_payment:
+    description: >
+      Payment domain depends on Vault for value confirmation
+      before executing external settlement.
+    vault_guarantees:
+      - value_locked_for_payment
+      - lock_id_for_correlation
+      - asset_exists_in_locked_state
+      - ownership_confirmed
+    payment_requires:
+      - vault_lock_id
+      - reservation_id
+      - asset_id
+      - amount
+      - payment_rail_identifier
+    failure_protocol:
+      - if_vault_lock_not_found: payment.command.rejected
+      - if_lock_expired: payment.command.rejected
+
+# ============================================================
+# SECTION 11 — SECURITY REQUIREMENTS
+# ============================================================
+
+security_requirements:
+
+  prohibitions:
+    - id: VS-001
+      rule: No asset may be created without vault.asset.register command
+      enforcement: command_bus
+    - id: VS-002
+      rule: No balance may be negative at any time
+      enforcement: vault_service
+      check: after every state transition
+    - id: VS-003
+      rule: No reservation may be released without a consuming event or expiry
+      enforcement: vault_service
+      exception: governance_emergency_override
+    - id: VS-004
+      rule: No ownership transfer without current_owner_authorization
+      enforcement: policy_engine
+    - id: VS-005
+      rule: No valuation may be applied without a trusted source
+      enforcement: valuation_service
+    - id: VS-006
+      rule: No collateral may be added for an ineligible asset
+      enforcement: vault_service
+
+  invariants:
+    - total_value_is_conserved: >
+        Value is never created or destroyed within the Vault.
+        Transfers move value. Conversions preserve value
+        (at the locked conversion rate). Write-downs are
+        explicit, audited, and governance-approved.
+    - reservations_never_exceed_available: >
+        The sum of all active reservations plus locked
+        reservations plus encumbered value can never
+        exceed total verified value.
+    - custody_always_attested: >
+        Every asset in AVAILABLE or higher state must
+        have a non-expired custody attestation.

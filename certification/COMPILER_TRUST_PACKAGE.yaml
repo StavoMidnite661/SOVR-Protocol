@@ -1,0 +1,16 @@
+compiler_trust_package:
+  compiler_version: '1.0.0'
+  source_hash: 95f7c578bf32dca9d8b8303f8655feb9a45e55b524db71212b1b658c32c233e8
+  artifact_hash: b0ab9707e7af347c90057c438a3a4e6d
+
+  certifications:
+    reproducibility: certification/COMPILER_REPRODUCIBILITY_CERTIFICATION.yaml
+    integrity: certification/COMPILER_ARTIFACT_INTEGRITY_CERTIFICATION.yaml
+    traceability: certification/CONSTITUTION_RUNTIME_TRACE.yaml
+    projections: certification/PROJECTION_COMPLETENESS_CERTIFICATION.yaml
+
+  warnings:
+    register: certification/SPEC_WARNING_REGISTER.yaml
+    total: 775
+
+  final_status: PASS

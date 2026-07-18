@@ -1,0 +1,20 @@
+{
+  "domain": "treasury",
+  "buildId": "5678ed61edbc97e3",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "artifacts": [
+    {
+      "file": "state-machines/treasury-state-machine.ts",
+      "hash": "6553f38e8ed2191e"
+    },
+    {
+      "file": "commands/treasury-commands.ts",
+      "hash": "a7ca71b7e824b1df"
+    },
+    {
+      "file": "events/treasury-events.ts",
+      "hash": "18859c102c1c19f7"
+    }
+  ],
+  "sourceHash": "84d91a19f5141a6a"
+}

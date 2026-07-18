@@ -1,0 +1,2750 @@
+# ============================================================
+# SOVR Financial OS — Intent Domain Specification
+# File: domains/intent.yaml
+# Status: FROZEN
+# Build Phase: D (Execution Pipeline Domains)
+# Domain Priority: 5
+# ============================================================
+# Intent is the Objective Normalization Authority of SOVR.
+# It does not authenticate actors (Identity does that).
+# It does not evaluate permissions (Policy does that).
+# It does not execute actions (Commands/Agents do that).
+# It does not create value (Vault does that).
+# It does not move value (Treasury does that).
+#
+# Intent answers: "What is the actor actually trying to accomplish?"
+#
+# Intent is the THIRD stage of the execution pipeline:
+#   Actor -> Identity (authenticate)
+#        -> Authorization Context
+#        -> Policy (evaluate)
+#        -> Intent (normalize/validate)
+#        -> Command
+#        -> Agent (optional execution)
+#        -> Treasury
+#        -> Ledger
+#
+# Intent is NOT a command. Intent is an objective.
+# The Intent domain owns ambiguity. Commands never do.
+#
+# Constitutional references:
+#   INV-005: Every financial action must produce an auditable event trail
+#   INV-006: Events describe reality. Intent describes desired reality —
+#            it does not mutate state.
+#   INV-008: No command executes without passing through intent normalization
+# ============================================================
+
+# ============================================================
+# SECTION 1 — DOMAIN HEADER
+# ============================================================
+
+domain:
+  name: intent
+  version: 1.0.0
+  description: >
+    The Objective Normalization Authority. Receives actor objectives,
+    normalizes ambiguity, validates against constitutional constraints,
+    and converts validated intents into executable commands. Intent
+    never mutates financial state, never skips policy evaluation,
+    and never produces commands without valid authorization. The
+    Intent domain is the sole owner of ambiguity resolution in SOVR.
+  constitutional_references:
+    invariants: [INV-005, INV-006, INV-008]
+    conflict_resolution_rank: 5  # transaction_completion
+
+  production_invariants:
+    - id: II-001
+      rule: Intent SHALL NOT mutate financial state
+      enforcement: intent entities are read-only with respect to vault, treasury, and ledger
+      violation: constitutional_violation
+    - id: II-002
+      rule: Intent conversion SHALL NOT skip policy evaluation
+      enforcement: policy_decision_id must be present and valid before conversion
+      violation: reject_and_escalate_to_governance
+    - id: II-003
+      rule: Intent SHALL NOT produce a command without valid policy_decision_id
+      enforcement: command_conversion blocked if policy_decision_id is null or invalid
+      violation: reject_and_audit
+    - id: II-004
+      rule: Intent SHALL NOT assume authority absent from authorization_context
+      enforcement: authorization_context_id must be resolved and valid before enrichment begins
+      violation: reject_and_audit
+    - id: II-005
+      rule: Intent ambiguity SHALL NOT be silently resolved
+      enforcement: every ambiguity resolution must produce an explicit enrichment_step record
+      violation: constitutional_violation
+
+# ============================================================
+# SECTION 2 — INTENT ENTITY MODEL
+# ============================================================
+
+entities:
+
+  intent:
+    description: >
+      The canonical representation of an actor's objective. An intent
+      describes desired reality without mutating state. It is
+      normalized, enriched, validated, and then converted to a command.
+    attributes:
+      intent_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+        description: Globally unique intent identifier
+      intent_type:
+        type: enum
+        values: [COMPLETE, PARTIAL, CONDITIONAL, DELEGATED, SCHEDULED, MULTI_STEP]
+        required: true
+        description: Classification of the intent's specification completeness
+      actor_id:
+        type: string
+        format: uuid
+        required: true
+        references: identity.actor
+        description: The actor who submitted this intent
+      authorization_context_id:
+        type: string
+        format: uuid
+        required: true
+        references: identity.authorization_context
+        description: The resolved authorization context from Identity domain
+      policy_decision_id:
+        type: string
+        format: uuid
+        required: true
+        references: policy.decision
+        description: The policy evaluation decision — policy must have already evaluated
+      objective:
+        type: string
+        required: true
+        description: Human-readable description of what the actor wants to accomplish
+      domain_target:
+        type: enum
+        values: [VAULT, TREASURY, LEDGER, PAYMENT, IDENTITY, POLICY, AGENT, GOVERNANCE]
+        required: true
+        description: The target domain this intent will produce a command for
+      payload:
+        type: object
+        required: true
+        description: Structured intent data, schema varies by domain_target
+        schema_ref: intent_payload_schemas
+      confidence:
+        type: enum
+        values: [CERTAIN, HIGH, MEDIUM, LOW, AMBIGUOUS]
+        required: true
+        description: Confidence level that the intent accurately captures the actor's objective
+      state:
+        type: enum
+        values: [RECEIVED, ENRICHING, VALIDATING, READY, CONVERTED_TO_COMMAND, ARCHIVED, FAILED, CANCELLED, EXPIRED]
+        required: true
+        description: Current lifecycle state of the intent
+      priority:
+        type: enum
+        values: [IMMEDIATE, HIGH, NORMAL, LOW, DEFERRED]
+        required: true
+        description: Execution priority for this intent
+      conditions:
+        type: array
+        items:
+          type: object
+          fields:
+            condition_id:
+              type: string
+              format: uuid
+            condition_type:
+              type: enum
+              values: [BALANCE_THRESHOLD, TIME_WINDOW, EXTERNAL_EVENT, POLICY_CONDITION, STATE_CHECK]
+            field:
+              type: string
+            operator:
+              type: enum
+              values: [EQ, NEQ, GT, GTE, LT, LTE, IN, NOT_IN, EXISTS, NOT_EXISTS]
+            value:
+              type: string
+            data_source:
+              type: enum
+              values: [VAULT, TREASURY, LEDGER, IDENTITY, POLICY, EXTERNAL_ORACLE]
+            resolved:
+              type: boolean
+            resolution:
+              type: enum
+              values: [MET, NOT_MET, PENDING, ERROR]
+        required: false
+        description: Conditions that must be met for CONDITIONAL type intents
+      schedule:
+        type: object
+        required: false
+        fields:
+          scheduled_at:
+            type: timestamp
+            required: true
+          execution_window_start:
+            type: timestamp
+            required: false
+          execution_window_end:
+            type: timestamp
+            required: false
+          recurrence:
+            type: enum
+            values: [NONE, DAILY, WEEKLY, MONTHLY, CUSTOM]
+            required: false
+          recurrence_rule:
+            type: object
+            required: false
+          timezone:
+            type: string
+            format: iana_timezone
+            required: false
+        description: Schedule parameters for SCHEDULED type intents
+      steps:
+        type: array
+        required: false
+        description: Step definitions for MULTI_STEP type intents
+        items:
+          type: object
+          fields:
+            step_order:
+              type: integer
+            step_intent_id:
+              type: string
+              format: uuid
+            step_type:
+              type: enum
+              values: [SEQUENTIAL, PARALLEL, CONDITIONAL]
+            depends_on:
+              type: array
+              items:
+                type: integer
+        schema_ref: multi_step_intent
+      delegation_id:
+        type: string
+        format: uuid
+        required: false
+        description: The delegation chain identifier for DELEGATED type intents
+      original_actor_id:
+        type: string
+        format: uuid
+        required: false
+        references: identity.actor
+        description: The original actor on whose behalf this intent was submitted
+      enrichment_results:
+        type: array
+        required: false
+        description: Results populated during ENRICHING state
+        items:
+          type: string
+          format: uuid
+        references: enrichment_step.step_id
+      validation_results:
+        type: array
+        required: false
+        description: Results populated during VALIDATING state
+        items:
+          type: string
+          format: uuid
+        references: intent_validation.validation_id
+      converted_command_id:
+        type: string
+        format: uuid
+        required: false
+        description: The command produced on CONVERTED_TO_COMMAND
+      error_detail:
+        type: string
+        required: false
+        description: Error detail populated on FAILED state
+      created_at:
+        type: timestamp
+        required: true
+        description: When the intent was first received
+      enriched_at:
+        type: timestamp
+        required: false
+        description: When enrichment completed
+      validated_at:
+        type: timestamp
+        required: false
+        description: When validation completed
+      converted_at:
+        type: timestamp
+        required: false
+        description: When the intent was converted to a command
+      archived_at:
+        type: timestamp
+        required: false
+        description: When the intent was archived
+      expires_at:
+        type: timestamp
+        required: false
+        description: When this intent expires if not processed
+
+# ============================================================
+# SECTION 3 — INTENT PAYLOAD SCHEMAS
+# ============================================================
+
+intent_payload_schemas:
+
+  TREASURY:
+    description: Payload structure for intents targeting the Treasury domain
+    fields:
+      source_actor_id:
+        type: string
+        format: uuid
+        required: true
+        description: Actor from whom value moves
+      destination_actor_id:
+        type: string
+        format: uuid
+        required: true
+        description: Actor to whom value moves
+      asset_id:
+        type: string
+        format: uuid
+        required: true
+        references: vault.asset
+        description: The asset being transferred
+      amount:
+        type: decimal
+        precision: 18
+        required: true
+        description: Amount of value to transfer
+      purpose:
+        type: enum
+        values: [TRANSFER, PAYMENT, RESERVE_RELEASE, COLLATERAL_POST, SETTLEMENT]
+        required: true
+        description: Business purpose of the movement
+      urgency:
+        type: enum
+        values: [IMMEDIATE, STANDARD, BATCH]
+        required: false
+        default: STANDARD
+        description: Urgency of the transfer
+      reference:
+        type: string
+        required: false
+        description: External or internal reference for the transfer
+    converts_to: treasury.transfer.request
+
+  VAULT:
+    description: Payload structure for intents targeting the Vault domain
+    fields:
+      operation:
+        type: enum
+        values: [REGISTER_ASSET, VERIFY_ASSET, CREATE_RESERVATION, RELEASE_RESERVATION, UPDATE_VALUATION]
+        required: true
+        description: The vault operation to perform
+      asset_id:
+        type: string
+        format: uuid
+        required: false
+        references: vault.asset
+        description: The target asset — not required for REGISTER_ASSET
+      amount:
+        type: decimal
+        precision: 18
+        required: false
+        description: Amount — required for CREATE_RESERVATION and RELEASE_RESERVATION
+      registration_data:
+        type: object
+        required: false
+        description: Asset registration data — required for REGISTER_ASSET
+        fields:
+          asset_type:
+            type: enum
+            values: [cash, stablecoin, tokenized_asset, collateral_position, liquidity_position, external_claim]
+            required: true
+          face_value:
+            type: decimal
+            precision: 18
+            required: false
+          quantity:
+            type: decimal
+            precision: 18
+            required: false
+          custody_location:
+            type: string
+            required: true
+          valuation_source:
+            type: string
+            required: true
+      verification_data:
+        type: object
+        required: false
+        description: Asset verification data — required for VERIFY_ASSET
+        fields:
+          attester_id:
+            type: string
+            format: uuid
+            required: true
+          attestation_proof:
+            type: string
+            required: true
+          verification_method:
+            type: enum
+            values: [ON_CHAIN, OFF_CHAIN_ATTESTATION, THIRD_PARTY_AUDIT, INTERNAL_REVIEW]
+            required: true
+      valuation_data:
+        type: object
+        required: false
+        description: Valuation update data — required for UPDATE_VALUATION
+        fields:
+          new_value:
+            type: decimal
+            precision: 18
+            required: true
+          valuation_source:
+            type: string
+            required: true
+          valuation_method:
+            type: string
+            required: true
+    converts_to_mapping:
+      REGISTER_ASSET: vault.asset.register
+      VERIFY_ASSET: vault.asset.verify
+      CREATE_RESERVATION: vault.reserve.create
+      RELEASE_RESERVATION: vault.reserve.release
+      UPDATE_VALUATION: vault.valuation.update
+
+  PAYMENT:
+    description: Payload structure for intents targeting the Payment domain
+    fields:
+      destination:
+        type: object
+        required: true
+        description: Payment destination details
+        fields:
+          type:
+            type: enum
+            values: [BANK_ACCOUNT, BLOCKCHAIN_ADDRESS, STABLECOIN_ADDRESS]
+            required: true
+          address:
+            type: string
+            required: true
+          rail:
+            type: string
+            required: false
+            description: Specific payment rail identifier
+          account_details:
+            type: object
+            required: false
+            description: Additional account details for BANK_ACCOUNT type
+            fields:
+              bank_name:
+                type: string
+              routing_number:
+                type: string
+              account_number:
+                type: string
+              bic:
+                type: string
+              iban:
+                type: string
+      amount:
+        type: decimal
+        precision: 18
+        required: true
+        description: Payment amount
+      asset_id:
+        type: string
+        format: uuid
+        required: true
+        references: vault.asset
+        description: The asset to pay with
+      reference:
+        type: string
+        required: false
+        description: Payment reference or memo
+    converts_to: payment.outbound.initiate
+
+  LEDGER:
+    description: Payload structure for intents targeting the Ledger domain
+    fields:
+      operation:
+        type: enum
+        values: [RECONCILE, ADJUST, QUERY]
+        required: true
+        description: The ledger operation to perform
+      journal_id:
+        type: string
+        format: uuid
+        required: false
+        references: ledger.journal
+        description: Target journal — required for RECONCILE and ADJUST
+      entry_id:
+        type: string
+        format: uuid
+        required: false
+        references: ledger.entry
+        description: Target entry — required for ADJUST
+      query_criteria:
+        type: object
+        required: false
+        description: Query parameters — required for QUERY
+        fields:
+          account_id:
+            type: string
+            format: uuid
+          date_range_start:
+            type: timestamp
+          date_range_end:
+            type: timestamp
+          asset_id:
+            type: string
+            format: uuid
+          entry_type:
+            type: enum
+            values: [DEBIT, CREDIT, ALL]
+      adjustment_data:
+        type: object
+        required: false
+        description: Adjustment parameters — required for ADJUST
+        fields:
+          reason:
+            type: string
+            required: true
+          new_debit_amount:
+            type: decimal
+            precision: 18
+          new_credit_amount:
+            type: decimal
+            precision: 18
+          authorized_by:
+            type: string
+            format: uuid
+    converts_to_mapping:
+      RECONCILE: ledger.journal.reconcile
+      ADJUST: ledger.entry.adjust
+      QUERY: ledger.query.execute
+
+  IDENTITY:
+    description: Payload structure for intents targeting the Identity domain
+    fields:
+      operation:
+        type: enum
+        values: [CREATE_IDENTITY, VERIFY_IDENTITY, UPDATE_CAPABILITIES, REVOKE_CAPABILITIES, CREATE_DELEGATION, REVOKE_DELEGATION]
+        required: true
+      target_identity_id:
+        type: string
+        format: uuid
+        required: false
+        references: identity.identity
+      capability_data:
+        type: object
+        required: false
+        fields:
+          capability:
+            type: string
+            required: true
+          scope:
+            type: string
+          expires_at:
+            type: timestamp
+      delegation_data:
+        type: object
+        required: false
+        fields:
+          delegator_id:
+            type: string
+            format: uuid
+            required: true
+          delegate_id:
+            type: string
+            format: uuid
+            required: true
+          scope:
+            type: string
+            required: true
+          expires_at:
+            type: timestamp
+            required: false
+    converts_to_mapping:
+      CREATE_IDENTITY: identity.create
+      VERIFY_IDENTITY: identity.verify
+      UPDATE_CAPABILITIES: identity.capability.grant
+      REVOKE_CAPABILITIES: identity.capability.revoke
+      CREATE_DELEGATION: identity.delegation.create
+      REVOKE_DELEGATION: identity.delegation.revoke
+
+  POLICY:
+    description: Payload structure for intents targeting the Policy domain
+    fields:
+      operation:
+        type: enum
+        values: [CREATE_RULE, UPDATE_RULE, DISABLE_RULE, ENABLE_RULE, EVALUATE_POLICY]
+        required: true
+      rule_data:
+        type: object
+        required: false
+        fields:
+          rule_id:
+            type: string
+          rule_type:
+            type: enum
+            values: [TRANSFER_LIMIT, RISK_THRESHOLD, TIME_RESTRICTION, APPROVAL_REQUIREMENT, SEGREGATION_DUTY]
+          conditions:
+            type: array
+            items:
+              type: object
+          effect:
+            type: enum
+            values: [ALLOW, DENY, REQUIRE_APPROVAL, REQUIRE_MULTI_APPROVAL]
+          priority:
+            type: integer
+    converts_to_mapping:
+      CREATE_RULE: policy.rule.create
+      UPDATE_RULE: policy.rule.update
+      DISABLE_RULE: policy.rule.disable
+      ENABLE_RULE: policy.rule.enable
+      EVALUATE_POLICY: policy.evaluate
+
+  AGENT:
+    description: Payload structure for intents targeting the Agent domain
+    fields:
+      operation:
+        type: enum
+        values: [CREATE_AGENT, CONFIGURE_AGENT, ENABLE_AGENT, DISABLE_AGENT, INVOKE_AGENT]
+        required: true
+      agent_data:
+        type: object
+        required: false
+        fields:
+          agent_type:
+            type: enum
+            values: [TRANSFER_AGENT, RECONCILIATION_AGENT, MONITORING_AGENT, COMPLIANCE_AGENT]
+          model_id:
+            type: string
+          configuration:
+            type: object
+          constraints:
+            type: object
+          allowed_commands:
+            type: array
+            items:
+              type: string
+    converts_to_mapping:
+      CREATE_AGENT: agent.create
+      CONFIGURE_AGENT: agent.configure
+      ENABLE_AGENT: agent.enable
+      DISABLE_AGENT: agent.disable
+      INVOKE_AGENT: agent.invoke
+
+  GOVERNANCE:
+    description: Payload structure for intents targeting the Governance domain
+    fields:
+      operation:
+        type: enum
+        values: [CREATE_PROPOSAL, VOTE_ON_PROPOSAL, EXECUTE_PROPOSAL, EMERGENCY_ACTION, OVERRIDE_DECISION]
+        required: true
+      proposal_data:
+        type: object
+        required: false
+        fields:
+          title:
+            type: string
+            required: true
+          description:
+            type: string
+            required: true
+          action_type:
+            type: enum
+            values: [POLICY_CHANGE, CONSTITUTIONAL_AMENDMENT, EMERGENCY_PAUSE, AGENT_OVERRIDE, TRANSFER_OVERRIDE]
+          affected_domains:
+            type: array
+            items:
+              type: string
+          voting_period_seconds:
+            type: integer
+          required_majority:
+            type: decimal
+    converts_to_mapping:
+      CREATE_PROPOSAL: governance.proposal.create
+      VOTE_ON_PROPOSAL: governance.proposal.vote
+      EXECUTE_PROPOSAL: governance.proposal.execute
+      EMERGENCY_ACTION: governance.emergency.invoke
+      OVERRIDE_DECISION: governance.override.execute
+
+# ============================================================
+# SECTION 4 — ENRICHMENT PIPELINE
+# ============================================================
+
+enrichment_pipeline:
+  description: >
+    The enrichment process transforms partial, conditional, delegated,
+    scheduled, or ambiguous intents into fully actionable intents.
+    Every enrichment step is recorded as an immutable audit trail entry.
+
+  enrichment_step:
+    description: A single step in the intent enrichment pipeline
+    attributes:
+      step_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      intent_id:
+        type: string
+        format: uuid
+        required: true
+        references: intent.intent_id
+      step_type:
+        type: enum
+        values:
+          - FIELD_RESOLUTION
+          - ENTITY_LOOKUP
+          - AMOUNT_NORMALIZATION
+          - CURRENCY_CONVERSION
+          - COUNTERPARTY_RESOLUTION
+          - SCOPE_EXPANSION
+          - CONTEXT_ENRICHMENT
+        required: true
+      input_fields:
+        type: array
+        required: true
+        description: Fields read by this enrichment step
+        items:
+          type: string
+      output_fields:
+        type: array
+        required: true
+        description: Fields written or resolved by this enrichment step
+        items:
+          type: string
+      data_source:
+        type: enum
+        values: [VAULT, IDENTITY, TREASURY, LEDGER, EXTERNAL_ORACLE, POLICY]
+        required: true
+        description: The domain or system queried for enrichment
+      required:
+        type: boolean
+        required: true
+        description: Whether this step must succeed for intent to proceed
+      retryable:
+        type: boolean
+        required: true
+        description: Whether a failed step can be retried
+      max_retries:
+        type: integer
+        required: false
+        default: 3
+        description: Maximum number of retry attempts
+      timeout_ms:
+        type: integer
+        required: true
+        description: Maximum duration for this enrichment step in milliseconds
+      state:
+        type: enum
+        values: [PENDING, IN_PROGRESS, COMPLETED, FAILED, SKIPPED]
+        required: true
+      result:
+        type: object
+        required: false
+        description: Structured result from a completed enrichment step
+        fields:
+          resolved_values:
+            type: object
+            description: Key-value pairs of resolved field values
+          confidence:
+            type: enum
+            values: [CERTAIN, HIGH, MEDIUM, LOW, INFERRED]
+          data_source_version:
+            type: string
+          assumption_made:
+            type: boolean
+          assumption_detail:
+            type: string
+      error:
+        type: string
+        required: false
+        description: Error detail if the step failed
+      error_code:
+        type: string
+        required: false
+        description: Machine-readable error code if the step failed
+      executed_at:
+        type: timestamp
+        required: false
+      duration_ms:
+        type: integer
+        required: false
+        description: Actual execution duration in milliseconds
+      retry_count:
+        type: integer
+        required: false
+        default: 0
+
+  enrichment_rules_by_intent_type:
+    PARTIAL:
+      description: Run all applicable enrichment steps for missing fields
+      required_steps:
+        - step_type: FIELD_RESOLUTION
+          trigger: any required payload field is null or empty
+          data_source: EXTERNAL_ORACLE
+        - step_type: ENTITY_LOOKUP
+          trigger: any referenced entity ID is not yet resolved
+          data_source: IDENTITY
+        - step_type: AMOUNT_NORMALIZATION
+          trigger: amount is in non-standard format or missing precision
+          data_source: TREASURY
+        - step_type: CURRENCY_CONVERSION
+          trigger: amount currency differs from asset denomination
+          data_source: EXTERNAL_ORACLE
+        - step_type: COUNTERPARTY_RESOLUTION
+          trigger: counterparty ID is ambiguous or missing
+          data_source: IDENTITY
+      completion_condition: all required payload fields are populated
+
+    CONDITIONAL:
+      description: Evaluate conditions against Vault, Treasury, and Policy state
+      required_steps:
+        - step_type: CONTEXT_ENRICHMENT
+          trigger: intent has non-empty conditions array
+          data_source: VAULT
+        - step_type: CONTEXT_ENRICHMENT
+          trigger: conditions reference treasury state
+          data_source: TREASURY
+        - step_type: CONTEXT_ENRICHMENT
+          trigger: conditions reference policy state
+          data_source: POLICY
+      completion_condition: all conditions resolved to MET or NOT_MET
+
+    DELEGATED:
+      description: Verify delegation chain and resolve original actor
+      required_steps:
+        - step_type: ENTITY_LOOKUP
+          trigger: always
+          data_source: IDENTITY
+          lookup: delegation chain from delegation_id
+        - step_type: FIELD_RESOLUTION
+          trigger: original_actor_id not provided
+          data_source: IDENTITY
+          lookup: resolve delegator from delegation chain
+        - step_type: SCOPE_EXPANSION
+          trigger: always
+          data_source: IDENTITY
+          lookup: verify delegation scope covers domain_target and payload
+      completion_condition: delegation chain verified and original_actor_id resolved
+
+    SCHEDULED:
+      description: Validate schedule against policy time restrictions
+      required_steps:
+        - step_type: CONTEXT_ENRICHMENT
+          trigger: always
+          data_source: POLICY
+          lookup: policy time restrictions for actor and domain_target
+        - step_type: FIELD_RESOLUTION
+          trigger: schedule.timezone not provided
+          data_source: IDENTITY
+          lookup: actor's preferred timezone
+      completion_condition: schedule validated against all applicable policy time restrictions
+
+    MULTI_STEP:
+      description: Validate each step's requirements independently
+      required_steps:
+        - step_type: FIELD_RESOLUTION
+          trigger: any step has missing required fields
+          data_source: EXTERNAL_ORACLE
+        - step_type: ENTITY_LOOKUP
+          trigger: any step references unresolved entities
+          data_source: IDENTITY
+        - step_type: CONTEXT_ENRICHMENT
+          trigger: any step has conditions
+          data_source: VAULT
+        - step_type: SCOPE_EXPANSION
+          trigger: always
+          data_source: POLICY
+          lookup: validate each step's command against policy
+      completion_condition: all steps have their required fields populated and conditions evaluable
+
+    COMPLETE:
+      description: Complete intents may skip enrichment if confidence is CERTAIN
+      required_steps: []
+      skip_condition: confidence == CERTAIN and all required payload fields are populated
+      conditional_steps:
+        - step_type: CONTEXT_ENRICHMENT
+          trigger: confidence in [HIGH, MEDIUM]
+          data_source: POLICY
+          lookup: quick validation pass to confirm no policy changes since policy_decision_id was issued
+
+# ============================================================
+# SECTION 5 — VALIDATION MODEL
+# ============================================================
+
+intent_validation:
+  description: >
+    Intent validation produces a structured result with individual
+    check outcomes. Validation runs after enrichment and before
+    command conversion.
+
+  validation_record:
+    description: A validation pass for a single intent
+    attributes:
+      validation_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      intent_id:
+        type: string
+        format: uuid
+        required: true
+        references: intent.intent_id
+      validation_checks:
+        type: array
+        required: true
+        items:
+          type: object
+          fields:
+            check_id:
+              type: string
+              format: uuid
+              required: true
+            check_type:
+              type: enum
+              values:
+                - SCHEMA
+                - AUTHORIZATION
+                - POLICY_COMPLIANCE
+                - RESOURCE_AVAILABILITY
+                - TEMPORAL
+                - BUSINESS_RULE
+                - CONSTITUTIONAL
+              required: true
+            field:
+              type: string
+              required: true
+              description: The field or path being checked
+            result:
+              type: enum
+              values: [PASSED, FAILED, WARNING]
+              required: true
+            error_code:
+              type: string
+              required: false
+              description: Machine-readable error code — required if result is FAILED
+            error_detail:
+              type: string
+              required: false
+              description: Human-readable error detail — required if result is FAILED
+            severity:
+              type: enum
+              values: [BLOCKING, ADVISORY]
+              required: true
+      overall_result:
+        type: enum
+        values: [VALID, INVALID, VALID_WITH_WARNINGS, REQUIRES_HUMAN_REVIEW]
+        required: true
+      blocking_failures:
+        type: integer
+        required: true
+        description: Count of checks with result=FAILED and severity=BLOCKING
+      warnings:
+        type: integer
+        required: true
+        description: Count of checks with result=WARNING or result=FAILED and severity=ADVISORY
+      validated_at:
+        type: timestamp
+        required: true
+      validation_duration_ms:
+        type: integer
+        required: false
+
+  standard_validation_checks:
+    SCHEMA:
+      - check_id_template: val-schema-{field}
+        field: payload
+        rule: payload matches the schema defined for the intent's domain_target
+        severity: BLOCKING
+        error_code: SCHEMA_VIOLATION
+      - check_id_template: val-schema-{field}
+        field: intent_type
+        rule: intent_type is a recognized value
+        severity: BLOCKING
+        error_code: INVALID_INTENT_TYPE
+      - check_id_template: val-schema-{field}
+        field: domain_target
+        rule: domain_target is a recognized value
+        severity: BLOCKING
+        error_code: INVALID_DOMAIN_TARGET
+
+    AUTHORIZATION:
+      - check_id_template: val-auth-{field}
+        field: authorization_context_id
+        rule: authorization_context_id references a valid, non-expired authorization context
+        severity: BLOCKING
+        error_code: INVALID_AUTH_CONTEXT
+      - check_id_template: val-auth-{field}
+        field: actor_id
+        rule: actor_id matches the actor in the authorization context
+        severity: BLOCKING
+        error_code: ACTOR_MISMATCH
+      - check_id_template: val-auth-{field}
+        field: domain_target
+        rule: authorization context grants authority for the intent's domain_target
+        severity: BLOCKING
+        error_code: INSUFFICIENT_AUTHORITY
+      - check_id_template: val-auth-{field}
+        field: original_actor_id
+        rule: if DELEGATED, delegation chain grants authority for this domain_target
+        severity: BLOCKING
+        error_code: DELEGATION_AUTHORITY_INSUFFICIENT
+        applies_when: intent_type == DELEGATED
+
+    POLICY_COMPLIANCE:
+      - check_id_template: val-policy-{field}
+        field: policy_decision_id
+        rule: policy_decision_id references a valid, non-expired policy decision
+        severity: BLOCKING
+        error_code: INVALID_POLICY_DECISION
+      - check_id_template: val-policy-{field}
+        field: payload
+        rule: payload complies with all conditions in the policy decision
+        severity: BLOCKING
+        error_code: POLICY_VIOLATION
+
+    RESOURCE_AVAILABILITY:
+      - check_id_template: val-resource-{field}
+        field: payload.asset_id
+        rule: if TREASURY or VAULT target, referenced asset exists and is available
+        severity: BLOCKING
+        error_code: RESOURCE_NOT_AVAILABLE
+        applies_when: domain_target in [TREASURY, VAULT]
+      - check_id_template: val-resource-{field}
+        field: payload.amount
+        rule: if TREASURY target, sufficient available balance exists
+        severity: BLOCKING
+        error_code: INSUFFICIENT_BALANCE
+        applies_when: domain_target == TREASURY
+
+    TEMPORAL:
+      - check_id_template: val-temporal-{field}
+        field: expires_at
+        rule: if set, expires_at is in the future
+        severity: BLOCKING
+        error_code: INTENT_EXPIRED
+      - check_id_template: val-temporal-{field}
+        field: schedule.scheduled_at
+        rule: if SCHEDULED, scheduled_at is in the future
+        severity: BLOCKING
+        error_code: SCHEDULE_IN_PAST
+        applies_when: intent_type == SCHEDULED
+
+    BUSINESS_RULE:
+      - check_id_template: val-biz-{field}
+        field: payload.amount
+        rule: amount is positive and within configured domain limits
+        severity: BLOCKING
+        error_code: AMOUNT_OUT_OF_RANGE
+      - check_id_template: val-biz-{field}
+        field: objective
+        rule: objective is non-empty and does not contain conflicting instructions
+        severity: BLOCKING
+        error_code: CONFLICTING_OBJECTIVE
+
+    CONSTITUTIONAL:
+      - check_id_template: val-const-{field}
+        field: policy_decision_id
+        rule: policy_decision_id is present — no command without policy evaluation (INV-008)
+        severity: BLOCKING
+        error_code: CONSTITUTIONAL_VIOLATION_INV008
+      - check_id_template: val-const-{field}
+        field: intent_id
+        rule: intent does not reference any mutable financial state directly (INV-006)
+        severity: BLOCKING
+        error_code: CONSTITUTIONAL_VIOLATION_INV006
+
+# ============================================================
+# SECTION 6 — INTENT-TO-COMMAND CONVERSION
+# ============================================================
+
+command_conversion:
+  description: >
+    When intent is VALID, it produces exactly one command (or a
+    sequence of commands for MULTI_STEP). The conversion tracks
+    any assumptions made during the process.
+
+  conversion_record:
+    description: A record of a single intent-to-command conversion
+    attributes:
+      conversion_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      intent_id:
+        type: string
+        format: uuid
+        required: true
+        references: intent.intent_id
+      command_id:
+        type: string
+        format: uuid
+        required: true
+        description: The generated command's unique identifier
+      command_name:
+        type: string
+        required: true
+        description: Fully qualified command name (e.g., treasury.transfer.initiate)
+      command_payload:
+        type: object
+        required: true
+        description: The complete payload for the generated command
+      conversion_confidence:
+        type: enum
+        values: [DIRECT, INFERRED, ASSUMED]
+        required: true
+        description: >
+          DIRECT: intent payload mapped 1:1 to command payload
+          INFERRED: some fields inferred from context with high confidence
+          ASSUMED: some fields assumed with lower confidence — requires human confirmation
+      assumptions_made:
+        type: array
+        required: true
+        description: Track every assumption during conversion — empty array if none
+        items:
+          type: object
+          fields:
+            field:
+              type: string
+              required: true
+            assumed_value:
+              type: string
+              required: true
+            assumption_source:
+              type: string
+              required: true
+            confidence:
+              type: enum
+              values: [HIGH, MEDIUM, LOW]
+              required: true
+      human_confirmation_required:
+        type: boolean
+        required: true
+        description: Whether this conversion requires human confirmation before command dispatch
+      confirmed_by:
+        type: string
+        format: uuid
+        required: false
+        references: identity.identity
+        description: The identity that confirmed the conversion — set if human_confirmation_required was true
+      confirmed_at:
+        type: timestamp
+        required: false
+      converted_at:
+        type: timestamp
+        required: true
+
+  conversion_rules:
+    description: Rules governing the intent-to-command conversion
+    rules:
+      - rule: one_command_per_intent
+        description: A non-MULTI_STEP intent produces exactly one command
+        exception: MULTI_STEP intents produce one conversion per step
+      - rule: no_conversion_without_validation
+        description: Intent must have overall_result == VALID or VALID_WITH_WARNINGS
+      - rule: assumption_threshold
+        description: If conversion_confidence == ASSUMED, human_confirmation_required must be true
+      - rule: policy_decision_propagation
+        description: The generated command must include the policy_decision_id from the intent
+      - rule: audit_lineage_propagation
+        description: The generated command must include intent_id and conversion_id for audit lineage
+      - rule: authorization_propagation
+        description: The generated command must include authorization_context_id for downstream verification
+      - rule: domain_mapping
+        description: Command name is derived from intent_payload_schemas.converts_to or converts_to_mapping
+
+# ============================================================
+# SECTION 7 — AMBIGUITY HANDLING
+# ============================================================
+
+ambiguity_types:
+  description: >
+    The Intent domain OWNS ambiguity. Every ambiguity type is handled
+    explicitly — silent resolution is constitutionally prohibited.
+
+  types:
+    - type: MISSING_AMOUNT
+      handling: ENRICHMENT_REQUIRED
+      resolution_strategy: lookup from reservation or ask actor
+      enrichment_step_type: FIELD_RESOLUTION
+      data_source: VAULT
+      description: Amount is not specified in the intent payload
+      allowed_for_intent_types: [PARTIAL, CONDITIONAL]
+      escalation_if_unresolvable: ESCALATE_TO_HUMAN
+
+    - type: MISSING_COUNTERPARTY
+      handling: ENRICHMENT_REQUIRED
+      resolution_strategy: lookup from context or ask actor
+      enrichment_step_type: COUNTERPARTY_RESOLUTION
+      data_source: IDENTITY
+      description: Counterparty is not specified or is ambiguous
+      allowed_for_intent_types: [PARTIAL, CONDITIONAL]
+      escalation_if_unresolvable: ESCALATE_TO_HUMAN
+
+    - type: MULTIPLE_MATCHES
+      handling: ESCALATE_TO_HUMAN
+      resolution_strategy: human selects correct target from candidates
+      enrichment_step_type: null
+      data_source: null
+      description: Multiple entities match the provided criteria
+      allowed_for_intent_types: [PARTIAL, COMPLETE, CONDITIONAL]
+      escalation_if_unresolvable: null
+      produces:
+        candidates:
+          type: array
+          items:
+            type: object
+            fields:
+              match_id:
+                type: string
+                format: uuid
+              match_type:
+                type: string
+              confidence:
+                type: enum
+                values: [HIGH, MEDIUM, LOW]
+              summary:
+                type: string
+
+    - type: CONFLICTING_INSTRUCTIONS
+      handling: REJECT
+      resolution_strategy: intent enters FAILED state with error_detail
+      enrichment_step_type: null
+      data_source: null
+      description: Intent payload contains mutually contradictory instructions
+      allowed_for_intent_types: [COMPLETE, PARTIAL, CONDITIONAL, DELEGATED, SCHEDULED, MULTI_STEP]
+      escalation_if_unresolvable: null
+      failure_action:
+        state: FAILED
+        error_code: CONFLICTING_INSTRUCTIONS
+        audit_required: true
+
+    - type: UNSPECIFIED_ASSET
+      handling: ENRICHMENT_REQUIRED
+      resolution_strategy: infer from context or ask actor
+      enrichment_step_type: FIELD_RESOLUTION
+      data_source: VAULT
+      description: Asset is not specified in the intent payload
+      allowed_for_intent_types: [PARTIAL, CONDITIONAL]
+      escalation_if_unresolvable: ESCALATE_TO_HUMAN
+      inference_rules:
+        - if single asset held by actor: infer with confidence HIGH
+        - if multiple assets: ask actor or escalate
+        - if no assets: reject with INSUFFICIENT_RESOURCES
+
+    - type: AMBIGUOUS_AUTHORITY
+      handling: ESCALATE_TO_POLICY
+      resolution_strategy: policy re-evaluates with additional context
+      enrichment_step_type: CONTEXT_ENRICHMENT
+      data_source: POLICY
+      description: Cannot determine if actor has authority for the requested action
+      allowed_for_intent_types: [COMPLETE, PARTIAL, CONDITIONAL, DELEGATED]
+      escalation_if_unresolvable: ESCALATE_TO_GOVERNANCE
+      re_evaluation:
+        trigger: policy receives additional context from enrichment
+        expected_outcome: updated policy_decision_id with clear allow or deny
+        max_re_evaluations: 2
+
+    - type: TEMPORAL_AMBIGUITY
+      handling: DEFAULT_TO_IMMEDIATE
+      resolution_strategy: execute immediately unless SCHEDULED type
+      enrichment_step_type: null
+      data_source: null
+      description: Execution timing is not specified
+      allowed_for_intent_types: [COMPLETE, PARTIAL, CONDITIONAL, DELEGATED]
+      escalation_if_unresolvable: null
+      default_behavior:
+        non_scheduled: execute immediately
+        scheduled_type: reject with MISSING_SCHEDULE
+        audit_note: "TEMPORAL_AMBIGUITY resolved by defaulting to immediate execution"
+
+# ============================================================
+# SECTION 8 — MULTI-STEP INTENT MODEL
+# ============================================================
+
+multi_step_intent:
+  description: >
+    Multi-step intents represent a sequence of related operations
+    that must be coordinated as a single business transaction. Each
+    step is itself an intent with its own lifecycle.
+
+  model:
+    attributes:
+      parent_intent_id:
+        type: string
+        format: uuid
+        required: true
+        references: intent.intent_id
+        description: The parent intent that orchestrates the multi-step execution
+      total_steps:
+        type: integer
+        required: true
+        minimum: 2
+        maximum: 50
+        description: Total number of steps in the multi-step intent
+      current_step:
+        type: integer
+        required: true
+        minimum: 1
+        description: Index of the currently active or most recently completed step
+      steps:
+        type: array
+        required: true
+        items:
+          type: object
+          fields:
+            step_order:
+              type: integer
+              required: true
+              description: 1-based ordinal position of this step
+            step_intent_id:
+              type: string
+              format: uuid
+              required: true
+              references: intent.intent_id
+              description: Each step is itself a fully-formed intent
+            step_type:
+              type: enum
+              values: [SEQUENTIAL, PARALLEL, CONDITIONAL]
+              required: true
+              description: Execution dependency type
+            depends_on:
+              type: array
+              required: true
+              items:
+                type: integer
+              description: Step orders this step depends on — empty for first step
+            state:
+              type: enum
+              values: [PENDING, IN_PROGRESS, COMPLETED, FAILED, SKIPPED]
+              required: true
+            condition:
+              type: object
+              required: false
+              description: Condition to evaluate for CONDITIONAL step type
+              fields:
+                condition_type:
+                  type: enum
+                  values: [PREVIOUS_SUCCESS, PREVIOUS_FAILURE, BALANCE_THRESHOLD, EXTERNAL_EVENT, POLICY_CONDITION]
+                  required: true
+                field:
+                  type: string
+                  required: false
+                operator:
+                  type: enum
+                  values: [EQ, NEQ, GT, GTE, LT, LTE]
+                  required: false
+                value:
+                  type: string
+                  required: false
+                data_source:
+                  type: enum
+                  values: [VAULT, TREASURY, LEDGER, IDENTITY, POLICY, EXTERNAL_ORACLE]
+                  required: false
+                resolved:
+                  type: boolean
+                  required: false
+                  default: false
+                resolution:
+                  type: enum
+                  values: [TRIGGERED, NOT_TRIGGERED, PENDING, ERROR]
+                  required: false
+            conversion_id:
+              type: string
+              format: uuid
+              required: false
+              references: command_conversion.conversion_id
+            converted_command_id:
+              type: string
+              format: uuid
+              required: false
+            error_detail:
+              type: string
+              required: false
+      execution_strategy:
+        type: enum
+        values: [SEQUENTIAL, PARALLEL, CONDITIONAL_GRAPH]
+        required: true
+        description: >
+          SEQUENTIAL: steps execute one at a time in order
+          PARALLEL: independent steps execute concurrently
+          CONDITIONAL_GRAPH: steps execute based on a condition dependency graph
+      compensation_required:
+        type: boolean
+        required: true
+        description: Whether compensation transactions are defined for partial completion
+      compensation_strategy:
+        type: object
+        required: false
+        description: Compensation strategy for partial completion — required if compensation_required is true
+        fields:
+          strategy_type:
+            type: enum
+            values: [REVERSE_ORDER, CUSTOM_SEQUENCE, SAGA]
+            required: true
+          compensating_steps:
+            type: array
+            required: true
+            description: Ordered list of compensating actions per completed step
+            items:
+              type: object
+              fields:
+                step_order:
+                  type: integer
+                  required: true
+                compensating_command:
+                  type: string
+                  required: true
+                compensating_payload:
+                  type: object
+                  required: true
+          max_compensation_time_ms:
+            type: integer
+            required: false
+            default: 300000
+            description: Maximum total time for compensation to complete
+          on_compensation_failure:
+            type: enum
+            values: [ESCALATE_TO_GOVERNANCE, HOLD_AND_INVESTIGATE, FORCE_ROLLBACK]
+            required: true
+
+  step_lifecycle:
+    PENDING:
+      allowed_transitions: [IN_PROGRESS, SKIPPED]
+      triggers:
+        IN_PROGRESS: all depends_on steps are COMPLETED or SKIPPED
+        SKIPPED: condition evaluated and not triggered (CONDITIONAL type only)
+    IN_PROGRESS:
+      allowed_transitions: [COMPLETED, FAILED]
+      triggers:
+        COMPLETED: step intent converted to command and command completed successfully
+        FAILED: step intent entered FAILED state or command execution failed
+    COMPLETED:
+      allowed_transitions: []
+      description: Terminal — step completed successfully
+    FAILED:
+      allowed_transitions: []
+      description: Terminal — triggers compensation if compensation_required
+    SKIPPED:
+      allowed_transitions: []
+      description: Terminal — condition was not met, step was not executed
+
+  parent_completion_rules:
+    - rule: all_steps_terminal
+      description: Parent intent completes when all steps are in terminal state (COMPLETED, FAILED, or SKIPPED)
+    - rule: any_step_failed_triggers_compensation
+      description: If any step is FAILED and compensation_required is true, execute compensation strategy
+    - rule: conditional_skip_does_not_fail_parent
+      description: SKIPPED steps do not cause parent failure — they are expected behavior
+
+# ============================================================
+# SECTION 9 — COMMANDS
+# ============================================================
+
+commands:
+
+  intent.submit:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Submit a new intent into the normalization pipeline
+    issuer:
+      actor_types: [human, ai_agent, governance, system]
+      minimum_capability: intent.submit
+    authorization_requirements:
+      identity: required
+      capability: intent.submit
+      scope: domain_target
+      policy: intent_submission_policy
+    validation_rules:
+      - rule: actor_must_be_authenticated
+        check: authorization_context_id references a valid authorization context
+        on_failure: REJECT
+      - rule: policy_must_have_evaluated
+        check: policy_decision_id references a valid policy decision with result ALLOW
+        on_failure: REJECT
+      - rule: objective_must_be_non_empty
+        check: objective is non-empty string
+        on_failure: REJECT
+      - rule: domain_target_must_be_recognized
+        check: domain_target in [VAULT, TREASURY, LEDGER, PAYMENT, IDENTITY, POLICY, AGENT, GOVERNANCE]
+        on_failure: REJECT
+      - rule: intent_type_must_be_recognized
+        check: intent_type in [COMPLETE, PARTIAL, CONDITIONAL, DELEGATED, SCHEDULED, MULTI_STEP]
+        on_failure: REJECT
+      - rule: payload_must_match_domain_target_schema
+        check: payload conforms to intent_payload_schemas[domain_target]
+        on_failure: REJECT
+      - rule: delegation_must_be_valid
+        check: if intent_type == DELEGATED, delegation_id references valid delegation chain
+        on_failure: REJECT
+        applies_when: intent_type == DELEGATED
+      - rule: schedule_must_be_future
+        check: if intent_type == SCHEDULED, schedule.scheduled_at > now
+        on_failure: REJECT
+        applies_when: intent_type == SCHEDULED
+      - rule: multi_step_must_have_steps
+        check: if intent_type == MULTI_STEP, steps array is non-empty and total_steps >= 2
+        on_failure: REJECT
+        applies_when: intent_type == MULTI_STEP
+    required_payload:
+      - intent_type
+      - actor_id
+      - authorization_context_id
+      - policy_decision_id
+      - objective
+      - domain_target
+      - payload
+      - confidence
+      - priority
+    auto_generated:
+      - intent_id: uuid
+      - created_at: timestamp
+      - state: RECEIVED
+    resulting_events:
+      success: [intent.received]
+      failure: [intent.failed]
+    failure_conditions:
+      - actor_not_authenticated
+      - policy_not_evaluated
+      - empty_objective
+      - unrecognized_domain_target
+      - unrecognized_intent_type
+      - payload_schema_violation
+      - invalid_delegation
+      - schedule_in_past
+      - insufficient_steps_for_multi_step
+
+  intent.enrich:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Begin or continue enrichment of an intent
+    issuer:
+      actor_types: [system]
+      minimum_capability: intent.enrich
+    authorization_requirements:
+      identity: system
+      capability: intent.enrich
+      scope: intent_id
+      policy: intent_enrichment_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_in_enrichable_state
+        check: intent.state in [RECEIVED, ENRICHING]
+        on_failure: REJECT
+      - rule: enrichment_must_not_exceed_max_steps
+        check: count of existing enrichment_steps < 20
+        on_failure: REJECT
+      - rule: enrichment_must_not_exceed_timeout
+        check: total enrichment duration < configured max enrichment time
+        on_failure: FAIL_INTENT
+    required_payload:
+      - intent_id
+    auto_generated:
+      - enrichment_step records per enrichment_rules_by_intent_type
+    resulting_events:
+      success: [intent.enriching.started, intent.enriching.completed]
+      partial_success: [intent.enriching.started, intent.enriching.completed]
+      failure: [intent.enriching.failed]
+    failure_conditions:
+      - intent_not_found
+      - intent_not_enrichable
+      - enrichment_step_timeout
+      - enrichment_step_unresolvable
+      - max_enrichment_steps_exceeded
+      - max_enrichment_time_exceeded
+
+  intent.validate:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Validate an enriched intent against all applicable checks
+    issuer:
+      actor_types: [system]
+      minimum_capability: intent.validate
+    authorization_requirements:
+      identity: system
+      capability: intent.validate
+      scope: intent_id
+      policy: intent_validation_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_enriched
+        check: intent.state in [READY, ENRICHING]
+        on_failure: REJECT
+      - rule: enrichment_must_be_complete
+        check: all required enrichment steps are COMPLETED or SKIPPED
+        on_failure: REJECT
+    required_payload:
+      - intent_id
+    auto_generated:
+      - validation_id: uuid
+      - validation_checks per standard_validation_checks
+      - overall_result
+      - validated_at: timestamp
+    resulting_events:
+      success: [intent.validation.completed, intent.validated]
+      failure: [intent.validation.completed, intent.failed]
+    failure_conditions:
+      - intent_not_found
+      - intent_not_ready_for_validation
+      - enrichment_incomplete
+      - validation_timeout
+
+  intent.convert_to_command:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Convert a validated intent into an executable command
+    issuer:
+      actor_types: [system]
+      minimum_capability: intent.convert
+    authorization_requirements:
+      identity: system
+      capability: intent.convert
+      scope: intent_id
+      policy: intent_conversion_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_valid
+        check: intent.state == READY and latest validation.overall_result in [VALID, VALID_WITH_WARNINGS]
+        on_failure: REJECT
+      - rule: conversion_must_have_valid_target
+        check: domain_target has a defined converts_to or converts_to_mapping in intent_payload_schemas
+        on_failure: REJECT
+      - rule: human_confirmation_if_required
+        check: if conversion_confidence == ASSUMED, confirmed_by must be set
+        on_failure: REJECT
+    required_payload:
+      - intent_id
+    auto_generated:
+      - conversion_id: uuid
+      - command_id: uuid
+      - command_name: derived from intent_payload_schemas mapping
+      - command_payload: derived from intent payload
+      - converted_at: timestamp
+    resulting_events:
+      success: [intent.converted_to_command]
+      failure: [intent.failed]
+    failure_conditions:
+      - intent_not_found
+      - intent_not_valid
+      - no_command_mapping_for_domain_target
+      - human_confirmation_required_but_not_provided
+
+  intent.cancel:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Cancel an intent that has not yet been converted to a command
+    issuer:
+      actor_types: [human, ai_agent, governance, system]
+      minimum_capability: intent.cancel
+    authorization_requirements:
+      identity: required
+      capability: intent.cancel
+      scope: intent_id
+      policy: intent_cancellation_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_cancellable
+        check: intent.state in [RECEIVED, ENRICHING, VALIDATING, READY]
+        on_failure: REJECT
+      - rule: actor_must_be_authorized_to_cancel
+        check: requesting actor is the intent's actor_id or has governance authority
+        on_failure: REJECT
+    required_payload:
+      - intent_id
+      - reason
+    resulting_events:
+      success: [intent.cancelled]
+      failure: [intent.failed]
+    failure_conditions:
+      - intent_not_found
+      - intent_not_cancellable
+      - unauthorized_cancellation
+
+  intent.archive:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Archive a completed or cancelled intent
+    issuer:
+      actor_types: [system]
+      minimum_capability: intent.archive
+    authorization_requirements:
+      identity: system
+      capability: intent.archive
+      scope: intent_id
+      policy: intent_archival_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_in_terminal_or_post_terminal_state
+        check: intent.state in [CONVERTED_TO_COMMAND, FAILED, CANCELLED, EXPIRED, ARCHIVED]
+        on_failure: REJECT
+    required_payload:
+      - intent_id
+    auto_generated:
+      - archived_at: timestamp
+    resulting_events:
+      success: [intent.archived]
+      failure: [intent.failed]
+    failure_conditions:
+      - intent_not_found
+      - intent_not_archivable
+
+  intent.multi_step.create:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Create a multi-step intent with its constituent step intents
+    issuer:
+      actor_types: [human, ai_agent, governance]
+      minimum_capability: intent.multi_step.create
+    authorization_requirements:
+      identity: required
+      capability: intent.multi_step.create
+      scope: domain_target
+      policy: intent_submission_policy
+    validation_rules:
+      - rule: actor_must_be_authenticated
+        check: authorization_context_id references a valid authorization context
+        on_failure: REJECT
+      - rule: policy_must_have_evaluated
+        check: policy_decision_id references a valid policy decision with result ALLOW
+        on_failure: REJECT
+      - rule: intent_type_must_be_multi_step
+        check: intent_type == MULTI_STEP
+        on_failure: REJECT
+      - rule: must_have_at_least_two_steps
+        check: steps array length >= 2
+        on_failure: REJECT
+      - rule: each_step_must_be_valid_intent
+        check: every step has all required intent fields
+        on_failure: REJECT
+      - rule: dependencies_must_reference_valid_steps
+        check: all depends_on values reference valid step_order values
+        on_failure: REJECT
+      - rule: no_circular_dependencies
+        check: dependency graph has no cycles
+        on_failure: REJECT
+      - rule: execution_strategy_must_match_step_types
+        check: SEQUENTIAL strategy has no PARALLEL steps, etc.
+        on_failure: REJECT
+      - rule: compensation_required_if_any_step_mutates
+        check: if any step targets TREASURY, VAULT, or LEDGER, compensation_required must be true
+        on_failure: REJECT
+    required_payload:
+      - intent_type
+      - actor_id
+      - authorization_context_id
+      - policy_decision_id
+      - objective
+      - domain_target
+      - steps
+      - execution_strategy
+      - compensation_required
+      - confidence
+      - priority
+    auto_generated:
+      - intent_id: uuid
+      - created_at: timestamp
+      - state: RECEIVED
+      - total_steps: derived from steps array
+    resulting_events:
+      success: [intent.received]
+      failure: [intent.failed]
+    failure_conditions:
+      - actor_not_authenticated
+      - policy_not_evaluated
+      - insufficient_steps
+      - invalid_step_intent
+      - invalid_step_dependencies
+      - circular_dependencies
+      - strategy_mismatch
+      - missing_compensation_for_mutating_steps
+
+  intent.multi_step.advance:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Advance the multi-step intent to the next eligible step
+    issuer:
+      actor_types: [system]
+      minimum_capability: intent.multi_step.advance
+    authorization_requirements:
+      identity: system
+      capability: intent.multi_step.advance
+      scope: intent_id
+      policy: intent_enrichment_policy
+    validation_rules:
+      - rule: parent_intent_must_exist
+        check: intent with intent_id exists and intent_type == MULTI_STEP
+        on_failure: REJECT
+      - rule: parent_must_be_in_active_state
+        check: intent.state in [ENRICHING, VALIDATING, READY]
+        on_failure: REJECT
+      - rule: must_have_eligible_steps
+        check: at least one step is PENDING and all its depends_on are COMPLETED or SKIPPED
+        on_failure: REJECT
+      - rule: no_active_failed_steps_without_compensation
+        check: no step is in FAILED state unless compensation is in progress
+        on_failure: REJECT
+    required_payload:
+      - intent_id
+    auto_generated:
+      - step state transitions
+      - current_step update
+    resulting_events:
+      success: [intent.multi_step.step_completed]
+      all_complete: [intent.multi_step.completed]
+      failure: [intent.multi_step.failed]
+    failure_conditions:
+      - parent_not_found
+      - parent_not_active
+      - no_eligible_steps
+      - step_conversion_failed
+      - step_execution_failed
+      - compensation_triggered
+
+# ============================================================
+# SECTION 10 — EVENTS
+# ============================================================
+
+events:
+
+  intent.received:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: A new intent has been received and entered RECEIVED state
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - intent_id is globally unique
+      - authorization_context_id references a valid context
+      - policy_decision_id references a valid decision
+      - actor_id is authenticated
+    projection_effect:
+      target: intent_view
+      operation: insert
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      intent_type:
+        type: enum
+        values: [COMPLETE, PARTIAL, CONDITIONAL, DELEGATED, SCHEDULED, MULTI_STEP]
+      actor_id:
+        type: string
+        format: uuid
+      domain_target:
+        type: enum
+        values: [VAULT, TREASURY, LEDGER, PAYMENT, IDENTITY, POLICY, AGENT, GOVERNANCE]
+      objective:
+        type: string
+      confidence:
+        type: enum
+        values: [CERTAIN, HIGH, MEDIUM, LOW, AMBIGUOUS]
+      priority:
+        type: enum
+        values: [IMMEDIATE, HIGH, NORMAL, LOW, DEFERRED]
+
+  intent.enriching.started:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Enrichment has begun for an intent
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - intent was in RECEIVED or ENRICHING state
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: ENRICHING
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      enrichment_steps_planned:
+        type: integer
+      enrichment_data_sources:
+        type: array
+        items:
+          type: enum
+          values: [VAULT, IDENTITY, TREASURY, LEDGER, EXTERNAL_ORACLE, POLICY]
+
+  intent.enriching.completed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Enrichment has completed for an intent
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - all required enrichment steps are COMPLETED or SKIPPED
+      - enrichment results are recorded
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: VALIDATING
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      enrichment_steps_completed:
+        type: integer
+      enrichment_steps_skipped:
+        type: integer
+      enrichment_steps_failed:
+        type: integer
+      enriched_at:
+        type: timestamp
+      updated_confidence:
+        type: enum
+        values: [CERTAIN, HIGH, MEDIUM, LOW, AMBIGUOUS]
+
+  intent.enriching.failed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Enrichment has failed for an intent
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - at least one required enrichment step failed
+      - failure detail is recorded
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: FAILED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      failed_step_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      retryable:
+        type: boolean
+      enrichment_duration_ms:
+        type: integer
+
+  intent.validation.completed:
+    aggregate: intent_validation
+    aggregate_id_field: validation_id
+    source_domain: intent
+    version: 1.0.0
+    description: Validation checks have completed for an intent
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - all standard_validation_checks have been evaluated
+      - individual check results are recorded
+    projection_effect:
+      target: intent_validation_view
+      operation: insert
+    data_fields:
+      validation_id:
+        type: string
+        format: uuid
+      intent_id:
+        type: string
+        format: uuid
+      overall_result:
+        type: enum
+        values: [VALID, INVALID, VALID_WITH_WARNINGS, REQUIRES_HUMAN_REVIEW]
+      blocking_failures:
+        type: integer
+      warnings:
+        type: integer
+      validated_at:
+        type: timestamp
+      validation_duration_ms:
+        type: integer
+
+  intent.validated:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has passed validation and entered READY state
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - validation.overall_result in [VALID, VALID_WITH_WARNINGS]
+      - no blocking failures
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: READY
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      validation_id:
+        type: string
+        format: uuid
+      overall_result:
+        type: enum
+        values: [VALID, VALID_WITH_WARNINGS]
+      validated_at:
+        type: timestamp
+
+  intent.failed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has entered FAILED state from any prior state
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - error_detail is populated
+      - no financial state was mutated
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: FAILED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      previous_state:
+        type: enum
+        values: [RECEIVED, ENRICHING, VALIDATING, READY]
+      error_code:
+        type: string
+      error_detail:
+        type: string
+      failed_at:
+        type: timestamp
+
+  intent.cancelled:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has been cancelled
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - intent was in a cancellable state
+      - cancelling actor had authority
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: CANCELLED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      cancelled_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      cancelled_at:
+        type: timestamp
+
+  intent.converted_to_command:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has been converted to an executable command
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+      - command_projection
+    guarantees:
+      - intent was in READY state
+      - intent was VALID or VALID_WITH_WARNINGS
+      - command_id is generated and unique
+      - audit lineage links intent to command
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: CONVERTED_TO_COMMAND
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      conversion_id:
+        type: string
+        format: uuid
+      command_id:
+        type: string
+        format: uuid
+      command_name:
+        type: string
+      conversion_confidence:
+        type: enum
+        values: [DIRECT, INFERRED, ASSUMED]
+      human_confirmation_required:
+        type: boolean
+      confirmed_by:
+        type: string
+        format: uuid
+        required: false
+      converted_at:
+        type: timestamp
+
+  intent.archived:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has been archived
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - intent was in a terminal or post-terminal state
+      - all enrichment and validation records are preserved
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: ARCHIVED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      previous_state:
+        type: enum
+        values: [CONVERTED_TO_COMMAND, FAILED, CANCELLED, EXPIRED]
+      archived_at:
+        type: timestamp
+
+  intent.expired:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: An intent has expired without being processed
+    producer: intent_scheduler
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - intent was in READY state or earlier
+      - expires_at has passed
+      - no financial state was mutated
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: EXPIRED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      previous_state:
+        type: enum
+        values: [RECEIVED, ENRICHING, VALIDATING, READY]
+      expires_at:
+        type: timestamp
+      expired_at:
+        type: timestamp
+
+  intent.multi_step.step_completed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: A single step within a multi-step intent has completed
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+    guarantees:
+      - parent intent exists and is MULTI_STEP type
+      - step was in IN_PROGRESS state
+      - step's converted command completed successfully
+    projection_effect:
+      target: multi_step_intent_view
+      operation: update
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      step_order:
+        type: integer
+      step_intent_id:
+        type: string
+        format: uuid
+      step_state:
+        type: enum
+        values: [COMPLETED, SKIPPED]
+      conversion_id:
+        type: string
+        format: uuid
+      command_id:
+        type: string
+        format: uuid
+      current_step:
+        type: integer
+      remaining_steps:
+        type: integer
+      completed_at:
+        type: timestamp
+
+  intent.multi_step.completed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: All steps in a multi-step intent have reached terminal state
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - all steps are in COMPLETED, FAILED, or SKIPPED state
+      - no steps remain in PENDING or IN_PROGRESS state
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: READY
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      total_steps:
+        type: integer
+      steps_completed:
+        type: integer
+      steps_failed:
+        type: integer
+      steps_skipped:
+        type: integer
+      overall_result:
+        type: enum
+        values: [ALL_COMPLETED, PARTIAL_COMPLETION, ALL_FAILED]
+      completed_at:
+        type: timestamp
+
+  intent.multi_step.failed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: A multi-step intent has failed — a step failed and cannot continue
+    producer: intent_service
+    consumers:
+      - intent_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - at least one step is in FAILED state
+      - no remaining steps can proceed
+      - compensation may be triggered
+    projection_effect:
+      target: intent_view
+      operation: update
+      update_field: state
+      update_value: FAILED
+    data_fields:
+      intent_id:
+        type: string
+        format: uuid
+      failed_step_order:
+        type: integer
+      failed_step_intent_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      compensation_triggered:
+        type: boolean
+      compensation_id:
+        type: string
+        format: uuid
+        required: false
+      failed_at:
+        type: timestamp
+
+# ============================================================
+# SECTION 11 — STATE MACHINES (references to 05_state-machines.yaml)
+# ============================================================
+
+state_machine_references:
+
+  intent_lifecycle:
+    ref: 05_state-machines.yaml#intent_lifecycle
+    domain: intent
+    aggregate: intent
+    description: >
+      Manages the lifecycle of an intent from receipt through
+      enrichment, validation, conversion, and archival.
+    states:
+      RECEIVED:
+        description: Intent has been received but not yet processed
+        allowed_commands:
+          - intent.enrich
+          - intent.cancel
+        entry_actions:
+          - emit intent.received
+        time_limit: 3600000  # 1 hour
+        on_timeout: EXPIRED
+
+      ENRICHING:
+        description: Intent is being enriched to resolve ambiguity
+        allowed_commands:
+          - intent.enrich
+          - intent.cancel
+        entry_actions:
+          - emit intent.enriching.started
+        exit_actions: []
+
+      VALIDATING:
+        description: Intent is being validated against all checks
+        allowed_commands:
+          - intent.validate
+          - intent.cancel
+        entry_actions: []
+        exit_actions:
+          - emit intent.validation.completed
+
+      READY:
+        description: Intent is validated and ready for conversion
+        allowed_commands:
+          - intent.convert_to_command
+          - intent.cancel
+        entry_actions:
+          - emit intent.validated
+        time_limit: 86400000  # 24 hours
+        on_timeout: EXPIRED
+
+      CONVERTED_TO_COMMAND:
+        description: Intent has been converted to a command
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.converted_to_command
+        time_limit: 604800000  # 7 days
+        on_timeout: ARCHIVED
+
+      ARCHIVED:
+        description: Intent has been archived
+        allowed_commands: []
+        entry_actions:
+          - emit intent.archived
+
+      FAILED:
+        description: Intent failed at some stage of processing
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.failed
+
+      CANCELLED:
+        description: Intent was cancelled by authorized actor
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.cancelled
+
+      EXPIRED:
+        description: Intent timed out without processing
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.expired
+
+    invalid_transitions:
+      - { from: ARCHIVED, to: any }
+      - { from: FAILED, to: ENRICHING }
+      - { from: FAILED, to: VALIDATING }
+      - { from: FAILED, to: READY }
+      - { from: FAILED, to: CONVERTED_TO_COMMAND }
+      - { from: CANCELLED, to: ENRICHING }
+      - { from: CANCELLED, to: VALIDATING }
+      - { from: CANCELLED, to: READY }
+      - { from: CANCELLED, to: CONVERTED_TO_COMMAND }
+      - { from: EXPIRED, to: ENRICHING }
+      - { from: EXPIRED, to: VALIDATING }
+      - { from: EXPIRED, to: READY }
+      - { from: EXPIRED, to: CONVERTED_TO_COMMAND }
+      - { from: CONVERTED_TO_COMMAND, to: ENRICHING }
+      - { from: CONVERTED_TO_COMMAND, to: VALIDATING }
+      - { from: CONVERTED_TO_COMMAND, to: READY }
+      - { from: RECEIVED, to: READY }
+      - { from: RECEIVED, to: CONVERTED_TO_COMMAND }
+      - { from: ENRICHING, to: READY }
+      - { from: ENRICHING, to: CONVERTED_TO_COMMAND }
+
+  intent_enrichment_lifecycle:
+    ref: 05_state-machines.yaml#intent_enrichment_lifecycle
+    domain: intent
+    aggregate: enrichment_step
+    description: >
+      Manages the lifecycle of individual enrichment steps
+      within the intent enrichment pipeline.
+    states:
+      PENDING:
+        description: Enrichment step is queued
+        allowed_commands:
+          - intent.enrich
+        entry_actions: []
+
+      IN_PROGRESS:
+        description: Enrichment step is executing
+        allowed_commands: []
+        entry_actions: []
+        time_limit: 30000  # 30 seconds per step
+        on_timeout: FAILED
+
+      COMPLETED:
+        description: Enrichment step completed successfully
+        allowed_commands: []
+        entry_actions: []
+
+      FAILED:
+        description: Enrichment step failed
+        allowed_commands:
+          - intent.enrich  # retry if retryable
+        entry_actions: []
+
+      SKIPPED:
+        description: Enrichment step was not applicable
+        allowed_commands: []
+        entry_actions: []
+
+    invalid_transitions:
+      - { from: COMPLETED, to: any }
+      - { from: SKIPPED, to: any }
+      - { from: FAILED, to: COMPLETED }
+      - { from: FAILED, to: SKIPPED }
+
+  intent_multi_step_lifecycle:
+    ref: 05_state-machines.yaml#intent_multi_step_lifecycle
+    domain: intent
+    aggregate: multi_step_intent
+    description: >
+      Manages the lifecycle of multi-step intents including
+      step progression, conditional evaluation, and compensation.
+    states:
+      PENDING:
+        description: Multi-step intent created, steps not yet started
+        allowed_commands:
+          - intent.enrich
+          - intent.cancel
+        entry_actions:
+          - emit intent.received
+
+      ENRICHING:
+        description: Steps are being enriched
+        allowed_commands:
+          - intent.enrich
+          - intent.cancel
+        entry_actions: []
+
+      VALIDATING:
+        description: Steps are being validated
+        allowed_commands:
+          - intent.validate
+          - intent.cancel
+        entry_actions: []
+
+      READY:
+        description: All steps validated, execution can begin
+        allowed_commands:
+          - intent.multi_step.advance
+          - intent.cancel
+        entry_actions:
+          - emit intent.multi_step.completed  # all steps validated
+
+      EXECUTING:
+        description: One or more steps are executing
+        allowed_commands:
+          - intent.multi_step.advance
+        entry_actions: []
+
+      COMPLETED:
+        description: All steps completed successfully
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.multi_step.completed
+
+      FAILED:
+        description: A step failed and execution cannot continue
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.multi_step.failed
+
+      CANCELLED:
+        description: Multi-step intent was cancelled
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.cancelled
+
+      COMPENSATING:
+        description: Compensation is in progress for failed steps
+        allowed_commands:
+          - intent.multi_step.advance
+        entry_actions: []
+
+    invalid_transitions:
+      - { from: COMPLETED, to: any }
+      - { from: CANCELLED, to: ENRICHING }
+      - { from: CANCELLED, to: VALIDATING }
+      - { from: CANCELLED, to: READY }
+      - { from: CANCELLED, to: EXECUTING }
+      - { from: CANCELLED, to: COMPENSATING }
+      - { from: FAILED, to: EXECUTING }
+      - { from: FAILED, to: COMPENSATING }
+
+# ============================================================
+# SECTION 12 — PROHIBITIONS
+# ============================================================
+
+prohibitions:
+  description: >
+    Absolute prohibitions enforced by the Intent domain.
+    Violations are constitutional and must halt processing immediately.
+
+  prohibitions:
+    - id: PROH-INT-001
+      rule: Intent SHALL NEVER mutate financial state
+      constitutional_reference: INV-006
+      enforcement: >
+        Intent entities and the enrichment pipeline are read-only with
+        respect to Vault, Treasury, and Ledger. Any attempt to write
+        to financial state triggers an immediate constitutional violation.
+      violation_handling:
+        action: REJECT_AND_AUDIT
+        escalation: GOVERNANCE
+        audit_event: intent.prohibition_violation
+
+    - id: PROH-INT-002
+      rule: Intent conversion SHALL NEVER skip policy evaluation
+      constitutional_reference: INV-008
+      enforcement: >
+        The policy_decision_id field is required on every intent. The
+        conversion pipeline must verify the policy_decision_id references
+        a valid, non-expired policy decision before generating a command.
+      violation_handling:
+        action: REJECT_AND_AUDIT
+        escalation: GOVERNANCE
+        audit_event: intent.prohibition_violation
+
+    - id: PROH-INT-003
+      rule: Intent SHALL NEVER produce a command without a valid policy_decision_id
+      constitutional_reference: INV-008
+      enforcement: >
+        The convert_to_command operation must validate policy_decision_id
+        before generating any command. Null, invalid, or expired
+        policy_decision_id values block conversion unconditionally.
+      violation_handling:
+        action: REJECT_AND_HALT
+        escalation: GOVERNANCE
+        audit_event: intent.prohibition_violation
+
+    - id: PROH-INT-004
+      rule: Intent SHALL NEVER assume authority not present in authorization_context
+      constitutional_reference: INV-003
+      enforcement: >
+        The enrichment and conversion pipelines must verify that the
+        authorization_context grants explicit authority for the
+        intent's domain_target, payload scope, and operation type.
+        Any assumption of authority not in the context is prohibited.
+      violation_handling:
+        action: REJECT_AND_AUDIT
+        escalation: GOVERNANCE
+        audit_event: intent.prohibition_violation
+
+    - id: PROH-INT-005
+      rule: Intent ambiguity SHALL NEVER be silently resolved
+      constitutional_reference: INV-009
+      enforcement: >
+        Every ambiguity resolution must produce an explicit enrichment_step
+        record with the resolution strategy, confidence level, and any
+        assumptions made. The conversion pipeline must include all
+        assumptions in the command_conversion.assumptions_made array.
+        Silent resolution without a record is a constitutional violation.
+      violation_handling:
+        action: REJECT_AND_HALT
+        escalation: GOVERNANCE
+        audit_event: intent.prohibition_violation
+
+    - id: PROH-INT-006
+      rule: Intent SHALL NEVER produce events that describe financial state changes
+      constitutional_reference: INV-006
+      enforcement: >
+        Intent events describe changes to intent state only (RECEIVED,
+        ENRICHING, VALIDATING, READY, etc.). Intent events must never
+        describe changes to balances, holdings, or ledger entries.
+      violation_handling:
+        action: REJECT_AND_HALT
+        escalation: GOVERNANCE
+        audit_event: intent.prohibition_violation
+
+    - id: PROH-INT-007
+      rule: Intent SHALL NEVER bypass the enrichment pipeline for PARTIAL intents
+      constitutional_reference: INV-008
+      enforcement: >
+        If intent_type is PARTIAL and confidence is not CERTAIN, the
+        intent must pass through the enrichment pipeline before
+        validation. Skipping enrichment for ambiguous intents is prohibited.
+      violation_handling:
+        action: REJECT_AND_AUDIT
+        escalation: GOVERNANCE
+        audit_event: intent.prohibition_violation
+
+# ============================================================
+# SECTION 13 — INTEGRATION POINTS
+# ============================================================
+
+integration_points:
+
+  consumes:
+    - domain: identity
+      interface: authorization_context
+      field: authorization_context_id
+      description: >
+        The resolved authorization context from the Identity domain.
+        Provides the actor's verified identity, capabilities, and
+        scope. Required before any intent processing begins.
+      required_for_states: [RECEIVED, ENRICHING, VALIDATING, READY, CONVERTED_TO_COMMAND]
+      validation: >
+        Must reference a valid, non-expired authorization context.
+        Actor identity must match the context's actor.
+
+    - domain: policy
+      interface: policy_decision
+      field: policy_decision_id
+      description: >
+        The policy evaluation result from the Policy domain.
+        Indicates whether the actor's intended action is permitted
+        under current policy rules. Required before intent submission.
+      required_for_states: [RECEIVED, ENRICHING, VALIDATING, READY, CONVERTED_TO_COMMAND]
+      validation: >
+        Must reference a valid policy decision with result ALLOW.
+        Must not be expired. Decision must cover the intent's
+        domain_target and operation scope.
+
+    - domain: vault
+      interface: asset_state
+      field: payload.asset_id
+      description: >
+        Current asset state for enrichment and validation.
+        Used to verify asset existence, availability, and balance
+        for intents targeting VAULT or TREASURY domains.
+      used_by: [enrichment_pipeline, intent_validation]
+      access_pattern: read_only
+
+    - domain: treasury
+      interface: treasury_position
+      field: payload.asset_id, payload.source_actor_id
+      description: >
+        Current treasury position data for enrichment and validation.
+        Used to verify sufficient liquidity and balance for
+        transfer-related intents.
+      used_by: [enrichment_pipeline, intent_validation]
+      access_pattern: read_only
+
+    - domain: ledger
+      interface: account_state
+      field: payload.journal_id
+      description: >
+        Current ledger account state for enrichment and validation.
+        Used for reconcile and adjust intent types.
+      used_by: [enrichment_pipeline, intent_validation]
+      access_pattern: read_only
+
+  produces:
+    - interface: command
+      consumer: execution_pipeline
+      description: >
+        The executable command produced by intent-to-command conversion.
+        The command carries full audit lineage including intent_id,
+        conversion_id, authorization_context_id, and policy_decision_id.
+      produced_during: CONVERTED_TO_COMMAND
+      format: command_conversion.conversion_record
+
+    - interface: intent_lifecycle_events
+      consumer: audit_pipeline
+      description: >
+        All intent lifecycle events emitted to the audit pipeline
+        per INV-005. Every state transition produces an auditable event.
+      event_types:
+        - intent.received
+        - intent.enriching.started
+        - intent.enriching.completed
+        - intent.enriching.failed
+        - intent.validation.completed
+        - intent.validated
+        - intent.failed
+        - intent.cancelled
+        - intent.converted_to_command
+        - intent.archived
+        - intent.expired
+        - intent.multi_step.step_completed
+        - intent.multi_step.completed
+        - intent.multi_step.failed
+
+  bidirectional:
+    - domain: policy
+      interface: policy_re_evaluation
+      description: >
+        If enrichment reveals AMBIGUOUS_AUTHORITY, the Intent domain
+        requests a policy re-evaluation with additional context.
+        The policy domain returns an updated policy_decision_id.
+      trigger: ambiguity_type == AMBIGUOUS_AUTHORITY
+      protocol: >
+        1. Intent sends enrichment context to Policy
+        2. Policy evaluates with additional context
+        3. Policy returns new policy_decision_id
+        4. Intent updates and continues processing
+      max_round_trips: 2

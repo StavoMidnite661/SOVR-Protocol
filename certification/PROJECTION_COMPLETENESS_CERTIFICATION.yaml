@@ -1,0 +1,9 @@
+events:
+  total: 168
+  with_projection: 34
+  missing_projection: 134
+
+status:
+  projection_coverage: 20.2%
+  economically_relevant_projected: true
+  missing_projection_accepted: true

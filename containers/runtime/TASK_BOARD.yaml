@@ -1,0 +1,14 @@
+status: pending
+pending_tasks:
+  - id: "runtime-001"
+    description: "Define aggregates"
+  - id: "runtime-002"
+    description: "Implement commands"
+  - id: "runtime-003"
+    description: "Emit events"
+  - id: "runtime-004"
+    description: "Implement projections"
+  - id: "runtime-005"
+    description: "Execute acceptance tests"
+in_progress_tasks: []
+completed_tasks: []

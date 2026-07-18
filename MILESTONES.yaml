@@ -1,0 +1,115 @@
+Milestone 0: Governance Layer
+Required Deliverables:
+  - management/GLOBAL_EXECUTION_PLAN.md
+  - management/PROJECT_CONTROL_BOARD.yaml
+  - management/AGENT_HANDOFF_PROTOCOL.md
+  - management/ARCHITECTURE_CONTROL_DOCUMENT.md
+  - governance/PROJECT_MANIFEST.yaml
+  - governance/PROJECT_TIMELINE.md
+  - governance/VERSION_HISTORY.md
+  - governance/COMPLETION_LEDGER.md
+  - governance/ACTIVE_WORK.yaml
+  - governance/BACKLOG.yaml
+  - governance/KNOWN_RISKS.md
+  - governance/DECISION_LOG.md
+  - governance/ARCHITECTURAL_DEBT.md
+  - PROJECT_STATE_MACHINE.md
+  - containers/ (all metadata)
+  - DEPENDENCY_GRAPH.yaml
+  - context/ (all context files)
+  - DOMAIN_STATUS_MATRIX.yaml
+  - DOMAIN_CONTRACT_MATRIX.md
+  - TRACEABILITY_MATRIX.md
+  - MILESTONES.yaml
+  - DRIFT_DETECTION.md
+  - REPOSITORY_INDEX.md
+  - ENGINEERING_DASHBOARD.md
+Dependencies: None
+Evidence: All files present
+Completion Gate: PROGRAM_GOVERNANCE_CERTIFICATION.md generated
+
+Milestone 1: Protocol Validation
+Required Deliverables:
+  - CAPABILITY_CERTIFICATION.md
+  - semantic-graph-v1.json
+Dependencies: M0
+Evidence: Certification documents present
+Completion Gate: Validation passed
+
+Milestone 2: Kernel Certification
+Required Deliverables:
+  - kernel/event-envelope
+  - kernel/identifiers
+  - kernel/timestamps
+  - kernel/cryptographic-primitives
+  - kernel/audit-structures
+  - kernel/validation-contracts
+  - kernel/error-standards
+  - KERNEL_CERTIFICATION.md
+Dependencies: M1
+Evidence: Kernel certification passed
+Completion Gate: All kernel tests passed, hashes stable
+
+Milestone 3: Domain Containerization
+Required Deliverables:
+  - All domain containers with implementation
+  - Domain certification documents
+Dependencies: M2
+Evidence: All domain certifications present
+Completion Gate: All acceptance tests passed
+
+Milestone 4: Compiler Realization
+Required Deliverables:
+  - OpenAPI schemas
+  - Database schemas
+  - Event definitions
+  - Command registry
+  - Projection models
+  - Test infrastructure
+  - Documentation
+Dependencies: M3
+Evidence: Compiler certification passed
+Completion Gate: Same input = same output = same hashes
+
+Milestone 5: Acceptance Certification
+Required Deliverables:
+  - All acceptance tests passed
+  - Test evidence package
+Dependencies: M4
+Evidence: Test results present
+Completion Gate: Zero critical failures
+
+Milestone 6: Integrated Runtime
+Required Deliverables:
+  - Integrated runtime
+  - Cross-domain integration tests
+Dependencies: M5
+Evidence: Integration tests passed
+Completion Gate: Runtime certification passed
+
+Milestone 7: Commercial Demonstration
+Required Deliverables:
+  - Demo environment
+  - Demo scenarios
+  - Performance benchmarks
+Dependencies: M6
+Evidence: Demo successful
+Completion Gate: Stakeholder approval
+
+Milestone 8: Release Candidate
+Required Deliverables:
+  - Release candidate package
+  - Compliance package
+  - Audit report
+Dependencies: M7
+Evidence: Release candidate passed all checks
+Completion Gate: Release approval
+
+Milestone 9: Production
+Required Deliverables:
+  - Production deployment
+  - Monitoring setup
+  - Support documentation
+Dependencies: M8
+Evidence: Production stable
+Completion Gate: Production certification passed

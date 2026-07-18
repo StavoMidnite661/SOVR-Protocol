@@ -1,0 +1,14 @@
+status: pending
+pending_tasks:
+  - id: "documentation-001"
+    description: "Define aggregates"
+  - id: "documentation-002"
+    description: "Implement commands"
+  - id: "documentation-003"
+    description: "Emit events"
+  - id: "documentation-004"
+    description: "Implement projections"
+  - id: "documentation-005"
+    description: "Execute acceptance tests"
+in_progress_tasks: []
+completed_tasks: []

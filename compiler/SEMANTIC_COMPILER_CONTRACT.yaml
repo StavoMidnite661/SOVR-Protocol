@@ -1,0 +1,183 @@
+# ============================================================
+# SOVR Financial OS — Semantic Compiler Contract
+# File: compiler/SEMANTIC_COMPILER_CONTRACT.yaml
+# Phase: 3.7 — Compiler Semantic Contract
+# Date: 2026-07-15
+# ============================================================
+# The compiler must never guess. This contract defines the
+# binding semantic guarantees of the SOVR Protocol Compiler:
+# what it consumes, how it validates, how it transforms, what
+# it generates, how it certifies, its failure modes, and its
+# determinism/repeatability/output guarantees.
+#
+# Authority: compiler.yaml (FROZEN) + 13_compiler-adr.yaml (FROZEN).
+# This contract consolidates and makes explicit the semantic
+# obligations; on divergence, the frozen specs prevail.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  contract_id: "semantic-compiler-contract"
+  status: GOVERNANCE_DRAFT
+  protocol_version: "1.0.0"
+  target_protocol_version: "1.0.1"
+  authority:
+    - compiler.yaml
+    - 13_compiler-adr.yaml
+  consumes_registries:
+    - protocol/DOMAIN_REGISTRY.yaml       # AMD-0004
+    - protocol/AGGREGATE_REGISTRY.yaml    # AMD-0002
+    - protocol/METADATA_STANDARD.yaml     # AMD-0010
+    - protocol/ACCEPTANCE_STANDARD.yaml   # AMD-0009 support
+    - compiler/VALIDATION_LANGUAGE_SPEC.md # AMD-0005
+  owner: compiler_engineer
+
+# ============================================================
+# 1. INPUT CONTRACT
+# ============================================================
+
+input:
+  sources:
+    protocol_yaml: [all root-level *.yaml, domains/*.yaml]
+    registries: [DOMAIN_REGISTRY, AGGREGATE_REGISTRY, METADATA_STANDARD, ACCEPTANCE_STANDARD]
+  preconditions:
+    - all_inputs_parse_as_valid_yaml            # AMD-0001
+    - every_file_has_conformant_meta_block      # AMD-0010
+    - every_domain_reference_resolves           # AMD-0004
+    - every_aggregate_root_declared             # AMD-0002
+  guarantees:
+    - compiler_reads_only            # never mutates protocol sources
+    - amendments_not_conversations   # compiler consumes files, never chat history
+  on_precondition_failure: ABORT_BEFORE_PARSE
+
+# ============================================================
+# 2. VALIDATION CONTRACT
+# ============================================================
+
+validation:
+  rules:
+    - ALL_ENTITY_REFERENCES_RESOLVE
+    - ALL_COMMAND_REFERENCES_RESOLVE      # AMD-0003
+    - ALL_EVENT_REFERENCES_RESOLVE        # AMD-0006
+    - ALL_CAPABILITY_REFERENCES_RESOLVE
+    - ALL_INVARIANT_REFERENCES_RESOLVE
+    - ALL_DOMAIN_REFERENCES_RESOLVE       # AMD-0004
+    - ALL_AGGREGATE_ROOTS_EXIST           # AMD-0002 / AMD-0007
+    - ALL_STATE_MACHINE_COVERAGE          # AMD-0009
+    - EVENT_ENVELOPE_COMPLETENESS
+    - COMMAND_GATES_COMPLETENESS
+    - ALL_CHECKS_CONFORM_TO_VEL           # AMD-0005
+    - METADATA_COMPLETENESS               # AMD-0010
+  guarantee: NO_SILENT_ACCEPTANCE
+  determinism: validation result is a pure function of the input set
+  on_failure: ABORT_WITH_VALIDATION_ERROR (fail-closed, list every violation)
+
+# ============================================================
+# 3. TRANSFORMATION CONTRACT
+# ============================================================
+
+transformation:
+  intermediate_representation:
+    name: SOVR_IR
+    properties:
+      - fully_resolved       # all references expanded
+      - typed                # every node carries a resolved type
+      - acyclic_dependency_graph
+      - content_addressable  # nodes hashed for caching
+  guarantees:
+    - no_inference           # every artifact derives from an explicit declaration
+    - one_to_one_traceability # each output node links to its source node(s)
+    - stable_symbol_names    # canonical IDs -> deterministic identifiers
+  on_failure: ABORT_WITH_RESOLUTION_ERROR
+
+# ============================================================
+# 4. GENERATION CONTRACT
+# ============================================================
+
+generation:
+  outputs:
+    - typescript_types
+    - validation_library         # from VEL
+    - command_classes
+    - event_classes
+    - aggregate_roots            # from AGGREGATE_REGISTRY
+    - projections
+    - fastify_routes
+    - openapi_spec
+    - prisma_models
+    - sql_migrations
+    - kafka_topics
+    - redis_streams
+    - workflow_definitions       # sagas (post AMD-0001/0003)
+    - policy_engine
+    - capability_engine
+    - test_skeletons             # from ACCEPTANCE_STANDARD
+    - documentation
+  guarantees:
+    - deterministic_output       # byte-identical for identical input + compiler version
+    - compile_check_pass         # TSC_NO_ERROR where declared
+    - idempotent_regeneration    # regenerating yields no diff
+  on_failure: ABORT_WITH_GENERATION_ERROR
+
+# ============================================================
+# 5. CERTIFICATION CONTRACT
+# ============================================================
+
+certification:
+  emits:
+    - edge_manifest              # closes finding G-07
+    - coverage_report            # acceptance test coverage
+    - traceability_matrix        # source -> output -> test
+    - artifact_count_validation
+    - deterministic_build_hash
+  guarantee: every generated artifact is traceable to constitutional intent
+  on_failure: REPORT_WARNINGS (non-fatal) unless coverage_target unmet -> FAIL
+
+# ============================================================
+# 6. FAILURE MODES
+# ============================================================
+
+failure_modes:
+  - stage: PARSE
+    trigger: invalid YAML / missing precondition
+    action: ABORT_WITH_PARSE_ERROR
+  - stage: VALIDATE
+    trigger: unresolved reference / VEL non-conformance / missing metadata
+    action: ABORT_WITH_VALIDATION_ERROR
+  - stage: RESOLVE
+    trigger: dependency cycle / unresolvable type
+    action: ABORT_WITH_RESOLUTION_ERROR
+  - stage: TRANSFORM/GENERATE
+    trigger: template error / IO error
+    action: ABORT_WITH_GENERATION_ERROR
+  - stage: VERIFY
+    trigger: TSC error / coverage below target
+    action: FAIL_BUILD
+  - principle: FAIL_CLOSED   # never emit partial/guessed artifacts on error
+
+# ============================================================
+# 7. DETERMINISM & REPEATABILITY
+# ============================================================
+
+determinism:
+  inputs_hashed: true
+  build_hash: sha256(sorted(source_files) + compiler_version + registry_versions)
+  guarantees:
+    - same_input_same_output
+    - order_independent_parsing
+    - no_wall_clock_or_random_in_generation
+repeatability:
+  reproducible_build: true
+  cache_keyed_by: content_hash
+  incremental: only nodes whose content hash changed are regenerated
+
+# ============================================================
+# 8. OUTPUT GUARANTEES
+# ============================================================
+
+output_guarantees:
+  - constitutional_fidelity: no output contradicts an invariant (INV-001..INV-010)
+  - completeness: every declared artifact class is generated or explicitly skipped with reason
+  - traceability: every file carries a header linking to source node + build hash
+  - no_orphans: no generated artifact lacks a source declaration
+  - versioned: outputs tagged with protocol_version + compiler_version

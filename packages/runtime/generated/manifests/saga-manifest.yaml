@@ -1,0 +1,16 @@
+{
+  "domain": "saga",
+  "buildId": "5678ed61edbc97e3",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "artifacts": [
+    {
+      "file": "state-machines/saga-state-machine.ts",
+      "hash": "0c54ef837a56a968"
+    },
+    {
+      "file": "events/saga-events.ts",
+      "hash": "258635fb025f161e"
+    }
+  ],
+  "sourceHash": "f45b5ca230607d54"
+}

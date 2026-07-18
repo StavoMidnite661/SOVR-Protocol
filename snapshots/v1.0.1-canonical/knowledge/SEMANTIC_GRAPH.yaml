@@ -1,0 +1,91 @@
+# ============================================================
+# SOVR Financial OS — Repository Semantic Graph
+# File: knowledge/SEMANTIC_GRAPH.yaml
+# Phase: 5.4 — Repository Semantic Graph
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no implementation)
+# ============================================================
+# The semantic graph is the compiler's reasoning model. It assigns
+# every relationship to a semantic category so the compiler can reason
+# about inheritance, composition, ownership, execution, validation,
+# certification, governance, compiler, runtime, and human documentation
+# without inference. Edges reuse the global identifiers from
+# IDENTITY_REGISTRY.yaml; a representative set is shown (the compiler
+# expands the full set at runtime from KNOWLEDGE_GRAPH.yaml).
+#
+# Authority: knowledge/ONTOLOGY.yaml, knowledge/KNOWLEDGE_GRAPH.yaml.
+# ============================================================
+
+semantic_graph:
+  schema_version: "1.0.0"
+  principle: THE_COMPILER_REASONS_ONLY_OVER_EXPLICIT_CONSTITUTIONAL_KNOWLEDGE
+  categories:
+    - Inheritance
+    - Composition
+    - Ownership
+    - Execution
+    - Validation
+    - Certification
+    - Governance
+    - Compiler
+    - Runtime
+    - HumanDocumentation
+
+  edges:
+
+    - category: Inheritance
+      edges:
+        - { id: SEM-INH-001, source: SOVR-AGG-000001, target: SOVR-DOM-000001, relationship: IsA, evidence: aggregate.domain }
+        - { id: SEM-INH-002, source: SOVR-ENT-000001, target: SOVR-DOM-000001, relationship: IsA, evidence: domain.entities }
+
+    - category: Composition
+      edges:
+        - { id: SEM-COMP-001, source: SOVR-AGG-000001, target: SOVR-ENT-000001, relationship: ComposedOf, evidence: aggregate.root_entity }
+        - { id: SEM-COMP-002, source: SOVR-SM-000001, target: SOVR-AGG-000001, relationship: Structures, evidence: aggregate.state_machine }
+
+    - category: Ownership
+      edges:
+        - { id: SEM-OWN-001, source: SOVR-AGG-000001, target: SOVR-CMD-000001, relationship: Owns, evidence: aggregate.owns_commands }
+        - { id: SEM-OWN-002, source: SOVR-AGG-000001, target: SOVR-EVT-000001, relationship: Owns, evidence: aggregate.owns_events }
+
+    - category: Execution
+      edges:
+        - { id: SEM-EXE-001, source: SOVR-CMD-000001, target: SOVR-EVT-000001, relationship: Produces, evidence: command.resulting_events }
+        - { id: SEM-EXE-002, source: SOVR-EVT-000001, target: SOVR-PRJ-000001, relationship: ConsumedBy, evidence: event.consumers }
+        - { id: SEM-EXE-003, source: SOVR-CMD-000023, target: SOVR-CAP-000000, relationship: Requires, evidence: command.authorization_requirements.capability }
+
+    - category: Validation
+      edges:
+        - { id: SEM-VAL-001, source: SOVR-INV-000001, target: SOVR-EVT-000001, relationship: Protects, evidence: INV-001 event_immutability }
+        - { id: SEM-VAL-002, source: SOVR-INV-000008, target: SOVR-CMD-000001, relationship: Gates, evidence: INV-008 command_execution_gates }
+        - { id: SEM-VAL-003, source: SOVR-POL-000067, target: SOVR-CMD-000001, relationship: Evaluates, evidence: command.authorization_requirements.policy }
+
+    - category: Certification
+      edges:
+        - { id: SEM-CERT-001, source: SOVR-PASS-000001, target: SOVR-PROT-000001, relationship: Certifies, evidence: DISCOVERY_PASS }
+        - { id: SEM-CERT-002, source: SOVR-AT-000001, target: SOVR-INV-000001, relationship: Verifies, evidence: acceptance-tests.invariant_tests }
+
+    - category: Governance
+      edges:
+        - { id: SEM-GOV-001, source: SOVR-AMD-000004, target: SOVR-DOM-000002, relationship: Affects, evidence: amendments.findings (G-05) }
+        - { id: SEM-GOV-002, source: SOVR-FND-000001, target: SOVR-AMD-000001, relationship: AddressedBy, evidence: findings->amendments }
+
+    - category: Compiler
+      edges:
+        - { id: SEM-CMP-001, source: SOVR-GEN-000001, target: SOVR-ENT-000001, relationship: Generates, evidence: generator.typescript -> src/types }
+        - { id: SEM-CMP-002, source: SOVR-PASS-000013, target: SOVR-PROT-000001, relationship: Transforms, evidence: IR_GENERATION }
+
+    - category: Runtime
+      edges:
+        - { id: SEM-RT-001, source: SOVR-AGG-000001, target: SOVR-REP-000001, relationship: PersistedBy, evidence: aggregate -> repository }
+        - { id: SEM-RT-002, source: SOVR-EVT-000001, target: SOVR-PRJ-000001, relationship: Updates, evidence: event -> projection }
+
+    - category: HumanDocumentation
+      edges:
+        - { id: SEM-DOC-001, source: SOVR-GEN-000004, target: SOVR-PROT-000001, relationship: Documents, evidence: generator.documentation }
+        - { id: SEM-DOC-002, source: SOVR-PASS-000020, target: SOVR-PROT-000001, relationship: Reports, evidence: COMPILER_REPORT }
+
+  note: >
+    The semantic graph is a typed view over KNOWLEDGE_GRAPH.yaml. The
+    compiler NEVER infers cross-category meaning; every edge is explicit
+    and evidence-backed. Categories let a query ask, e.g., "show all
+    Validation edges that Protect an Invariant" deterministically.

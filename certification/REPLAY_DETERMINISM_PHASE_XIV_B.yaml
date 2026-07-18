@@ -1,0 +1,32 @@
+algorithm: replay_determinism
+
+tests:
+  - name: 100 event replay
+    result: PASS
+    final_state: PENDING_FUNDING
+    hash_identical: true
+  - name: 1000 event replay
+    result: PASS
+    final_state: AUTHORIZED
+    hash_identical: true
+  - name: 10000 event replay
+    result: PASS
+    final_state: CLOSED
+    hash_identical: true
+  - name: parallel replay
+    result: PASS
+    final_state: AUTHORIZED
+    hash_identical: true
+  - name: corrupted event rejection
+    result: PASS
+    rejection_verified: true
+
+verification:
+  same_commands: true
+  same_constitution: true
+  same_events: true
+  same_final_state: true
+  same_hash: true
+
+status:
+  certified: true

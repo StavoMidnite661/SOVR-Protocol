@@ -1,0 +1,1662 @@
+# ============================================================
+# SOVR Financial OS — Event Reference Inventory
+# File: certification/EVENT_REFERENCE_INVENTORY.yaml
+# Status: PHASE XIV-E.1 TASK 1
+# ============================================================
+# Complete truth map of every event referenced across the
+# protocol specification. Maps:
+#   Command → Event → State Transition → Projection → Certification
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  generated_at: "2026-07-18"
+  status: DRAFT
+  phase: "XIV-E.1"
+  source_files:
+    - 04_event-catalog.yaml
+    - 05_state-machines.yaml
+    - 09_saga-orchestration.yaml
+    - projection-engine.yaml
+    - hybrid-boundary.yaml
+    - 03_command-catalog.yaml
+    - domains/vault.yaml
+
+events:
+
+  # ========================================================
+  # VAULT DOMAIN EVENTS
+  # ========================================================
+
+  vault.asset.registered:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - projection: risk_dashboard
+      - command: vault.asset.register
+      - domain_contract: vault_to_treasury
+      - domain_contract: vault_to_ledger
+      - domain_contract: vault_to_policy
+      - domain_contract: vault_to_payment
+
+  vault.asset.verified:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - command: vault.asset.verify
+      - saga: asset_registration_saga
+      - saga: asset_verification_saga
+
+  vault.asset.rejected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - projection: vault_holdings
+      - command: vault.asset.verify
+      - command: vault.asset.reject
+
+  vault.asset.impaired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - projection: risk_dashboard
+      - command: vault.valuation.update
+
+  vault.asset.write_down:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: portfolio
+      - projection: vault_holdings
+      - projection: risk_dashboard
+
+  vault.reserve.created:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - state_machine: vault_reservation_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - command: vault.reserve.create
+      - saga: cross_chain_settlement_saga
+
+  vault.reserve.locked:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - state_machine: vault_reservation_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - command: vault.reserve.lock
+
+  vault.reserve.released:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - state_machine: vault_reservation_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - command: vault.reserve.release
+
+  vault.reserve.expired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_reservation_lifecycle
+      - projection: vault_holdings
+      - projection: risk_dashboard
+      - command: vault.reserve.expire
+
+  vault.collateral.added:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_collateral_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - command: vault.collateral.add
+
+  vault.collateral.valued:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_collateral_lifecycle
+      - projection: portfolio
+      - command: vault.collateral.add
+
+  vault.collateral.revalued:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_collateral_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - command: vault.collateral.revalue
+
+  vault.collateral.released:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_collateral_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - command: vault.collateral.remove
+
+  vault.collateral.margin_call:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_collateral_lifecycle
+      - projection: vault_holdings
+      - projection: risk_dashboard
+      - command: vault.collateral.revalue
+
+  vault.collateral.liquidation_initiated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_collateral_lifecycle
+      - projection: vault_holdings
+      - projection: risk_dashboard
+
+  vault.custody.attested:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - projection: vault_holdings
+      - command: vault.asset.verify
+
+  vault.custody.proof_expired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: vault_holdings
+
+  vault.valuation.updated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - projection: portfolio
+      - projection: vault_holdings
+      - projection: risk_dashboard
+      - command: vault.valuation.update
+
+  vault.reconciliation.started:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: vault.asset.reconcile
+
+  vault.reconciliation.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - projection: vault_holdings
+      - command: vault.asset.reconcile
+      - saga: vault_reconciliation_saga
+
+  vault.reconciliation.discrepancy_found:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: vault_asset_lifecycle
+      - command: vault.asset.reconcile
+
+  vault.ownership.transferred:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: portfolio
+
+  # ========================================================
+  # LEDGER DOMAIN EVENTS
+  # ========================================================
+
+  ledger.journal.created:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: ledger.journal.create
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: delegated_execution_saga
+      - saga: asset_registration_saga
+      - saga: asset_verification_saga
+      - saga: identity_actor_onboarding_saga
+      - saga: delegation_setup_saga
+      - saga: payment_adapter_execution_saga
+      - saga: cross_chain_settlement_saga
+      - saga: oracle_reading_saga
+      - saga: vault_reconciliation_saga
+
+  ledger.entry.posted:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: ledger_journal_lifecycle
+      - projection: account_summary
+      - projection: vault_holdings
+      - command: ledger.entry.post
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: delegated_execution_saga
+      - saga: asset_registration_saga
+      - saga: asset_verification_saga
+      - saga: identity_actor_onboarding_saga
+      - saga: delegation_setup_saga
+      - saga: payment_adapter_execution_saga
+      - saga: cross_chain_settlement_saga
+      - saga: oracle_reading_saga
+      - saga: vault_reconciliation_saga
+
+  ledger.entry.rejected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: ledger_journal_lifecycle
+      - command: ledger.entry.post
+
+  ledger.entry.reversed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: ledger.entry.reverse
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: delegated_execution_saga
+
+  ledger.entry.corrected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: ledger.entry.correct
+      - saga: asset_verification_saga
+
+  ledger.account.created:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: ledger.account.create
+
+  ledger.account.frozen:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: ledger_account_lifecycle
+      - command: ledger.account.freeze
+
+  ledger.reconciliation.started:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: ledger.reconciliation.start
+
+  ledger.reconciliation.mismatch_detected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: ledger.reconciliation.start
+
+  ledger.reconciliation.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: ledger.reconciliation.resolve
+
+  ledger.period.closing:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: ledger.period.close
+
+  ledger.period.closed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: ledger.period.close
+
+  # ========================================================
+  # TREASURY DOMAIN EVENTS
+  # ========================================================
+
+  treasury.transfer.requested:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - projection: account_summary
+      - projection: treasury_dashboard
+      - command: treasury.transfer.request
+
+  treasury.transfer.authorized:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - projection: account_summary
+      - projection: treasury_dashboard
+      - command: treasury.transfer.authorize
+      - saga: internal_transfer_saga
+      - saga: external_transfer_saga
+
+  treasury.transfer.rejected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - projection: treasury_dashboard
+      - command: treasury.transfer.authorize
+      - command: treasury.transfer.cancel
+
+  treasury.transfer.reserved:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - command: treasury.transfer.reserve
+      - saga: internal_transfer_saga
+      - saga: external_transfer_saga
+
+  treasury.transfer.executing:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - projection: treasury_dashboard
+      - command: treasury.transfer.execute
+
+  treasury.transfer.settled:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - state_machine: vault_asset_lifecycle
+      - projection: account_summary
+      - projection: treasury_dashboard
+      - projection: liquidity_position
+      - command: treasury.transfer.execute
+      - command: treasury.settlement.confirm
+
+  treasury.transfer.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - projection: treasury_dashboard
+      - projection: liquidity_position
+      - command: treasury.transfer.execute
+      - command: treasury.transfer.cancel
+
+  treasury.transfer.expired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - command: treasury.transfer.request
+      - command: treasury.transfer.reserve
+
+  treasury.transfer.compensation_required:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - projection: treasury_dashboard
+      - command: treasury.transfer.compensate
+
+  treasury.liquidity.warning:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: account_summary
+      - projection: treasury_dashboard
+      - projection: risk_dashboard
+      - projection: liquidity_position
+      - command: treasury.liquidity.check
+
+  treasury.settlement.confirmed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - projection: liquidity_position
+      - command: treasury.settlement.confirm
+
+  # ========================================================
+  # IDENTITY DOMAIN EVENTS
+  # ========================================================
+
+  identity.actor.registered:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_actor_lifecycle
+      - command: identity.actor.register
+
+  identity.actor.verified:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_actor_lifecycle
+      - command: identity.actor.verify
+
+  identity.actor.suspended:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_actor_lifecycle
+      - command: identity.actor.suspend
+
+  identity.actor.revoked:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_actor_lifecycle
+      - command: identity.actor.revoke
+
+  identity.credential.issued:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_credential_lifecycle
+      - command: identity.credential.issue
+
+  identity.credential.expired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_credential_lifecycle
+
+  identity.credential.revoked:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_credential_lifecycle
+      - command: identity.credential.revoke
+
+  identity.session.created:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_session_lifecycle
+      - projection: identity_directory
+      - command: identity.session.create
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: delegated_execution_saga
+
+  identity.session.expired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_session_lifecycle
+      - projection: identity_directory
+
+  identity.session.terminated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_session_lifecycle
+      - projection: identity_directory
+      - command: identity.session.terminate
+
+  identity.delegation.created:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_delegation_lifecycle
+      - projection: identity_directory
+      - command: identity.delegation.create
+      - saga: delegation_setup_saga
+
+  identity.delegation.revoked:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_delegation_lifecycle
+      - projection: identity_directory
+      - command: identity.delegation.revoke
+
+  identity.delegation.expired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_delegation_lifecycle
+      - projection: identity_directory
+
+  identity.trust_anchor.registered:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: identity.trust_anchor.register
+
+  identity.authentication.succeeded:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: identity_session_lifecycle
+      - command: identity.session.create
+
+  identity.authentication.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: identity.session.create
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: delegated_execution_saga
+
+  identity.session.authentication_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  identity.delegation.limit_exceeded:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  # ========================================================
+  # POLICY DOMAIN EVENTS
+  # ========================================================
+
+  policy.rule.created:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: policy_rule_lifecycle
+      - command: policy.rule.create
+      - saga: policy_review_saga
+
+  policy.rule.updated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: policy.rule.update
+
+  policy.rule.activated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: policy_rule_lifecycle
+      - projection: policy_decisions
+      - command: policy.rule.activate
+      - saga: policy_review_saga
+
+  policy.rule.deactivated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: policy_rule_lifecycle
+      - projection: policy_decisions
+      - command: policy.rule.deactivate
+      - saga: policy_review_saga
+
+  policy.evaluation.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: policy_evaluation_lifecycle
+      - projection: policy_decisions
+      - projection: compliance_report
+      - command: policy.set.evaluate
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: delegated_execution_saga
+      - saga: policy_review_saga
+
+  policy.evaluation.denied:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: policy_decisions
+      - projection: compliance_report
+      - saga: delegated_execution_saga
+
+  policy.evaluation.escalated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: policy_evaluation_lifecycle
+      - projection: policy_decisions
+      - command: policy.set.evaluate
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: escalation_saga
+
+  policy.evaluation.deferred:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: policy_decisions
+
+  policy.escalation.created:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: policy_evaluation_lifecycle
+      - projection: policy_decisions
+      - projection: governance_dashboard
+      - saga: escalation_saga
+
+  policy.escalation.resolved:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: policy_evaluation_lifecycle
+      - projection: policy_decisions
+      - projection: governance_dashboard
+      - command: policy.escalation.resolve
+      - saga: escalation_saga
+      - saga: unknown_authority_saga
+
+  policy.compliance.requirement.registered:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: policy.compliance.requirement.register
+
+  policy.compliance.violation.detected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: compliance_report
+
+  policy.evaluation.active_operation_blocked:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: policy_review_saga
+
+  policy.escalation.expired:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: escalation_saga
+      - saga: unknown_authority_saga
+
+  # ========================================================
+  # INTENT DOMAIN EVENTS
+  # ========================================================
+
+  intent.received:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+      - projection: intent_queue
+      - command: intent.submit
+      - command: intent.multi_step.create
+
+  intent.enriching.started:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+      - projection: intent_queue
+      - command: intent.enrich
+
+  intent.enriching.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+      - projection: intent_queue
+      - command: intent.enrich
+
+  intent.enriching.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: intent_queue
+
+  intent.validation.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+      - projection: intent_queue
+      - command: intent.validate
+
+  intent.validated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+      - command: intent.validate
+
+  intent.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+      - projection: intent_queue
+
+  intent.cancelled:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+      - command: intent.cancel
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: delegated_execution_saga
+      - saga: escalation_saga
+
+  intent.converted_to_command:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+      - command: intent.convert_to_command
+
+  intent.archived:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+      - command: intent.archive
+
+  intent.expired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: intent_lifecycle
+
+  intent.multi_step.step_completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: intent_queue
+      - command: intent.multi_step.advance
+
+  intent.multi_step.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: intent_queue
+
+  intent.multi_step.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: intent_queue
+
+  intent.rejected:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: human_execution_saga
+
+  intent.validation_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: delegated_execution_saga
+
+  intent.submitted:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: human_execution_saga
+      - saga: ai_execution_saga
+      - saga: delegated_execution_saga
+
+  intent.resumed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: escalation_saga
+
+  # ========================================================
+  # AGENT DOMAIN EVENTS
+  # ========================================================
+
+  agent.registration.submitted:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: agent.register
+
+  agent.registration.approved:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: agent_activity
+
+  agent.registration.rejected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: agent.register
+
+  agent.activated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: agent_lifecycle
+      - command: agent.activate
+
+  agent.execution.started:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: agent_execution_lifecycle
+      - projection: agent_activity
+      - command: agent.execution.execute
+      - saga: ai_execution_saga
+
+  agent.execution.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: agent_execution_lifecycle
+      - projection: agent_activity
+      - projection: governance_dashboard
+      - command: agent.execution.execute
+      - saga: ai_execution_saga
+
+  agent.execution.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: agent_execution_lifecycle
+      - projection: agent_activity
+      - command: agent.execution.execute
+      - saga: ai_execution_saga
+
+  agent.execution.escalated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: agent_execution_lifecycle
+      - projection: agent_activity
+      - projection: governance_dashboard
+      - projection: compliance_report
+
+  agent.capability.bound:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: agent_activity
+      - command: agent.capability.bind
+      - saga: delegation_setup_saga
+
+  agent.capability.revoked:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: agent_activity
+      - command: agent.capability.revoke
+
+  agent.suspended:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: agent_lifecycle
+      - command: agent.governance.override
+
+  agent.terminated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: agent_lifecycle
+      - command: agent.terminate
+
+  agent.governance.override.issued:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: agent.governance.override
+
+  agent.quota.exceeded:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: agent_activity
+      - projection: compliance_report
+      - saga: ai_execution_saga
+
+  agent.concurrency.limit_reached:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: agent_activity
+
+  agent.quota.checked:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: ai_execution_saga
+
+  # ========================================================
+  # PAYMENT DOMAIN EVENTS
+  # ========================================================
+
+  payment.request.created:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - command: payment.request.create
+
+  payment.request.cancelled:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - command: payment.request.cancel
+
+  payment.execution.planned:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - state_machine: payment_request_lifecycle
+      - command: payment.execution.plan
+
+  payment.execution.started:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - state_machine: payment_request_lifecycle
+      - command: payment.execution.execute
+
+  payment.execution.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - state_machine: payment_request_lifecycle
+      - projection: settlement_summary
+      - command: payment.execution.confirm
+
+  payment.execution.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - state_machine: payment_request_lifecycle
+      - command: payment.execution.execute
+
+  payment.rail.prepared:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - state_machine: payment_request_lifecycle
+
+  payment.rail.executed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - state_machine: payment_request_lifecycle
+
+  payment.rail.confirmed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - projection: settlement_summary
+      - state_machine: payment_request_lifecycle
+      - state_machine: vault_asset_lifecycle
+      - command: payment.execution.confirm
+
+  payment.rail.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - projection: settlement_summary
+      - state_machine: payment_request_lifecycle
+      - command: payment.execution.confirm
+
+  payment.reconciliation.started:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - command: payment.reconciliation.start
+
+  payment.reconciliation.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - projection: settlement_summary
+      - state_machine: payment_request_lifecycle
+      - command: payment.reconciliation.complete
+
+  payment.reconciliation.discrepancy:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - projection: settlement_summary
+      - projection: governance_dashboard
+      - projection: compliance_report
+
+  payment.receipt.issued:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - command: payment.receipt.issue
+      - saga: external_transfer_saga
+      - saga: payment_adapter_execution_saga
+
+  payment.compensation.started:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - command: payment.execution.compensate
+
+  payment.compensation.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: payment_status
+      - state_machine: payment_request_lifecycle
+      - command: payment.execution.compensate
+
+  payment.execution.planning_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.execution.start_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.execution.settled:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.execution.confirmation_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.rail.preparing:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.rail.executing:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.rail.confirming:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.rail.validating:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.rail.validated:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.rail.prepare_timed_out:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.rail.execution_timed_out:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.rail.confirmation_timed_out:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.rail.validation_timed_out:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.reconciliation.start_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.reconciliation.timed_out:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.reconciliation.completion_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.compensation.start_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.compensation.timed_out:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.receipt.issuance_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.settlement.confirmed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.settlement.completed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.settlement.failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.request.creation_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  payment.request.cancellation_failed:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  # ========================================================
+  # GOVERNANCE DOMAIN EVENTS
+  # ========================================================
+
+  governance.proposal.submitted:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: governance_proposal_lifecycle
+      - command: governance.proposal.submit
+
+  governance.proposal.approved:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: governance_proposal_lifecycle
+      - command: governance.proposal.approve
+
+  governance.proposal.rejected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: governance_proposal_lifecycle
+      - command: governance.proposal.reject
+
+  governance.proposal.cancelled:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: governance_proposal_lifecycle
+
+  governance.proposal.expired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: governance_proposal_lifecycle
+
+  governance.proposal.implemented:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: governance_proposal_lifecycle
+
+  governance.amendment.proposed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: governance.amend.propose
+
+  governance.amendment.ratified:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: governance.amend.ratify
+
+  governance.emergency_halt.issued:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: system_health_lifecycle
+      - command: governance.emergency.halt
+
+  governance.emergency_halt.lifted:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: system_health_lifecycle
+      - command: governance.emergency.lift
+
+  governance.audit.queried:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: governance.audit.query
+
+  governance.oversight.reviewed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: governance.oversight.review
+
+  governance.capability.granted:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: governance.capability.grant
+
+  governance.capability.revoked:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: governance.capability.revoke
+
+  governance.escalation.submitted:
+    declared: true
+    emitted: true
+    referenced_by:
+      - saga: unknown_authority_saga
+
+  governance.escalation.resolved:
+    declared: true
+    emitted: true
+    referenced_by:
+      - saga: escalation_saga
+      - saga: unknown_authority_saga
+
+  governance.escalation.expired:
+    declared: true
+    emitted: true
+    referenced_by:
+      - saga: escalation_saga
+      - saga: unknown_authority_saga
+
+  governance.policy_rule.review_requested:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: governance.policy_rule.review
+      - saga: policy_review_saga
+
+  governance.policy_rule.activated.notification.sent:
+    declared: true
+    emitted: true
+    referenced_by:
+      - saga: policy_review_saga
+
+  governance.escalation.submission_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: unknown_authority_saga
+
+  # ========================================================
+  # KERNEL / SAGA EVENTS
+  # ========================================================
+
+  saga.started:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: saga_lifecycle
+
+  saga.completed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: saga_lifecycle
+      - saga: human_execution_saga
+
+  saga.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: saga_lifecycle
+
+  saga.compensating:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: saga_lifecycle
+
+  saga.compensated:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: saga_lifecycle
+
+  # ========================================================
+  # SYSTEM HEALTH EVENTS
+  # ========================================================
+
+  system.health.degraded:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: system_health_lifecycle
+
+  system.health.restored:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: system_health_lifecycle
+
+  system.health.unknown:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: system_health_lifecycle
+
+  system.health.halted:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: system_health_lifecycle
+
+  # ========================================================
+  # HYBRID DOMAIN EVENTS
+  # ========================================================
+
+  hybrid.chain.registered:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: hybrid.chain.register
+
+  hybrid.chain.deregistered:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: hybrid.chain.deregister
+
+  hybrid.chain.block.confirmed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: settlement_summary
+
+  hybrid.reorg.detected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: governance_dashboard
+
+  hybrid.reorg.rollback_initiated:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  hybrid.reorg.resolved:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: governance_dashboard
+
+  hybrid.oracle.price.fetched:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: hybrid.oracle.price.fetch
+
+  hybrid.oracle.price.stale:
+    declared: true
+    emitted: true
+    referenced_by: []
+
+  hybrid.oracle.attestation.verified:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: hybrid.oracle.attestation.verify
+
+  hybrid.oracle.attestation.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - command: hybrid.oracle.attestation.verify
+
+  hybrid.settlement.on_chain.confirmed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: settlement_summary
+      - command: hybrid.settlement.verify
+
+  hybrid.settlement.on_chain.failed:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: settlement_summary
+      - command: hybrid.settlement.verify
+
+  hybrid.fork.detected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: governance_dashboard
+
+  hybrid.fork.resolved:
+    declared: true
+    emitted: true
+    referenced_by:
+      - projection: governance_dashboard
+
+  # ========================================================
+  # MISSING / UNDECLARED EVENT REFERENCES
+  # ========================================================
+  # These events are referenced by state machines, sagas,
+  # projections, or commands but are NOT declared in
+  # 04_event-catalog.yaml.
+
+  vault.reserve.creation_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - state_machine: vault_reservation_lifecycle
+      - command: vault.reserve.create
+
+  vault.collateral.addition_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - state_machine: vault_collateral_lifecycle
+      - command: vault.collateral.add
+
+  vault.collateral.revaluation_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - command: vault.collateral.revalue
+
+  vault.valuation.update_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - command: vault.valuation.update
+
+  vault.reconciliation.failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - command: vault.asset.reconcile
+
+  ledger.journal.creation_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - command: ledger.journal.create
+
+  ledger.entry.reversal_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - command: ledger.entry.reverse
+
+  ledger.account.creation_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - command: ledger.account.create
+
+  treasury.transfer.rejected:
+    declared: true
+    emitted: true
+    referenced_by:
+      - state_machine: treasury_transfer_lifecycle
+      - command: treasury.transfer.authorize
+      - command: treasury.transfer.cancel
+
+  identity.delegation.verified:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: delegated_execution_saga
+
+  identity.authority.unknown:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: unknown_authority_saga
+
+  identity.authority.flagged_unknown:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: unknown_authority_saga
+
+  identity.authority.allowed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: unknown_authority_saga
+
+  identity.authority.denied:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: unknown_authority_saga
+
+  identity.authority.marked_unknown:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: unknown_authority_saga
+
+  identity.authority.determination.notification.sent:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: unknown_authority_saga
+
+  agent.quota.checked:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: ai_execution_saga
+
+  escalation.notification.sent:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: escalation_saga
+
+  escalation.notification.failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: escalation_saga
+
+  escalation.resolution.notification.sent:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: escalation_saga
+
+  policy.rule.creation_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: policy_review_saga
+
+  policy.rule.activation_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: policy_review_saga
+
+  policy.escalation.cancel:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: escalation_saga
+
+  governance.escalation.submission_failed:
+    declared: false
+    emitted: false
+    referenced_by:
+      - saga: unknown_authority_saga
+
+  vault_to_treasury:
+    declared: false
+    emitted: false
+    referenced_by:
+      - domain_contract: vault_to_treasury
+
+  vault_to_ledger:
+    declared: false
+    emitted: false
+    referenced_by:
+      - domain_contract: vault_to_ledger
+
+  vault_to_policy:
+    declared: false
+    emitted: false
+    referenced_by:
+      - domain_contract: vault_to_policy
+
+  vault_to_payment:
+    declared: false
+    emitted: false
+    referenced_by:
+      - domain_contract: vault_to_payment

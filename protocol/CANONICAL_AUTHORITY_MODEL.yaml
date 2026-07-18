@@ -1,0 +1,84 @@
+# ============================================================
+# SOVR Financial OS — Canonical Authority Model
+# File: protocol/CANONICAL_AUTHORITY_MODEL.yaml
+# Phase: VI.5 — Protocol Canonicalization Plan
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no protocol edits)
+# ============================================================
+# Establishes a single authority hierarchy so conflicts between
+# artifacts resolve deterministically. This is the tie-breaker
+# constitution for the repository.
+#
+# Authority: 01_constitution.yaml, governance/amendments/INDEX.yaml,
+# protocol/DOMAIN_REGISTRY.yaml (authoritative_on: AMD-0004), etc.
+# ============================================================
+
+canonical_authority_model:
+  schema_version: "1.0.0"
+  principle: ONE_AUTHORITY_HIERARCHY_NO_CONFLICT_WITHOUT_RESOLUTION
+
+  hierarchy:
+    - level: 1
+      name: Constitutional Protocol
+      artifacts: [01_constitution.yaml, 00_protocol-manifest.yaml]
+      wins_over: everything
+      role: immutable constitutional truth (INV-001..010, authority model)
+    - level: 2
+      name: Ratified Amendments
+      artifacts: [governance/amendments/AMD-*.md (status: RATIFIED)]
+      wins_over: base protocol where they conflict, only after ratification
+      role: authorized evolution of the protocol
+    - level: 3
+      name: Canonical Registries
+      artifacts: [protocol/DOMAIN_REGISTRY.yaml, protocol/AGGREGATE_REGISTRY.yaml,
+                  protocol/METADATA_STANDARD.yaml, protocol/ACCEPTANCE_STANDARD.yaml,
+                  knowledge/IDENTITY_REGISTRY.yaml, knowledge/KNOWLEDGE_GRAPH.yaml]
+      wins_over: ad-hoc domain files / scattered declarations
+      role: authoritative enumerations and resolution
+      notes:
+        - DOMAIN_REGISTRY authoritative_on: AMD-0004 (domain resolution)
+        - AGGREGATE_REGISTRY authoritative_on: AMD-0002 (aggregate roots)
+    - level: 4
+      name: Compiler Contracts
+      artifacts: [compiler.yaml, 13_compiler-adr.yaml, compiler/SEMANTIC_COMPILER_CONTRACT.yaml,
+                  compiler/PASS_REGISTRY.yaml, compiler/GENERATOR_REGISTRY.yaml]
+      wins_over: generated output and documentation
+      role: deterministic interpreter specification
+    - level: 5
+      name: Generated Artifacts
+      artifacts: [src/**, schemas/**, openapi.yaml, tests/**, sdk/**]
+      wins_over: nothing (derived)
+      role: produced by compiler from levels 1-4
+    - level: 6
+      name: Documentation
+      artifacts: ["docs/**", "*.md design docs"]
+      wins_over: nothing (derived, descriptive)
+      role: human-readable description; never source of truth
+    - level: 7
+      name: Dashboards
+      artifacts: [management/CONSTITUTIONAL_DASHBOARD.yaml, management/COMPILER_STATUS.yaml]
+      wins_over: nothing (derived, operational)
+      role: status visibility
+
+  conflict_resolution:
+    - rule: LOWER_NUMBER_WINS (higher level yields to lower)
+    - rule: RATIFIED_AMENDMENT_OVERRIDES_BASE_ONLY_WHEN_EFFECTIVE
+    - rule: REGISTRY_OVERRIDES_SCATTERED_DECLARATION
+    - rule: COMPILER_CONTRACT_OVERRIDES_DOCUMENTATION
+    - rule: BUILD_MANIFEST_HASH is ground truth for a specific build
+    - tie_breaker: when two same-level artifacts conflict, the one with the
+        higher protocol_version + explicit authoritative_on wins
+
+  authority_assertions:
+    - every domain reference resolves via DOMAIN_REGISTRY (AMD-0004)
+    - every aggregate root resolves via AGGREGATE_REGISTRY (AMD-0002)
+    - every metadata field conforms to METADATA_STANDARD (AMD-0010)
+    - compiler behavior is governed solely by compiler contracts, not docs
+    - no generated artifact may contradict an invariant (INV-001..010)
+
+  status:
+    hierarchy_established: true
+    registries_present: true
+    note: >
+      Authority hierarchy is formally defined. Its enforcement becomes active
+      once amendments are RATIFIED/APPLIED (level 2 populated). Until then,
+      base protocol (level 1) and current registries (level 3) govern.

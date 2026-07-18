@@ -1,0 +1,184 @@
+# ============================================================
+# SOVR Financial OS — Constitutional Metadata Standard
+# File: protocol/METADATA_STANDARD.yaml
+# Phase: 3.8 — Constitutional Metadata Standard
+# Date: 2026-07-15
+# Ratified by: AMD-0010 (PROPOSED)
+# ============================================================
+# Defines the mandatory and optional metadata every protocol
+# artifact/file must expose, plus naming, versioning, ownership,
+# validation, and compiler enforcement rules. Resolves findings
+# G-11 (no owner), G-12 (no lifecycle dates), G-13 (inconsistent
+# meta scheme).
+#
+# Status: GOVERNANCE_DRAFT — authoritative on AMD-0010 RATIFIED.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  standard_id: "metadata-standard"
+  status: GOVERNANCE_DRAFT
+  protocol_version: "1.0.0"
+  target_protocol_version: "1.0.1"
+  authoritative_on: AMD-0010
+  owner: release_manager
+
+# ============================================================
+# MANDATORY FIELDS (every protocol file's meta: block)
+# ============================================================
+
+mandatory_fields:
+  id:
+    type: string
+    rule: unique file identifier (kebab or snake); stable across versions
+  name:
+    type: string
+    rule: human-readable artifact name
+  version:
+    type: semver
+    rule: artifact version; bumped on any ratified change
+  domain:
+    type: string
+    rule: must resolve via protocol/DOMAIN_REGISTRY.yaml; use 'protocol' for cross-domain files
+  owner:
+    type: string
+    rule: governance role or agent; must exist in ownership_roles below
+  status:
+    type: enum
+    values: [DRAFT, PROPOSED, FROZEN, DEPRECATED]
+  introduced:
+    type: date
+    rule: ISO-8601 date the artifact first entered the protocol
+  modified:
+    type: date
+    rule: ISO-8601 date of last ratified change
+  constitutional_reference:
+    type: list
+    rule: invariant IDs / constitutional articles this artifact upholds
+  dependencies:
+    type: list
+    rule: file-level dependencies (layer/registry references)
+
+# ============================================================
+# OPTIONAL FIELDS
+# ============================================================
+
+optional_fields:
+  build_phase: {type: string}
+  schema_version: {type: semver}
+  supersedes: {type: list}
+  deprecation_note: {type: string}
+  compiler_hints: {type: map}
+
+# ============================================================
+# OWNERSHIP ROLES (authoritative set for `owner`)
+# ============================================================
+
+ownership_roles:
+  - chief_architect
+  - release_manager
+  - governance_secretary
+  - kernel_engineer
+  - compiler_engineer
+  - documentation_agent
+  - vault-agent
+  - ledger-agent
+  - treasury-agent
+  - payment-agent
+  - identity-agent
+  - policy-agent
+  - intent-agent
+  - agent-runtime-agent
+  - governance-agent
+
+# ============================================================
+# NAMING RULES
+# ============================================================
+
+naming_rules:
+  file_id: snake_case or kebab-case, unique
+  artifact_ids:
+    commands: "domain.aggregate.action"
+    events: "domain.aggregate.action_past_tense"
+    capabilities: "domain.resource.action"
+    entities: "domain.entity"
+    state_machines: "domain_aggregate_lifecycle"
+    contracts: "source_to_target"
+    invariants: "INV-0NN"
+    acceptance_tests: "CATEGORY-...-T0NN"
+  consistency:
+    - capabilities SHOULD be 3-segment (resolve 2-segment forms over time)
+    - sagas SHOULD adopt domain prefixes where a single owning domain exists
+
+# ============================================================
+# VERSIONING RULES
+# ============================================================
+
+versioning_rules:
+  scheme: semver
+  bump:
+    patch: editorial / non-semantic (e.g. metadata, docs)
+    minor: additive artifacts (new commands/events/capabilities)
+    major: breaking constitutional change
+  freeze: version is frozen when status == FROZEN; change requires an amendment
+  protocol_alignment: file versions must be <= protocol version
+
+# ============================================================
+# OWNERSHIP RULES
+# ============================================================
+
+ownership_rules:
+  - every artifact has exactly one owner
+  - owner must be in ownership_roles
+  - domain artifacts owned by the domain agent; cross-domain by chief_architect
+  - governance/management artifacts owned by release_manager or governance_secretary
+
+# ============================================================
+# EXAMPLE (conformant meta block)
+# ============================================================
+
+example:
+  meta:
+    id: command-catalog
+    name: SOVR Command Catalog
+    version: "1.0.1"
+    domain: protocol
+    owner: chief_architect
+    status: FROZEN
+    introduced: "2026-01-15"
+    modified: "2026-07-15"
+    constitutional_reference: [INV-008, INV-003]
+    dependencies: [domain-model, security-capabilities]
+
+# ============================================================
+# VALIDATION RULES (compiler enforcement)
+# ============================================================
+
+validation_rules:
+  - rule: META_BLOCK_PRESENT
+    check: "every protocol file has a top-level meta: block"
+    on_failure: REJECT
+  - rule: MANDATORY_FIELDS_PRESENT
+    check: all mandatory_fields present and non-empty
+    on_failure: REJECT
+  - rule: OWNER_RESOLVES
+    check: owner in ownership_roles
+    on_failure: REJECT
+  - rule: DOMAIN_RESOLVES
+    check: domain resolves via DOMAIN_REGISTRY
+    on_failure: REJECT
+  - rule: DATES_VALID
+    check: introduced/modified are valid ISO-8601 and introduced <= modified
+    on_failure: REJECT
+  - rule: VERSION_ALIGNED
+    check: file version <= protocol version
+    on_failure: REJECT
+
+# ============================================================
+# COMPILER ENFORCEMENT
+# ============================================================
+
+compiler_enforcement:
+  stage: VALIDATE
+  action_on_violation: ABORT_WITH_VALIDATION_ERROR
+  emits: metadata_compliance_report

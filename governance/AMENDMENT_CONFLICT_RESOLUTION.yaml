@@ -1,0 +1,97 @@
+conflicts:
+
+  # ------------------------------------------------------------
+  # CONFLICT-001: AMD-0003 vs AMD-0004 — Saga Domain Boundary
+  # ------------------------------------------------------------
+  - conflict_id: CONFLICT-001
+
+    amendments: [AMD-0003, AMD-0004]
+
+    conflict_type: domain_boundary_overlap
+
+    resolution: AMD-0004 supersedes AMD-0003 for domain classification
+
+    rationale: >
+      AMD-0003 resolves saga command references; AMD-0004 establishes the
+      canonical domain registry. Saga orchestrations are cross-domain by
+      constitutional definition (orchestration across aggregate boundaries).
+      AMD-0004's domain classification takes precedence; AMD-0003 applies
+      command resolution within AMD-0004's canonical domain framework.
+
+    authority_reference: governance/amendments/INDEX.yaml application_sequence
+
+  # ------------------------------------------------------------
+  # CONFLICT-002: AMD-0006 vs AMD-0007 — Event-Entity Ownership
+  # ------------------------------------------------------------
+  - conflict_id: CONFLICT-002
+
+    amendments: [AMD-0006, AMD-0007]
+
+    conflict_type: ownership_conflict
+
+    resolution: AMD-0007 supersedes AMD-0006 for entity-event ownership
+
+    rationale: >
+      AMD-0006 registers events in the canonical event catalog; AMD-0007
+      reconciles entity registrations. Some events are entity-lifecycle
+      events. Entity ownership (AMD-0007) is the primary classification;
+      event catalog (AMD-0006) references entity owner as a metadata field.
+
+    authority_reference: protocol/AGGREGATE_REGISTRY.yaml ownership rules
+
+  # ------------------------------------------------------------
+  # CONFLICT-003: AMD-0008 vs AMD-0010 — Metadata on Value Objects
+  # ------------------------------------------------------------
+  - conflict_id: CONFLICT-003
+
+    amendments: [AMD-0008, AMD-0010]
+
+    conflict_type: metadata_requirement_conflict
+
+    resolution: AMD-0010 supersedes AMD-0008 for metadata fields
+
+    rationale: >
+      AMD-0008 defines value objects; AMD-0010 mandates metadata fields on
+      all protocol objects. Value objects, as protocol objects, must carry
+      the 10 mandatory metadata fields. AMD-0010's requirement is additive
+      and does not conflict with AMD-0008's value object model.
+
+    authority_reference: protocol/METADATA_STANDARD.yaml scope
+
+  # ------------------------------------------------------------
+  # CONFLICT-004: AMD-0011 vs AMD-0001 — Domain File Structure + YAML Repair
+  # ------------------------------------------------------------
+  - conflict_id: CONFLICT-004
+
+    amendments: [AMD-0001, AMD-0011]
+
+    conflict_type: structural_ordering_conflict
+
+    resolution: AMD-0001 applied first, then AMD-0011
+
+    rationale: >
+      AMD-0001 repairs invalid YAML in domain files (vault, treasury).
+      AMD-0011 normalizes domain file structure. AMD-0001 must complete
+      first so AMD-0011 operates on valid YAML. Application sequence
+      enforces this ordering.
+
+    authority_reference: governance/amendments/INDEX.yaml application_sequence
+
+  # ------------------------------------------------------------
+  # CONFLICT-005: AMD-0005 vs AMD-0010 — Validation Expression Metadata
+  # ------------------------------------------------------------
+  - conflict_id: CONFLICT-005
+
+    amendments: [AMD-0005, AMD-0010]
+
+    conflict_type: specification_scope_conflict
+
+    resolution: AMD-0005 defines VEL grammar; AMD-0010 enforces metadata on VEL expressions
+
+    rationale: >
+      AMD-0005 specifies the validation expression language; AMD-0010
+      mandates metadata fields. VEL expressions are protocol objects and
+      must carry metadata. AMD-0010's requirement is additive and applies
+      after AMD-0005 grammar is stable.
+
+    authority_reference: compiler/VALIDATION_LANGUAGE_SPEC.md + protocol/METADATA_STANDARD.yaml

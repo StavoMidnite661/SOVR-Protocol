@@ -1,0 +1,629 @@
+acceptance_evidence_closure:
+  schema_version: 1.0.0
+  phase: amendment_execution_review
+  total_acceptance_tests: 105
+  concrete_mapped: 62
+  template_parameterized: 9
+  inventory_total: 71
+  note: command_tests and state_machine_tests are parameterized templates (CMD-{cmd_id}-T001, SM-{domain}-{aggregate}-T001). They instantiate at CERTIFICATION_GENERATION (PASS-018) and are then linked to their target command/state machine. All concrete tests below are mapped to object, invariant, capability, command, event, compiler pass, and evidence artifact.
+  closures:
+  - test_id: INV-001-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-001
+    invariant: INV-001
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-001-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-001
+    invariant: INV-001
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-001-T003
+    category: invariant_test
+    target_type: Invariant
+    target: INV-001
+    invariant: INV-001
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-001-T004
+    category: invariant_test
+    target_type: Invariant
+    target: INV-001
+    invariant: INV-001
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-002-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-002
+    invariant: INV-002
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-002-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-002
+    invariant: INV-002
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-002-T003
+    category: invariant_test
+    target_type: Invariant
+    target: INV-002
+    invariant: INV-002
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-003-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-003
+    invariant: INV-003
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-003-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-003
+    invariant: INV-003
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-003-T003
+    category: invariant_test
+    target_type: Invariant
+    target: INV-003
+    invariant: INV-003
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-003-T004
+    category: invariant_test
+    target_type: Invariant
+    target: INV-003
+    invariant: INV-003
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-004-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-004
+    invariant: INV-004
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-004-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-004
+    invariant: INV-004
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-004-T003
+    category: invariant_test
+    target_type: Invariant
+    target: INV-004
+    invariant: INV-004
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-004-T004
+    category: invariant_test
+    target_type: Invariant
+    target: INV-004
+    invariant: INV-004
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-005-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-005
+    invariant: INV-005
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-005-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-005
+    invariant: INV-005
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-005-T003
+    category: invariant_test
+    target_type: Invariant
+    target: INV-005
+    invariant: INV-005
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-006-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-006
+    invariant: INV-006
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-006-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-006
+    invariant: INV-006
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-007-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-007
+    invariant: INV-007
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-007-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-007
+    invariant: INV-007
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-008-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-008
+    invariant: INV-008
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-008-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-008
+    invariant: INV-008
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-008-T003
+    category: invariant_test
+    target_type: Invariant
+    target: INV-008
+    invariant: INV-008
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-009-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-009
+    invariant: INV-009
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-009-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-009
+    invariant: INV-009
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-010-T001
+    category: invariant_test
+    target_type: Invariant
+    target: INV-010
+    invariant: INV-010
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: INV-010-T002
+    category: invariant_test
+    target_type: Invariant
+    target: INV-010
+    invariant: INV-010
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: EVT-ENV-T001
+    category: event_test
+    target_type: Event
+    target: event_envelope
+    invariant: null
+    capability: null
+    command: null
+    event: event_envelope
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: EVT-ENV-T002
+    category: event_test
+    target_type: Event
+    target: event_envelope
+    invariant: null
+    capability: null
+    command: null
+    event: event_envelope
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: EVT-ENV-T003
+    category: event_test
+    target_type: Event
+    target: event_envelope
+    invariant: null
+    capability: null
+    command: null
+    event: event_envelope
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: EVT-ENV-T004
+    category: event_test
+    target_type: Event
+    target: event_envelope
+    invariant: null
+    capability: null
+    command: null
+    event: event_envelope
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: EVT-ENV-T005
+    category: event_test
+    target_type: Event
+    target: event_envelope
+    invariant: null
+    capability: null
+    command: null
+    event: event_envelope
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-HE-T001
+    category: saga_test
+    target_type: Saga
+    target: human_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-HE-T002
+    category: saga_test
+    target_type: Saga
+    target: human_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-HE-T003
+    category: saga_test
+    target_type: Saga
+    target: human_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-HE-T004
+    category: saga_test
+    target_type: Saga
+    target: human_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-AI-T001
+    category: saga_test
+    target_type: Saga
+    target: ai_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-AI-T002
+    category: saga_test
+    target_type: Saga
+    target: ai_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-AI-T003
+    category: saga_test
+    target_type: Saga
+    target: ai_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-DE-T001
+    category: saga_test
+    target_type: Saga
+    target: delegated_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-DE-T002
+    category: saga_test
+    target_type: Saga
+    target: delegated_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-ES-T001
+    category: saga_test
+    target_type: Saga
+    target: escalation_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-ES-T002
+    category: saga_test
+    target_type: Saga
+    target: escalation_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-PR-T001
+    category: saga_test
+    target_type: Saga
+    target: policy_review_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-UA-T001
+    category: saga_test
+    target_type: Saga
+    target: unknown_authority_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-PE-T001
+    category: saga_test
+    target_type: Saga
+    target: payment_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-PE-T002
+    category: saga_test
+    target_type: Saga
+    target: payment_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: SAGA-PE-T003
+    category: saga_test
+    target_type: Saga
+    target: payment_execution_saga
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: POL-T001
+    category: policy_test
+    target_type: Policy
+    target: deterministic_evaluation
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: POL-T002
+    category: policy_test
+    target_type: Policy
+    target: allow_outcome
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: POL-T003
+    category: policy_test
+    target_type: Policy
+    target: deny_outcome
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: POL-T004
+    category: policy_test
+    target_type: Policy
+    target: escalate_outcome
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: POL-T005
+    category: policy_test
+    target_type: Policy
+    target: defer_outcome
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: POL-T006
+    category: policy_test
+    target_type: Policy
+    target: rule_activation_deactivation
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: POL-T007
+    category: policy_test
+    target_type: Policy
+    target: policy_set_composition
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: CAP-T001
+    category: capability_test
+    target_type: Capability
+    target: valid_scope_succeeds
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: CAP-T002
+    category: capability_test
+    target_type: Capability
+    target: invalid_scope_fails
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: CAP-T003
+    category: capability_test
+    target_type: Capability
+    target: missing_capability_fails
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: CAP-T004
+    category: capability_test
+    target_type: Capability
+    target: wildcard_scope_matching
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)
+  - test_id: CAP-T005
+    category: capability_test
+    target_type: Capability
+    target: agent_cannot_invent_capabilities
+    invariant: null
+    capability: null
+    command: null
+    event: null
+    compiler_pass: PASS-018 CERTIFICATION_GENERATION
+    evidence_artifact: certification/ (coverage + traceability matrix)

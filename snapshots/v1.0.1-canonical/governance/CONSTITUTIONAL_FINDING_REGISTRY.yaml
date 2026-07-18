@@ -1,0 +1,399 @@
+# ============================================================
+# SOVR Financial OS — Constitutional Finding Registry
+# File: governance/CONSTITUTIONAL_FINDING_REGISTRY.yaml
+# Phase: 3.1 — Constitutional Finding Registry
+# Date: 2026-07-15
+# ============================================================
+# Canonical, normalized registry of every certified finding
+# from Phase 2. This is the SINGLE SOURCE OF TRUTH for
+# engineering deficiencies. Every future engineering session
+# consumes this registry. Findings are transformed into
+# governed amendments (governance/amendments/).
+#
+# This registry does NOT modify frozen protocol files (Rule Zero).
+# Findings originate from the Phase 2 certification package.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  registry_id: "constitutional-finding-registry"
+  status: ACTIVE
+  protocol_version: "1.0.0"
+  target_protocol_version: "1.0.1"
+  source_certifications:
+    - certification/GENERATION_GAP_ANALYSIS.md
+    - certification/METADATA_COMPLETENESS_REPORT.md
+    - certification/PRODUCTION_READINESS_AUDIT.md
+    - certification/PHASE_2_COMPILER_READINESS_REPORT.md
+    - certification/CANONICAL_PROTOCOL_GRAPH_REPORT.md
+    - certification/IDENTIFIER_CERTIFICATION.md
+  totals:
+    findings: 15
+    critical: 1
+    high: 6
+    medium: 6
+    low: 2
+    amendment_required: 14
+    no_amendment_engineering_only: 1
+
+# ============================================================
+# FINDINGS
+# ============================================================
+
+findings:
+
+  - id: G-01
+    severity: critical
+    category: protocol_integrity
+    discovered_in: GENERATION_GAP_ANALYSIS.md
+    description: >
+      Three protocol files are invalid YAML and cannot be parsed:
+      09_saga-orchestration.yaml (10 of 16 sagas orphaned after the
+      saga_execution mapping), domains/vault.yaml (mixed sequence/mapping in
+      conversion_rules at line ~114), domains/treasury.yaml (nested sequence
+      under a scalar mapping value in unknown_state_handling at line ~973).
+    affected_files:
+      - 09_saga-orchestration.yaml
+      - domains/vault.yaml
+      - domains/treasury.yaml
+    affected_domains: [vault, treasury, all]
+    constitutional_reference: [RUNTIME_ENFORCEMENT, INV-008]
+    compiler_impact: CRITICAL   # PARSE stage aborts; full build impossible
+    runtime_impact: BLOCKS_ALL_REALIZATION
+    governance_status: PROPOSED
+    amendment_required: AMD-0001
+    owner: chief_architect
+    acceptance_criteria:
+      - All three files pass strict YAML parse (yaml.safe_load).
+      - No semantic change to constitutional intent (structure-only repair).
+      - All 16 sagas reachable under the sagas: mapping.
+      - Re-freeze at protocol version 1.0.1.
+
+  - id: G-02
+    severity: high
+    category: compiler_determinism
+    discovered_in: GENERATION_GAP_ANALYSIS.md
+    description: >
+      Zero entities are annotated as aggregate roots in 02_domain-model.yaml.
+      compiler.yaml aggregate_roots generation would require inference,
+      violating "the compiler must never infer architecture."
+    affected_files:
+      - 02_domain-model.yaml
+      - protocol/AGGREGATE_REGISTRY.yaml
+    affected_domains: [all]
+    constitutional_reference: [AUTHORITY_MODEL]
+    compiler_impact: HIGH
+    runtime_impact: BLOCKS_AGGREGATE_GENERATION
+    governance_status: PROPOSED
+    amendment_required: AMD-0002
+    owner: chief_architect
+    acceptance_criteria:
+      - Every aggregate has an explicit root_entity, invariants, owns_events,
+        owns_commands in AGGREGATE_REGISTRY.yaml.
+      - Compiler selects aggregate roots by declaration, not heuristic.
+
+  - id: G-03
+    severity: high
+    category: reference_integrity
+    discovered_in: CANONICAL_PROTOCOL_GRAPH_REPORT.md
+    description: >
+      31 saga step commands are not defined in 03_command-catalog.yaml,
+      including system.internal.* (8), hybrid.* (6), and 17 domain
+      execution/compensation commands.
+    affected_files:
+      - 09_saga-orchestration.yaml
+      - 03_command-catalog.yaml
+    affected_domains: [treasury, ledger, vault, payment, identity, policy, agent, governance]
+    constitutional_reference: [INV-008]
+    compiler_impact: HIGH
+    runtime_impact: BLOCKS_SAGA_ORCHESTRATION
+    governance_status: PROPOSED
+    amendment_required: AMD-0003
+    owner: chief_architect
+    acceptance_criteria:
+      - Every saga step command resolves to a command-catalog entry OR is
+        declared as a recognized non-command step type (system.internal / hybrid)
+        with its own generation rule.
+      - Compiler ALL_COMMAND_REFERENCES_RESOLVE rule passes.
+
+  - id: G-04
+    severity: medium
+    category: domain_model_completeness
+    discovered_in: CANONICAL_PROTOCOL_GRAPH_REPORT.md
+    description: >
+      No value_objects are declared anywhere. Value semantics are inlined as
+      entity attributes; reusable value-object types cannot be generated.
+    affected_files:
+      - 02_domain-model.yaml
+    affected_domains: [all]
+    constitutional_reference: [SHARED_LANGUAGE]
+    compiler_impact: MEDIUM
+    runtime_impact: DEGRADED_TYPE_REUSE
+    governance_status: PROPOSED
+    amendment_required: AMD-0008
+    owner: chief_architect
+    acceptance_criteria:
+      - A value_objects registry exists OR the protocol explicitly documents
+        that SOVR has no value objects by design.
+
+  - id: G-05
+    severity: high
+    category: reference_integrity
+    discovered_in: CANONICAL_PROTOCOL_GRAPH_REPORT.md
+    description: >
+      Five non-canonical domains are referenced without definition:
+      audit (contracts, capability enum), kernel (state machines),
+      hybrid (sagas), runtime (boundary contracts), system (state machines/sagas).
+    affected_files:
+      - 12_domain-contracts.yaml
+      - 05_state-machines.yaml
+      - 08_security-capabilities.yaml
+      - 09_saga-orchestration.yaml
+      - protocol/DOMAIN_REGISTRY.yaml
+    affected_domains: [audit, kernel, hybrid, runtime, system]
+    constitutional_reference: [SHARED_LANGUAGE, GOVERNANCE_STRUCTURE]
+    compiler_impact: HIGH
+    runtime_impact: BLOCKS_CONTRACT_DI_WIRING
+    governance_status: PROPOSED
+    amendment_required: AMD-0004
+    owner: chief_architect
+    acceptance_criteria:
+      - DOMAIN_REGISTRY.yaml lists authoritative domains, aliases, deprecated
+        names, replacement mapping, ownership.
+      - Every referenced domain resolves to a canonical domain or classified
+        non-domain construct (infrastructure/boundary).
+
+  - id: G-06
+    severity: high
+    category: compiler_determinism
+    discovered_in: COMPILER_INPUT_CERTIFICATION.md
+    description: >
+      Command validation_rules[].check expressions are natural-language
+      pseudo-code with no formal grammar. Semantic rules cannot be
+      deterministically compiled.
+    affected_files:
+      - 03_command-catalog.yaml
+      - compiler/VALIDATION_LANGUAGE_SPEC.md
+    affected_domains: [all]
+    constitutional_reference: [INV-008, RUNTIME_ENFORCEMENT]
+    compiler_impact: HIGH
+    runtime_impact: BLOCKS_VALIDATION_GENERATION
+    governance_status: PROPOSED
+    amendment_required: AMD-0005
+    owner: compiler_engineer
+    acceptance_criteria:
+      - A deterministic Validation Expression Language (grammar, operators,
+        allowed functions, forbidden constructs) is specified.
+      - Every existing check expression is expressible in the DSL.
+
+  - id: G-07
+    severity: medium
+    category: certification_tooling
+    discovered_in: CANONICAL_PROTOCOL_GRAPH_REPORT.md
+    description: >
+      The canonical edge set cannot be closed by static counting; command->event,
+      saga->command, capability->test, state_machine->event edge totals require
+      the compiler RESOLVE stage.
+    affected_files: []
+    affected_domains: [all]
+    constitutional_reference: [INTERPRETATION]
+    compiler_impact: MEDIUM
+    runtime_impact: NONE
+    governance_status: ENGINEERING_TASK
+    amendment_required: none   # no protocol change; build RESOLVE stage in Phase 4
+    owner: compiler_engineer
+    acceptance_criteria:
+      - Compiler RESOLVE stage emits an authoritative edge manifest.
+
+  - id: G-08
+    severity: medium
+    category: state_machine_completeness
+    discovered_in: GENERATION_GAP_ANALYSIS.md
+    description: >
+      8 of 20 state machines define states with no transitions block:
+      identity_actor/credential/session/delegation_lifecycle,
+      policy_evaluation/rule_lifecycle, intent_lifecycle,
+      agent_execution_lifecycle.
+    affected_files:
+      - 05_state-machines.yaml
+    affected_domains: [identity, policy, intent, agent]
+    constitutional_reference: [EXECUTION_CONTROL, INV-009]
+    compiler_impact: MEDIUM
+    runtime_impact: DEGRADED_TRANSITION_GUARDS
+    governance_status: PROPOSED
+    amendment_required: AMD-0009
+    owner: chief_architect
+    acceptance_criteria:
+      - Each of the 8 machines has transitions OR is explicitly declared a
+        descriptive (non-executable) state enumeration.
+
+  - id: G-09
+    severity: high
+    category: reference_integrity
+    discovered_in: CANONICAL_PROTOCOL_GRAPH_REPORT.md
+    description: >
+      11 events referenced by state machines are not defined in
+      04_event-catalog.yaml (e.g. governance.proposal.expired,
+      payment.execution.settled, system.health.*, vault.reserve.creation_failed).
+    affected_files:
+      - 05_state-machines.yaml
+      - 04_event-catalog.yaml
+    affected_domains: [governance, payment, vault, system]
+    constitutional_reference: [SHARED_LANGUAGE, INV-001]
+    compiler_impact: HIGH
+    runtime_impact: BLOCKS_STATE_MACHINE_GENERATION
+    governance_status: PROPOSED
+    amendment_required: AMD-0006
+    owner: chief_architect
+    acceptance_criteria:
+      - All 11 events registered in the event catalog OR transition triggers
+        corrected.
+      - Compiler ALL_EVENT_REFERENCES_RESOLVE rule passes.
+
+  - id: G-10
+    severity: high
+    category: reference_integrity
+    discovered_in: CANONICAL_PROTOCOL_GRAPH_REPORT.md
+    description: >
+      12 entity registration mismatches between 02_domain-model.yaml and
+      domains/*.yaml (8 defined only in domain files; 4 declared only in the
+      domain model).
+    affected_files:
+      - 02_domain-model.yaml
+      - domains/treasury.yaml
+      - domains/policy.yaml
+      - domains/payment.yaml
+      - domains/intent.yaml
+      - domains/agent.yaml
+      - domains/vault.yaml
+      - domains/ledger.yaml
+      - domains/governance.yaml
+    affected_domains: [vault, ledger, treasury, policy, payment, intent, agent, governance]
+    constitutional_reference: [SHARED_LANGUAGE]
+    compiler_impact: HIGH
+    runtime_impact: BLOCKS_ENTITY_GENERATION
+    governance_status: PROPOSED
+    amendment_required: AMD-0007
+    owner: chief_architect
+    acceptance_criteria:
+      - 02_domain-model.yaml is the complete, authoritative entity registry.
+      - Every domain-file entity appears in the domain model and vice versa.
+
+  - id: G-11
+    severity: medium
+    category: metadata_completeness
+    discovered_in: METADATA_COMPLETENESS_REPORT.md
+    description: >
+      No protocol artifact declares an owner. owner: occurs 0 times repository-wide.
+    affected_files: [all_protocol_yaml]
+    affected_domains: [all]
+    constitutional_reference: [GOVERNANCE_STRUCTURE, INV-003]
+    compiler_impact: LOW
+    runtime_impact: NONE
+    governance_status: PROPOSED
+    amendment_required: AMD-0010
+    owner: release_manager
+    acceptance_criteria:
+      - METADATA_STANDARD.yaml defines a mandatory owner field.
+      - Every protocol file carries a meta: block with owner.
+
+  - id: G-12
+    severity: low
+    category: metadata_completeness
+    discovered_in: METADATA_COMPLETENESS_REPORT.md
+    description: >
+      No introduced/modified lifecycle dates exist anywhere.
+    affected_files: [all_protocol_yaml]
+    affected_domains: [all]
+    constitutional_reference: [GOVERNANCE_STRUCTURE]
+    compiler_impact: NONE
+    runtime_impact: NONE
+    governance_status: PROPOSED
+    amendment_required: AMD-0010
+    owner: release_manager
+    acceptance_criteria:
+      - METADATA_STANDARD.yaml requires introduced/modified.
+      - Provenance dates present in every meta: block.
+
+  - id: G-13
+    severity: medium
+    category: metadata_completeness
+    discovered_in: METADATA_COMPLETENESS_REPORT.md
+    description: >
+      Only 7 of 24 protocol files use a machine-readable meta: block; the rest
+      rely on comment-only headers. No uniform machine-readable file identity.
+    affected_files: [all_protocol_yaml]
+    affected_domains: [all]
+    constitutional_reference: [GOVERNANCE_STRUCTURE]
+    compiler_impact: MEDIUM
+    runtime_impact: NONE
+    governance_status: PROPOSED
+    amendment_required: AMD-0010
+    owner: release_manager
+    acceptance_criteria:
+      - Uniform meta: block on all protocol files per METADATA_STANDARD.yaml.
+
+  - id: G-14
+    severity: low
+    category: documentation_drift
+    discovered_in: PHASE_2_COMPILER_READINESS_REPORT.md
+    description: >
+      Stale counts: Phase 1 inventory declared 74 commands / 105 events / 3
+      duplicate capabilities / 104 tests; measured values are 88 / 134 / 0 / 105.
+      08 meta.total_capabilities: 47 vs actual 58. README metrics stale.
+    affected_files:
+      - certification/PROTOCOL_INVENTORY_CERTIFICATION.md
+      - 08_security-capabilities.yaml
+      - README.md
+    affected_domains: [all]
+    constitutional_reference: [GOVERNANCE_STRUCTURE]
+    compiler_impact: NONE
+    runtime_impact: NONE
+    governance_status: PROPOSED
+    amendment_required: AMD-0012
+    owner: documentation_agent
+    acceptance_criteria:
+      - Inventory, 08 metadata, and README reflect measured counts.
+
+  - id: G-15
+    severity: medium
+    category: structural_consistency
+    discovered_in: CANONICAL_PROTOCOL_GRAPH_REPORT.md
+    description: >
+      An explicit entities: block appears in only 4 of 9 domain files;
+      the other 5 express entities as ad-hoc sections. Compiler must normalize
+      two entity-declaration patterns.
+    affected_files:
+      - domains/vault.yaml
+      - domains/ledger.yaml
+      - domains/identity.yaml
+      - domains/policy.yaml
+      - domains/agent.yaml
+    affected_domains: [vault, ledger, identity, policy, agent]
+    constitutional_reference: [SHARED_LANGUAGE]
+    compiler_impact: MEDIUM
+    runtime_impact: NONE
+    governance_status: PROPOSED
+    amendment_required: AMD-0011
+    owner: chief_architect
+    acceptance_criteria:
+      - All 9 domain files use a uniform entity-declaration structure.
+
+# ============================================================
+# FINDING -> AMENDMENT MAP
+# ============================================================
+
+finding_amendment_map:
+  AMD-0001: [G-01]
+  AMD-0002: [G-02]
+  AMD-0003: [G-03]
+  AMD-0004: [G-05]
+  AMD-0005: [G-06]
+  AMD-0006: [G-09]
+  AMD-0007: [G-10]
+  AMD-0008: [G-04]
+  AMD-0009: [G-08]
+  AMD-0010: [G-11, G-12, G-13]
+  AMD-0011: [G-15]
+  AMD-0012: [G-14]
+  engineering_only: [G-07]

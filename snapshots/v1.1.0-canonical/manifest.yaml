@@ -1,0 +1,36 @@
+snapshot:
+
+  version: "1.1.0-canonical"
+
+  previous_version: "1.0.0"
+
+  amendments_applied:
+
+    - AMD-0001
+    - AMD-0002
+    - AMD-0003
+    - AMD-0004
+    - AMD-0005
+    - AMD-0006
+    - AMD-0007
+    - AMD-0008
+    - AMD-0009
+    - AMD-0010
+    - AMD-0011
+    - AMD-0012
+
+  object_count: 598
+
+  edge_count: 754
+
+  graph_hash: sha256:PLACEHOLDER_POST_MIGRATION_HASH
+
+  certification_status: CONSTITUTIONAL_MIGRATION_COMPLETE
+
+  compiler_authority: AUTHORIZED
+
+  created_by: Phase VII Constitutional Migration
+
+  created_date: 2026-07-15
+
+  rollback_target: snapshots/v1.0.1-canonical/

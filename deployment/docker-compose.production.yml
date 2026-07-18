@@ -1,0 +1,105 @@
+# ============================================================
+# SOVR Financial OS — Production Deployment Stack
+# Phase: XI.3 — PostgreSQL Production Activation
+# ============================================================
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sovr}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sovr_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-sovr_protocol}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sovr}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sovr-network
+
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${API_PORT:-3001}
+      DATABASE_URL: postgres://${POSTGRES_USER:-sovr}:${POSTGRES_PASSWORD:-sovr_secure_password}@postgres:5432/${POSTGRES_DB:-sovr_protocol}
+      PROTOCOL_VERSION: ${PROTOCOL_VERSION:-1.1.0}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${API_PORT:-3001}:3001"
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3001/health', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) })\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - sovr-network
+
+  worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: postgres://${POSTGRES_USER:-sovr}:${POSTGRES_PASSWORD:-sovr_secure_password}@postgres:5432/${POSTGRES_DB:-sovr_protocol}
+      PROTOCOL_VERSION: ${PROTOCOL_VERSION:-1.1.0}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-4}
+      SERVICE_ROLE: event-processor
+    networks:
+      - sovr-network
+
+  metrics:
+    image: prom/prometheus:latest
+    restart: always
+    depends_on:
+      api:
+        condition: service_started
+    volumes:
+      - prometheus_data:/prometheus
+    ports:
+      - "${METRICS_PORT:-9090}:9090"
+    networks:
+      - sovr-network
+
+  dashboard:
+    image: grafana/grafana:latest
+    restart: always
+    depends_on:
+      - metrics
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin_secure}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "${DASHBOARD_PORT:-3000}:3000"
+    networks:
+      - sovr-network
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  sovr-network:
+    driver: bridge
+    internal: false

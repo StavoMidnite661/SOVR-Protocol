@@ -1,0 +1,40 @@
+relationships:
+  command_to_event:
+    required: true
+    description: Every command must produce at least one event
+    validation: command.resulting_events must reference defined events
+
+  event_to_state_machine:
+    required: true
+    description: Every event must be consumable by at least one state machine
+    validation: event.aggregate must match state_machine.aggregate
+
+  state_machine_to_saga:
+    required: false
+    description: State machine transitions may be orchestrated by sagas
+    validation: state machine states referenced in saga steps must exist
+
+  saga_to_capability:
+    required: true
+    description: Every saga step that executes a command requires a capability
+    validation: saga step command must map to a capability in 08_security-capabilities.yaml
+
+  capability_to_acceptance_test:
+    required: true
+    description: Every capability must have at least one acceptance test
+    validation: capability.capability_id must appear in acceptance-tests.yaml
+
+  command_to_capability:
+    required: true
+    description: Every command must reference minimum_capability
+    validation: command.issuer.minimum_capability must exist in capability registry
+
+  event_to_projection:
+    required: true
+    description: Every event must define projection_effect
+    validation: event.projection_effect.target must be a defined projection
+
+  domain_to_contract:
+    required: true
+    description: Cross-domain interactions must be governed by contracts
+    validation: command.validation_rules referencing other domains must map to domain_contracts.yaml entries

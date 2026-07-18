@@ -1,0 +1,57 @@
+phase: PHASE_XIII
+purpose: Document impact of pending amendments on Phase XIII compiler authority work
+
+amendments:
+  - id: AMD-0002
+    current_status: pending_ratification
+    affected_artifacts:
+      - compiler/SEMANTIC_COMPILER_CONTRACT.yaml
+      - packages/compiler/src/compiler.ts
+    required_ratification: Governance board must ratify semantic compiler contract terms
+    blocking: true
+    notes: Cannot promote compiler contract from GOVERNANCE_DRAFT without ratification
+
+  - id: AMD-0004
+    current_status: pending_ratification
+    affected_artifacts:
+      - compiler/SEMANTIC_COMPILER_CONTRACT.yaml
+      - packages/compiler/src/validator/semantic-validator.ts
+    required_ratification: Governance board must ratify validation authority scope
+    blocking: true
+    notes: Semantic validator enforcement depends on ratified contract
+
+  - id: AMD-0005
+    current_status: pending_ratification
+    affected_artifacts:
+      - compiler/SEMANTIC_COMPILER_CONTRACT.yaml
+      - packages/compiler/src/generator/runtime-generator.ts
+    required_ratification: Governance board must ratify generation authority
+    blocking: true
+    notes: Runtime generation scope defined by contract
+
+  - id: AMD-0009
+    current_status: pending_ratification
+    affected_artifacts:
+      - 05_state-machines.yaml
+      - packages/vault/src/index.ts
+    required_ratification: Governance board must ratify state machine authority
+    blocking: false
+    notes: Vault state machine already aligned with YAML; ratification formalizes authority
+
+  - id: AMD-0010
+    current_status: pending_ratification
+    affected_artifacts:
+      - certification/RUNTIME_AUTHORITY_BOUNDARY.yaml
+      - packages/compiler/src/pipeline/EvidenceEmitter.ts
+    required_ratification: Governance board must ratify evidence emission requirements
+    blocking: false
+    notes: Evidence emitter implemented; ratification formalizes requirements
+
+overall_assessment:
+  blocking_amendments: 3
+  non_blocking_amendments: 2
+  phase_xiii_can_proceed: true
+  notes: |
+    Phase XIII can proceed with implementation. Full compiler authority
+    promotion requires ratification of AMD-0002, AMD-0004, AMD-0005.
+    AMD-0009 and AMD-0010 are formalization steps.

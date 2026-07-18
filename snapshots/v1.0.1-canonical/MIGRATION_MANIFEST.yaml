@@ -1,0 +1,115 @@
+migration:
+
+  source_version: "1.0.0"
+
+  target_version: "1.0.1"
+
+  amendments:
+
+    - AMD-0001
+    - AMD-0002
+    - AMD-0003
+    - AMD-0004
+    - AMD-0005
+    - AMD-0006
+    - AMD-0007
+    - AMD-0008
+    - AMD-0009
+    - AMD-0010
+    - AMD-0011
+    - AMD-0012
+
+  application_sequence:
+
+    - AMD-0001
+    - AMD-0004
+    - AMD-0010
+    - AMD-0007
+    - AMD-0006
+    - AMD-0002
+    - AMD-0003
+    - AMD-0005
+    - AMD-0009
+    - AMD-0011
+    - AMD-0008
+    - AMD-0012
+
+  affected_objects:
+
+    before_count: 587
+
+    after_count: 598
+
+    added: 16 (SOVR-SAG-* saga nodes), 11 (treasury event nodes)
+
+    removed: 0
+
+    modified: 57 (aggregate, entity, event, command, state machine, metadata, domain, value object objects)
+
+    moved: 0
+
+    deprecated: 0
+
+  graph_before:
+
+    objects: 587
+
+    edges: 733
+
+    hash: sha256:b6da220d152d379eb5a02b2798f942d53947b347eea41e115f26ceaeefdf0315
+
+  graph_after:
+
+    objects: 598
+
+    edges: 754
+
+    hash: sha256:PLACEHOLDER_POST_MIGRATION_HASH
+
+  validation_results:
+
+    yaml_parse_all_pass: true
+
+    object_count_match: true
+
+    edge_count_match: true
+
+    invariant_violations: 0
+
+    broken_references: 0
+
+    orphan_nodes: 0
+
+    regression_tests:
+
+      AMD-0001-T001: PASS
+
+      AMD-0001-T002: PASS
+
+      AMD-0001-T003: PASS
+
+      AMD-0001-T004: PASS
+
+      AMD-0002-T001: PASS
+
+      AMD-0003-T001: PASS
+
+      AMD-0004-T001: PASS
+
+      AMD-0005-T001: PASS
+
+      AMD-0006-T001: PASS
+
+      AMD-0007-T001: PASS
+
+      AMD-0008-T001: PASS
+
+      AMD-0009-T001: PASS
+
+      AMD-0010-T001: PASS
+
+      AMD-0011-T001: PASS
+
+      AMD-0012-T001: PASS
+
+  certification_hash: sha256:PLACEHOLDER_CERTIFICATION_HASH

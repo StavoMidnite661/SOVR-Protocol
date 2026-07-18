@@ -1,0 +1,58 @@
+domains:
+  vault:
+    compiled: true
+    source: domains/vault.yaml
+    artifacts:
+      - state-machines/vault-state-machine.ts
+      - commands/vault-commands.ts
+      - events/vault-events.ts
+      - manifests/vault-manifest.yaml
+  treasury:
+    compiled: true
+    source: domains/treasury.yaml
+    artifacts:
+      - state-machines/treasury-state-machine.ts
+      - commands/treasury-commands.ts
+      - events/treasury-events.ts
+      - manifests/treasury-manifest.yaml
+  payment:
+    compiled: true
+    source: domains/payment.yaml
+    artifacts:
+      - state-machines/payment-state-machine.ts
+      - commands/payment-commands.ts
+      - events/payment-events.ts
+      - manifests/payment-manifest.yaml
+  agent:
+    compiled: true
+    source: domains/agent.yaml
+    artifacts:
+      - state-machines/agent-state-machine.ts
+      - commands/agent-commands.ts
+      - events/agent-events.ts
+      - manifests/agent-manifest.yaml
+
+status:
+  certified: true
+
+verification:
+  - domain: vault
+    compiler_input: domains/vault.yaml
+    generated_runtime: packages/runtime/generated/
+    certification: certification/VAULT_COMPILER_AUTHORITY_CERTIFICATION.yaml
+    result: PASS
+  - domain: treasury
+    compiler_input: domains/treasury.yaml
+    generated_runtime: packages/runtime/generated/
+    certification: generated/certification/treasury-evidence.json
+    result: PASS
+  - domain: payment
+    compiler_input: domains/payment.yaml
+    generated_runtime: packages/runtime/generated/
+    certification: generated/certification/payment-evidence.json
+    result: PASS
+  - domain: agent
+    compiler_input: domains/agent.yaml
+    generated_runtime: packages/runtime/generated/
+    certification: generated/certification/agent-evidence.json
+    result: PASS

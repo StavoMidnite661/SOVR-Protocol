@@ -1,0 +1,47 @@
+vault:
+  source:
+    domains/vault.yaml:
+      sha256: 8EA3BD38D6F8ABCADB16A4B1088AFE4AA928FD71DDF7B9EB82DB03B2DABA7977
+  compiler:
+    artifact: generated/state-machines/vault-state-machine.ts
+  runtime:
+    generated_file: packages/runtime/generated/state-machines/vault-state-machine.ts
+  hashes:
+    source: 8EA3BD38D6F8ABCADB16A4B1088AFE4AA928FD71DDF7B9EB82DB03B2DABA7977
+    artifact: 299E10172309503C790080ABA70554C1597F8EA2A6AE8E7B0A114E901875D89C
+
+treasury:
+  source:
+    domains/treasury.yaml:
+      sha256: 0B127EA521ADF347FB78BBCCF2398F10420133A22386BF7BD284FCDF0DF283FE
+  compiler:
+    artifact: generated/state-machines/treasury-state-machine.ts
+  runtime:
+    generated_file: packages/runtime/generated/state-machines/treasury-state-machine.ts
+  hashes:
+    source: 0B127EA521ADF347FB78BBCCF2398F10420133A22386BF7BD284FCDF0DF283FE
+    artifact: 62339F41E6B09F12B8E89972D633F2A6A83C0B2255E04CAF0BF2A6003CBF09EA
+
+payment:
+  source:
+    domains/payment.yaml:
+      sha256: 87CA0813920E85AA7F497A5BF776CF252E751240BB605D33773325BA1511BA37
+  compiler:
+    artifact: generated/state-machines/payment-state-machine.ts
+  runtime:
+    generated_file: packages/runtime/generated/state-machines/payment-state-machine.ts
+  hashes:
+    source: 87CA0813920E85AA7F497A5BF776CF252E751240BB605D33773325BA1511BA37
+    artifact: F3A4C7613A692B2D3159FC16D70D7818604E86827DFB38DDD9EFD16D7BC2ECAD
+
+agent:
+  source:
+    domains/agent.yaml:
+      sha256: AB6A9146D7D9AC5B71ECFBA173E15C5FD23B3E8C9E32819F7F78E7BB0492937E
+  compiler:
+    artifact: generated/state-machines/agent-state-machine.ts
+  runtime:
+    generated_file: packages/runtime/generated/state-machines/agent-state-machine.ts
+  hashes:
+    source: AB6A9146D7D9AC5B71ECFBA173E15C5FD23B3E8C9E32819F7F78E7BB0492937E
+    artifact: 6CE6D28AE9F5D9D44559F25A14D396B6E26718B8FEA9AC58356EB93635305B99

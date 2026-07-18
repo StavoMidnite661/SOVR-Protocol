@@ -1,0 +1,171 @@
+# ============================================================
+# SOVR Financial OS — Protocol Compiler Manifest
+# File: compiler/COMPILER_MANIFEST.yaml
+# Certification ID: COMPILER-MANIFEST-001
+# Date: 2026-07-14
+# Phase: 2.7 — Protocol Compiler Manifest
+# ============================================================
+# This is a DECLARATION, not an implementation (Rule Zero).
+# It is the constitutional contract for the future compiler:
+# what it consumes, what it produces, and which generators it
+# must provide. It derives from compiler.yaml (FROZEN spec) and
+# 13_compiler-adr.yaml (FROZEN decisions). It does NOT redefine
+# them; it consolidates them into a first manifest for Phase 3.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  manifest_id: "compiler-manifest"
+  status: CERTIFICATION_DECLARATION
+  authority:
+    frozen_spec: compiler.yaml
+    frozen_adr: 13_compiler-adr.yaml
+  binding_note: >
+    On any divergence, compiler.yaml and 13_compiler-adr.yaml prevail. This
+    manifest is a readiness declaration, not a source of new architecture.
+
+compiler:
+
+  protocol_version: "1.0.0"
+
+  # ----------------------------------------------------------
+  # Target stack (from compiler.yaml meta + 13_compiler-adr.yaml)
+  # ----------------------------------------------------------
+  target:
+    runtime: TYPESCRIPT_NODE
+    framework: FASTIFY
+    orm: PRISMA
+    event_streaming: KAFKA
+    cache: REDIS
+    workflow: TEMPORAL
+
+  # ----------------------------------------------------------
+  # Inputs — the repository is the compiler's input
+  # ----------------------------------------------------------
+  inputs:
+    protocol:
+      - 00_protocol-manifest.yaml
+      - 01_constitution.yaml
+      - 02_domain-model.yaml
+      - 03_command-catalog.yaml
+      - 04_event-catalog.yaml
+      - 05_state-machines.yaml
+      - 08_security-capabilities.yaml
+      - 09_saga-orchestration.yaml      # BLOCKED: invalid YAML (G-01)
+      - 11_governance-amendments.yaml
+      - 12_domain-contracts.yaml
+      - projection-engine.yaml
+      - hybrid-boundary.yaml
+      - acceptance-tests.yaml
+      - compiler.yaml
+      - 13_compiler-adr.yaml
+    domains:
+      - domains/vault.yaml              # BLOCKED: invalid YAML (G-01)
+      - domains/ledger.yaml
+      - domains/treasury.yaml           # BLOCKED: invalid YAML (G-01)
+      - domains/identity.yaml
+      - domains/policy.yaml
+      - domains/intent.yaml
+      - domains/agent.yaml
+      - domains/payment.yaml
+      - domains/governance.yaml
+    governance:
+      - governance/
+      - management/
+
+  # ----------------------------------------------------------
+  # Outputs
+  # ----------------------------------------------------------
+  outputs:
+    runtime/: [aggregates, commands, events, projections, sagas, apis, adapters]
+    documentation/: [markdown_from_yaml, openapi]
+    tests/: [acceptance_test_skeletons, fixtures]
+    sdk/: [typescript_types, json_schemas, client]
+
+  # ----------------------------------------------------------
+  # Generators (must be provided by the compiler)
+  # ----------------------------------------------------------
+  generators:
+    - name: aggregates
+      source: [02_domain-model.yaml, 05_state-machines.yaml, domains/*.yaml]
+      output: src/aggregates/{domain}/{entity}.aggregate.ts
+      readiness: INFERENCE_REQUIRED   # no aggregate_root annotations (G-02)
+    - name: commands
+      source: [03_command-catalog.yaml]
+      output: src/commands/{domain}/{aggregate}.commands.ts
+      readiness: READY
+    - name: events
+      source: [04_event-catalog.yaml]
+      output: src/events/{domain}/{aggregate}.events.ts
+      readiness: READY
+    - name: projections
+      source: [projection-engine.yaml, 04_event-catalog.yaml]
+      output: src/projections/{name}.projection.ts
+      readiness: READY
+    - name: capabilities
+      source: [08_security-capabilities.yaml]
+      output: src/security/capability-engine.ts
+      readiness: READY
+    - name: sagas
+      source: [09_saga-orchestration.yaml]
+      output: src/workflows/{saga_name}.workflow.ts
+      readiness: BLOCKED              # invalid YAML + 31 unresolved commands (G-01,G-03)
+    - name: apis
+      source: [03_command-catalog.yaml, 08_security-capabilities.yaml]
+      output: src/routes/{domain}/{aggregate}.route.ts
+      readiness: READY
+    - name: documentation
+      source: [ALL]
+      output: docs/{section}/{topic}.md
+      readiness: BLOCKED              # depends on all files parsing (G-01)
+    - name: acceptance_tests
+      source: [acceptance-tests.yaml]
+      output: tests/{category}/{name}.test.ts
+      readiness: READY
+
+  # ----------------------------------------------------------
+  # Pipeline (mirrors compiler.yaml compilation_pipeline)
+  # ----------------------------------------------------------
+  pipeline:
+    - stage: PARSE
+    - stage: VALIDATE
+    - stage: RESOLVE
+    - stage: TRANSFORM
+    - stage: GENERATE
+    - stage: VERIFY
+
+  # ----------------------------------------------------------
+  # Realization order (see REALIZATION_DEPENDENCY_MATRIX.yaml)
+  # ----------------------------------------------------------
+  realization_order:
+    - invariants
+    - domains
+    - entities
+    - capabilities
+    - commands
+    - events
+    - state_machines
+    - aggregates
+    - projections
+    - sagas
+    - contracts
+    - boundary_adapters
+    - apis
+    - acceptance_tests
+    - runtime
+
+  # ----------------------------------------------------------
+  # Readiness gate — this manifest is declarable NOW, but the
+  # compiler cannot execute a full build until these clear.
+  # ----------------------------------------------------------
+  readiness_preconditions:
+    critical:
+      - G-01   # repair 3 invalid-YAML files
+    high:
+      - G-02   # annotate aggregate roots
+      - G-03   # resolve 31 saga command refs
+      - G-05   # resolve non-canonical domains
+      - G-06   # define validation-expression grammar
+      - G-09   # register 11 missing events
+      - G-10   # reconcile 12 entity mismatches
+    manifest_status: DECLARED_NOT_EXECUTABLE

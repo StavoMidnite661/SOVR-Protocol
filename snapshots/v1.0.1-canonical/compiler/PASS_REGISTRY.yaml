@@ -1,0 +1,312 @@
+# ============================================================
+# SOVR Financial OS — Compiler Pass Registry
+# File: compiler/PASS_REGISTRY.yaml
+# Phase: 4.2 — Compiler Pass Registry
+# Status: ARCHITECTURE_ONLY (Rule Zero — no implementation)
+# ============================================================
+# Every compiler action occurs inside exactly one registered pass.
+# Nothing may occur outside a registered pass. The pipeline in
+# PIPELINE_ARCHISTRY.md is the canonical ordering; this registry is
+# the contract for each pass.
+#
+# Authority: compiler.yaml, PIPELINE_ARCHITECTURE.md,
+# SEMANTIC_COMPILER_CONTRACT.yaml. On divergence, frozen specs prevail.
+# ============================================================
+
+registry:
+  schema_version: "1.0.0"
+  protocol_version: "1.0.0"
+  compiler_version: "0.1.0-arch"   # architecture-declared; not yet released
+  invariant: NOTHING_OCCURS_OUTSIDE_A_REGISTERED_PASS
+
+passes:
+
+  - pass:
+      id: PASS-001
+      name: PROTOCOL_DISCOVERY
+      phase: DISCOVERY
+      purpose: Enumerate the closed, ordered set of protocol inputs.
+      consumes: [repository_root, registries, governance_metadata]
+      produces: [discovery_manifest, input_frontier]
+      depends_on: []
+      deterministic: true
+      certification: DISCOVERY_PASS
+      failure_conditions:
+        - unknown_directory_layout -> HALT
+        - duplicate_file_id -> HALT
+
+  - pass:
+      id: PASS-002
+      name: YAML_PARSING
+      phase: PARSE
+      purpose: Parse every input file into an AST.
+      consumes: [input_frontier]
+      produces: [parsed_ast, per_file_parse_diagnostics]
+      depends_on: [PASS-001]
+      deterministic: true
+      certification: PARSE_PASS
+      failure_conditions:
+        - invalid_yaml (G-01) -> ABORT_WITH_PARSE_ERROR
+        - empty_document -> ABORT_WITH_PARSE_ERROR
+        - duplicate_top_level_key -> ABORT_WITH_PARSE_ERROR
+
+  - pass:
+      id: PASS-003
+      name: SYNTAX_VALIDATION
+      phase: VALIDATE
+      purpose: Validate intra-file structural shape against protocol schema.
+      consumes: [parsed_ast]
+      produces: [syntactically_valid_ast, syntax_diagnostics]
+      depends_on: [PASS-002]
+      deterministic: true
+      certification: SYNTAX_PASS
+      failure_conditions:
+        - missing_meta_block (AMD-0010) -> ABORT_WITH_VALIDATION_ERROR
+        - malformed_section -> ABORT_WITH_VALIDATION_ERROR
+        - wrong_scalar_or_sequence_type -> ABORT_WITH_VALIDATION_ERROR
+
+  - pass:
+      id: PASS-004
+      name: METADATA_VALIDATION
+      phase: VALIDATE
+      purpose: Validate metadata against METADATA_STANDARD.
+      consumes: [syntactically_valid_ast]
+      produces: [metadata_validated_ast, metadata_diagnostics]
+      depends_on: [PASS-003]
+      deterministic: true
+      certification: METADATA_PASS
+      failure_conditions:
+        - missing_required_metadata -> ABORT_WITH_VALIDATION_ERROR
+        - invalid_enum_value -> ABORT_WITH_VALIDATION_ERROR
+        - schema_version_mismatch -> ABORT_WITH_VALIDATION_ERROR
+
+  - pass:
+      id: PASS-005
+      name: CANONICAL_GRAPH_CONSTRUCTION
+      phase: VALIDATE
+      purpose: Build content-addressable proto-IR graph keyed by stable IDs.
+      consumes: [metadata_validated_ast]
+      produces: [canonical_graph, node_index]
+      depends_on: [PASS-004]
+      deterministic: true
+      certification: GRAPH_PASS
+      failure_conditions:
+        - non_canonical_domain_reference (G-05) -> ABORT_WITH_VALIDATION_ERROR
+        - duplicate_stable_id -> ABORT_WITH_VALIDATION_ERROR
+
+  - pass:
+      id: PASS-006
+      name: CROSS_REFERENCE_RESOLUTION
+      phase: RESOLVE
+      purpose: Expand all symbolic references to concrete edges.
+      consumes: [canonical_graph]
+      produces: [resolved_graph, unresolved_reference_report]
+      depends_on: [PASS-005]
+      deterministic: true
+      certification: REFERENCE_PASS
+      failure_conditions:
+        - unresolved_entity_reference -> ABORT_WITH_RESOLUTION_ERROR
+        - unresolved_command_reference (AMD-0003) -> ABORT_WITH_RESOLUTION_ERROR
+        - unresolved_event_reference (AMD-0006) -> ABORT_WITH_RESOLUTION_ERROR
+        - unresolved_capability_reference -> ABORT_WITH_RESOLUTION_ERROR
+        - unresolved_invariant_reference -> ABORT_WITH_RESOLUTION_ERROR
+
+  - pass:
+      id: PASS-007
+      name: CONSTITUTIONAL_VALIDATION
+      phase: VALIDATE
+      purpose: Validate resolved graph against the constitution and INV-001..010.
+      consumes: [resolved_graph]
+      produces: [constitutionally_valid_graph]
+      depends_on: [PASS-006]
+      deterministic: true
+      certification: CONSTITUTIONAL_PASS
+      failure_conditions:
+        - authority_model_violation -> ABORT_WITH_VALIDATION_ERROR
+        - invariant_constant_misuse -> ABORT_WITH_VALIDATION_ERROR
+
+  - pass:
+      id: PASS-008
+      name: SEMANTIC_ANALYSIS
+      phase: VALIDATE
+      purpose: Apply cross-node semantic rules (pairing, coverage, VEL).
+      consumes: [constitutionally_valid_graph]
+      produces: [semantically_annotated_graph]
+      depends_on: [PASS-007]
+      deterministic: true
+      certification: SEMANTIC_PASS
+      failure_conditions:
+        - state_machine_without_exit (AMD-0009) -> ABORT_WITH_VALIDATION_ERROR
+        - vel_non_conformance (AMD-0005) -> ABORT_WITH_VALIDATION_ERROR
+        - event_envelope_incomplete -> ABORT_WITH_VALIDATION_ERROR
+        - command_gates_incomplete -> ABORT_WITH_VALIDATION_ERROR
+
+  - pass:
+      id: PASS-009
+      name: INVARIANT_VERIFICATION
+      phase: VALIDATE
+      purpose: Verify cited invariants hold at data/behavior level.
+      consumes: [semantically_annotated_graph]
+      produces: [invariant_verified_graph]
+      depends_on: [PASS-008]
+      deterministic: true
+      certification: INVARIANT_PASS
+      failure_conditions:
+        - invariant_contradiction -> ABORT_WITH_VALIDATION_ERROR
+        - missing_invariant_coverage -> ABORT_WITH_VALIDATION_ERROR
+
+  - pass:
+      id: PASS-010
+      name: AGGREGATE_RESOLUTION
+      phase: RESOLVE
+      purpose: Bind aggregate roots from AGGREGATE_REGISTRY.
+      consumes: [invariant_verified_graph]
+      produces: [aggregate_bound_graph]
+      depends_on: [PASS-009]
+      deterministic: true
+      certification: AGGREGATE_PASS
+      failure_conditions:
+        - missing_aggregate_root (AMD-0002/0007) -> ABORT_WITH_RESOLUTION_ERROR
+        - entity_not_bound_to_aggregate -> ABORT_WITH_RESOLUTION_ERROR
+
+  - pass:
+      id: PASS-011
+      name: CAPABILITY_RESOLUTION
+      phase: RESOLVE
+      purpose: Bind capabilities to commands/routes; build scope table.
+      consumes: [aggregate_bound_graph]
+      produces: [capability_bound_graph]
+      depends_on: [PASS-010]
+      deterministic: true
+      certification: CAPABILITY_PASS
+      failure_conditions:
+        - command_requires_unknown_capability -> ABORT_WITH_RESOLUTION_ERROR
+        - orphan_capability -> WARNING
+
+  - pass:
+      id: PASS-012
+      name: DEPENDENCY_ANALYSIS
+      phase: RESOLVE
+      purpose: Compute dependency graph, topological sort, detect cycles.
+      consumes: [capability_bound_graph]
+      produces: [dependency_graph, topological_order]
+      depends_on: [PASS-011]
+      deterministic: true
+      certification: DEPENDENCY_PASS
+      failure_conditions:
+        - dependency_cycle -> ABORT_WITH_RESOLUTION_ERROR
+        - unresolvable_type -> ABORT_WITH_RESOLUTION_ERROR
+
+  - pass:
+      id: PASS-013
+      name: IR_GENERATION
+      phase: TRANSFORM
+      purpose: Emit fully resolved, typed, content-addressable SOVR_IR.
+      consumes: [dependency_graph, topological_order]
+      produces: [sovr_ir, ir_hash]
+      depends_on: [PASS-012]
+      deterministic: true
+      certification: IR_PASS
+      failure_conditions:
+        - ir_node_without_source -> ABORT_WITH_GENERATION_ERROR
+        - ir_type_unresolved -> ABORT_WITH_GENERATION_ERROR
+
+  - pass:
+      id: PASS-014
+      name: OPTIMIZATION
+      phase: TRANSFORM
+      purpose: Semantics-preserving deterministic IR transforms.
+      consumes: [sovr_ir]
+      produces: [optimized_ir]
+      depends_on: [PASS-013]
+      deterministic: true
+      certification: OPTIMIZATION_PASS
+      failure_conditions:
+        - optimization_changed_semantics -> ABORT_WITH_GENERATION_ERROR
+
+  - pass:
+      id: PASS-015
+      name: GENERATOR_DISPATCH
+      phase: GENERATE
+      purpose: Dispatch optimized IR to registered generators in stable order.
+      consumes: [optimized_ir]
+      produces: [dispatched_generators]
+      depends_on: [PASS-014]
+      deterministic: true
+      certification: DISPATCH_PASS
+      failure_conditions:
+        - unregistered_generator_invoked -> HALT
+        - generator_input_contract_violation -> ABORT_WITH_GENERATION_ERROR
+
+  - pass:
+      id: PASS-016
+      name: DOCUMENTATION_GENERATION
+      phase: GENERATE
+      purpose: Generate markdown docs and OpenAPI spec.
+      consumes: [optimized_ir]
+      produces: [docs, openapi.yaml]
+      depends_on: [PASS-015]
+      deterministic: true
+      certification: DOCGEN_PASS
+      failure_conditions:
+        - doc_template_error -> ABORT_WITH_GENERATION_ERROR
+
+  - pass:
+      id: PASS-017
+      name: ACCEPTANCE_TEST_GENERATION
+      phase: GENERATE
+      purpose: Generate acceptance test skeletons and fixtures.
+      consumes: [optimized_ir]
+      produces: [tests]
+      depends_on: [PASS-015]
+      deterministic: true
+      certification: TESTGEN_PASS
+      failure_conditions:
+        - test_template_error -> ABORT_WITH_GENERATION_ERROR
+
+  - pass:
+      id: PASS-018
+      name: CERTIFICATION_GENERATION
+      phase: CERTIFY
+      purpose: Emit edge manifest, coverage, traceability, build hash.
+      consumes: [optimized_ir, all_generated_outputs]
+      produces: [certification_artifacts, deterministic_build_hash]
+      depends_on: [PASS-016, PASS-017]
+      deterministic: true
+      certification: CERTIFICATION_PASS
+      failure_conditions:
+        - coverage_below_target (95%) -> FAIL_BUILD
+        - untraceable_artifact -> FAIL_BUILD
+
+  - pass:
+      id: PASS-019
+      name: MANIFEST_GENERATION
+      phase: CERTIFY
+      purpose: Emit deterministic build manifest.
+      consumes: [optimized_ir, all_generated_outputs, certification_artifacts]
+      produces: [build_manifest]
+      depends_on: [PASS-018]
+      deterministic: true
+      certification: MANIFEST_PASS
+      failure_conditions:
+        - hash_mismatch -> ABORT_WITH_GENERATION_ERROR
+
+  - pass:
+      id: PASS-020
+      name: COMPILER_REPORT
+      phase: REPORT
+      purpose: Summarize run, emit final build verdict.
+      consumes: [full_pipeline_evidence]
+      produces: [compiler_report]
+      depends_on: [PASS-019]
+      deterministic: true
+      certification: REPORT_PASS
+      failure_conditions: []
+
+# ------------------------------------------------------------
+# ORDERING INVARIANT
+# ------------------------------------------------------------
+# A pass may execute only after all passes listed in its depends_on
+# complete with passing certification. The compiler engine enforces
+# this DAG; any attempt to execute a pass out of order is a HALT.
+# ------------------------------------------------------------

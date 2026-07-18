@@ -1,0 +1,182 @@
+# SOVR Financial OS — Production Configuration
+# Phase: X.1 — Production Configuration System
+# Override any value with the corresponding environment variable.
+
+database:
+  host: ${DATABASE_HOST:localhost}
+  port: ${DATABASE_PORT:5432}
+  name: ${DATABASE_NAME:sovr_protocol}
+  user: ${DATABASE_USER:sovr}
+  password: ${DATABASE_PASSWORD}
+  pool:
+    min: ${DATABASE_POOL_MIN:2}
+    max: ${DATABASE_POOL_MAX:20}
+    idleTimeoutMs: ${DATABASE_POOL_IDLE_TIMEOUT:30000}
+    connectionTimeoutMs: ${DATABASE_POOL_CONNECTION_TIMEOUT:5000}
+  ssl:
+    enabled: ${DATABASE_SSL_ENABLED:true}
+    rejectUnauthorized: ${DATABASE_SSL_REJECT_UNAUTHORIZED:true}
+  migrations:
+    directory: ${DATABASE_MIGRATIONS_DIRECTORY:migrations}
+    lockTable: _migration_lock
+    statementTimeout: ${DATABASE_STATEMENT_TIMEOUT:30000}
+  backup:
+    enabled: true
+    schedule: "0 2 * * *"
+    retention: ${BACKUP_RETENTION_DAYS:30}
+    verifyAfterBackup: true
+
+eventStore:
+  type: postgres
+  postgres:
+    schema: ${EVENT_STORE_SCHEMA:public}
+    table: events
+    streamTable: event_streams
+    snapshotTable: snapshots
+    hashChainTable: event_hash_chain
+  streaming:
+    enabled: true
+    consumerGroup: ${EVENT_STORE_CONSUMER_GROUP:sovr-processors}
+    checkpointInterval: ${EVENT_STORE_CHECKPOINT_INTERVAL:1000}
+    deadLetterQueue:
+      enabled: true
+      maxRetries: ${EVENT_STORE_DLQ_MAX_RETRIES:3}
+      retryBackoffMs: ${EVENT_STORE_DLQ_RETRY_BACKOFF:1000}
+    backpressure:
+      maxBufferSize: ${EVENT_STORE_BACKPRESSURE_BUFFER:10000}
+      slowConsumerThresholdMs: ${EVENT_STORE_SLOW_CONSUMER_THRESHOLD:5000}
+
+ledger:
+  currency: USD
+  precision: 2
+  autoPost: ${LEDGER_AUTO_POST:true}
+  balanceCheckInterval: ${LEDGER_BALANCE_CHECK_INTERVAL:60000}
+  integrityCheckEnabled: ${LEDGER_INTEGRITY_CHECK_ENABLED:true}
+
+vault:
+  states:
+    - CREATED
+    - FUNDED
+    - LOCKED
+    - AUTHORIZED
+    - PENDING
+    - SETTLED
+    - REVERSED
+    - CLOSED
+    - FAILED
+    - CANCELLED
+    - EXPIRED
+  multiSigRequired: ${VAULT_MULTISIG_REQUIRED:true}
+  defaultApprovalCount: ${VAULT_DEFAULT_APPROVAL_COUNT:2}
+  timeoutMs: ${VAULT_TIMEOUT_MS:86400000}
+  maxVaultsPerOwner: ${VAULT_MAX_PER_OWNER:1000}
+
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    algorithm: HS256
+    expirationMs: ${JWT_EXPIRATION_MS:3600000}
+    refreshExpirationMs: ${JWT_REFRESH_EXPIRATION_MS:86400000}
+    issuer: ${JWT_ISSUER:sovr-financial-os}
+    audience: ${JWT_AUDIENCE:sovr-api}
+  session:
+    enabled: ${SESSION_ENABLED:true}
+    maxConcurrent: ${SESSION_MAX_CONCURRENT:5}
+    expirationMs: ${SESSION_EXPIRATION_MS:1800000}
+  encryption:
+    algorithm: aes-256-gcm
+    keyRotationIntervalDays: ${ENCRYPTION_KEY_ROTATION_DAYS:90}
+    masterKeyPath: ${MASTER_KEY_PATH:/run/secrets/master.key}
+  rbac:
+    enabled: true
+    requireMfaForAdmin: ${RBAC_REQUIRE_MFA_ADMIN:true}
+  apiKeys:
+    enabled: true
+    headerName: X-API-Key
+    rotationIntervalDays: ${API_KEY_ROTATION_DAYS:90}
+
+api:
+  port: ${API_PORT:3001}
+  host: ${API_HOST:0.0.0.0}
+  cors:
+    enabled: true
+    origins: ${CORS_ORIGINS:*}
+  rateLimit:
+    enabled: ${RATE_LIMIT_ENABLED:true}
+    windowMs: ${RATE_LIMIT_WINDOW_MS:60000}
+    max: ${RATE_LIMIT_MAX:100}
+    skipSuccessfulRequests: ${RATE_LIMIT_SKIP_SUCCESS:false}
+  timeout:
+    requestMs: ${API_TIMEOUT_REQUEST_MS:30000}
+    keepAliveMs: ${API_TIMEOUT_KEEPALIVE_MS:5000}
+  bodyLimit: ${API_BODY_LIMIT:1mb}
+  requestId:
+    enabled: true
+    header: X-Request-ID
+  version:
+    enabled: true
+    header: X-API-Version
+    supportedVersions:
+      - "1.0"
+      - "1.1"
+
+metrics:
+  enabled: ${METRICS_ENABLED:true}
+  port: ${METRICS_PORT:9090}
+  path: ${METRICS_PATH:/metrics}
+  exporters:
+    prometheus:
+      enabled: true
+    otlp:
+      enabled: ${METRICS_OTLP_ENABLED:false}
+      endpoint: ${METRICS_OTLP_ENDPOINT}
+  intervalMs: ${METRICS_INTERVAL_MS:15000}
+
+logging:
+  level: ${LOG_LEVEL:info}
+  format: ${LOG_FORMAT:json}
+  outputs:
+    - console
+    - file
+  file:
+    path: ${LOG_FILE_PATH:/var/log/sovr/app.log}
+    maxSize: ${LOG_FILE_MAX_SIZE:100m}
+    maxFiles: ${LOG_FILE_MAX_FILES:10}
+    compress: ${LOG_FILE_COMPRESS:true}
+  fields:
+    include:
+      - timestamp
+      - level
+      - service
+      - traceId
+      - spanId
+      - correlationId
+      - commandId
+      - eventId
+      - vaultId
+      - actor
+    redact:
+      - password
+      - secret
+      - token
+      - apiKey
+
+audit:
+  enabled: true
+  chain: true
+  retentionDays: ${AUDIT_RETENTION_DAYS:2555}
+  export:
+    enabled: ${AUDIT_EXPORT_ENABLED:false}
+    format: ${AUDIT_EXPORT_FORMAT:json}
+    destination: ${AUDIT_EXPORT_DESTINATION}
+  signing:
+    enabled: ${AUDIT_SIGNING_ENABLED:true}
+    algorithm: ${AUDIT_SIGNING_ALGORITHM:HMAC-SHA256}
+
+featureFlags:
+  experimentalFeatures: ${FEATURE_EXPERIMENTAL:false}
+  betaAPIs: ${FEATURE_BETA_APIS:false}
+  streamingEnabled: ${FEATURE_STREAMING:true}
+  projectionRebuild: ${FEATURE_PROJECTION_REBUILD:false}
+  externalIntegrations: ${FEATURE_EXTERNAL_INTEGRATIONS:false}
+  webDashboard: ${FEATURE_WEB_DASHBOARD:false}

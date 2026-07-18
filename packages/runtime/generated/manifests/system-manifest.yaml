@@ -1,0 +1,16 @@
+{
+  "domain": "system",
+  "buildId": "5678ed61edbc97e3",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "artifacts": [
+    {
+      "file": "state-machines/system-state-machine.ts",
+      "hash": "c25df83aa3e692e4"
+    },
+    {
+      "file": "events/system-events.ts",
+      "hash": "0ae08cc6fa47d60b"
+    }
+  ],
+  "sourceHash": "dae8c75bb3fa4b45"
+}

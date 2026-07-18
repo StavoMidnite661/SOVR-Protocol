@@ -1,0 +1,96 @@
+# ============================================================
+# SOVR Financial OS — Repository State Machine
+# File: management/REPOSITORY_STATE_MACHINE.yaml
+# Phase: 5.7 — Repository State Machine
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no implementation)
+# ============================================================
+# The repository itself is modeled as a state machine. Every
+# engineering activity advances repository state. This governs how
+# the repository moves from Governance through Evolution/Deprecation.
+#
+# Authority: compiler.yaml, SEMANTIC_COMPILER_CONTRACT.yaml,
+# management/PROJECT_CONTROL_BOARD.yaml. On divergence, PCB prevails
+# for phase tracking.
+# ============================================================
+
+repository_state_machine:
+  schema_version: "1.0.0"
+  initial_state: GOVERNANCE
+  invariant: EVERY_ENGINEERING_ACTIVITY_ADVANCES_REPOSITORY_STATE
+  states:
+    - state: GOVERNANCE
+      description: Constitutional law, findings, amendments defined.
+      enters_from: [DEPLOYMENT, MAINTENANCE]
+      exits_to: [SPECIFICATION]
+      activities: [ratify_amendment, register_finding, define_invariant]
+    - state: SPECIFICATION
+      description: Protocol YAML and compiler specs authored/frozen.
+      enters_from: [GOVERNANCE]
+      exits_to: [CERTIFICATION]
+      activities: [author_spec, freeze_protocol]
+    - state: CERTIFICATION
+      description: Artifacts certified, traceability verified.
+      enters_from: [SPECIFICATION]
+      exits_to: [COMPILER]
+      activities: [run_verification, emit_certificate]
+    - state: COMPILER
+      description: Compiler reads spec, produces runtime artifacts.
+      enters_from: [CERTIFICATION]
+      exits_to: [IMPLEMENTATION]
+      activities: [compile, generate, certify_build]
+    - state: IMPLEMENTATION
+      description: Generated runtime integrated and built.
+      enters_from: [COMPILER]
+      exits_to: [TESTING]
+      activities: [integrate, build_runtime]
+    - state: TESTING
+      description: Acceptance tests executed against runtime.
+      enters_from: [IMPLEMENTATION]
+      exits_to: [DEPLOYMENT]
+      activities: [run_acceptance_tests, measure_coverage]
+    - state: DEPLOYMENT
+      description: Runtime promoted to production.
+      enters_from: [TESTING]
+      exits_to: [MAINTENANCE]
+      activities: [deploy, monitor]
+    - state: MAINTENANCE
+      description: Operational support and observation.
+      enters_from: [DEPLOYMENT]
+      exits_to: [EVOLUTION]
+      activities: [operate, observe]
+    - state: EVOLUTION
+      description: New requirements drive a return to GOVERNANCE.
+      enters_from: [MAINTENANCE]
+      exits_to: [GOVERNANCE]
+      activities: [propose_amendment, recompile]
+    - state: DEPRECATION
+      description: Artifact/domain retired.
+      enters_from: [MAINTENANCE, EVOLUTION]
+      exits_to: [ARCHIVED]
+      activities: [deprecate, notify]
+    - state: ARCHIVED
+      description: Retired artifact frozen for audit.
+      enters_from: [DEPRECATION]
+      exits_to: []
+      activities: [archive]
+
+  transitions:
+    - { from: GOVERNANCE, to: SPECIFICATION, trigger: spec_authorized, guard: amendments_proposed }
+    - { from: SPECIFICATION, to: CERTIFICATION, trigger: spec_frozen, guard: metadata_complete }
+    - { from: CERTIFICATION, to: COMPILER, trigger: certification_pass, guard: verification_layers_pass }
+    - { from: COMPILER, to: IMPLEMENTATION, trigger: build_artifact, guard: deterministic_build_ok }
+    - { from: IMPLEMENTATION, to: TESTING, trigger: runtime_built, guard: compile_check_pass }
+    - { from: TESTING, to: DEPLOYMENT, trigger: tests_pass, guard: coverage_target_met }
+    - { from: DEPLOYMENT, to: MAINTENANCE, trigger: deployed, guard: health_ok }
+    - { from: MAINTENANCE, to: EVOLUTION, trigger: change_requested }
+    - { from: EVOLUTION, to: GOVERNANCE, trigger: amendment_proposed }
+    - { from: MAINTENANCE, to: DEPRECATION, trigger: retire }
+    - { from: EVOLUTION, to: DEPRECATION, trigger: retire }
+    - { from: DEPRECATION, to: ARCHIVED, trigger: archived }
+
+  current_state: SPECIFICATION
+  note: >
+    The repository currently sits in SPECIFICATION (compiler architecture
+    complete, awaiting amendment execution to reach CERTIFICATION->COMPILER).
+    No transition to COMPILER is permitted until the implementation readiness
+    review passes (next_gate: amendment_execution_review).

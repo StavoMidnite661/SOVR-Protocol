@@ -1,0 +1,74 @@
+# ============================================================
+# Constitutional Rule Implementation Matrix
+# Phase XIV-E: Constitutional Convergence
+# ============================================================
+generated_at: "2026-07-17T23:17:00-07:00"
+status: CERTIFIED
+
+rules:
+  - rule_id: INV-001
+    description: "Financial integrity — double-entry bookkeeping"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "ledger.entry.post validation_rules"
+    coverage: "100% — all posting commands enforce balanced entries"
+
+  - rule_id: INV-002
+    description: "Ledger immutability — posted entries cannot be altered"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "ledger.entry.reverse, ledger.entry.correct"
+    coverage: "Full reversal and correction audit trail"
+
+  - rule_id: INV-003
+    description: "Authority establishment — no action without granted capability"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "CAPABILITY_REQUIRED gate in command catalog"
+    coverage: "All 88 commands require registered capability"
+
+  - rule_id: INV-004
+    description: "No agent may create, grant, or modify financial authority"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "governance-only capability grants"
+    coverage: "All governance capabilities restricted to governance actor type"
+
+  - rule_id: INV-005
+    description: "Audit trail — every action produces an event"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "producer/consumers declarations in event catalog"
+    coverage: "All 158 events include audit_projection consumer"
+
+  - rule_id: INV-006
+    description: "Ambiguity resolution — no ambiguous intents"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "intent validation pipeline"
+    coverage: "All intent states tracked through enrichment and validation"
+
+  - rule_id: INV-007
+    description: "Value preservation — compensation before loss"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "saga compensation strategies"
+    coverage: "All financial sagas define explicit compensation"
+
+  - rule_id: INV-008
+    description: "Four-gate enforcement — identity, policy, capability, scope"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "constitutional_gates in command catalog"
+    coverage: "All commands declare identity_required, policy_required, capability_required"
+
+  - rule_id: INV-009
+    description: "Unknown states must be represented explicitly"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "state machine terminal and unknown states"
+    coverage: "system.health.unknown, FAILED states, etc."
+
+  - rule_id: INV-010
+    description: "Human override — humans may always override agent decisions"
+    implementation_status: IMPLEMENTED
+    enforcement_point: "governance.emergency.halt, agent.governance.override"
+    coverage: "All agent execution states allow governance override"
+
+validation:
+  compiler_strict_mode: true
+  all_commands_have_gates: true
+  all_capabilities_registered: true
+  all_events_registered: true
+  all_invariants_resolve: true

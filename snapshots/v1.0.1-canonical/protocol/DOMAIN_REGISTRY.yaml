@@ -1,0 +1,230 @@
+# ============================================================
+# SOVR Financial OS — Canonical Domain Registry
+# File: protocol/DOMAIN_REGISTRY.yaml
+# Phase: 3.4 — Canonical Domain Registry
+# Date: 2026-07-15
+# Ratified by: AMD-0004 (PROPOSED)
+# ============================================================
+# The authoritative list of canonical domains, aliases,
+# deprecated names, replacement mapping, ownership, and version
+# history. Every protocol artifact must reference this registry
+# for domain resolution. Non-domain constructs referenced in the
+# protocol (kernel, hybrid, runtime, system) are classified here
+# so the compiler never treats them as domains.
+#
+# Status: GOVERNANCE_DRAFT — becomes authoritative on AMD-0004 RATIFIED.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  registry_id: "domain-registry"
+  status: GOVERNANCE_DRAFT
+  protocol_version: "1.0.0"
+  target_protocol_version: "1.0.1"
+  authoritative_on: AMD-0004
+  source_of_truth_for: domain_resolution
+  owner: chief_architect
+
+# ============================================================
+# CANONICAL DOMAINS (9)
+# ============================================================
+# These are the first-class operational domains from
+# 00_protocol-manifest.yaml. Each is authoritative and stable.
+# ============================================================
+
+canonical_domains:
+
+  vault:
+    name: Vault
+    layer: L1
+    priority: 1
+    answers: "Can value exist?"
+    owner: vault-agent
+    aliases: []
+    deprecated_names: []
+    introduced: "1.0.0"
+    status: active
+
+  ledger:
+    name: Ledger
+    layer: L1
+    priority: 3
+    answers: "How is truth recorded?"
+    owner: ledger-agent
+    aliases: []
+    deprecated_names: []
+    introduced: "1.0.0"
+    status: active
+
+  treasury:
+    name: Treasury
+    layer: L1
+    priority: 2
+    answers: "Can value move?"
+    owner: treasury-agent
+    aliases: []
+    deprecated_names: []
+    introduced: "1.0.0"
+    status: active
+
+  payment:
+    name: Payment
+    layer: L6
+    priority: 6
+    answers: "Can execution leave the system?"
+    owner: payment-agent
+    aliases: []
+    deprecated_names: []
+    introduced: "1.0.0"
+    status: active
+
+  identity:
+    name: Identity
+    layer: L1
+    priority: 4
+    answers: "Who is acting?"
+    owner: identity-agent
+    aliases: []
+    deprecated_names: []
+    introduced: "1.0.0"
+    status: active
+
+  policy:
+    name: Policy
+    layer: L1
+    priority: 5
+    answers: "Is this action permitted?"
+    owner: policy-agent
+    aliases: []
+    deprecated_names: []
+    introduced: "1.0.0"
+    status: active
+
+  agent:
+    name: Agent
+    layer: L1
+    priority: 7
+    answers: "Can intelligence request action?"
+    owner: agent-runtime-agent
+    aliases: [agent-runtime]
+    deprecated_names: []
+    introduced: "1.0.0"
+    status: active
+
+  governance:
+    name: Governance
+    layer: L1
+    priority: 8
+    answers: "Who oversees the system?"
+    owner: governance-agent
+    aliases: []
+    deprecated_names: []
+    introduced: "1.0.0"
+    status: active
+
+  intent:
+    name: Intent
+    layer: L1
+    priority: 6
+    answers: "What does the actor want to do?"
+    owner: intent-agent
+    aliases: []
+    deprecated_names: []
+    introduced: "1.0.0"
+    status: active
+
+# ============================================================
+# CANDIDATE DOMAIN (governance decision required — AMD-0004)
+# ============================================================
+
+candidate_domains:
+
+  audit:
+    name: Audit
+    referenced_in:
+      - 12_domain-contracts.yaml (ledger_to_audit, governance_to_all_domains)
+      - 08_security-capabilities.yaml (AUDIT action enum, currently unused)
+    decision_required: true
+    options:
+      - promote_to_canonical_domain: >
+          Make audit a first-class read/oversight domain (sub-authority of ledger +
+          governance).
+      - reclassify_as_capability_group: >
+          Treat AUDIT as a capability action group only (no domain surface).
+    recommendation: reclassify_as_capability_group
+    rationale: >
+      Audit behavior is already covered by ledger (immutable history) and governance
+      (oversight). A dedicated domain adds surface without new authority.
+    owner: chief_architect
+    status: pending_governance_decision
+
+# ============================================================
+# NON-DOMAIN CONSTRUCTS (must NOT be treated as domains)
+# ============================================================
+
+non_domain_constructs:
+
+  kernel:
+    classification: infrastructure
+    referenced_in: [05_state-machines.yaml (saga_lifecycle, system_health)]
+    resolution: shared runtime kernel; not a business domain
+    owner: kernel-engineer
+
+  runtime:
+    classification: infrastructure
+    referenced_in: [12_domain-contracts.yaml (boundary contracts sovr_runtime_to_*)]
+    resolution: the assembled runtime; a container, not a domain
+    owner: release_manager
+
+  hybrid:
+    classification: boundary
+    referenced_in: [09_saga-orchestration.yaml (hybrid.* steps)]
+    resolution: on-chain settlement boundary defined in hybrid-boundary.yaml
+    owner: chief_architect
+
+  system:
+    classification: infrastructure
+    referenced_in:
+      - 05_state-machines.yaml (system_health_lifecycle)
+      - 09_saga-orchestration.yaml (system.internal.* steps)
+    resolution: platform/health + internal orchestration; not a business domain
+    owner: kernel-engineer
+
+# ============================================================
+# BOUNDARY SYSTEMS (from 00_protocol-manifest.yaml — not domains)
+# ============================================================
+
+boundary_systems:
+  - on_chain_settlement       # SOVR Hybrid Engine
+  - external_payment_rails    # External Payment Providers
+  - regulatory_reporting      # Regulatory Interfaces
+
+# ============================================================
+# RESOLUTION RULES (compiler enforcement)
+# ============================================================
+
+resolution_rules:
+  - rule: EVERY_DOMAIN_REFERENCE_RESOLVES
+    check: every domain string in any protocol file must appear in canonical_domains
+           (or aliases), candidate_domains, or non_domain_constructs.
+    on_failure: REJECT
+  - rule: NON_DOMAIN_NOT_GENERATED_AS_DOMAIN
+    check: constructs classified infrastructure/boundary must not receive domain-model,
+           aggregate, or contract-domain generation.
+    on_failure: REJECT
+  - rule: ALIAS_RESOLVES_TO_CANONICAL
+    check: any alias (e.g. agent-runtime) resolves to its canonical domain (agent).
+    on_failure: REJECT
+
+# ============================================================
+# VERSION HISTORY
+# ============================================================
+
+version_history:
+  - version: "1.0.0"
+    change: Initial 9 canonical domains (frozen protocol).
+  - version: "1.0.1"
+    change: >
+      Registry introduced (AMD-0004). audit classified as candidate; kernel/runtime/
+      hybrid/system classified as non-domain constructs; agent-runtime recorded as
+      alias of agent.

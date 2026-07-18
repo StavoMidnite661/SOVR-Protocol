@@ -1,0 +1,128 @@
+report:
+  title: Hardcode Deviation Report
+  metadata:
+    generated: 2026-07-17
+  content: |
+    # Hardcode Deviation Report
+    ## SOVR Financial OS — Phase XII Compiler Authority Verification
+    **Generated**: 2026-07-17
+    
+    ---
+    
+    ## Forbidden Patterns
+    
+    Per eng.sess.16 directive, the following patterns are forbidden unless
+    generated from or referenced by YAML protocol authority:
+    
+    - `if(role==="ADMIN")`
+    - `if(state==="FUNDED")`
+    - `if(amount > limit)`
+    - Hardcoded state strings not derived from 05_state-machines.yaml
+    - Hardcoded role strings not derived from 08_security-capabilities.yaml
+    
+    ---
+    
+    ## Deviations Found
+    
+    ### DEV-001: Vault State Guards Hardcoded in Aggregate
+    
+    **File**: packages/vault/src/index.ts
+    **Lines**: 81, 110, 139, 175, 204
+    **Pattern**: `if (this.vaultState !== 'FUNDED')`
+    **YAML Source**: 05_state-machines.yaml (vault_lifecycle state machine)
+    **Status**: DEVIATION
+    **Evidence**: VaultAggregate.receive() implements state guards inline rather
+    than delegating to a StateMachine class generated from 05_state-machines.yaml.
+    The states ('FUNDED', 'AUTHORIZED', etc.) match 05_state-machines.yaml, but
+    the transition logic is hand-coded.
+    **Required Fix**: Generate StateMachine class from 05_state-machines.yaml and
+    inject into VaultAggregate via `setStateMachine()`.
+    **Severity**: MEDIUM — states are correct but enforcement is hand-coded.
+    
+    ---
+    
+    ### DEV-002: Protocol Version Hardcoded in Event Metadata
+    
+    **File**: packages/vault/src/index.ts (lines 97, 127, 161, 191, 219)
+    **Pattern**: `protocolVersion: '1.1.0'`
+    **YAML Source**: 00_protocol-manifest.yaml (protocol_version: 1.0.0)
+    **Status**: DEVIATION
+    **Evidence**: Five vault event handlers hardcode protocolVersion as '1.1.0'
+    in EventMetadata. The FROZEN protocol manifest declares 1.0.0.
+    **Required Fix**: Derive protocolVersion from 00_protocol-manifest.yaml or
+    constitution.yaml at compile time, inject as constant.
+    **Severity**: HIGH — violates FROZEN constitution version.
+    
+    ---
+    
+    ### DEV-003: Approver List Hardcoded in Guard
+    
+    **File**: packages/vault/src/index.ts (line 144)
+    **Pattern**: `if (!this.vaultData.approvers.includes(approver))`
+    **YAML Source**: domains/vault.yaml (VaultPayload.approvers field)
+    **Status**: DERIVED
+    **Evidence**: The guard checks `this.vaultData.approvers` which is populated
+    from the `VaultPayload` command payload. The approvers list originates from
+    the vault.yaml domain specification. This is data-driven, not hardcoded.
+    **Severity**: NONE — correctly derived from YAML-declared field.
+    
+    ---
+    
+    ### DEV-004: Stress Test State Assertion
+    
+    **File**: tests/stress/72h-simulation.ts (lines 185, 239)
+    **Pattern**: `if (st === 'FUNDED')`
+    **YAML Source**: 05_state-machines.yaml (vault_lifecycle)
+    **Status**: DEVIATION
+    **Evidence**: Stress simulation uses hardcoded state string 'FUNDED' to
+    determine probabilistic transitions. Should derive transition probabilities
+    from 05_state-machines.yaml transition table.
+    **Severity**: LOW — test-only, not production runtime.
+    
+    ---
+    
+    ### DEV-005: Invariant Names Hardcoded
+    
+    **File**: packages/vault/src/index.ts (lines 34, 99, 128, 159, 189)
+    **Pattern**: `invariants: ['INV-VAULT-001', 'INV-VAULT-002']`
+    **YAML Source**: 01_constitution.yaml invariants
+    **Status**: DERIVED
+    **Evidence**: Invariant IDs reference the constitution's invariant definitions.
+    The IDs are stable references, not independently invented logic.
+    **Severity**: NONE — correctly references YAML-declared invariants.
+    
+    ---
+    
+    ### DEV-006: Vault State Machine Not Using StateMachine Class
+    
+    **File**: packages/vault/src/index.ts
+    **Pattern**: `switch (command.type)` with inline state checks
+    **YAML Source**: 05_state-machines.yaml (vault_lifecycle transition table)
+    **Status**: DEVIATION
+    **Evidence**: The VaultAggregate uses a manual switch/case with inline state
+    guards. 05_state-machines.yaml declares the full transition table:
+    CREATED→PENDING_FUNDING, PENDING_FUNDING→FUNDED, FUNDED→LOCKED, etc.
+    The runtime does not consume this declaration — transitions are hardcoded.
+    **Required Fix**: Generate StateMachine from 05_state-machines.yaml and use
+    `this.transition(eventType, context)` instead of inline guards.
+    **Severity**: MEDIUM — state values match but transition enforcement bypasses YAML authority.
+    
+    ---
+    
+    ## Summary
+    
+    | ID | Severity | Status | Location |
+    |---|---|---|---|
+    | DEV-001 | MEDIUM | DEVIATION | packages/vault/src/index.ts |
+    | DEV-002 | HIGH | DEVIATION | packages/vault/src/index.ts |
+    | DEV-003 | NONE | DERIVED | packages/vault/src/index.ts |
+    | DEV-004 | LOW | DEVIATION | tests/stress/72h-simulation.ts |
+    | DEV-005 | NONE | DERIVED | packages/vault/src/index.ts |
+    | DEV-006 | MEDIUM | DEVIATION | packages/vault/src/index.ts |
+    
+    **Deviations requiring fix**: DEV-001, DEV-002, DEV-006
+    **Derived correctly**: DEV-003, DEV-005
+    **Test-only**: DEV-004
+    
+    **END OF REPORT**
+    

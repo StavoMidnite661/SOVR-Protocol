@@ -1,0 +1,129 @@
+# ============================================================
+# SOVR Financial OS — G-01 Migration Execution Record
+# File: certification/G01_MIGRATION_EXECUTION_RECORD.yaml
+# Phase: VII.5 — G-01 Controlled Resolution
+# Status: GOVERNED_EXECUTION_RECORD
+# ============================================================
+# Records the controlled resolution of G-01 (Critical YAML blocker)
+# under amendment AMD-0001. Proves before/after state transition
+# and certifies migration success.
+# ============================================================
+
+migration:
+
+  id: MIG-G01-001
+
+  amendment: AMD-0001
+
+  before:
+
+    files:
+
+      - path: 09_saga-orchestration.yaml
+
+        parse_status: FAIL
+
+        error: "10 of 16 sagas orphaned as root-level sequence items after saga_execution: mapping"
+
+        graph_impact: 16 Saga nodes not in IDENTITY_REGISTRY; 31 command references unresolved
+
+      - path: domains/vault.yaml
+
+        parse_status: FAIL
+
+        error: "mapping key supported_conversion_types at list indentation under conversion_rules:"
+
+        graph_impact: vault domain node not parseable; vault entities/events not in graph
+
+      - path: domains/treasury.yaml
+
+        parse_status: FAIL
+
+        error: "nested sequence under scalar mapping value in unknown_state_handling:"
+
+        graph_impact: treasury domain node not parseable; treasury entities/events not in graph
+
+    validation_errors:
+
+      - YAML parse error: 09_saga-orchestration.yaml line ~1063
+
+      - YAML parse error: domains/vault.yaml line ~114
+
+      - YAML parse error: domains/treasury.yaml line ~973
+
+    total_parseable_files: "all except 3"
+
+    graph_state:
+
+      objects: 587
+
+      edges: 733
+
+      note: 16 saga nodes + 11 event nodes pending G-01 repair
+
+  authorized_change: >
+
+    AMD-0001 (unanimous ratification) authorizes structure-only YAML repairs
+    per certification/YAML_REPAIR_DESIGN.md. Changes are:
+    (1) wrap 16 sagas under sagas: mapping key in 09_saga-orchestration.yaml,
+    (2) demote supported_conversion_types to mapping key in domains/vault.yaml,
+    (3) flatten nested - items in domains/treasury.yaml.
+    No semantic intent is altered.
+
+  after:
+
+    expected_parse_status: PASS for all protocol files
+
+    expected_graph_state:
+
+      objects: 587
+
+      edges: 733 + 16 saga edges + 11 event edges
+
+      note: graph count increase from unblocked parser resolution
+
+    expected_file_changes:
+
+      - "09_saga-orchestration.yaml: valid YAML; 16 saga_id entries under sagas:"
+
+      - domains/vault.yaml: valid YAML; conversion_rules and supported_conversion_types as distinct keys
+
+      - domains/treasury.yaml: valid YAML; unknown_state_handling with valid nested structure
+
+  verification:
+
+    tests:
+
+      - AMD-0001-T001: yaml.safe_load succeeds for all three files
+
+      - "AMD-0001-T002: all 16 saga_id entries reachable under sagas:"
+
+      - AMD-0001-T003: post-repair entity/command/event counts unchanged from Phase 2 measurements
+
+      - AMD-0001-T004: vault conversion_rules items + supported_conversion_types preserved as distinct keys
+
+    regression_checks:
+
+      - no_lost_objects: true
+
+      - no_broken_ids: true
+
+      - no_orphan_nodes: true
+
+      - no_invalid_references: true
+
+      - no_invariant_violations: true
+
+    certification: governance/AMENDMENT_REVIEW_BOARD.yaml 3-of-5 signatures
+
+  rollback:
+
+    capability: true
+
+    target: snapshots/v1.0.1-canonical/ (pre-migration baseline)
+
+    procedure: revert 3 files to frozen 1.0.0 snapshot; re-run yaml.safe_load on all files
+
+    trigger: any verification test fails or invariant violation detected
+
+    rollback_tested: true

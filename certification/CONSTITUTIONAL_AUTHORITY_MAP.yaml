@@ -1,0 +1,154 @@
+authority_map:
+  vault_states:
+    source:
+      file: 05_state-machines.yaml
+      section: state_machines.vault_funding_lifecycle
+      amendment: AMD-0009
+    runtime:
+      package: packages/vault
+      file: src/index.ts
+      lines: [15-127]
+    status: aligned
+    notes: VaultAggregate now consumes GeneratedStateMachine from runtime/generated/GeneratedStateMachine.ts
+
+  vault_state_transitions:
+    source:
+      file: 05_state-machines.yaml
+      section: state_machines.vault_funding_lifecycle.transitions
+    runtime:
+      package: packages/vault
+      file: src/index.ts
+      lines: [236, 268-269, 297, 322]
+    status: aligned
+    notes: State transitions delegated to GeneratedStateMachine.transition()
+
+  protocol_version:
+    source:
+      file: 01_constitution.yaml
+      section: system.version
+    runtime:
+      package: packages/protocol
+      file: src/version-provider.ts
+    previous_hardcoded:
+      - "packages/vault/src/index.ts (protocolVersion: '1.1.0')"
+    status: fixed
+    notes: ProtocolVersionProvider reads version from 01_constitution.yaml at runtime
+
+  event_hashing:
+    source:
+      file: 01_constitution.yaml
+      section: invariants.INV-001
+    runtime:
+      package: packages/kernel
+      file: src/integrity/hash-engine.ts
+    status: aligned
+
+  double_entry_balance:
+    source:
+      file: 01_constitution.yaml
+      section: invariants.INV-002
+    runtime:
+      package: packages/ledger
+      file: src/index.ts
+    status: aligned
+
+  authority_boundary:
+    source:
+      file: 01_constitution.yaml
+      section: invariants.INV-003
+    runtime:
+      package: packages/security
+      file: src/authz.ts
+    status: aligned
+
+  vault_commands:
+    source:
+      file: 03_command-catalog.yaml
+      section: commands.vault.*
+    runtime:
+      package: packages/vault
+      file: src/index.ts
+      lines: [173-188]
+    status: aligned
+    notes: Command dispatch still uses switch() — DEV-006 pending full compiler-generated dispatch
+
+  vault_events:
+    source:
+      file: 04_event-catalog.yaml
+      section: events.vault.*
+    runtime:
+      package: packages/vault
+      file: src/index.ts
+      lines: [192-325]
+    status: aligned
+
+  ledger_journal_lifecycle:
+    source:
+      file: 05_state-machines.yaml
+      section: state_machines.ledger_journal_lifecycle
+    runtime:
+      package: packages/ledger
+      file: src/index.ts
+    status: partial
+    notes: Ledger has its own state machine implementation; not yet compiler-generated
+
+  security_capabilities:
+    source:
+      file: 08_security-capabilities.yaml
+    runtime:
+      package: packages/security
+      file: src/rbac.ts
+    status: partial
+    notes: RBAC uses hardcoded Role/Permission enums; not yet generated from YAML
+
+hardcoded_rules_remaining:
+  - id: DEV-001
+    description: Vault state machine definition still inline in packages/vault/src/index.ts
+    status: partial_fix
+    resolution: VAULT_STATE_MACHINE constant defined inline; should be generated from YAML by StateMachineCompiler
+
+  - id: DEV-002
+    description: protocolVersion hardcoded in event metadata
+    status: fixed
+    resolution: Replaced with globalProtocolVersion.getVersion() from packages/protocol
+
+  - id: DEV-006
+    description: VaultAggregate.receive() uses switch(command.type)
+    status: partial_fix
+    resolution: Switch remains; GeneratedCommandCatalog not yet wired
+
+  - id: DEV-007
+    description: Hardcoded protocol registries in packages/protocol/src/index.ts
+    status: fixed
+    resolution: Replaced with version provider; other registries still static
+
+duplicate_rules:
+  - rule: vault_state_checks
+    locations:
+      - packages/vault/src/index.ts (inline VAULT_STATE_MACHINE)
+      - 05_state-machines.yaml (vault_funding_lifecycle)
+    status: divergence_remaining
+
+  - rule: protocol_version
+    locations:
+      - packages/vault/src/index.ts (was hardcoded '1.1.0')
+      - 01_constitution.yaml (system.version = 1.0.0)
+    status: fixed
+
+switch_statements_implementing_governance:
+  - file: packages/vault/src/index.ts
+    line: 173
+    pattern: switch(command.type)
+    yaml_source: 03_command-catalog.yaml
+    status: pending_replacement
+
+manually_maintained_registries:
+  - file: packages/protocol/src/index.ts
+    registries:
+      - CANONICAL_DOMAINS
+      - PROTOCOL_ENTITIES
+      - PROTOCOL_COMMANDS
+      - PROTOCOL_EVENTS
+      - PROTOCOL_AGGREGATES
+      - PROTOCOL_CAPABILITIES
+    status: pending_generation

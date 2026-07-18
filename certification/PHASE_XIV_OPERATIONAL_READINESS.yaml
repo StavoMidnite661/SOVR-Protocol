@@ -1,0 +1,52 @@
+# ============================================================
+# Phase XIV Operational Readiness Gate
+# Phase XIV-E: Constitutional Convergence
+# ============================================================
+generated_at: "2026-07-17T23:17:00-07:00"
+gate_id: "PHASE-XIV-OPERATIONAL-READINESS"
+status: READY
+
+readiness_checks:
+  - check: "Compiler parses constitutional_gates from YAML"
+    status: PASS
+    evidence: "parseCommandCatalog uses js-yaml to extract gates"
+
+  - check: "Compiler parses requiredCapabilities from YAML"
+    status: PASS
+    evidence: "issuer.minimum_capability and authorization_requirements.capability extracted"
+
+  - check: "relativePath bug fixed"
+    status: PASS
+    evidence: "path relative to rootDir preserves domains/ prefix"
+
+  - check: "strict_mode option implemented"
+    status: PASS
+    evidence: "CompilerInput.strict_mode passed to SemanticValidator"
+
+  - check: "Warning promotion in strict mode"
+    status: PASS
+    evidence: "promoteWarningsToErrors converts UNKNOWN_CAPABILITY, UNKNOWN_EVENT, etc."
+
+  - check: "COMMAND_GATES_COMPLETENESS rule enforced"
+    status: PASS
+    evidence: "checkCommandGatesCompleteness validates all commands"
+
+  - check: "UNKNOWN_EVENT_REFERENCE rule enforced"
+    status: PASS
+    evidence: "checkUnknownEventReferences validates all event refs"
+
+  - check: "ConstitutionalDriftDetector built"
+    status: PASS
+    evidence: "Analyzes AST for MISSING_EVENT, MISSING_CAPABILITY, MISSING_INVARIANT"
+
+  - check: "Regression tests created"
+    status: PASS
+    evidence: "tests/compiler/constitutional-convergence.test.ts"
+
+  - check: "Certification artifacts generated"
+    status: PASS
+    evidence: "6 YAML artifacts in certification/"
+
+operational_readiness_score: 100%
+blocking_issues: 0
+warnings: 0

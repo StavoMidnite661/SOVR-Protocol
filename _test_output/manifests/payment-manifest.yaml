@@ -1,0 +1,20 @@
+{
+  "domain": "payment",
+  "buildId": "5678ed61edbc97e3",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "artifacts": [
+    {
+      "file": "state-machines/payment-state-machine.ts",
+      "hash": "ab7d84c6bbc3ccdf"
+    },
+    {
+      "file": "commands/payment-commands.ts",
+      "hash": "3bf98557a070f539"
+    },
+    {
+      "file": "events/payment-events.ts",
+      "hash": "e6d03bba697ff1b7"
+    }
+  ],
+  "sourceHash": "338ec6bb8c60aa9d"
+}

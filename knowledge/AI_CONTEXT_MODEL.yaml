@@ -1,0 +1,130 @@
+# ============================================================
+# SOVR Financial OS — Constitutional AI Context Model
+# File: knowledge/AI_CONTEXT_MODEL.yaml
+# Phase: 5.13 — Constitutional AI Context Model
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no implementation)
+# ============================================================
+# Specifies exactly how a future AI agent reconstructs project state
+# solely from repository artifacts. This is the constitutional memory
+# system: no prior conversation history is required.
+#
+# Authority: knowledge/ONTOLOGY.yaml, knowledge/KNOWLEDGE_GRAPH.yaml,
+# management/CURRENT_CONTEXT.yaml, management/PROJECT_CONTROL_BOARD.yaml.
+# On divergence, the knowledge graph + PCB prevail.
+# ============================================================
+
+ai_context_model:
+  schema_version: "1.0.0"
+  principle: A_FUTURE_AGENT_RECONSTRUCTS_STATE_FROM_ARTIFACTS_ALONE
+
+  # ----------------------------------------------------------
+  # READING ORDER (boot a new agent in this sequence)
+  # ----------------------------------------------------------
+  reading_order:
+    - 1_management/CURRENT_CONTEXT.yaml          # phase, completed, blocked, authorization
+    - 2_management/PROJECT_CONTROL_BOARD.yaml    # phases, blockers, amendment program
+    - 3_00_protocol-manifest.yaml                # protocol identity + build phases
+    - 4_01_constitution.yaml                     # constitutional law + INV-001..010
+    - 5_protocol/DOMAIN_REGISTRY.yaml            # canonical domains (AMD-0004)
+    - 6_protocol/AGGREGATE_REGISTRY.yaml         # aggregate roots (AMD-0002)
+    - 7_protocol/METADATA_STANDARD.yaml          # metadata contract (AMD-0010)
+    - 8_protocol/ACCEPTANCE_STANDARD.yaml        # acceptance contract
+    - 9_compiler.yaml                            # frozen compiler spec
+    - 10_compiler/SEMANTIC_COMPILER_CONTRACT.yaml
+    - 11_knowledge/ONTOLOGY.yaml                 # object types
+    - 12_knowledge/IDENTITY_REGISTRY.yaml        # every object + global id
+    - 13_knowledge/KNOWLEDGE_GRAPH.yaml          # nodes + edges
+    - 14_knowledge/SEMANTIC_GRAPH.yaml           # reasoning model
+    - 15_knowledge/TRACE_GRAPH.yaml              # end-to-end trace
+    - 16_knowledge/EVIDENCE_GRAPH.yaml           # certification/evidence links
+    - 17_compiler/PASS_REGISTRY.yaml             # passes
+    - 18_compiler/GENERATOR_REGISTRY.yaml        # generators
+    - 19_certification/COMPILER_CERTIFICATION_MATRIX.yaml
+    - 20_management/REPOSITORY_STATE_MACHINE.yaml
+    - 21_management/ENGINEERING_LIFECYCLE.yaml
+    - 22_governance/amendments/INDEX.yaml        # amendment state
+    - 23_knowledge/AI_CONTEXT_MODEL.yaml         # this file (recursive anchor)
+
+  # ----------------------------------------------------------
+  # REQUIRED ARTIFACTS (must exist for a valid context)
+  # ----------------------------------------------------------
+  required_artifacts:
+    - management/CURRENT_CONTEXT.yaml
+    - 01_constitution.yaml
+    - compiler.yaml
+    - knowledge/IDENTITY_REGISTRY.yaml
+    - knowledge/KNOWLEDGE_GRAPH.yaml
+    - compiler/PASS_REGISTRY.yaml
+  missing_artifact_action: HALT_CONTEXT_RECONSTRUCTION
+
+  # ----------------------------------------------------------
+  # CONTEXT PRIORITIES (what to trust when volume is high)
+  # ----------------------------------------------------------
+  context_priorities:
+    - P0_constitutional: 01_constitution.yaml, METADATA_STANDARD, ACCEPTANCE_STANDARD
+    - P1_frozen_specs: compiler.yaml, 13_compiler-adr.yaml
+    - P2_registries: DOMAIN_REGISTRY, AGGREGATE_REGISTRY, IDENTITY_REGISTRY
+    - P3_graph: KNOWLEDGE_GRAPH, SEMANTIC_GRAPH, TRACE_GRAPH
+    - P4_governance: amendments/INDEX, CONSTITUTIONAL_FINDING_REGISTRY
+    - P5_derived: generated docs/reports (do not drive decisions)
+
+  # ----------------------------------------------------------
+  # CONFLICT RESOLUTION
+  # ----------------------------------------------------------
+  conflict_resolution:
+    - rule: FROZEN_SPECS_PREVAIL over derived docs
+    - rule: REGISTRIES_PREVAIL over ad-hoc domain files
+    - rule: CONSTITUTION_PREVAILS over all protocol content
+    - rule: AMENDMENT_PREVAILS over base spec only after RATIFIED+EFFECTIVE
+    - rule: BUILD_MANIFEST_HASH is the ground truth for a given build
+
+  # ----------------------------------------------------------
+  # VERSION SELECTION
+  # ----------------------------------------------------------
+  version_selection:
+    - protocol_version: from 00_protocol-manifest.yaml
+    - target_version: from PROJECT_CONTROL_BOARD.yaml (currently 1.0.1)
+    - compiler_version: from compiler/PASS_REGISTRY.yaml (0.1.0-arch)
+    - registry_versions: from each registry meta block
+    - pick_highest_ratified: among amendments, apply only RATIFIED+EFFECTIVE
+
+  # ----------------------------------------------------------
+  # AMENDMENT PRECEDENCE
+  # ----------------------------------------------------------
+  amendment_precedence:
+    order_source: governance/amendments/INDEX.yaml -> application_sequence
+    sequence: [AMD-0001, AMD-0004, AMD-0010, AMD-0007, AMD-0006, AMD-0002,
+               AMD-0003, AMD-0005, AMD-0009, AMD-0011, AMD-0008, AMD-0012]
+    status_gate: only PROPOSED today; none effective until ratified+applied
+    note: >
+      Until ratification, base protocol files remain authoritative and the
+      known findings (G-01..G-15) are open.
+
+  # ----------------------------------------------------------
+  # CERTIFICATION PRECEDENCE
+  # ----------------------------------------------------------
+  certification_precedence:
+    - layer_order: compiler/COMPILER_VERIFICATION_STANDARD.md (L1..L11)
+    - evidence: COMPILER_CERTIFICATION_MATRIX.yaml
+    - a release is conformant only when every layer PASS is present
+
+  # ----------------------------------------------------------
+  # FORBIDDEN ASSUMPTIONS (do not guess)
+  # ----------------------------------------------------------
+  forbidden_assumptions:
+    - never_assume_a_reference_resolves_without_a_graph_edge
+    - never_assume_an_amendment_is_effective_unless_RATIFIED_AND_APPLIED
+    - never_assume_a_yaml_file_parses_without_verifying (G-01)
+    - never_infer_symbol_meaning_outside_ONTOLOGY.yaml
+    - never_treat_generated_docs_as_source_of_truth
+    - never_assume_implementation_exists_while_Rule_Zero_active
+    - never_rely_on_prior_chat_history_for_state
+
+  # ----------------------------------------------------------
+  # RECONSTRUCTION GUARANTEE
+  # ----------------------------------------------------------
+  reconstruction_guarantee: >
+    Following reading_order against a healthy repository yields a complete,
+    deterministic understanding of protocol, governance, compiler, and
+    runtime intent. This satisfies the Phase V success criterion: a future
+    AI agent can reconstruct project state solely from repository artifacts.

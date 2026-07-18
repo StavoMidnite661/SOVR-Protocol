@@ -1,0 +1,17 @@
+replay_engine:
+  empty_replay:
+    input: 0 events
+    expected: initial state
+    status: PASS
+  full_replay:
+    input: 1000 events
+    expected: same aggregate hash
+    status: PASS
+  corrupt_event:
+    input: modified event payload
+    expected: replay rejected
+    status: PASS
+  deterministic_replay:
+    input: Replay(events) twice
+    expected: equal state hash
+    status: PASS

@@ -1,0 +1,14 @@
+status: pending
+pending_tasks:
+  - id: "settlement-001"
+    description: "Define aggregates"
+  - id: "settlement-002"
+    description: "Implement commands"
+  - id: "settlement-003"
+    description: "Emit events"
+  - id: "settlement-004"
+    description: "Implement projections"
+  - id: "settlement-005"
+    description: "Execute acceptance tests"
+in_progress_tasks: []
+completed_tasks: []

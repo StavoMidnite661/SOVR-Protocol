@@ -1,0 +1,3565 @@
+# ============================================================
+# SOVR Financial OS — Command Catalog
+# File: 03_command-catalog.yaml
+# Status: FROZEN — Phase J (Protocol Closure) complete
+# ============================================================
+# Defines the universe of commands (intents to act) in SOVR.
+# This file is populated domain-by-domain.
+# Current domains: Vault, Ledger, Treasury, Identity, Policy, Intent, Agent, Payment | Fix: constitutional_gates retrofitted, Payment registered
+# ============================================================
+
+commands:
+
+  # ========================================================
+  # VAULT DOMAIN COMMANDS
+  # ========================================================
+
+  vault.asset.register:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: Register a new asset into the SOVR Vault
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: vault.asset.create
+    authorization_requirements:
+      identity: required
+      capability: vault.asset.create
+      scope: custody_location
+      policy: vault_registration_policy
+    validation_rules:
+      - rule: asset_id_must_be_globally_unique
+        check: no_existing_asset_with_same_id
+        on_failure: REJECT
+      - rule: asset_type_must_be_recognized
+        check: asset_type_in [cash, stablecoin, tokenized_asset, collateral_position, liquidity_position, external_claim]
+        on_failure: REJECT
+      - rule: issuer_identity_must_be_verified
+        check: identity.state == VERIFIED
+        on_failure: REJECT
+      - rule: quantity_or_face_value_must_be_positive
+        check: (quantity > 0) OR (face_value > 0)
+        on_failure: REJECT
+      - rule: custody_location_must_be_registered
+        check: custody_location exists in registered custody targets
+        on_failure: REJECT
+      - rule: ownership_id_must_be_verified_identity
+        check: identity with ownership_id exists and is VERIFIED
+        on_failure: REJECT
+    required_payload:
+      - asset_id
+      - asset_type
+      - issuer_id
+      - face_value        # if cash or stablecoin
+      - quantity           # if tokenized, liquidity
+      - custody_location
+      - ownership_id
+      - valuation_source
+      - native_unit
+      - precision
+    resulting_events:
+      success: [vault.asset.registered]
+      failure: [vault.asset.registration_failed]
+    failure_conditions:
+      - duplicate_asset_id
+      - unrecognized_asset_type
+      - unverified_issuer
+      - invalid_amount
+      - unregistered_custody_location
+      - unverified_owner
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.asset.verify:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: Verify the existence and correctness of a registered asset
+    issuer:
+      actor_types: [human, governance, system]
+      minimum_capability: vault.asset.verify
+    authorization_requirements:
+      identity: required
+      capability: vault.asset.verify
+      scope: asset_id
+      policy: vault_verification_policy
+    validation_rules:
+      - rule: asset_must_exist
+        check: asset with asset_id exists
+        on_failure: REJECT
+      - rule: asset_must_be_in_registered_state
+        check: asset.state == REGISTERED
+        on_failure: REJECT
+      - rule: attestation_proof_required
+        check: attestation_proof provided and non-empty
+        on_failure: REJECT
+      - rule: attester_must_be_trusted
+        check: attester_id in trusted_attesters
+        on_failure: REJECT
+    required_payload:
+      - asset_id
+      - attester_id
+      - attestation_proof
+      - verification_method
+    resulting_events:
+      success: [vault.asset.verified, vault.custody.attested]
+      failure: [vault.asset.rejected]
+    failure_conditions:
+      - asset_not_found
+      - asset_not_in_registered_state
+      - missing_attestation
+      - untrusted_attester
+      - attestation_invalid
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.asset.reject:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: Reject a registered asset that fails verification
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: vault.asset.verify
+    authorization_requirements:
+      identity: required
+      capability: vault.asset.verify
+      scope: asset_id
+      policy: vault_verification_policy
+    validation_rules:
+      - rule: asset_must_exist
+        check: asset with asset_id exists
+        on_failure: REJECT
+      - rule: asset_must_be_rejectable
+        check: asset.state in [REGISTERED, VERIFIED]
+        on_failure: REJECT
+      - rule: rejection_reason_required
+        check: reason is non-empty string
+        on_failure: REJECT
+    required_payload:
+      - asset_id
+      - reason
+    resulting_events:
+      success: [vault.asset.rejected]
+      failure: [vault.asset.rejection_failed]
+    failure_conditions:
+      - asset_not_found
+      - asset_not_rejectable
+      - missing_reason
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.reserve.create:
+    aggregate: reservation
+    source_domain: vault
+    version: 1.0.0
+    description: Create a reservation against available value
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: vault.reserve.create
+    authorization_requirements:
+      identity: required
+      capability: vault.reserve.create
+      scope: asset_id
+      policy: vault_reservation_policy
+    validation_rules:
+      - rule: asset_must_be_available
+        check: asset.state == AVAILABLE
+        on_failure: REJECT
+      - rule: actor_must_have_reserve_control
+        check: actor has reserve_control authority on asset_id
+        on_failure: REJECT
+      - rule: amount_must_be_positive
+        check: amount > 0
+        on_failure: REJECT
+      - rule: amount_must_not_exceed_available_balance
+        check: amount <= balance.available_balance for asset_id
+        on_failure: REJECT
+      - rule: no_conflicting_reservation
+        check: no overlapping active reservation for same asset portion
+        on_failure: REJECT
+      - rule: expiration_must_be_in_future
+        check: expiration > now
+        on_failure: REJECT
+      - rule: expiration_within_max_duration
+        check: (expiration - now) <= 86400s
+        on_failure: REJECT
+    required_payload:
+      - asset_id
+      - amount
+      - expiration
+      - purpose
+    auto_generated:
+      - reservation_id: uuid
+      - initiating_command_id: this command's id
+      - actor_id: from identity context
+      - created_at: now
+    resulting_events:
+      success: [vault.reserve.created]
+      failure: [vault.reserve.creation_failed]
+    failure_conditions:
+      - asset_not_available
+      - insufficient_balance
+      - no_reserve_authority
+      - conflicting_reservation
+      - invalid_expiration
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.reserve.lock:
+    aggregate: reservation
+    source_domain: vault
+    version: 1.0.0
+    description: Lock a pending reservation, committing the value
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: vault.reserve.lock
+    authorization_requirements:
+      identity: required
+      capability: vault.reserve.lock
+      scope: asset_id
+      policy: vault_reservation_policy
+    validation_rules:
+      - rule: reservation_must_exist
+        check: reservation with reservation_id exists
+        on_failure: REJECT
+      - rule: reservation_must_be_pending
+        check: reservation.state == PENDING
+        on_failure: REJECT
+      - rule: reservation_must_not_be_expired
+        check: reservation.expiration > now
+        on_failure: REJECT
+      - rule: available_balance_still_sufficient
+        check: reservation.amount <= balance.available_balance
+        on_failure: REJECT
+    required_payload:
+      - reservation_id
+      - expected_consuming_transaction_id
+    auto_generated:
+      - lock_id: uuid
+      - locked_at: now
+    resulting_events:
+      success: [vault.reserve.locked]
+      failure: [vault.reserve.lock_failed]
+    failure_conditions:
+      - reservation_not_found
+      - reservation_not_pending
+      - reservation_expired
+      - balance_insufficient
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.reserve.release:
+    aggregate: reservation
+    source_domain: vault
+    version: 1.0.0
+    description: Release a reservation, returning value to available pool
+    issuer:
+      actor_types: [human, governance, system]
+      minimum_capability: vault.reserve.release
+    authorization_requirements:
+      identity: required
+      capability: vault.reserve.release
+      scope: asset_id
+      policy: vault_reservation_policy
+    validation_rules:
+      - rule: reservation_must_exist
+        check: reservation with reservation_id exists
+        on_failure: REJECT
+      - rule: reservation_must_be_releasable
+        check: reservation.state in [PENDING, ACTIVE]
+        on_failure: REJECT
+      - rule: release_reason_required_if_active
+        check: if reservation.state == ACTIVE then reason is non-empty
+        on_failure: REJECT
+    required_payload:
+      - reservation_id
+      - reason
+    auto_generated:
+      - released_at: now
+    resulting_events:
+      success: [vault.reserve.released]
+      failure: [vault.reserve.release_failed]
+    failure_conditions:
+      - reservation_not_found
+      - reservation_not_releasable
+      - missing_reason_for_active_release
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.reserve.expire:
+    aggregate: reservation
+    source_domain: vault
+    version: 1.0.0
+    description: System-generated command when a reservation expires
+    issuer:
+      actor_types: [system]
+      minimum_capability: system.internal
+    authorization_requirements:
+      identity: exempt  # system command
+      capability: system.internal
+      scope: none
+      policy: none
+    validation_rules:
+      - rule: reservation_must_exist
+        check: reservation with reservation_id exists
+        on_failure: NOOP
+      - rule: reservation_must_be_expirable
+        check: reservation.state in [PENDING, ACTIVE]
+        on_failure: NOOP
+      - rule: expiration_must_have_passed
+        check: reservation.expiration <= now
+        on_failure: NOOP
+    required_payload:
+      - reservation_id
+    auto_generated:
+      - expired_at: now
+    resulting_events:
+      success: [vault.reserve.expired]
+      failure: []  # system command silently no-ops on failure
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.collateral.add:
+    aggregate: collateral
+    source_domain: vault
+    version: 1.0.0
+    description: Pledge an asset as collateral for an obligation
+    issuer:
+      actor_types: [human]
+      minimum_capability: vault.collateral.create
+    authorization_requirements:
+      identity: required
+      capability: vault.collateral.create
+      scope: asset_id
+      policy: collateral_policy
+    validation_rules:
+      - rule: asset_must_be_eligible_for_collateral
+        check: asset quality_score >= 0.6 AND asset.type in eligible_types
+        on_failure: REJECT
+      - rule: ownership_must_be_verified
+        check: asset.ownership_id == actor_id
+        on_failure: REJECT
+      - rule: no_conflicting_collateral_position
+        check: no active collateral for same asset_id and obligation_id
+        on_failure: REJECT
+      - rule: concentration_limits_not_exceeded
+        check: adding this collateral would not breach any concentration limit
+        on_failure: REJECT
+      - rule: obligation_must_exist
+        check: obligation with obligation_id exists
+        on_failure: REJECT
+    required_payload:
+      - asset_id
+      - obligation_id
+      - haircut_override  # optional, defaults to asset type default
+    auto_generated:
+      - collateral_id: uuid
+      - gross_value: from current valuation
+      - effective_value: gross_value * (1 - haircut_rate)
+      - quality_score: computed from score factors
+      - created_at: now
+    resulting_events:
+      success: [vault.collateral.added, vault.collateral.valued]
+      failure: [vault.collateral.addition_failed]
+    failure_conditions:
+      - asset_not_eligible
+      - ownership_mismatch
+      - conflicting_collateral
+      - concentration_limit_exceeded
+      - obligation_not_found
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.collateral.remove:
+    aggregate: collateral
+    source_domain: vault
+    version: 1.0.0
+    description: Release collateral after obligation is satisfied
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: vault.collateral.release
+    authorization_requirements:
+      identity: required
+      capability: vault.collateral.release
+      scope: asset_id
+      policy: collateral_policy
+    validation_rules:
+      - rule: collateral_must_exist
+        check: collateral with collateral_id exists
+        on_failure: REJECT
+      - rule: release_conditions_must_be_met
+        check: obligation satisfied OR obligation amount reduced sufficiently
+        on_failure: REJECT
+      - rule: margin_ratio_must_remain_above_maintenance
+        check: (remaining_collateral - this_collateral) / obligation >= 0.80
+        on_failure: REJECT
+    required_payload:
+      - collateral_id
+      - release_reason
+    auto_generated:
+      - released_at: now
+    resulting_events:
+      success: [vault.collateral.released]
+      failure: [vault.collateral.release_failed]
+    failure_conditions:
+      - collateral_not_found
+      - release_conditions_not_met
+      - margin_ratio_would_breach
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.collateral.revalue:
+    aggregate: collateral
+    source_domain: vault
+    version: 1.0.0
+    description: Update collateral valuation
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: vault.collateral.evaluate
+    authorization_requirements:
+      identity: required_for_governance, exempt_for_system
+      capability: vault.collateral.evaluate
+      scope: asset_id
+      policy: collateral_policy
+    validation_rules:
+      - rule: collateral_must_exist
+        check: collateral with collateral_id exists
+        on_failure: REJECT
+      - rule: valuation_source_must_be_trusted
+        check: valuation_source in trusted_sources
+        on_failure: REJECT
+      - rule: valuation_must_not_be_stale
+        check: valuation.age < staleness_threshold
+        on_failure: REJECT
+    required_payload:
+      - collateral_id
+      - new_valuation
+      - valuation_source
+      - valuation_source_type
+    auto_generated:
+      - revalued_at: now
+      - value_change: new_valuation - previous_valuation
+      - new_effective_value: new_valuation * (1 - haircut_rate)
+    resulting_events:
+      success: [vault.collateral.revalued]
+      conditional: [vault.collateral.margin_call]  # emitted if ratio < maintenance
+      failure: [vault.collateral.revaluation_failed]
+    failure_conditions:
+      - collateral_not_found
+      - untrusted_valuation_source
+      - stale_valuation
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.asset.reconcile:
+    aggregate: reconciliation
+    source_domain: vault
+    version: 1.0.0
+    description: Initiate reconciliation of vault state against external reality
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: vault.reconcile
+    authorization_requirements:
+      identity: required
+      capability: vault.reconcile
+      scope: asset_id or actor_id
+      policy: reconciliation_policy
+    validation_rules:
+      - rule: no_concurrent_reconciliation
+        check: no active reconciliation for same scope
+        on_failure: REJECT
+      - rule: external_data_provided
+        check: external_proof or external_data is non-empty
+        on_failure: REJECT
+    required_payload:
+      - scope
+      - asset_id           # if scope is single_asset
+      - actor_id           # if scope is actor_holdings
+      - external_proof
+    auto_generated:
+      - reconciliation_id: uuid
+      - started_at: now
+    resulting_events:
+      success: [vault.reconciliation.started]
+      conditional: [vault.reconciliation.completed, vault.reconciliation.discrepancy_found]
+      failure: [vault.reconciliation.failed]
+    failure_conditions:
+      - concurrent_reconciliation
+      - missing_external_data
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.valuation.update:
+    aggregate: valuation
+    source_domain: vault
+    version: 1.0.0
+    description: Update the trusted valuation of an asset
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: vault.valuation.manage
+    authorization_requirements:
+      identity: required_for_governance, exempt_for_system
+      capability: vault.valuation.manage
+      scope: asset_id
+      policy: valuation_policy
+    validation_rules:
+      - rule: asset_must_exist
+        check: asset with asset_id exists
+        on_failure: REJECT
+      - rule: source_must_be_trusted
+        check: source_type in [oracle, internal_pricing, market_feed, manual]
+        on_failure: REJECT
+      - rule: valuation_must_not_be_stale
+        check: valuation.timestamp within staleness threshold
+        on_failure: REJECT
+      - rule: manual_valuation_requires_governance_approval
+        check: if source_type == manual then governance_approved == true
+        on_failure: REJECT
+    required_payload:
+      - asset_id
+      - price
+      - reference_currency
+      - source_type
+      - source_id
+      - governance_approved  # required if source_type == manual
+    auto_generated:
+      - valuation_id: uuid
+      - valued_at: now
+      - is_stale: false
+    resulting_events:
+      success: [vault.valuation.updated]
+      conditional: [vault.asset.impaired]  # if value dropped significantly
+      failure: [vault.valuation.update_failed]
+    failure_conditions:
+      - asset_not_found
+      - untrusted_source
+      - stale_valuation
+      - manual_without_governance_approval
+      - policy_violation
+
+  # ========================================================
+  # LEDGER DOMAIN COMMANDS
+  # ========================================================
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  ledger.journal.create:
+    aggregate: journal
+    source_domain: ledger
+    version: 1.0.0
+    description: Create a new journal for a domain or subsystem
+    issuer:
+      actor_types: [governance]
+      minimum_capability: ledger.journal.manage
+    authorization_requirements:
+      identity: required
+      capability: ledger.journal.manage
+      scope: ledger_id
+      policy: journal_management_policy
+    validation_rules:
+      - rule: journal_name_unique_within_ledger
+        check: no existing journal with same name in this ledger
+        on_failure: REJECT
+      - rule: domain_must_be_recognized
+        check: domain in recognized_domains
+        on_failure: REJECT
+      - rule: ledger_must_be_active
+        check: ledger.status == ACTIVE
+        on_failure: REJECT
+    required_payload:
+      - ledger_id
+      - name
+      - domain
+      - description
+    auto_generated:
+      - journal_id: uuid
+    resulting_events:
+      success: [ledger.journal.created]
+      failure: [ledger.journal.creation_failed]
+    failure_conditions:
+      - duplicate_journal_name
+      - unrecognized_domain
+      - ledger_not_active
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  ledger.entry.post:
+    aggregate: journal_entry
+    source_domain: ledger
+    version: 1.0.0
+    description: Submit a journal entry for validation and posting
+    issuer:
+      actor_types: [human, ai_agent, governance, system]
+      minimum_capability: ledger.entry.post
+    authorization_requirements:
+      identity: required
+      capability: ledger.entry.post
+      scope: account_ids referenced in postings
+      policy: entry_posting_policy
+    validation_rules:
+      - rule: at_least_two_postings
+        check: postings.length >= 2
+        on_failure: REJECT
+      - rule: all_accounts_exist_and_active
+        check: all posting.account_id reference ACTIVE accounts
+        on_failure: REJECT
+      - rule: all_postings_have_valid_asset
+        check: all posting.asset_id reference valid Vault assets
+        on_failure: REJECT
+      - rule: amounts_positive
+        check: all posting.amount > 0
+        on_failure: REJECT
+      - rule: debits_equal_credits
+        check: sum(debits) == sum(credits) within asset precision
+        on_failure: REJECT
+      - rule: direction_allowed_for_account
+        check: posting.direction consistent with account.debit_allowed/credit_allowed
+        on_failure: REJECT
+      - rule: actor_has_posting_authority
+        check: actor has permission to post to all referenced accounts
+        on_failure: REJECT
+      - rule: event_reference_valid
+        check: event_reference exists in event store and is journalizable
+        on_failure: REJECT
+      - rule: event_not_already_journalized
+        check: no existing entry references this event_reference (unless correction)
+        on_failure: REJECT
+      - rule: domain_account_ownership_respected
+        check: postings to domain-owned accounts are from permitted domains
+        on_failure: REJECT
+    required_payload:
+      - journal_id
+      - transaction_id
+      - event_reference
+      - correlation_id
+      - causation_id
+      - description
+      - entry_type
+      - postings:
+          - account_id
+          - amount
+          - direction
+          - asset_id
+          - description
+    auto_generated:
+      - entry_id: uuid
+      - created_at: now
+      - actor_context: from identity context
+      - authorization_context: from policy result
+    resulting_events:
+      success: [ledger.entry.posted]
+      failure: [ledger.entry.rejected]
+    failure_conditions:
+      - insufficient_postings
+      - invalid_account
+      - invalid_asset
+      - invalid_amount
+      - unbalanced_entry
+      - direction_not_allowed
+      - no_posting_authority
+      - invalid_event_reference
+      - event_already_journalized
+      - domain_violation
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  ledger.entry.reverse:
+    aggregate: journal_entry
+    source_domain: ledger
+    version: 1.0.0
+    description: Reverse a previously posted journal entry by creating inverse postings
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: ledger.entry.reverse
+    authorization_requirements:
+      identity: required
+      capability: ledger.entry.reverse
+      scope: original_entry_id
+      policy: entry_reversal_policy
+    validation_rules:
+      - rule: original_entry_exists
+        check: entry with original_entry_id exists
+        on_failure: REJECT
+      - rule: original_entry_posted_or_settled
+        check: original_entry.status in [POSTED, SETTLED]
+        on_failure: REJECT
+      - rule: not_already_reversed
+        check: no existing reversal entry references this original_entry_id
+        on_failure: REJECT
+      - rule: reversal_reason_provided
+        check: reversal_reason is non-empty string
+        on_failure: REJECT
+      - rule: accounts_still_valid
+        check: all accounts in original entry still exist
+        on_failure: REJECT
+    required_payload:
+      - original_entry_id
+      - reversal_reason
+    auto_generated:
+      - entry_id: uuid
+      - journal_id: from original entry
+      - entry_type: REVERSAL
+      - postings: inverted from original
+      - created_at: now
+    resulting_events:
+      success: [ledger.entry.reversed]
+      failure: [ledger.entry.reversal_failed]
+    failure_conditions:
+      - original_entry_not_found
+      - original_entry_not_posted
+      - already_reversed
+      - missing_reason
+      - invalid_accounts
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  ledger.entry.correct:
+    aggregate: journal_entry
+    source_domain: ledger
+    version: 1.0.0
+    description: Create a compensating correction entry for a previously posted entry
+    issuer:
+      actor_types: [governance]
+      minimum_capability: ledger.entry.correct
+    authorization_requirements:
+      identity: required
+      capability: ledger.entry.correct
+      scope: original_entry_id
+      policy: entry_correction_policy
+    validation_rules:
+      - rule: original_entry_exists
+        check: entry with original_entry_id exists
+        on_failure: REJECT
+      - rule: original_entry_posted_or_settled
+        check: original_entry.status in [POSTED, SETTLED]
+        on_failure: REJECT
+      - rule: correction_description_provided
+        check: correction_description is non-empty string
+        on_failure: REJECT
+      - rule: governance_approval_obtained
+        check: approved_by references a verified governor
+        on_failure: REJECT
+      - rule: correction_entry_balances
+        check: sum(debits) == sum(credits) in correction postings
+        on_failure: REJECT
+    required_payload:
+      - original_entry_id
+      - correction_description
+      - approved_by
+      - postings:
+          - account_id
+          - amount
+          - direction
+          - asset_id
+          - description
+    auto_generated:
+      - entry_id: uuid
+      - journal_id: from original entry
+      - entry_type: CORRECTION
+      - created_at: now
+    resulting_events:
+      success: [ledger.entry.corrected]
+      failure: [ledger.entry.correction_failed]
+    failure_conditions:
+      - original_entry_not_found
+      - original_entry_not_posted
+      - missing_description
+      - no_governance_approval
+      - unbalanced_correction
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  ledger.reconciliation.start:
+    aggregate: reconciliation
+    source_domain: ledger
+    version: 1.0.0
+    description: Initiate a reconciliation process
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: ledger.reconcile
+    authorization_requirements:
+      identity: required
+      capability: ledger.reconcile
+      scope: depends on reconciliation type
+      policy: reconciliation_policy
+    validation_rules:
+      - rule: no_conflicting_reconciliation
+        check: no active reconciliation for same scope
+        on_failure: REJECT
+      - rule: source_data_available
+        check: external reference data provided
+        on_failure: REJECT
+      - rule: valid_reconciliation_type
+        check: type in [internal, vault_reconciliation, treasury_reconciliation, external_reconciliation]
+        on_failure: REJECT
+    required_payload:
+      - type
+      - scope
+      - source_data
+    auto_generated:
+      - reconciliation_id: uuid
+      - started_at: now
+    resulting_events:
+      success: [ledger.reconciliation.started]
+      conditional: [ledger.reconciliation.mismatch_detected]
+      failure: [ledger.reconciliation.start_failed]
+    failure_conditions:
+      - conflicting_reconciliation
+      - missing_source_data
+      - invalid_type
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  ledger.reconciliation.resolve:
+    aggregate: reconciliation
+    source_domain: ledger
+    version: 1.0.0
+    description: Resolve a reconciliation discrepancy
+    issuer:
+      actor_types: [governance]
+      minimum_capability: ledger.reconcile
+    authorization_requirements:
+      identity: required
+      capability: ledger.reconcile
+      scope: reconciliation_id
+      policy: reconciliation_policy
+    validation_rules:
+      - rule: reconciliation_exists
+        check: reconciliation with reconciliation_id exists
+        on_failure: REJECT
+      - rule: reconciliation_in_resolvable_state
+        check: reconciliation.state in [INVESTIGATION, ADJUSTMENT_REQUIRED]
+        on_failure: REJECT
+      - rule: resolution_method_provided
+        check: resolution_method specified
+        on_failure: REJECT
+      - rule: if_adjustment_then_balanced
+        check: if resolution requires adjustment, the correction entry must balance
+        on_failure: REJECT
+    required_payload:
+      - reconciliation_id
+      - resolution_method
+      - correction_postings  # if adjustment required
+    auto_generated:
+      - resolved_at: now
+    resulting_events:
+      success: [ledger.reconciliation.completed]
+      conditional: [ledger.entry.corrected]
+      failure: [ledger.reconciliation.resolution_failed]
+    failure_conditions:
+      - reconciliation_not_found
+      - reconciliation_not_resolvable
+      - missing_resolution_method
+      - unbalanced_adjustment
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  ledger.account.create:
+    aggregate: account
+    source_domain: ledger
+    version: 1.0.0
+    description: Create a new account in the chart of accounts
+    issuer:
+      actor_types: [governance]
+      minimum_capability: ledger.account.manage
+    authorization_requirements:
+      identity: required
+      capability: ledger.account.manage
+      scope: ledger_id
+      policy: account_management_policy
+    validation_rules:
+      - rule: account_code_unique
+        check: no existing account with same code in this ledger
+        on_failure: REJECT
+      - rule: account_type_recognized
+        check: account_type in [ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE, MEMORANDUM, RESERVE, COLLATERAL]
+        on_failure: REJECT
+      - rule: parent_exists_if_specified
+        check: if parent_account_id, parent account exists
+        on_failure: REJECT
+      - rule: normal_balance_consistent
+        check: normal_balance matches account_type definition
+        on_failure: REJECT
+    required_payload:
+      - ledger_id
+      - account_code
+      - account_name
+      - account_type
+      - domain_ownership
+      - owner_id
+      - parent_account_id
+      - debit_allowed
+      - credit_allowed
+      - requires_approval
+    auto_generated:
+      - account_id: uuid
+      - normal_balance: derived from account_type
+      - status: ACTIVE
+      - created_at: now
+    resulting_events:
+      success: [ledger.account.created]
+      failure: [ledger.account.creation_failed]
+    failure_conditions:
+      - duplicate_account_code
+      - unrecognized_type
+      - parent_not_found
+      - inconsistent_normal_balance
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  ledger.account.freeze:
+    aggregate: account
+    source_domain: ledger
+    version: 1.0.0
+    description: Freeze an account, preventing new postings
+    issuer:
+      actor_types: [governance]
+      minimum_capability: ledger.account.manage
+    authorization_requirements:
+      identity: required
+      capability: ledger.account.manage
+      scope: account_id
+      policy: account_management_policy
+    validation_rules:
+      - rule: account_exists
+        check: account with account_id exists
+        on_failure: REJECT
+      - rule: account_is_active
+        check: account.status == ACTIVE
+        on_failure: REJECT
+      - rule: no_pending_entries
+        check: no journal entries in CREATED or VALIDATING state reference this account
+        on_failure: REJECT
+      - rule: freeze_reason_provided
+        check: reason is non-empty string
+        on_failure: REJECT
+    required_payload:
+      - account_id
+      - reason
+    auto_generated:
+      - frozen_at: now
+    resulting_events:
+      success: [ledger.account.frozen]
+      failure: [ledger.account.freeze_failed]
+    failure_conditions:
+      - account_not_found
+      - account_not_active
+      - pending_entries_exist
+      - missing_reason
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  ledger.period.close:
+    aggregate: accounting_period
+    source_domain: ledger
+    version: 1.0.0
+    description: Close an accounting period, generating closing entries
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: ledger.period.manage
+    authorization_requirements:
+      identity: required
+      capability: ledger.period.manage
+      scope: period_id
+      policy: period_management_policy
+    validation_rules:
+      - rule: period_exists
+        check: period with period_id exists
+        on_failure: REJECT
+      - rule: period_is_open
+        check: period.status == OPEN
+        on_failure: REJECT
+      - rule: all_entries_settled
+        check: all entries for this period are in POSTED or SETTLED state
+        on_failure: REJECT
+      - rule: no_pending_reconciliations
+        check: no active reconciliations for this period
+        on_failure: REJECT
+      - rule: previous_period_closed
+        check: if not first period, previous period status == CLOSED
+        on_failure: REJECT
+    required_payload:
+      - period_id
+    auto_generated:
+      - closed_at: now
+    resulting_events:
+      success: [ledger.period.closing, ledger.entry.posted, ledger.period.closed]
+      failure: [ledger.period.close_failed]
+    failure_conditions:
+      - period_not_found
+      - period_not_open
+      - unsettled_entries_exist
+      - pending_reconciliations_exist
+      - previous_period_not_closed
+      - policy_violation
+
+  # ========================================================
+  # TREASURY DOMAIN COMMANDS
+  # ========================================================
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  treasury.transfer.request:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    description: Request a new treasury transfer (initiates the transfer lifecycle)
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: treasury.transfer.request
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.request
+      scope: source actor and asset
+      policy: transfer_request_policy
+    validation_rules:
+      - rule: source_actor_exists_and_active
+        check: source_actor_id references an active actor
+        on_failure: REJECT
+      - rule: destination_actor_valid
+        check: destination details are complete and valid
+        on_failure: REJECT
+      - rule: asset_exists_in_vault
+        check: asset_id references a verified or available Vault asset
+        on_failure: REJECT
+      - rule: amount_positive_and_within_precision
+        check: amount > 0 and within asset precision
+        on_failure: REJECT
+      - rule: no_duplicate_pending_transfer
+        check: no active transfer with same dedup_key exists
+        on_failure: REJECT
+    required_payload:
+      - source_actor_id
+      - destination_details:
+          - type
+          - address
+          - rail
+          - reference
+      - asset_id
+      - amount
+      - purpose
+    auto_generated:
+      - order_id: uuid
+      - state: REQUESTED
+      - created_at: now
+    resulting_events:
+      success: [treasury.transfer.requested]
+      failure: [treasury.transfer.rejected]
+    failure_conditions:
+      - source_actor_not_found
+      - destination_invalid
+      - asset_not_found
+      - amount_invalid
+      - duplicate_transfer
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  treasury.transfer.authorize:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    description: Authorize a requested transfer (identity, capability, policy gates)
+    issuer:
+      actor_types: [human, system]
+      minimum_capability: treasury.transfer.authorize
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.authorize
+      scope: order_id
+      policy: transfer_execution_policy
+    validation_rules:
+      - rule: transfer_in_requested_state
+        check: transfer_order.state == REQUESTED
+        on_failure: REJECT
+      - rule: transfer_not_expired
+        check: now < transfer_order.created_at + 3600s
+        on_failure: REJECT
+      - rule: policy_evaluates_to_approve
+        check: policy_result == APPROVE
+        on_failure: REJECT
+      - rule: actor_has_authority
+        check: actor has transfer authority over source asset
+        on_failure: REJECT
+      - rule: compliance_rules_passed
+        check: all compliance rules evaluate to pass
+        on_failure: REJECT
+    required_payload:
+      - order_id
+    auto_generated:
+      - authorized_at: now
+      - policy_result: from evaluation
+    resulting_events:
+      success: [treasury.transfer.authorized]
+      failure: [treasury.transfer.rejected]
+    failure_conditions:
+      - transfer_not_found
+      - transfer_not_in_requested_state
+      - transfer_expired
+      - policy_denied
+      - insufficient_authority
+      - compliance_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  treasury.transfer.reserve:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    description: Lock vault reservation for an authorized transfer
+    issuer:
+      actor_types: [system]
+      minimum_capability: treasury.transfer.reserve
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.reserve
+      scope: order_id
+      policy: transfer_execution_policy
+    validation_rules:
+      - rule: transfer_in_authorized_state
+        check: transfer_order.state == AUTHORIZED
+        on_failure: REJECT
+      - rule: authorization_not_expired
+        check: now < transfer_order.authorized_at + 300s
+        on_failure: REJECT
+      - rule: vault_available_balance_sufficient
+        check: vault confirms available_balance >= transfer_order.amount
+        on_failure: REJECT
+      - rule: no_conflicting_reservation
+        check: no active reservation for this order_id
+        on_failure: REJECT
+    required_payload:
+      - order_id
+    auto_generated:
+      - vault_reservation_id: from vault response
+      - vault_lock_id: from vault response
+      - reserved_at: now
+    resulting_events:
+      success: [treasury.transfer.reserved]
+      failure: [treasury.transfer.rejected]
+    failure_conditions:
+      - transfer_not_authorized
+      - authorization_expired
+      - insufficient_balance
+      - vault_reservation_failed
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  treasury.transfer.execute:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    description: Execute a reserved transfer by sending instruction to payment rail
+    issuer:
+      actor_types: [system]
+      minimum_capability: treasury.transfer.execute
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.execute
+      scope: order_id
+      policy: transfer_execution_policy
+    validation_rules:
+      - rule: transfer_in_reserved_state
+        check: transfer_order.state == RESERVED
+        on_failure: REJECT
+      - rule: vault_lock_still_active
+        check: vault confirms lock_id is still ACTIVE
+        on_failure: REJECT
+      - rule: payment_rail_available
+        check: target payment rail is reachable
+        on_failure: REJECT
+      - rule: execution_saga_defined
+        check: compensation saga steps are defined for this rail
+        on_failure: REJECT
+    required_payload:
+      - order_id
+    auto_generated:
+      - instruction_id: uuid
+      - executing_at: now
+    resulting_events:
+      success: [treasury.transfer.executing]
+      conditional: [treasury.transfer.settled, treasury.transfer.failed]
+      failure: [treasury.transfer.failed]
+    failure_conditions:
+      - transfer_not_reserved
+      - vault_lock_expired
+      - payment_rail_unavailable
+      - no_compensation_saga
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  treasury.transfer.cancel:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    description: Cancel a transfer that has not yet been executed
+    issuer:
+      actor_types: [human, governance, system]
+      minimum_capability: treasury.transfer.cancel
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.cancel
+      scope: order_id
+      policy: transfer_cancellation_policy
+    validation_rules:
+      - rule: transfer_in_cancellable_state
+        check: transfer_order.state in [REQUESTED, AUTHORIZED, RESERVED]
+        on_failure: REJECT
+      - rule: cancellation_reason_provided
+        check: reason is non-empty string
+        on_failure: REJECT
+      - rule: no_execution_in_progress
+        check: no pending execution instruction on payment rail
+        on_failure: REJECT
+      - rule: vault_reservation_releasable
+        check: if RESERVED, vault reservation can be released
+        on_failure: REJECT
+    required_payload:
+      - order_id
+      - reason
+    auto_generated:
+      - cancelled_at: now
+    resulting_events:
+      success: [treasury.transfer.rejected]
+      failure: [treasury.transfer.failed]
+    failure_conditions:
+      - transfer_not_cancellable
+      - missing_reason
+      - execution_already_in_progress
+      - vault_release_failed
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  treasury.transfer.compensate:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    description: Initiate or continue a compensation saga for a failed transfer
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: treasury.transfer.compensate
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.compensate
+      scope: order_id
+      policy: compensation_policy
+    validation_rules:
+      - rule: transfer_in_compensatable_state
+        check: transfer_order.state in [FAILED, COMPENSATION_REQUIRED]
+        on_failure: REJECT
+      - rule: compensation_step_defined
+        check: next compensation step exists in saga definition
+        on_failure: REJECT
+      - rule: vault_lock_resolvable
+        check: vault lock can be released or consumed appropriately
+        on_failure: REJECT
+      - rule: governance_approval_if_required
+        check: if saga step requires governance, approval is present
+        on_failure: REJECT
+    required_payload:
+      - order_id
+      - compensation_step
+    auto_generated:
+      - compensated_at: now
+    resulting_events:
+      success: [treasury.transfer.compensation_required]
+      failure: [treasury.transfer.failed]
+    failure_conditions:
+      - transfer_not_compensatable
+      - no_compensation_step
+      - vault_resolution_failed
+      - governance_approval_missing
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  treasury.liquidity.check:
+    aggregate: liquidity_position
+    source_domain: treasury
+    version: 1.0.0
+    description: Check available liquidity for an actor across assets
+    issuer:
+      actor_types: [human, ai_agent, system, governance]
+      minimum_capability: treasury.liquidity.read
+    authorization_requirements:
+      identity: required
+      capability: treasury.liquidity.read
+      scope: actor_id
+      policy: liquidity_read_policy
+    validation_rules:
+      - rule: actor_exists
+        check: actor_id references an active actor
+        on_failure: REJECT
+      - rule: scope_matches_actor
+        check: caller has read access to this actor's liquidity
+        on_failure: REJECT
+    required_payload:
+      - actor_id
+      - asset_id  # optional, if omitted returns all assets
+    auto_generated:
+      - check_id: uuid
+      - computed_at: now
+    resulting_events:
+      success: []
+      conditional: [treasury.liquidity.warning]
+      failure: []
+    failure_conditions:
+      - actor_not_found
+      - scope_denied
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  treasury.liquidity.allocate:
+    aggregate: liquidity_position
+    source_domain: treasury
+    version: 1.0.0
+    description: Allocate liquidity from one asset or source to cover an obligation
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: treasury.liquidity.manage
+    authorization_requirements:
+      identity: required
+      capability: treasury.liquidity.manage
+      scope: actor_id
+      policy: liquidity_allocation_policy
+    validation_rules:
+      - rule: source_has_sufficient_liquidity
+        check: source available balance >= allocation amount
+        on_failure: REJECT
+      - rule: allocation_purpose_valid
+        check: purpose in [transfer_cover, margin_call, settlement_reserve, operational]
+        on_failure: REJECT
+      - rule: does_not_breach_minimum_reserve
+        check: post-allocation balance >= minimum reserve threshold
+        on_failure: REJECT
+      - rule: asset_compatible
+        check: source and target assets are conversion-compatible
+        on_failure: REJECT
+      - rule: no_duplicate_allocation
+        check: no active allocation with same dedup_key
+        on_failure: REJECT
+    required_payload:
+      - actor_id
+      - source_asset_id
+      - target_asset_id
+      - amount
+      - purpose
+    auto_generated:
+      - allocation_id: uuid
+      - allocated_at: now
+    resulting_events:
+      success: []
+      conditional: [treasury.liquidity.warning]
+      failure: [treasury.transfer.failed]
+    failure_conditions:
+      - insufficient_liquidity
+      - invalid_purpose
+      - breaches_minimum_reserve
+      - asset_incompatible
+      - duplicate_allocation
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  treasury.settlement.confirm:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    description: Confirm settlement of a transfer (from external rail or reconciliation)
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: treasury.settlement.confirm
+    authorization_requirements:
+      identity: required
+      capability: treasury.settlement.confirm
+      scope: order_id
+      policy: settlement_policy
+    validation_rules:
+      - rule: transfer_in_settleable_state
+        check: transfer_order.state in [EXECUTING, PENDING_SETTLEMENT, UNKNOWN_EXTERNAL_STATE]
+        on_failure: REJECT
+      - rule: settlement_reference_provided
+        check: settlement_reference is non-empty
+        on_failure: REJECT
+      - rule: settlement_amount_matches
+        check: settlement.amount == transfer_order.amount
+        on_failure: REJECT
+      - rule: not_already_settled
+        check: no prior settlement confirmation for this order_id
+        on_failure: REJECT
+    required_payload:
+      - order_id
+      - settlement_reference
+      - settled_at
+      - settlement_amount
+    auto_generated:
+      - confirmed_at: now
+    resulting_events:
+      success: [treasury.transfer.settled, treasury.settlement.confirmed]
+      failure: [treasury.transfer.failed]
+    failure_conditions:
+      - transfer_not_settleable
+      - missing_settlement_reference
+      - amount_mismatch
+      - already_settled
+      - policy_violation
+
+  # ========================================================
+  # IDENTITY DOMAIN COMMANDS
+  # ========================================================
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.actor.register:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Register a new actor (human, organization, AI agent, service account, or external system) in the SOVR Identity subsystem
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.actor.create
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.create
+      scope: actor_type
+      policy: identity_registration_policy
+    validation_rules:
+      - rule: actor_type_must_be_recognized
+        check: actor_type in [human, organization, ai_agent, service_account, external_system]
+        on_failure: REJECT
+      - rule: display_name_must_not_be_empty
+        check: display_name is non-empty string
+        on_failure: REJECT
+      - rule: legal_identifier_format_valid_if_provided
+        check: if legal_identifier provided, it matches expected format for actor_type
+        on_failure: REJECT
+    produces_events:
+      - identity.actor.registered
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.actor.verify:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Verify an actor that is in PENDING_VERIFICATION state, confirming their identity
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.actor.verify
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.verify
+      scope: actor_id
+      policy: identity_verification_policy
+    validation_rules:
+      - rule: actor_must_be_in_pending_verification_state
+        check: actor.state == PENDING_VERIFICATION
+        on_failure: REJECT
+      - rule: governance_must_have_verify_authority
+        check: caller governance identity has verification authority
+        on_failure: REJECT
+    produces_events:
+      - identity.actor.verified
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.actor.suspend:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Suspend an active actor, temporarily revoking their ability to act in the system
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.actor.suspend
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.suspend
+      scope: actor_id
+      policy: identity_suspension_policy
+    validation_rules:
+      - rule: actor_must_be_active
+        check: actor.state == ACTIVE
+        on_failure: REJECT
+      - rule: suspension_reason_must_be_provided
+        check: reason is non-empty string
+        on_failure: REJECT
+    produces_events:
+      - identity.actor.suspended
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.actor.revoke:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Revoke an actor permanently, removing their ability to act in the system
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.actor.revoke
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.revoke
+      scope: actor_id
+      policy: identity_revocation_policy
+    validation_rules:
+      - rule: actor_must_be_active_or_suspended
+        check: actor.state in [ACTIVE, SUSPENDED]
+        on_failure: REJECT
+      - rule: revocation_reason_must_be_provided
+        check: reason is non-empty string
+        on_failure: REJECT
+    produces_events:
+      - identity.actor.revoked
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.actor.archive:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Archive a revoked actor record for long-term retention and compliance
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: identity.actor.archive
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.archive
+      scope: actor_id
+      policy: identity_archive_policy
+    validation_rules:
+      - rule: actor_must_be_revoked
+        check: actor.state == REVOKED
+        on_failure: REJECT
+    produces_events:
+      - identity.actor.archived
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.credential.issue:
+    aggregate: credential
+    source_domain: identity
+    version: 1.0.0
+    description: Issue a new credential to an active actor (e.g., capability certificate, role attestation)
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: identity.credential.issue
+    authorization_requirements:
+      identity: required
+      capability: identity.credential.issue
+      scope: identity_id
+      policy: credential_issuance_policy
+    validation_rules:
+      - rule: identity_must_exist_and_be_active
+        check: identity_id references an existing identity with state == ACTIVE
+        on_failure: REJECT
+      - rule: credential_type_must_be_recognized
+        check: credential_type in recognized credential types
+        on_failure: REJECT
+      - rule: expiry_must_be_in_future
+        check: expires_at > now
+        on_failure: REJECT
+    produces_events:
+      - identity.credential.issued
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.credential.revoke:
+    aggregate: credential
+    source_domain: identity
+    version: 1.0.0
+    description: Revoke an active credential before its natural expiry
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: identity.credential.revoke
+    authorization_requirements:
+      identity: required
+      capability: identity.credential.revoke
+      scope: credential_id
+      policy: credential_revocation_policy
+    validation_rules:
+      - rule: credential_must_exist
+        check: credential with credential_id exists
+        on_failure: REJECT
+      - rule: credential_must_be_active
+        check: credential.state == ACTIVE
+        on_failure: REJECT
+      - rule: credential_must_be_revocable
+        check: credential.revocable == true
+        on_failure: REJECT
+    produces_events:
+      - identity.credential.revoked
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.session.create:
+    aggregate: session
+    source_domain: identity
+    version: 1.0.0
+    description: Create a new authentication session for an actor with valid credentials
+    issuer:
+      actor_types: [human, organization, ai_agent, service_account, governance, external_system]
+      minimum_capability: identity.session.create
+    authorization_requirements:
+      identity: required
+      capability: identity.session.create
+      scope: identity_id
+      policy: session_creation_policy
+    validation_rules:
+      - rule: valid_credentials_required
+        check: presented credentials are valid and not expired
+        on_failure: REJECT
+      - rule: identity_must_be_active
+        check: identity.state == ACTIVE
+        on_failure: REJECT
+      - rule: within_concurrent_session_limit
+        check: current active session count < max_concurrent_sessions for identity
+        on_failure: REJECT
+    produces_events:
+      - identity.session.created
+      - identity.authentication.succeeded
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.session.terminate:
+    aggregate: session
+    source_domain: identity
+    version: 1.0.0
+    description: Terminate an active session (logout, timeout, or administrative termination)
+    issuer:
+      actor_types: [human, organization, ai_agent, service_account, governance, system]
+      minimum_capability: identity.session.terminate
+    authorization_requirements:
+      identity: required
+      capability: identity.session.terminate
+      scope: session_id
+      policy: session_termination_policy
+    validation_rules:
+      - rule: session_must_exist_and_be_active
+        check: session exists and session.state == ACTIVE
+        on_failure: REJECT
+    produces_events:
+      - identity.session.terminated
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.delegation.create:
+    aggregate: delegation
+    source_domain: identity
+    version: 1.0.0
+    description: Create a delegation relationship allowing one actor to act on behalf of another
+    issuer:
+      actor_types: [human, organization, governance]
+      minimum_capability: identity.delegation.create
+    authorization_requirements:
+      identity: required
+      capability: identity.delegation.create
+      scope: delegator_id
+      policy: delegation_policy
+    validation_rules:
+      - rule: delegator_must_be_active
+        check: delegator.state == ACTIVE
+        on_failure: REJECT
+      - rule: delegate_must_be_active
+        check: delegate.state == ACTIVE
+        on_failure: REJECT
+      - rule: delegator_must_have_can_delegate
+        check: delegator.can_delegate == true
+        on_failure: REJECT
+      - rule: max_delegation_depth_not_exceeded
+        check: delegation chain depth does not exceed maximum allowed depth
+        on_failure: REJECT
+    produces_events:
+      - identity.delegation.created
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.delegation.revoke:
+    aggregate: delegation
+    source_domain: identity
+    version: 1.0.0
+    description: Revoke an active delegation relationship
+    issuer:
+      actor_types: [governance, human]
+      minimum_capability: identity.delegation.revoke
+    authorization_requirements:
+      identity: required
+      capability: identity.delegation.revoke
+      scope: delegation_id
+      policy: delegation_revocation_policy
+    validation_rules:
+      - rule: delegation_must_exist
+        check: delegation with delegation_id exists
+        on_failure: REJECT
+      - rule: delegation_must_be_active
+        check: delegation.state == ACTIVE
+        on_failure: REJECT
+      - rule: caller_must_be_delegator_or_governance
+        check: caller is the delegator or has governance authority
+        on_failure: REJECT
+    produces_events:
+      - identity.delegation.revoked
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  identity.trust_anchor.register:
+    aggregate: trust_anchor
+    source_domain: identity
+    version: 1.0.0
+    description: Register a new trust anchor (root of trust for identity verification chains)
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.trust_anchor.create
+    authorization_requirements:
+      identity: required
+      capability: identity.trust_anchor.create
+      scope: anchor_type
+      policy: trust_anchor_policy
+    validation_rules:
+      - rule: anchor_type_must_be_recognized
+        check: anchor_type in recognized trust anchor types
+        on_failure: REJECT
+      - rule: public_key_material_must_be_valid
+        check: public_key_material is cryptographically valid
+        on_failure: REJECT
+      - rule: governance_approval_required
+        check: governance has approved this trust anchor registration
+        on_failure: REJECT
+    produces_events:
+      - identity.trust_anchor.registered
+  # ========================================================
+  # POLICY DOMAIN COMMANDS
+  # ========================================================
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  policy.rule.create:
+    aggregate: rule
+    source_domain: policy
+    version: 1.0.0
+    description: Create a new policy rule in DRAFT state
+    issuer:
+      actor_types: [governance]
+      minimum_capability: policy.rule.create
+    authorization_requirements:
+      identity: required
+      capability: policy.rule.create
+      scope: rule_category
+      policy: policy_creation_policy
+    validation_rules:
+      - rule: rule_name_must_be_unique
+        check: no existing rule with same name
+        on_failure: REJECT
+      - rule: category_must_be_recognized
+        check: category in recognized policy categories
+        on_failure: REJECT
+      - rule: condition_type_must_be_valid
+        check: condition_type in recognized condition types
+        on_failure: REJECT
+    produces_events:
+      - policy.rule.created
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  policy.rule.update:
+    aggregate: rule
+    source_domain: policy
+    version: 1.0.0
+    description: Update an existing policy rule, incrementing its version
+    issuer:
+      actor_types: [governance]
+      minimum_capability: policy.rule.update
+    authorization_requirements:
+      identity: required
+      capability: policy.rule.update
+      scope: rule_id
+      policy: policy_update_policy
+    validation_rules:
+      - rule: rule_must_exist
+        check: rule with rule_id exists
+        on_failure: REJECT
+      - rule: version_must_be_incremented
+        check: new_version > current_version
+        on_failure: REJECT
+      - rule: governance_authority_required
+        check: caller has governance authority for rule updates
+        on_failure: REJECT
+    produces_events:
+      - policy.rule.updated
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  policy.rule.activate:
+    aggregate: rule
+    source_domain: policy
+    version: 1.0.0
+    description: Activate a DRAFT policy rule, making it available for evaluation
+    issuer:
+      actor_types: [governance]
+      minimum_capability: policy.rule.activate
+    authorization_requirements:
+      identity: required
+      capability: policy.rule.activate
+      scope: rule_id
+      policy: policy_activation_policy
+    validation_rules:
+      - rule: rule_must_exist
+        check: rule with rule_id exists
+        on_failure: REJECT
+      - rule: rule_must_be_in_draft_state
+        check: rule.state == DRAFT
+        on_failure: REJECT
+      - rule: constitutional_rules_require_governance_approval
+        check: if rule affects constitutional constraints, governance approval is present
+        on_failure: REJECT
+    produces_events:
+      - policy.rule.activated
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  policy.rule.deactivate:
+    aggregate: rule
+    source_domain: policy
+    version: 1.0.0
+    description: Deactivate an active policy rule, removing it from evaluation
+    issuer:
+      actor_types: [governance]
+      minimum_capability: policy.rule.deactivate
+    authorization_requirements:
+      identity: required
+      capability: policy.rule.deactivate
+      scope: rule_id
+      policy: policy_deactivation_policy
+    validation_rules:
+      - rule: rule_must_exist
+        check: rule with rule_id exists
+        on_failure: REJECT
+      - rule: rule_must_be_active
+        check: rule.state == ACTIVE
+        on_failure: REJECT
+    produces_events:
+      - policy.rule.deactivated
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  policy.set.create:
+    aggregate: set
+    source_domain: policy
+    version: 1.0.0
+    description: Create a policy set by composing active rules into an evaluatable group
+    issuer:
+      actor_types: [governance]
+      minimum_capability: policy.set.create
+    authorization_requirements:
+      identity: required
+      capability: policy.set.create
+      scope: policy_set
+      policy: policy_set_creation_policy
+    validation_rules:
+      - rule: all_rule_ids_must_exist_and_be_active
+        check: every rule_id in the set references an existing rule with state == ACTIVE
+        on_failure: REJECT
+      - rule: evaluation_strategy_must_be_recognized
+        check: evaluation_strategy in [ALL_MUST_PASS, ANY_MUST_PASS, FIRST_MATCH, WEIGHTED_SCORE]
+        on_failure: REJECT
+    produces_events:
+      - policy.evaluation.completed
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  policy.set.evaluate:
+    aggregate: evaluation
+    source_domain: policy
+    version: 1.0.0
+    description: Evaluate an authorization context and command against an active policy set (main evaluation command)
+    issuer:
+      actor_types: [human, organization, ai_agent, service_account, governance, external_system]
+      minimum_capability: policy.set.evaluate
+    authorization_requirements:
+      identity: required
+      capability: policy.set.evaluate
+      scope: policy_set_id
+      policy: policy_evaluation_policy
+    validation_rules:
+      - rule: authorization_context_id_required
+        check: authorization_context_id is present and non-empty
+        on_failure: REJECT
+      - rule: command_id_required
+        check: command_id is present and non-empty
+        on_failure: REJECT
+      - rule: policy_set_must_exist_and_be_active
+        check: policy_set with policy_set_id exists and state == ACTIVE
+        on_failure: REJECT
+    produces_events:
+      - policy.evaluation.completed
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  policy.escalation.resolve:
+    aggregate: escalation
+    source_domain: policy
+    version: 1.0.0
+    description: Resolve a pending or under-review policy escalation
+    issuer:
+      actor_types: [governance, human]
+      minimum_capability: policy.escalation.resolve
+    authorization_requirements:
+      identity: required
+      capability: policy.escalation.resolve
+      scope: escalation_id
+      policy: escalation_resolution_policy
+    validation_rules:
+      - rule: escalation_must_exist
+        check: escalation with escalation_id exists
+        on_failure: REJECT
+      - rule: escalation_must_be_in_resolvable_state
+        check: escalation.state in [PENDING, UNDER_REVIEW]
+        on_failure: REJECT
+      - rule: resolver_must_have_authority
+        check: caller has authority to resolve this escalation type
+        on_failure: REJECT
+    produces_events:
+      - policy.escalation.resolved
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  policy.compliance.requirement.register:
+    aggregate: compliance_requirement
+    source_domain: policy
+    version: 1.0.0
+    description: Register a new compliance requirement linked to an external regulation and jurisdiction
+    issuer:
+      actor_types: [governance]
+      minimum_capability: policy.compliance.create
+    authorization_requirements:
+      identity: required
+      capability: policy.compliance.create
+      scope: jurisdiction
+      policy: compliance_registration_policy
+    validation_rules:
+      - rule: regulation_id_must_not_be_empty
+        check: regulation_id is non-empty string
+        on_failure: REJECT
+      - rule: jurisdiction_must_not_be_empty
+        check: jurisdiction is non-empty string
+        on_failure: REJECT
+    produces_events:
+      - policy.compliance.requirement.registered
+  # ========================================================
+  # INTENT DOMAIN COMMANDS
+  # ========================================================
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  intent.submit:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Submit a new intent to act, representing an actor's desire to execute a domain command
+    issuer:
+      actor_types: [human, organization, ai_agent, service_account, governance, external_system]
+      minimum_capability: intent.submit
+    authorization_requirements:
+      identity: required
+      capability: intent.submit
+      scope: domain_target
+      policy: intent_submission_policy
+    validation_rules:
+      - rule: actor_must_exist_and_be_active
+        check: actor_id references an existing actor with state == ACTIVE
+        on_failure: REJECT
+      - rule: policy_decision_must_allow
+        check: policy_decision_id exists and associated decision == ALLOW
+        on_failure: REJECT
+      - rule: objective_must_not_be_empty
+        check: objective is non-empty string
+        on_failure: REJECT
+      - rule: domain_target_must_be_recognized
+        check: domain_target in recognized domain targets
+        on_failure: REJECT
+    produces_events:
+      - intent.received
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  intent.enrich:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Begin enrichment of a received intent, adding context and resolving references
+    issuer:
+      actor_types: [system]
+      minimum_capability: intent.enrich
+    authorization_requirements:
+      identity: required
+      capability: intent.enrich
+      scope: intent_id
+      policy: intent_enrichment_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_in_enrichable_state
+        check: intent.state in [RECEIVED, ENRICHING]
+        on_failure: REJECT
+      - rule: enrichment_steps_must_be_defined
+        check: enrichment pipeline has defined steps for this intent type
+        on_failure: REJECT
+    produces_events:
+      - intent.enriching.started
+      - intent.enriching.completed
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  intent.validate:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Validate an enriched intent against domain rules and constraints
+    issuer:
+      actor_types: [system]
+      minimum_capability: intent.validate
+    authorization_requirements:
+      identity: required
+      capability: intent.validate
+      scope: intent_id
+      policy: intent_validation_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_in_validatable_state
+        check: intent.state in [ENRICHING, VALIDATING]
+        on_failure: REJECT
+      - rule: enrichment_must_be_complete
+        check: all enrichment steps have completed successfully
+        on_failure: REJECT
+    produces_events:
+      - intent.validation.completed
+      - intent.validated
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  intent.convert_to_command:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Convert a validated and ready intent into an executable domain command
+    issuer:
+      actor_types: [system, human, ai_agent]
+      minimum_capability: intent.convert
+    authorization_requirements:
+      identity: required
+      capability: intent.convert
+      scope: intent_id
+      policy: intent_conversion_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_ready
+        check: intent.state == READY
+        on_failure: REJECT
+      - rule: policy_decision_must_be_valid
+        check: policy_decision_id references a valid ALLOW decision
+        on_failure: REJECT
+      - rule: no_blocking_failures
+        check: intent has no blocking validation failures
+        on_failure: REJECT
+    produces_events:
+      - intent.converted_to_command
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  intent.cancel:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Cancel an intent that has not yet been converted to a command
+    issuer:
+      actor_types: [human, organization, governance]
+      minimum_capability: intent.cancel
+    authorization_requirements:
+      identity: required
+      capability: intent.cancel
+      scope: intent_id
+      policy: intent_cancellation_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_in_cancellable_state
+        check: intent.state in [RECEIVED, ENRICHING, VALIDATING, READY]
+        on_failure: REJECT
+      - rule: caller_must_be_actor_or_governance
+        check: caller is the intent's actor_id or has governance authority
+        on_failure: REJECT
+    produces_events:
+      - intent.cancelled
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  intent.archive:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Archive a terminal-state intent for long-term retention
+    issuer:
+      actor_types: [system]
+      minimum_capability: intent.archive
+    authorization_requirements:
+      identity: required
+      capability: intent.archive
+      scope: intent_id
+      policy: intent_archive_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_in_terminal_state
+        check: intent.state in [CONVERTED_TO_COMMAND, FAILED, CANCELLED, EXPIRED]
+        on_failure: REJECT
+    produces_events:
+      - intent.archived
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  intent.multi_step.create:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Create a multi-step intent that coordinates a sequence of dependent commands
+    issuer:
+      actor_types: [human, organization, ai_agent]
+      minimum_capability: intent.multi_step.create
+    authorization_requirements:
+      identity: required
+      capability: intent.multi_step.create
+      scope: domain_target
+      policy: intent_multi_step_policy
+    validation_rules:
+      - rule: intent_type_must_be_multi_step
+        check: intent_type == MULTI_STEP
+        on_failure: REJECT
+      - rule: steps_array_must_be_non_empty
+        check: steps array has at least one step
+        on_failure: REJECT
+      - rule: no_circular_dependencies
+        check: step dependency graph has no cycles
+        on_failure: REJECT
+    produces_events:
+      - intent.received
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  intent.multi_step.advance:
+    aggregate: intent
+    source_domain: intent
+    version: 1.0.0
+    description: Advance a multi-step intent to the next step after the current step completes
+    issuer:
+      actor_types: [system, ai_agent]
+      minimum_capability: intent.multi_step.advance
+    authorization_requirements:
+      identity: required
+      capability: intent.multi_step.advance
+      scope: intent_id
+      policy: intent_multi_step_policy
+    validation_rules:
+      - rule: intent_must_exist
+        check: intent with intent_id exists
+        on_failure: REJECT
+      - rule: intent_must_be_ready
+        check: intent.state == READY
+        on_failure: REJECT
+      - rule: current_step_must_be_within_bounds
+        check: current_step < total_steps
+        on_failure: REJECT
+      - rule: step_dependencies_must_be_met
+        check: all prerequisite steps have completed successfully
+        on_failure: REJECT
+    produces_events:
+      - intent.multi_step.step_completed
+      - intent.multi_step.completed
+  # ========================================================
+  # AGENT DOMAIN COMMANDS
+  # ========================================================
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  agent.register:
+    aggregate: registration
+    source_domain: agent
+    version: 1.0.0
+    description: Submit a new AI agent registration for governance review
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: agent.register
+    authorization_requirements:
+      identity: required
+      capability: agent.register
+      scope: agent_type
+      policy: agent_registration_policy
+    validation_rules:
+      - rule: agent_type_must_be_recognized
+        check: agent_type in recognized agent types
+        on_failure: REJECT
+      - rule: model_type_must_not_be_empty
+        check: model_type is non-empty string
+        on_failure: REJECT
+      - rule: model_version_must_not_be_empty
+        check: model_version is non-empty string
+        on_failure: REJECT
+      - rule: proposed_capabilities_must_be_non_empty
+        check: proposed_capabilities array has at least one entry
+        on_failure: REJECT
+    produces_events:
+      - agent.registration.submitted
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  agent.activate:
+    aggregate: instance
+    source_domain: agent
+    version: 1.0.0
+    description: Activate an approved agent registration, creating a live agent instance
+    issuer:
+      actor_types: [governance]
+      minimum_capability: agent.activate
+    authorization_requirements:
+      identity: required
+      capability: agent.activate
+      scope: registration_id
+      policy: agent_activation_policy
+    validation_rules:
+      - rule: registration_must_exist
+        check: registration with registration_id exists
+        on_failure: REJECT
+      - rule: governance_review_must_be_approved
+        check: registration.governance_review_status == APPROVED
+        on_failure: REJECT
+      - rule: registration_must_be_in_registered_state
+        check: registration.state == REGISTERED
+        on_failure: REJECT
+    produces_events:
+      - agent.activated
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  agent.terminate:
+    aggregate: instance
+    source_domain: agent
+    version: 1.0.0
+    description: Terminate a live agent instance in any operational state
+    issuer:
+      actor_types: [governance]
+      minimum_capability: agent.terminate
+    authorization_requirements:
+      identity: required
+      capability: agent.terminate
+      scope: instance_id
+      policy: agent_termination_policy
+    validation_rules:
+      - rule: agent_must_exist
+        check: agent instance exists
+        on_failure: REJECT
+      - rule: agent_must_be_in_operational_state
+        check: agent.state in [ACTIVE, PAUSED, SUSPENDED, EXECUTING, ESCALATED]
+        on_failure: REJECT
+      - rule: termination_reason_must_be_provided
+        check: reason is non-empty string
+        on_failure: REJECT
+    produces_events:
+      - agent.terminated
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  agent.capability.bind:
+    aggregate: capability_binding
+    source_domain: agent
+    version: 1.0.0
+    description: Bind a recognized capability to an active agent instance with a scope pattern
+    issuer:
+      actor_types: [governance]
+      minimum_capability: agent.capability.bind
+    authorization_requirements:
+      identity: required
+      capability: agent.capability.bind
+      scope: instance_id
+      policy: agent_capability_policy
+    validation_rules:
+      - rule: agent_must_exist_and_be_active
+        check: agent instance exists and state == ACTIVE
+        on_failure: REJECT
+      - rule: capability_must_be_recognized
+        check: capability_id references a recognized capability definition
+        on_failure: REJECT
+      - rule: scope_pattern_must_be_valid
+        check: scope_pattern is a valid scope expression
+        on_failure: REJECT
+    produces_events:
+      - agent.capability.bound
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  agent.capability.revoke:
+    aggregate: capability_binding
+    source_domain: agent
+    version: 1.0.0
+    description: Revoke an active capability binding from an agent instance
+    issuer:
+      actor_types: [governance]
+      minimum_capability: agent.capability.revoke
+    authorization_requirements:
+      identity: required
+      capability: agent.capability.revoke
+      scope: binding_id
+      policy: agent_capability_policy
+    validation_rules:
+      - rule: binding_must_exist
+        check: capability binding with binding_id exists
+        on_failure: REJECT
+      - rule: binding_must_be_active
+        check: binding.state == ACTIVE
+        on_failure: REJECT
+    produces_events:
+      - agent.capability.revoked
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  agent.quota.update:
+    aggregate: execution_quota
+    source_domain: agent
+    version: 1.0.0
+    description: Update execution quota limits for an agent instance (internal administrative action)
+    issuer:
+      actor_types: [governance]
+      minimum_capability: agent.quota.update
+    authorization_requirements:
+      identity: required
+      capability: agent.quota.update
+      scope: instance_id
+      policy: agent_quota_policy
+    validation_rules:
+      - rule: agent_must_exist
+        check: agent instance exists
+        on_failure: REJECT
+      - rule: quota_values_must_be_positive
+        check: all quota values are positive numbers
+        on_failure: REJECT
+      - rule: within_constitutional_bounds
+        check: quota values do not exceed constitutional maximums
+        on_failure: REJECT
+    produces_events: []
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  agent.governance.override:
+    aggregate: governance_override
+    source_domain: agent
+    version: 1.0.0
+    description: Issue a governance override for an agent (emergency control, policy exception, or audit directive)
+    issuer:
+      actor_types: [governance]
+      minimum_capability: agent.governance.override
+    authorization_requirements:
+      identity: required
+      capability: agent.governance.override
+      scope: instance_id
+      policy: agent_override_policy
+    validation_rules:
+      - rule: agent_must_exist
+        check: agent instance exists
+        on_failure: REJECT
+      - rule: override_type_must_be_recognized
+        check: override_type in recognized override types
+        on_failure: REJECT
+      - rule: reason_must_be_provided
+        check: reason is non-empty string
+        on_failure: REJECT
+      - rule: constitutional_reference_must_be_valid
+        check: constitutional_reference references a valid constitutional provision
+        on_failure: REJECT
+    produces_events:
+      - agent.governance.override.issued
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  agent.execution.execute:
+    aggregate: instance
+    source_domain: agent
+    version: 1.0.0
+    description: Execute a domain command on behalf of an AI agent, wrapping it in the audit envelope (main agent execution command)
+    issuer:
+      actor_types: [ai_agent, system]
+      minimum_capability: varies by wrapped command
+    authorization_requirements:
+      identity: required
+      capability: varies by wrapped command
+      scope: intent_id
+      policy: agent_execution_policy
+    validation_rules:
+      - rule: agent_must_be_active
+        check: agent instance state == ACTIVE
+        on_failure: REJECT
+      - rule: intent_must_be_valid
+        check: intent_id references a valid intent
+        on_failure: REJECT
+      - rule: policy_decision_must_allow
+        check: policy_decision_id references a valid ALLOW decision
+        on_failure: REJECT
+      - rule: capability_must_be_bound
+        check: required capability_id is bound to this agent
+        on_failure: REJECT
+      - rule: quota_must_not_be_exceeded
+        check: execution would not exceed agent's quota limits
+        on_failure: REJECT
+      - rule: concurrency_limit_must_not_be_reached
+        check: agent concurrent execution count is below limit
+        on_failure: REJECT
+    produces_events:
+      - agent.execution.started
+      - agent.execution.completed
+  # ========================================================
+  # PAYMENT DOMAIN COMMANDS (Phase E — Mechanical Registration)
+  # ========================================================
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.request.create:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Create a new payment request from a Treasury settlement instruction
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: payment.request.create
+    authorization_requirements:
+      identity: required
+      capability: payment.request.create
+      scope: payment_request_id
+      policy: payment_creation_policy
+    validation_rules:
+      - rule: source_transfer_must_exist
+        check: treasury.transfer with source_transfer_id exists and state == AUTHORIZED
+        on_failure: REJECT
+      - rule: amount_must_match_transfer
+        check: amount == treasury.transfer.amount
+        on_failure: REJECT
+      - rule: urgency_must_be_valid
+        check: urgency in [IMMEDIATE, STANDARD, BATCH]
+        on_failure: REJECT
+      - rule: recipient_rail_ref_required
+        check: recipient.rail_account_ref is non-empty
+        on_failure: REJECT
+    required_payload:
+      - source_transfer_id
+      - amount
+      - sender
+      - recipient
+      - urgency
+      - retry_policy
+    resulting_events:
+      success: [payment.request.created]
+      failure: [payment.request.creation_failed]
+    failure_conditions:
+      - transfer_not_found
+      - amount_mismatch
+      - invalid_urgency
+      - missing_recipient
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.request.cancel:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Cancel a payment request that has not yet been executed
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: payment.request.cancel
+    authorization_requirements:
+      identity: required
+      capability: payment.request.cancel
+      scope: payment_request_id
+      policy: payment_cancellation_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_cancellable
+        check: payment_request.state in [RECEIVED, PLANNING, ROUTING, PREPARING]
+        on_failure: REJECT
+      - rule: cancellation_reason_required
+        check: reason is non-empty string
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - reason
+    resulting_events:
+      success: [payment.request.cancelled]
+      failure: [payment.request.cancellation_failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_cancellable
+      - missing_reason
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.execution.plan:
+    aggregate: execution_plan
+    source_domain: payment
+    version: 1.0.0
+    description: Execute routing engine and create an execution plan for a payment request
+    issuer:
+      actor_types: [system]
+      minimum_capability: payment.execution.plan
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.plan
+      scope: payment_request_id
+      policy: payment_routing_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_planning_state
+        check: payment_request.state == PLANNING
+        on_failure: REJECT
+      - rule: at_least_one_rail_available
+        check: len(available_rails) > 0
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - available_rails
+      - treasury_state
+      - vault_state
+      - policy_constraints
+    resulting_events:
+      success: [payment.execution.planned]
+      failure: [payment.execution.planning_failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_in_planning
+      - no_rails_available
+      - routing_engine_error
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.execution.execute:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Execute the payment through the selected rail adapter
+    issuer:
+      actor_types: [system]
+      minimum_capability: payment.execution.execute
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.execute
+      scope: payment_request_id
+      policy: payment_execution_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_have_execution_plan
+        check: execution_plan_id is non-null and plan exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_executable_state
+        check: payment_request.state in [ROUTING, PREPARING]
+        on_failure: REJECT
+      - rule: adapter_must_be_registered
+        check: rail_adapter for selected_rail exists
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+    resulting_events:
+      success: [payment.execution.started]
+      failure: [payment.execution.start_failed]
+    failure_conditions:
+      - payment_not_found
+      - no_execution_plan
+      - payment_not_executable
+      - adapter_not_registered
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.execution.confirm:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Confirm settlement from an external rail
+    issuer:
+      actor_types: [system]
+      minimum_capability: payment.execution.confirm
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.confirm
+      scope: payment_request_id
+      policy: payment_confirmation_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_confirming_state
+        check: payment_request.state == CONFIRMING
+        on_failure: REJECT
+      - rule: rail_reference_required
+        check: rail_reference_id is non-empty
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - rail_reference_id
+      - confirmed
+      - confirmation_data
+    resulting_events:
+      success: [payment.execution.completed, payment.rail.confirmed]
+      failure: [payment.execution.confirmation_failed, payment.rail.failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_confirming
+      - missing_rail_reference
+      - confirmation_mismatch
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.execution.compensate:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Initiate compensation for a failed payment
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: payment.execution.compensate
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.compensate
+      scope: payment_request_id
+      policy: payment_compensation_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_compensatable_state
+        check: payment_request.state in [FAILED, EXECUTING]
+        on_failure: REJECT
+      - rule: compensation_reason_required
+        check: reason is non-empty string
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - reason
+    resulting_events:
+      success: [payment.compensation.started]
+      failure: [payment.compensation.start_failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_compensatable
+      - missing_reason
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.reconciliation.start:
+    aggregate: reconciliation
+    source_domain: payment
+    version: 1.0.0
+    description: Initiate a reconciliation process
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: payment.reconciliation.initiate
+    authorization_requirements:
+      identity: required
+      capability: payment.reconciliation.initiate
+      scope: payment_request_id
+      policy: payment_reconciliation_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_reconcilable_state
+        check: payment_request.state in [CONFIRMING, RECONCILING, SETTLED]
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - trigger_type
+    resulting_events:
+      success: [payment.reconciliation.started]
+      failure: [payment.reconciliation.start_failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_reconcilable
+      - reconciliation_already_active
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.reconciliation.complete:
+    aggregate: reconciliation
+    source_domain: payment
+    version: 1.0.0
+    description: Complete a reconciliation with results
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: payment.reconciliation.complete
+    authorization_requirements:
+      identity: required
+      capability: payment.reconciliation.complete
+      scope: reconciliation_id
+      policy: payment_reconciliation_policy
+    validation_rules:
+      - rule: reconciliation_must_exist
+        check: reconciliation with reconciliation_id exists
+        on_failure: REJECT
+      - rule: reconciliation_must_be_active
+        check: reconciliation.status == ACTIVE
+        on_failure: REJECT
+    required_payload:
+      - reconciliation_id
+      - status
+      - matched
+      - discrepancy_details
+    resulting_events:
+      success: [payment.reconciliation.completed]
+      failure: [payment.reconciliation.completion_failed]
+    failure_conditions:
+      - reconciliation_not_found
+      - reconciliation_not_active
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.receipt.issue:
+    aggregate: execution_receipt
+    source_domain: payment
+    version: 1.0.0
+    description: Issue an execution receipt for a completed payment
+    issuer:
+      actor_types: [system]
+      minimum_capability: payment.receipt.issue
+    authorization_requirements:
+      identity: required
+      capability: payment.receipt.issue
+      scope: payment_request_id
+      policy: payment_receipt_policy
+    validation_rules:
+      - rule: payment_must_be_settled
+        check: payment_request.state == SETTLED
+        on_failure: REJECT
+      - rule: rail_reference_required
+        check: rail_reference_id is non-empty
+        on_failure: REJECT
+      - rule: no_duplicate_receipt
+        check: no existing receipt for this payment_request_id
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - rail_reference_id
+      - amount_executed
+      - fees
+      - execution_timeline
+      - constitutional_compliance_attestation
+    resulting_events:
+      success: [payment.receipt.issued]
+      failure: [payment.receipt.issuance_failed]
+    failure_conditions:
+      - payment_not_settled
+      - missing_rail_reference
+      - duplicate_receipt
+  # ========================================================
+  # GOVERNANCE DOMAIN COMMANDS
+  # ========================================================
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.proposal.submit:
+    aggregate: governance_proposal
+    source_domain: governance
+    version: 1.0.0
+    description: Submit a new governance proposal for review
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: governance.proposal.create
+    authorization_requirements:
+      identity: required
+      capability: governance.proposal.create
+      scope: governance:proposal:*
+      policy: governance_proposal_policy
+    validation_rules:
+      - rule: proposal_type_must_be_recognized
+        check: proposal_type in [CONSTITUTIONAL_AMENDMENT, POLICY_RULE_CREATE, POLICY_RULE_MODIFY, CAPABILITY_GRANT, CAPABILITY_REVOKE, AGENT_APPROVAL, AGENT_OVERRIDE, BOUNDARY_SYSTEM_APPROVAL, EMERGENCY_HALT, AUDIT_INVESTIGATION]
+        on_failure: REJECT
+      - rule: target_domain_must_be_valid
+        check: target_domain in [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, GOVERNANCE, SYSTEM]
+        on_failure: REJECT
+      - rule: required_approvals_must_be_positive
+        check: required_approvals > 0
+        on_failure: REJECT
+      - rule: expires_at_must_be_future
+        check: expires_at > now
+        on_failure: REJECT
+    required_payload:
+      - proposal_type
+      - title
+      - description
+      - target_domain
+      - payload
+      - required_approvals
+      - approval_threshold
+      - expires_at
+    resulting_events:
+      success: [governance.proposal.submitted]
+      failure: [governance.proposal.submission_failed]
+    failure_conditions:
+      - invalid_proposal_type
+      - invalid_target_domain
+      - expired_proposal
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.proposal.approve:
+    aggregate: governance_proposal
+    source_domain: governance
+    version: 1.0.0
+    description: Approve a pending governance proposal
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: governance.proposal.approve
+    authorization_requirements:
+      identity: required
+      capability: governance.proposal.approve
+      scope: governance:proposal:{proposal_id}
+      policy: governance_proposal_policy
+    validation_rules:
+      - rule: proposal_must_exist
+        check: governance_proposal with proposal_id exists
+        on_failure: REJECT
+      - rule: proposal_must_be_pending
+        check: proposal.state == PENDING_REVIEW
+        on_failure: REJECT
+      - rule: actor_has_not_already_approved
+        check: actor_id not in proposal.approvals
+        on_failure: REJECT
+      - rule: proposal_not_expired
+        check: proposal.expires_at > now
+        on_failure: REJECT
+    required_payload:
+      - proposal_id
+      - approval_decision
+      - comments
+    resulting_events:
+      success: [governance.proposal.approved]
+      failure: [governance.proposal.approval_failed]
+    failure_conditions:
+      - proposal_not_found
+      - proposal_not_pending
+      - already_approved
+      - proposal_expired
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.proposal.reject:
+    aggregate: governance_proposal
+    source_domain: governance
+    version: 1.0.0
+    description: Reject a pending governance proposal
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: governance.proposal.reject
+    authorization_requirements:
+      identity: required
+      capability: governance.proposal.reject
+      scope: governance:proposal:{proposal_id}
+      policy: governance_proposal_policy
+    validation_rules:
+      - rule: proposal_must_exist
+        check: governance_proposal with proposal_id exists
+        on_failure: REJECT
+      - rule: proposal_must_be_pending
+        check: proposal.state == PENDING_REVIEW
+        on_failure: REJECT
+      - rule: actor_has_not_already_voted
+        check: actor_id not in proposal.votes
+        on_failure: REJECT
+      - rule: proposal_not_expired
+        check: proposal.expires_at > now
+        on_failure: REJECT
+    required_payload:
+      - proposal_id
+      - rejection_reason
+    resulting_events:
+      success: [governance.proposal.rejected]
+      failure: [governance.proposal.rejection_failed]
+    failure_conditions:
+      - proposal_not_found
+      - proposal_not_pending
+      - already_voted
+      - proposal_expired
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.amend.propose:
+    aggregate: governance_amendment
+    source_domain: governance
+    version: 1.0.0
+    description: Propose a constitutional amendment
+    issuer:
+      actor_types: [governance]
+      minimum_capability: governance.amend.propose
+    authorization_requirements:
+      identity: required
+      capability: governance.amend.propose
+      scope: governance:amendment:*
+      policy: constitutional_amendment_policy
+    validation_rules:
+      - rule: amendment_number_unique
+        check: no existing amendment with same amendment_number
+        on_failure: REJECT
+      - rule: section_valid
+        check: section in [INVARIANTS, CONFLICT_RESOLUTION, AUTHORITY_MODEL, FINANCIAL_INTEGRITY, AGENT_GOVERNANCE, GOVERNANCE_STRUCTURE, RUNTIME_ENFORCEMENT, PROTECTED_ARTICLES]
+        on_failure: REJECT
+      - rule: text_differs
+        check: proposed_text != current_text
+        on_failure: REJECT
+      - rule: rationale_provided
+        check: rationale is non-empty
+        on_failure: REJECT
+    required_payload:
+      - amendment_number
+      - title
+      - description
+      - section
+      - current_text
+      - proposed_text
+      - rationale
+      - voting_ends_at
+    resulting_events:
+      success: [governance.amendment.proposed]
+      failure: [governance.amendment.proposal_failed]
+    failure_conditions:
+      - duplicate_amendment_number
+      - invalid_section
+      - identical_text
+      - missing_rationale
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.amend.ratify:
+    aggregate: governance_amendment
+    source_domain: governance
+    version: 1.0.0
+    description: Ratify an approved constitutional amendment
+    issuer:
+      actor_types: [governance]
+      minimum_capability: governance.amend.ratify
+    authorization_requirements:
+      identity: required
+      capability: governance.amend.ratify
+      scope: governance:amendment:{amendment_id}
+      policy: constitutional_amendment_policy
+    validation_rules:
+      - rule: amendment_must_exist
+        check: governance_amendment with amendment_id exists
+        on_failure: REJECT
+      - rule: amendment_must_be_approved
+        check: amendment.state == APPROVED
+        on_failure: REJECT
+      - rule: unanimous_quorum_achieved
+        check: all required voters have approved
+        on_failure: REJECT
+      - rule: voting_period_ended
+        check: now > voting_ends_at
+        on_failure: REJECT
+    required_payload:
+      - amendment_id
+    resulting_events:
+      success: [governance.amendment.ratified]
+      failure: [governance.amendment.ratification_failed]
+    failure_conditions:
+      - amendment_not_found
+      - amendment_not_approved
+      - quorum_not_achieved
+      - voting_period_active
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.emergency.halt:
+    aggregate: emergency_halt
+    source_domain: governance
+    version: 1.0.0
+    description: Issue an emergency system halt
+    issuer:
+      actor_types: [governance]
+      minimum_capability: governance.emergency.halt
+    authorization_requirements:
+      identity: required
+      capability: governance.emergency.halt
+      scope: governance:emergency:*
+      policy: emergency_halt_policy
+    validation_rules:
+      - rule: two_distinct_governors
+        check: two distinct governance identity_ids provided
+        on_failure: REJECT
+      - rule: valid_trigger_condition
+        check: trigger_reason in [ACTIVE_BREACH, ASSET_INTEGRITY_COMPROMISED, REGULATORY_MANDATE, SYSTEMIC_FAILURE]
+        on_failure: REJECT
+      - rule: affected_domains_specified
+        check: affected_domains is non-empty
+        on_failure: REJECT
+    required_payload:
+      - co_triggered_by
+      - trigger_reason
+      - description
+      - affected_domains
+    resulting_events:
+      success: [governance.emergency_halt.issued]
+      failure: [governance.emergency_halt.failed]
+    failure_conditions:
+      - single_governor_only
+      - invalid_trigger_reason
+      - missing_affected_domains
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.emergency.lift:
+    aggregate: emergency_halt
+    source_domain: governance
+    version: 1.0.0
+    description: Lift an active emergency halt
+    issuer:
+      actor_types: [governance]
+      minimum_capability: governance.emergency.halt
+    authorization_requirements:
+      identity: required
+      capability: governance.emergency.halt
+      scope: governance:emergency:*
+      policy: emergency_halt_policy
+    validation_rules:
+      - rule: halt_must_be_active
+        check: emergency_halt.state == ACTIVE
+        on_failure: REJECT
+      - rule: two_distinct_governors
+        check: two distinct governance identity_ids provided
+        on_failure: REJECT
+      - rule: review_completed_or_waived
+        check: post_action_review_completed == true or review_waived == true
+        on_failure: REJECT
+    required_payload:
+      - halt_id
+      - lift_reason
+    resulting_events:
+      success: [governance.emergency_halt.lifted]
+      failure: [governance.emergency_halt.lift_failed]
+    failure_conditions:
+      - halt_not_active
+      - single_governor_only
+      - review_not_completed
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.audit.query:
+    aggregate: audit_record
+    source_domain: governance
+    version: 1.0.0
+    description: Query audit logs and compliance records
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: governance.audit.query
+    authorization_requirements:
+      identity: required
+      capability: governance.audit.query
+      scope: audit:*
+      policy: governance_audit_policy
+    validation_rules:
+      - rule: time_range_valid
+        check: start_date <= end_date if end_date provided
+        on_failure: REJECT
+      - rule: target_domains_specified
+        check: target_domains is non-empty
+        on_failure: REJECT
+    required_payload:
+      - audit_type
+      - target_domains
+      - start_date
+      - end_date
+      - filters
+    resulting_events:
+      success: [governance.audit.queried]
+      failure: [governance.audit.query_failed]
+    failure_conditions:
+      - invalid_time_range
+      - missing_target_domains
+      - unauthorized_domain_access
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.oversight.review:
+    aggregate: audit_record
+    source_domain: governance
+    version: 1.0.0
+    description: Review overall system state and health
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: governance.oversight.review
+    authorization_requirements:
+      identity: required
+      capability: governance.oversight.review
+      scope: governance:oversight:*
+      policy: governance_oversight_policy
+    validation_rules:
+      - rule: review_scope_defined
+        check: review_scope is non-empty
+        on_failure: REJECT
+    required_payload:
+      - audit_type
+      - review_scope
+      - target_domains
+    resulting_events:
+      success: [governance.oversight.reviewed]
+      failure: [governance.oversight.review_failed]
+    failure_conditions:
+      - missing_review_scope
+      - unauthorized_access
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.capability.grant:
+    aggregate: capability_grant
+    source_domain: governance
+    version: 1.0.0
+    description: Grant a capability to an actor
+    issuer:
+      actor_types: [governance]
+      minimum_capability: governance.capability.grant
+    authorization_requirements:
+      identity: required
+      capability: governance.capability.grant
+      scope: capability:{capability_id}
+      policy: capability_management_policy
+    validation_rules:
+      - rule: capability_exists
+        check: capability_id exists in security-capabilities
+        on_failure: REJECT
+      - rule: target_actor_exists
+        check: actor_id references verified identity
+        on_failure: REJECT
+      - rule: scope_pattern_valid
+        check: scope_pattern matches scope_pattern_language syntax
+        on_failure: REJECT
+      - rule: governance_approval_obtained
+        check: governance_approval_id is provided
+        on_failure: REJECT
+    required_payload:
+      - capability_id
+      - actor_id
+      - scope_pattern
+      - expires_at
+      - conditions
+    resulting_events:
+      success: [governance.capability.granted]
+      failure: [governance.capability.grant_failed]
+    failure_conditions:
+      - capability_not_found
+      - actor_not_found
+      - invalid_scope_pattern
+      - governance_approval_missing
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.capability.revoke:
+    aggregate: capability_grant
+    source_domain: governance
+    version: 1.0.0
+    description: Revoke a capability from an actor
+    issuer:
+      actor_types: [governance]
+      minimum_capability: governance.capability.revoke
+    authorization_requirements:
+      identity: required
+      capability: governance.capability.revoke
+      scope: capability:{capability_id}
+      policy: capability_management_policy
+    validation_rules:
+      - rule: capability_grant_exists
+        check: active capability grant exists for actor_id + capability_id
+        on_failure: REJECT
+      - rule: not_governance_only_capability
+        check: capability_id is not governance-only
+        on_failure: REJECT
+    required_payload:
+      - capability_id
+      - actor_id
+      - revocation_reason
+    resulting_events:
+      success: [governance.capability.revoked]
+      failure: [governance.capability.revoke_failed]
+    failure_conditions:
+      - capability_grant_not_found
+      - governance_only_capability
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.escalation.resolve:
+    aggregate: escalation
+    source_domain: governance
+    version: 1.0.0
+    description: Resolve a pending governance escalation
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: governance.escalation.resolve
+    authorization_requirements:
+      identity: required
+      capability: governance.escalation.resolve
+      scope: governance:escalation:{escalation_id}
+      policy: escalation_resolution_policy
+    validation_rules:
+      - rule: escalation_must_exist
+        check: escalation with escalation_id exists
+        on_failure: REJECT
+      - rule: escalation_must_be_pending
+        check: escalation.state in [PENDING, UNDER_REVIEW]
+        on_failure: REJECT
+      - rule: resolution_provided
+        check: resolution is non-empty
+        on_failure: REJECT
+    required_payload:
+      - escalation_id
+      - resolution
+      - compensation_action
+    resulting_events:
+      success: [governance.escalation.resolved]
+      failure: [governance.escalation.resolution_failed]
+    failure_conditions:
+      - escalation_not_found
+      - escalation_not_pending
+      - missing_resolution
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.policy_rule.review:
+    aggregate: policy_rule
+    source_domain: governance
+    version: 1.0.0
+    description: Review a policy rule before activation
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: governance.policy.review
+    authorization_requirements:
+      identity: required
+      capability: governance.policy.review
+      scope: policy:rule:{rule_id}
+      policy: policy_review_policy
+    validation_rules:
+      - rule: policy_rule_must_exist
+        check: policy_rule with rule_id exists
+        on_failure: REJECT
+      - rule: policy_rule_must_be_draft
+        check: policy_rule.state == DRAFT
+        on_failure: REJECT
+      - rule: constitutional_compliance_passed
+        check: constitutional_compliance_check == PASS
+        on_failure: REJECT
+    required_payload:
+      - rule_id
+      - review_decision
+      - review_comments
+    resulting_events:
+      success: [governance.policy_rule.review_requested]
+      failure: [governance.policy_rule.review_failed]
+    failure_conditions:
+      - rule_not_found
+      - rule_not_draft
+      - constitutional_violation
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []

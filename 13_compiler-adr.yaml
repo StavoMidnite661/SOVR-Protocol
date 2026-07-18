@@ -1,0 +1,1086 @@
+# ============================================================
+# SOVR Financial OS — Compiler Architecture Decision Record
+# File: 13_compiler-adr.yaml
+# Status: FROZEN
+# Type: ARCHITECTURE_DECISION_RECORD
+# ============================================================
+# This document records the architectural decisions that define
+# HOW the SOVR Protocol Compiler is built. It does NOT change
+# the protocol — it defines the implementation strategy for
+# the compiler that realizes the frozen specification.
+#
+# Every decision here is binding for Runtime V1.
+# Changes require a governed amendment to this ADR.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  file_id: "compiler-adr"
+  status: FROZEN
+  type: ARCHITECTURE_DECISION_RECORD
+  supersedes: []
+  compiler_target_version: "1.0.0"
+  protocol_version: "1.0.0"
+  decision_count: 12
+  total_alternatives_considered: 32
+
+# ============================================================
+# DECISION 1 — COMPILER IMPLEMENTATION LANGUAGE
+# ============================================================
+
+decisions:
+
+  - id: ADR-COMP-001
+    category: implementation
+    question: What language is the compiler written in?
+    decision: TypeScript (strict mode, ES2022 target, Node.js 20+)
+    rationale: >
+      The compiler must consume YAML and produce TypeScript.
+      Writing it in TypeScript eliminates a language boundary:
+      the compiler's own types can be shared directly with
+      generated output. The compiler can import generated types
+      for self-validation. TypeScript's type system is sufficient
+      to model the Protocol IR, and the runtime ecosystem
+      (Fastify, Prisma, KafkaJS, Temporal) is TypeScript-native.
+      No transpilation step between compiler and runtime.
+    alternatives:
+      - option: Rust
+        rejected_because: >
+          Superior performance but introduces a language boundary.
+          Generated TypeScript types cannot be imported by the
+          compiler for validation. Requires FFI or WASM bridge.
+          Adds build toolchain complexity. Performance not
+          critical — compilation is a batch operation, not
+          a hot path.
+      - option: Go
+        rejected_because: >
+          No native TypeScript type sharing. The compiler cannot
+          directly validate generated output types. Go's type
+          system cannot express the Protocol IR's union types
+          and discriminated unions as naturally.
+      - option: Python
+        rejected_because: >
+          Runtime is TypeScript. Python compiler would produce
+          TypeScript output without type-safe validation of
+          that output. No shared type system between compiler
+      - option: Java/Kotlin
+        rejected_because: >
+          JVM adds startup overhead. No shared type system.
+          Overkill for a single-purpose compiler.
+    implications:
+      - compiler_build: "tsc + tsx for execution"
+      - compiler_test: "vitest with type-level assertions"
+      - compiler_distribution: "npm package @sovr/compiler"
+      - compiler_runtime_requirement: "Node.js >= 20.0.0"
+    constitutional_alignment: INV-006 (compiler interprets spec; spec is truth)
+
+  - id: ADR-COMP-002
+    category: architecture
+    question: What intermediate representation (IR) does the compiler build from the YAML?
+    decision: Protocol Intermediate Representation (PIR) — a typed, fully-resolved, validated graph
+    structure:
+      phases:
+        - phase: RAW_AST
+          description: Direct YAML parse result — untyped, unvalidated
+          transition: schema_validation_pass
+        - phase: VALIDATED_AST
+          description: Schema-validated — all required fields present, types correct
+          transition: reference_resolution_pass
+        - phase: RESOLVED_AST
+          description: All cross-file references expanded to concrete targets
+          transition: canonicalization_pass
+        - phase: CANONICAL_PIR
+          description: >
+            Stable, normalized protocol graph. All nodes are sorted to
+            a deterministic order. Edge traversal order is fixed.
+            This is the serialization and hashing boundary — the same
+            protocol always produces byte-identical CANONICAL_PIR.
+          transition: optimization_pass (if any optimization passes are registered)
+        - phase: OPTIMIZED_PIR
+          description: >
+            Performance-optimized form of CANONICAL_PIR. May reorder
+            nodes for generator efficiency, pre-compute derived fields,
+            or merge redundant subgraphs. NOT guaranteed to be
+            byte-identical across compiler patch versions. Generators
+            consume OPTIMIZED_PIR; tooling and hashing consume
+            CANONICAL_PIR.
+      canonicalization_rules:
+        node_sorting: topological_then_alphabetical_within_rank
+        edge_ordering: sorted_by_edge_type_then_target_id
+        map_key_ordering: alphabetical
+        array_stable_sort: by node_id (ULID — already ordered)
+        whitespace_normalization: none (JSON serialization controls this)
+        id_stability: ULID from source content (deterministic)
+      ir_node_types:
+        - ProtocolNode
+        - DomainNode
+        - EntityNode
+        - CommandNode
+        - EventNode
+        - StateMachineNode
+        - StateNode
+        - TransitionNode
+        - CapabilityNode
+        - PolicyRuleNode
+        - SagaNode
+        - SagaStepNode
+        - ProjectionNode
+        - ContractNode
+        - InvariantNode
+        - BoundarySystemNode
+        - LayerNode
+        - BuildPhaseNode
+      ir_edge_types:
+        - domain_contains_entity
+        - entity_emits_event
+        - entity_accepts_command
+        - command_produces_event
+        - command_requires_capability
+        - command_enforced_by_invariant
+        - event_consumed_by_projection
+        - event_triggers_saga_step
+        - state_machine_governs_entity
+        - state_has_transition
+        - transition_triggered_by_command
+        - contract_couples_domain
+        - layer_contains_file
+        - file_belongs_to_domain
+    rationale: >
+      Splitting the IR into CANONICAL_PIR and OPTIMIZED_PIR creates
+      a hard boundary between semantic correctness and performance.
+      CANONICAL_PIR is the stable, byte-identical representation used
+      for hashing, serialization, debugging, and reproducible builds.
+      OPTIMIZED_PIR is the generator-facing representation that may
+      be reorganized for efficiency. This separation means:
+      (1) two compiler runs on the same protocol produce identical
+      CANONICAL_PIR — guaranteed reproducibility;
+      (2) hashing and signing use CANONICAL_PIR, never OPTIMIZED_PIR;
+      (3) future tooling (visualizers, diffing, static analysis) can
+      operate on the stable canonical form;
+      (4) optimization passes cannot break determinism guarantees.
+    alternatives:
+      - option: Single-pass direct YAML-to-code
+        rejected_because: >
+          No validation of cross-file references. No dead artifact
+          detection. No dependency ordering. A typo in a domain
+          reference would produce silently broken code.
+      - option: JSON Schema as IR
+        rejected_because: >
+          JSON Schema describes shape but not relationships.
+          Cannot express "Command X produces Event Y which is
+          consumed by Projection Z." Graph structure is essential.
+      - option: Code generation per file independently
+        rejected_because: >
+          Each file generator would need to re-resolve references.
+          Duplicates logic. No global consistency guarantee.
+    implications:
+      - compiler_internal: "CANONICAL_PIR and OPTIMIZED_PIR are separate in-memory structures"
+      - hashing: "All cryptographic hashes use CANONICAL_PIR serialization"
+      - debugging: "sovr dump-pir outputs CANONICAL_PIR by default; --optimized for OPTIMIZED_PIR"
+      - testing: "Test suites validate CANONICAL_PIR shape for determinism; OPTIMIZED_PIR for output correctness"
+      - reproducibility: "Byte-identical CANONICAL_PIR across machines, OS, and compiler builds"
+      - generator_input: "All generators receive OPTIMIZED_PIR"
+      - tooling_input: "All tooling (diff, visualize, analyze) consumes CANONICAL_PIR"
+    constitutional_alignment: INV-001 (CANONICAL_PIR is deterministic; OPTIMIZED_PIR derives from it)
+
+  - id: ADR-COMP-003
+    category: extensibility
+    question: How are plugins and extensions registered?
+    decision: Declarative registry files with typed interfaces and hook points
+    mechanism:
+      registry_files:
+        - path: "compiler/registries/templates.yaml"
+          registers: output type templates (mustache / handlebars / custom)
+        - path: "compiler/registries/validators.yaml"
+          registers: custom semantic validation passes
+        - path: "compiler/registries/plugins.yaml"
+          registers: full output type plugins (new artifact kinds)
+      interface_contracts:
+        template:
+          input: PIR subset relevant to the output type
+          output: generated source code string
+          required_methods: [render, getFilePattern, getDependencies]
+        validator:
+          input: full PIR
+          output: validation result (pass / fail / warn)
+          required_methods: [validate, getRuleId, getSeverity]
+        plugin:
+          input: full PIR
+          output: array of generated files
+          required_methods: [generate, getName, getSourceFiles]
+      hook_points:
+        - PRE_PARSE: before any YAML is loaded
+        - POST_PARSE: after all YAML is loaded, before validation
+        - PRE_VALIDATE: before validation pipeline
+        - POST_VALIDATE: after validation, before resolution
+        - PRE_TRANSFORM: before code generation
+        - POST_TRANSFORM: after code generation, before file write
+        - PRE_WRITE: before files are written to disk
+        - POST_WRITE: after all files written, before verification
+        - POST_VERIFY: after verification complete
+      loading_order:
+        1. Core registries (bundled with compiler)
+        2. Project-level registries (in consuming repo)
+        3. Plugin registries (installed via npm)
+    rationale: >
+      YAML-based registries are consistent with the protocol's
+      machine-readable philosophy. Typed interfaces ensure every
+      plugin conforms to the compiler's contract. Hook points
+      allow cross-cutting concerns (logging, metrics, custom
+      checks) without modifying compiler internals.
+    alternatives:
+      - option: Code-based plugin registration
+        rejected_because: >
+          Requires importing plugin code into compiler process.
+          Breaks compiler reproducibility. Plugins cannot be
+          inspected without execution.
+      - option: No extensibility — compiler is closed
+        rejected_because: >
+          Prevents runtime-specific customization (e.g., a team
+          that needs custom output types for their infrastructure).
+          Forces compiler modification for every new need.
+    implications:
+      - extensibility_model: "Open for extension, closed for modification"
+      - plugin_distribution: "npm packages with @sovr/compiler-plugin- prefix"
+      - registry_validation: "Compiler validates registry schemas on startup"
+    constitutional_alignment: INV-008 (plugin execution gated by capability check)
+
+  - id: ADR-COMP-004
+    category: architecture
+    question: How are semantic validation passes organized?
+    decision: Ordered pass pipeline with explicit dependencies between passes
+    organization:
+      pass_categories:
+        structural:
+          description: Validate YAML structure and required fields
+          passes:
+            - SCHEMA_VALIDATION
+            - REQUIRED_FIELD_CHECK
+            - DUPLICATE_DETECTION
+            - ENUM_VALUE_VALIDATION
+          failure_action: ABORT
+        referential:
+          description: Validate all cross-file references resolve
+          passes:
+            - ENTITY_REFERENCE_RESOLUTION
+            - COMMAND_REFERENCE_RESOLUTION
+            - EVENT_REFERENCE_RESOLUTION
+            - CAPABILITY_REFERENCE_RESOLUTION
+            - INVARIANT_REFERENCE_RESOLUTION
+            - STATE_MACHINE_REFERENCE_RESOLUTION
+            - SAGA_REFERENCE_RESOLUTION
+            - CONTRACT_REFERENCE_RESOLUTION
+          failure_action: ABORT
+        semantic:
+          description: Validate meaning beyond structure
+          passes:
+            - EVENT_ENVELOPE_COMPLETENESS
+            - COMMAND_GATES_COMPLETENESS
+            - STATE_MACHINE_TERMINAL_STATE_CHECK
+            - STATE_MACHINE_COVERAGE_CHECK
+            - SAGA_COMPENSATION_COMPLETENESS
+            - DOUBLE_ENTRY_INVARIANT_COVERAGE
+            - AUTHORITY_BOUNDARY_CONSISTENCY
+            - CONFLICT_RESOLUTION_PRIORITY_VALIDATION
+            - LAYER_CONTAINMENT_CHECK
+            - PROJECTION_EVENT_COVERAGE
+          failure_action: ABORT
+        constitutional:
+          description: Validate compliance with 01_constitution.yaml
+          passes:
+            - INVARIANT_ENFORCEMENT_POINT_EXISTS
+            - INVARIANT_VIOLATION_ACTION_DEFINED
+            - COMMAND_PIPELINE_GATE_COMPLIANCE
+            - AGENT_GOVERNANCE_RULE_COVERAGE
+            - FINANCIAL_INTEGRITY_RULE_COVERAGE
+            - PROTECTED_ARTICLE_IMMUTABILITY
+          failure_action: ABORT
+        optimization:
+          description: Warnings and suggestions, never blocking
+          passes:
+            - DEAD_ARTIFACT_DETECTION
+            - UNUSED_CAPABILITY_DETECTION
+            - MISSING_TEST_COVERAGE_WARNING
+            - CYCLIC_DEPENDENCY_WARNING
+          failure_action: WARN_ONLY
+      pass_interface:
+        input: "PIR (or subgraph for targeted passes)"
+        output: "ValidationReport { passed, errors, warnings }"
+        required_methods: [validate, getName, getCategory, getDependencies]
+      execution:
+        order: topological_sort_of_pass_dependencies
+        parallelism: passes within same category run in parallel
+        short_circuit: first error in ABORT category halts pipeline
+        reporting: all WARN passes complete regardless of errors
+    rationale: >
+      Categorization makes it clear WHERE a validation failure
+      originates. Explicit pass dependencies prevent ordering bugs.
+      Separating ABORT from WARN allows the compiler to report
+      all issues before failing, improving developer experience.
+    alternatives:
+      - option: Single monolithic validation function
+        rejected_because: >
+          Impossible to extend. Cannot run subsets. No clear
+          error categorization. Performance cannot be optimized.
+      - option: Validation as part of code generation
+        rejected_because: >
+          Would produce partial output before discovering errors.
+          Wastes time. Confusing error messages.
+    implications:
+      - error_messages: "Include file path, line number, rule ID, and remediation hint"
+      - ci_integration: "Exit code 0 = success, 1 = validation failure, 2 = internal error"
+      - pass_authoring: "New passes implement ValidationPass interface"
+    constitutional_alignment: All 10 invariants validated by constitutional passes
+
+  - id: ADR-COMP-005
+    category: performance
+    question: How does incremental compilation work?
+    decision: Content-addressable caching with dependency-aware invalidation
+    mechanism:
+      content_hashing:
+        algorithm: SHA-256
+        scope: per-file
+        input: raw YAML content + file path
+        stored_in: ".sovr-cache/manifest.json"
+      cache_structure:
+        path: ".sovr-cache/"
+        contents:
+          - path: "manifest.json"
+            description: "file hashes, dependency graph, last compilation timestamp"
+          - path: "pir/"
+            description: "serialized PIR nodes (content-addressed)"
+          - path: "artifacts/"
+            description: "generated output files (content-addressed)"
+          - path: "reports/"
+            description: "validation reports from last successful compilation"
+      invalidation_rules:
+        file_changed: >
+          If any input YAML file's content hash differs from cache,
+          that file and all files that depend on it (transitively)
+          are re-parsed, re-validated, and re-resolved.
+        dependency_changed: >
+          If a file's dependency graph changes (new references added
+          or removed), the file and its dependents are re-processed.
+        template_changed: >
+          If a template or plugin changes, all artifacts generated
+          by that template/plugin are regenerated.
+        compiler_version_changed: >
+          If the compiler version changes (semver major or minor),
+          full recompilation is triggered. Patch versions allow
+          incremental compilation.
+      recompilation_scope:
+        full: triggered by compiler major/minor version change, manifest change, constitution change
+        partial: triggered by domain file change, template change, plugin change
+        none: no input changes detected; emit "up to date" and exit
+    rationale: >
+      Full compilation processes 15+ YAML files and generates
+      hundreds of artifacts. For development iteration, full
+      compilation every time is prohibitive. Content-addressable
+      caching ensures correctness (same input always produces
+      same output) while minimizing unnecessary work.
+    alternatives:
+      - option: No caching — always full compilation
+        rejected_because: >
+          Compilation of full specification takes seconds.
+          During development, this creates unacceptable feedback
+          loops.
+      - option: Timestamp-based caching
+        rejected_because: >
+          Timestamps are unreliable across systems (git clone,
+          file copy). Content hashing is deterministic.
+      - option: File-watcher with auto-recompilation
+        rejected_because: >
+          Useful for development but not a replacement for
+          deterministic caching. Can be layered on top.
+    implications:
+      - cache_in_gitignore: true
+      - cache_reproducibility: "Same inputs on any machine produce same cache"
+      - ci_pipelines: "Always use full compilation (no cache)"
+      - development: "Incremental by default; --no-cache flag available"
+    constitutional_alignment: INV-007 (caching does not compromise correctness)
+
+  - id: ADR-COMP-006
+    category: generated_file_management
+    question: How are generated files marked and protected from manual edits?
+    decision: "Triple protection: file header, git attribute, and hash verification"
+    mechanism:
+      file_header:
+        format: |
+          // ============================================================
+          // SOVR GENERATED FILE — DO NOT EDIT MANUALLY
+          // Compiler: @sovr/compiler v{version}
+          // Protocol: SOVR Financial OS v{protocol_version}
+          // Source: {source_files}
+          // Generated: {timestamp}
+          // Hash: {content_hash}
+          // ============================================================
+          //
+          // This file is a compiled product of the SOVR Protocol
+          // Specification. Manual edits will be overwritten on
+          // next compilation.
+          //
+          // To modify this file, edit the source specification
+          // and recompile. Do NOT edit this file directly.
+          // ============================================================
+        applies_to: TypeScript, SQL, JSON Schema, OpenAPI, Prisma, config files
+      git_attributes:
+        file: ".gitattributes"
+        rule: "generated/** linguist-generated=true diff=generated"
+        effect: >
+          Git treats generated files as generated. GitHub shows
+          them collapsed in PRs. Linguist excludes them from
+          language statistics.
+      hash_verification:
+        mechanism: >
+          Each generated file includes its content hash in the
+          header. The compiler can verify that files on disk
+          match their expected hash. Mismatches indicate manual
+          edits or corruption.
+        cli_command: "sovr verify --check-generated"
+        violation_action: warn_and_list_mismatched_files
+      directory_structure:
+        generated_root: "generated/"
+        subdirectories:
+          - path: "generated/types/"
+            source: "02_domain-model.yaml"
+          - path: "generated/commands/"
+            source: "03_command-catalog.yaml"
+          - path: "generated/events/"
+            source: "04_event-catalog.yaml"
+          - path: "generated/validation/"
+            source: "domain model + commands"
+          - path: "generated/aggregates/"
+            source: "domain model + state machines"
+          - path: "generated/projections/"
+            source: "projection-engine.yaml"
+          - path: "generated/workflows/"
+            source: "saga orchestration"
+          - path: "generated/routes/"
+            source: "command catalog"
+          - path: "generated/policy/"
+            source: "security capabilities"
+          - path: "generated/security/"
+            source: "security capabilities"
+          - path: "generated/schemas/"
+            source: "domain model + commands + events"
+          - path: "generated/config/"
+            source: "Kafka topics, Redis streams"
+          - path: "generated/database/"
+            source: "Prisma models, SQL migrations"
+          - path: "generated/tests/"
+            source: "acceptance tests"
+          - path: "generated/docs/"
+            source: "all sources"
+          - path: "generated/openapi.yaml"
+            source: "OpenAPI spec"
+        handwritten_root: "src/"
+        separation_enforcement: >
+          The compiler NEVER writes to src/. All generated code
+          goes to generated/. Handwritten handler implementations
+          in src/ import from generated/.
+    rationale: >
+      Triple protection prevents the most common failure mode
+      in code-generation projects: manual edits to generated files
+      that get overwritten, causing lost work and confusion.
+      The generated/ vs src/ separation makes the boundary
+      visually obvious in any editor or file browser.
+    alternatives:
+      - option: Single directory, no marking
+        rejected_because: >
+          Impossible to distinguish generated from handwritten.
+          Leads to manual edits, merge conflicts, and drift.
+      - option: Generated files in node_modules
+        rejected_because: >
+          Obscures generated code from the developer. Makes
+          debugging harder. Generated code should be visible
+          and inspectable.
+    implications:
+      - import_pattern: "import { TransferCommand } from '../generated/commands/vault/vault.commands'"
+      - handler_pattern: "import { TransferCommand } from '../generated/...'; export class TransferHandler implements CommandHandler<TransferCommand>"
+      - pr_review: "Generated files auto-collapsed in GitHub PRs"
+    constitutional_alignment: INV-006 (generated code interprets spec; spec is truth)
+
+  - id: ADR-COMP-007
+    category: versioning
+    question: How does versioning work between protocol versions and runtime versions?
+    decision: Semantic versioning with explicit protocol-to-runtime mapping
+    versioning_scheme:
+      protocol_version:
+        format: "MAJOR.MINOR.PATCH"
+        source: "00_protocol-manifest.yaml → protocol.version"
+        change_rules:
+          MAJOR: "Breaking constitutional change (invariant added/removed/modified)"
+          MINOR: "New domain, entity, command, event, or capability added"
+          PATCH: "Bug fix in specification (typo, reference correction)"
+        governance: "All changes via 11_amendments.yaml process"
+      compiler_version:
+        format: "MAJOR.MINOR.PATCH"
+        source: "package.json → version in @sovr/compiler"
+        change_rules:
+          MAJOR: "Breaking change to compiler API or IR structure"
+          MINOR: "New output type, new validation pass, new template"
+          PATCH: "Bug fix in code generation or validation"
+      runtime_version:
+        format: "MAJOR.MINOR.PATCH"
+        source: "package.json → version in root package.json"
+        coupling: "Tracks compiler version. May independently increment for handler changes."
+      version_matrix:
+        description: >
+          A locked version matrix records which protocol version
+          is compiled by which compiler version to produce which
+          runtime version. This matrix is part of the build artifact.
+        stored_in: "generated/version-matrix.json"
+        schema:
+          protocol_version: string
+          compiler_version: string
+          runtime_version: string
+          compilation_timestamp: string
+          protocol_hash: string
+    compatibility_rules:
+      protocol_major_break: >
+        Requires new compiler major version. Old compiler cannot
+        parse new protocol. Full migration required.
+      protocol_minor_addition: >
+        Compiler minor bump. New output types may be needed for
+        new artifacts. Existing generated code is additive-only.
+      protocol_patch_fix: >
+        Compiler patch bump or no bump. Regeneration produces
+        identical output for unchanged files.
+      compiler_major_break: >
+        New runtime major version. All generated code changes.
+        Handlers may need signature updates.
+      compiler_minor_addition: >
+        New generated files appear. Existing files unchanged.
+        No handler changes required.
+    rationale: >
+      Explicit version coupling prevents the silent drift that
+      occurs when specifications and implementations evolve
+      independently. The version matrix makes it possible to
+      reproduce any historical build from the frozen specification.
+    alternatives:
+      - option: Shared version number
+        rejected_because: >
+          Compiler and protocol change at different rates.
+          A spec typo fix should not bump the runtime major version.
+      - option: No version coupling
+        rejected_because: >
+          Allows undetected drift between specification and
+          implementation. Makes reproduction impossible.
+    implications:
+      - release_process: "Protocol freeze → compile → record version matrix → release runtime"
+      - rollback: "Any version can be reproduced by recompiling frozen protocol with locked compiler"
+      - multi_runtime: "Same protocol can produce multiple runtime versions (e.g., different frameworks)"
+    constitutional_alignment: Protocol version is the canonical version
+
+  - id: ADR-COMP-008
+    category: architecture
+    question: What is the internal module structure of the compiler?
+    decision: Pipeline-based architecture with strict phase boundaries
+    module_structure:
+      compiler:
+        index.ts: "Entry point — CLI and programmatic API"
+        cli.ts: "Command-line interface (sovr compile, sovr verify, sovr dump-pir)"
+        pipeline:
+          parse.ts: "YAML loading and parsing to RAW_AST"
+          validate.ts: "Multi-pass validation to VALIDATED_AST"
+          resolve.ts: "Reference resolution to RESOLVED_AST"
+          canonicalize.ts: "Deterministic sorting and normalization to CANONICAL_PIR"
+          optimize.ts: "Performance optimization to OPTIMIZED_PIR"
+          generate.ts: "Code generation from OPTIMIZED_PIR to artifact strings"
+          emit.ts: "File writing to generated/"
+          verify.ts: "Post-generation verification"
+        ir:
+          types.ts: "All PIR node and edge type definitions"
+          builder.ts: "PIR graph construction from RESOLVED_AST"
+          serializer.ts: "PIR to JSON serialization for debugging"
+          query.ts: "PIR graph traversal and query utilities"
+        passes:
+          structural: {}
+          referential: {}
+          semantic: {}
+          constitutional: {}
+          optimization: {}
+          index.ts: "Pass registry and pipeline orchestrator"
+        generators:
+          typescript-types.ts: null
+          validation.ts: null
+          fastify-routes.ts: null
+          openapi.ts: null
+          json-schemas.ts: null
+          event-classes.ts: null
+          command-classes.ts: null
+          aggregate-roots.ts: null
+          read-models.ts: null
+          prisma-models.ts: null
+          sql-migrations.ts: null
+          kafka-topics.ts: null
+          redis-streams.ts: null
+          workflow-definitions.ts: null
+          policy-engine.ts: null
+          capability-engine.ts: null
+          test-skeletons.ts: null
+          documentation.ts: null
+          registry.ts: "Generator registry and selection"
+        templates:
+          mustache: {}
+          handlebars: {}
+          custom: {}
+        plugins:
+          loader.ts: "Plugin discovery and loading"
+          registry.ts: "Plugin registration"
+          sandbox.ts: "Plugin execution sandbox"
+        cache:
+          hash.ts: "Content hashing"
+          manifest.ts: "Cache manifest read/write"
+          invalidation.ts: "Dependency-aware invalidation"
+        utils:
+          yaml-loader.ts: null
+          logger.ts: null
+          errors.ts: null
+          version.ts: null
+    rationale: >
+      Pipeline architecture ensures each phase has clear inputs
+      and outputs. No phase reaches back into a previous phase.
+      This makes the compiler testable (each phase can be tested
+      in isolation) and debuggable (PIR can be inspected at any
+      point). The generators/ directory is flat and extensible —
+      adding a new output type is a single file.
+    alternatives:
+      - option: Visitor pattern over AST
+        rejected_because: >
+          Visitors require walking the entire tree for each
+          concern. Pipeline is more efficient and composable.
+      - option: Monolithic compiler module
+        rejected_because: >
+          Impossible to test, extend, or debug in isolation.
+    implications:
+      - testability: "Each pipeline phase has dedicated test suite"
+      - debuggability: "sovr dump-pir outputs full PIR as JSON"
+      - generator_authoring: "Implement Generator interface, register in registry.ts"
+    constitutional_alignment: Pipeline enforces INV-008 (gates) at compile time
+
+  - id: ADR-COMP-009
+    category: output_architecture
+    question: How does the @sovr/execution package work?
+    decision: Compiler-generated ExecutionContext consumed by all handlers
+    structure:
+      package: "@sovr/execution"
+      generated_by: compiler (from constitution, domain model, and command catalog)
+      core_interface: |
+        interface ExecutionContext<TCommand = unknown> {
+          // Identity (from INV-008 gate 1)
+          readonly identity: ResolvedIdentity;
+
+          // Intent (what the actor wants)
+          readonly intent: ResolvedIntent;
+
+          // Policy Decision (from INV-008 gate 4)
+          readonly policyDecision: PolicyDecision;
+
+          // Capabilities granted for this command
+          readonly capabilities: CapabilityGrant[];
+
+          // Authority boundary for this actor
+          readonly authority: AuthorityBoundary;
+
+          // Correlation and tracing
+          readonly correlationId: string;
+          readonly causationId: string;
+          readonly traceId: string;
+
+          // Audit context (from INV-005)
+          readonly auditContext: AuditContext;
+
+          // Domain contexts (populated based on command domain)
+          readonly vault?: VaultContext;
+          readonly treasury?: TreasuryContext;
+          readonly ledger?: LedgerContext;
+          readonly payment?: PaymentContext;
+
+          // Command being executed
+          readonly command: TCommand;
+          readonly commandId: string;
+          readonly commandTimestamp: string;
+
+          // Constitutional gates passed
+          readonly constitutionalGates: ConstitutionalGatesResult;
+        }
+      handler_pattern: |
+        // GENERATED by compiler
+        export class TransferCommand { ... }
+
+        // HANDWRITTEN by developer
+        export class TransferHandler implements CommandHandler<TransferCommand> {
+          async handle(ctx: ExecutionContext<TransferCommand>): Promise<Event[]> {
+            // All context available through ctx
+            // No need to inject 20 parameters
+            const { identity, vault, command } = ctx;
+            ...
+          }
+        }
+      generation_source:
+        - source: "01_constitution.yaml"
+          produces: "authority model, enforcement pipeline"
+        - source: "02_domain-model.yaml"
+          produces: "entity types, domain contexts"
+        - source: "03_command-catalog.yaml"
+          produces: "command types, gate requirements"
+        - source: "08_security-capabilities.yaml"
+          produces: "capability types, scope types"
+        - source: "domains/policy.yaml"
+          produces: "policy decision types"
+    rationale: >
+      ExecutionContext eliminates parameter explosion in handlers.
+      Every handler receives exactly one object that contains
+      everything it needs. This makes handlers testable (mock
+      ExecutionContext), makes deterministic replay possible
+      (reconstruct ExecutionContext from event log), and makes
+      audit trivial (ExecutionContext is the audit record).
+    alternatives:
+      - option: Dependency injection per parameter
+        rejected_because: >
+          20+ constructor parameters. Cannot be serialized for
+          replay. Difficult to construct in tests.
+      - option: Global context / request-scoped singleton
+        rejected_because: >
+          Implicit dependencies. Cannot guarantee all context
+          is populated. Breaks determinism.
+      - option: Context passed as separate arguments
+        rejected_because: >
+          Same parameter explosion problem. No single object
+          to serialize for replay.
+    implications:
+      - handler_signature: "handle(ctx: ExecutionContext<TCommand>): Promise<Event[]>"
+      - test_pattern: "const ctx = mockExecutionContext<TransferCommand>({ ... })"
+      - replay: "Reconstruct ExecutionContext from event envelope + command envelope"
+      - serialization: "ExecutionContext serializable to JSON for audit and replay"
+    constitutional_alignment: INV-005 (ExecutionContext is the audit record), INV-008 (gates populated before handler execution)
+
+  - id: ADR-COMP-010
+    category: build_and_distribution
+    question: How is the compiler built, tested, and distributed?
+    decision: Monorepo package with independent release cycle
+    build:
+      tool: "tsup (TypeScript bundler)"
+      target: "node20"
+      format: ["esm", "cjs"]
+      dts: true
+      clean: true
+      sourcemap: true
+    testing:
+      framework: vitest
+      categories:
+        - unit: "Each pipeline phase, each pass, each generator"
+        - integration: "Full compilation of frozen protocol → verify output"
+        - snapshot: "Generated code snapshots (update with --update)"
+        - invariant: "Each invariant has a compile-time verification test"
+      coverage_target: 95
+      test_data: "fixtures/ directory contains minimal YAML fragments for targeted tests"
+    distribution:
+      package_name: "@sovr/compiler"
+      registry: npm
+      access: public
+      bin:
+        sovr: "./dist/cli.js"
+      peer_dependencies: []
+      bundled: true
+      versioning: semver
+    cli_commands:
+      - command: "sovr compile"
+        description: "Full compilation from specification to generated artifacts"
+        flags:
+          - flag: "--spec-dir <path>"
+            description: "specification directory (default: ./specification)"
+          - flag: "--out-dir <path>"
+            description: "output directory (default: ./generated)"
+          - flag: "--no-cache"
+            description: "force full recompilation"
+          - flag: "--verbose"
+            description: "detailed logging"
+          - flag: "--dump-pir"
+            description: "output PIR as JSON"
+          - flag: "--dry-run"
+            description: "validate and plan without writing files"
+          - flag: "--output-types <list>"
+            description: "only generate specified types"
+      - command: "sovr verify"
+        description: "Verify generated files match specification"
+        flags:
+          - flag: "--check-generated"
+            description: "verify generated file hashes"
+          - flag: "--check-coverage"
+            description: "verify all entities have generated types"
+          - flag: "--check-tests"
+            description: "verify all commands have test skeletons"
+      - command: "sovr dump-pir"
+        description: "Output the Protocol Intermediate Representation as JSON"
+        flags:
+          - flag: "--filter <node-type>"
+            description: "only output specific node types"
+          - flag: "--domain <name>"
+            description: "only output nodes for specific domain"
+          - flag: "--optimized"
+            description: "output OPTIMIZED_PIR instead of CANONICAL_PIR"
+      - command: "sovr version"
+        description: "Show compiler, protocol, and runtime versions"
+    rationale: >
+      Standalone npm package allows any project to consume the
+      compiler. CLI interface enables CI/CD integration. Test
+      categories ensure correctness at every level. Snapshot
+      testing catches unintended generation changes.
+    alternatives:
+      - option: Compiler as a service (API)
+        rejected_because: >
+          Adds deployment complexity. Compilation should be a
+          build-time operation, not a runtime dependency.
+      - option: Compiler embedded in runtime
+        rejected_because: >
+          Bloats runtime. Compilation is a one-time build step,
+          not a runtime concern.
+    implications:
+      - ci_pipeline: "sovr compile && sovr verify --check-generated"
+      - pre_commit_hook: "sovr verify --check-generated (optional)"
+      - developer_workflow: "Edit spec → sovr compile → review generated → implement handlers"
+    constitutional_alignment: Compiler is the enforcement mechanism for all invariants
+
+  - id: ADR-COMP-011
+    category: build_integrity
+    question: How is every build cryptographically traced back to exact protocol inputs and compiler version?
+    decision: Compiler Manifest — a build-provenance artifact produced on every successful compilation
+    structure:
+      output_file: "generated/compiler-manifest.yaml"
+      schema:
+        compiler:
+          version: string
+          node_version: string
+          flags: string[]
+        protocol:
+          version: string
+          files:
+            - path: string
+              sha256: string
+              size_bytes: integer
+          total_hash: string
+        outputs:
+          canonical_pir:
+            sha256: string
+            node_count: integer
+            edge_count: integer
+          optimized_pir:
+            sha256: string
+          generated_artifacts:
+            total_count: integer
+            by_type:
+              - type: string
+                count: integer
+            total_hash: string
+          version_matrix:
+            protocol_version: string
+            compiler_version: string
+            runtime_version: string
+        build:
+          timestamp: string
+          duration_ms: integer
+          cache_hit: boolean
+          incremental: boolean
+          passes_run: string[]
+          passes_skipped: string[]
+        validation:
+          total_errors: integer
+          total_warnings: integer
+          pass_results:
+            - pass_id: string
+              status: enum[PASS, FAIL, WARN, SKIPPED]
+              error_count: integer
+              warning_count: integer
+    guarantees:
+      reproducibility: >
+        Given the same protocol files and the same compiler version,
+        recompilation produces byte-identical CANONICAL_PIR and
+        byte-identical generated artifacts. The manifest provides
+        cryptographic proof.
+      audit_trail: >
+        Every runtime deployment can be traced back to the exact
+        protocol inputs and compiler version that produced it.
+        No ambiguity about what specification is running.
+      tamper_detection: >
+        If any generated file is modified after compilation,
+        sovr verify --check-generated detects the mismatch by
+        comparing file hashes against the manifest.
+      version_locking: >
+        The version_matrix field locks protocol, compiler, and
+        runtime versions together. Deploying a runtime without the
+        matching manifest is detectable.
+    rationale: >
+      In a financial system, the question "what exact specification
+      is this runtime executing?" must have a cryptographically
+      verifiable answer. The Compiler Manifest provides that answer
+      as a build artifact. It transforms the compiler from a code
+      generator into a provenance chain.
+    alternatives:
+      - option: Version strings only (no hashes)
+        rejected_because: >
+          Version strings can be replayed. A modified protocol file
+          with the same version string would go undetected.
+      - option: Git commit SHA
+        rejected_because: >
+          Git history can be rewritten. Content hashes are
+          immutable. Git SHA is a useful adjunct but not a
+          substitute for content-addressable hashing.
+      - option: External build provenance service
+        rejected_because: >
+          Adds infrastructure dependency. The manifest must be
+          producible offline, deterministically, from the compiler
+          alone.
+    implications:
+      - ci_requirement: "CI must verify compiler-manifest.yaml after compilation"
+      - deployment_requirement: "Deployments must bundle compiler-manifest.yaml"
+      - verification: "sovr verify --check-generated uses manifest hashes"
+      - audit: "Governance queries manifest during incident investigation"
+      - storage: "Manifest committed to version control alongside generated files"
+    constitutional_alignment: INV-005 (manifest is part of the auditable event trail)
+
+  - id: ADR-COMP-012
+    category: architecture
+    question: What is the complete compilation pipeline after CANONICAL_PIR/OPTIMIZED_PIR split?
+    decision: Six-stage pipeline with canonical/optimized boundary
+    stages:
+      - stage: PARSE
+        input: YAML files
+        output: RAW_AST
+        error_action: ABORT_WITH_PARSE_ERROR
+      - stage: VALIDATE
+        input: RAW_AST
+        output: VALIDATED_AST
+        error_action: ABORT_WITH_VALIDATION_ERROR
+      - stage: RESOLVE
+        input: VALIDATED_AST
+        output: RESOLVED_AST
+        error_action: ABORT_WITH_RESOLUTION_ERROR
+      - stage: CANONICALIZE
+        input: RESOLVED_AST
+        output: CANONICAL_PIR
+        error_action: ABORT_WITH_CANONICALIZATION_ERROR
+        side_effects:
+          - hash CANONICAL_PIR
+          - serialize to .sovr-cache/pir/canonical.json
+      - stage: OPTIMIZE
+        input: CANONICAL_PIR
+        output: OPTIMIZED_PIR
+        error_action: ABORT_WITH_OPTIMIZATION_ERROR
+        side_effects:
+          - serialize to .sovr-cache/pir/optimized.json (if --dump-pir --optimized)
+      - stage: GENERATE
+        input: OPTIMIZED_PIR
+        output: generated source files
+        error_action: ABORT_WITH_GENERATION_ERROR
+        parallel: true
+    rationale: >
+      Explicitly separating CANONICALIZE and OPTIMIZE into distinct
+      stages makes the pipeline self-documenting. Each stage has
+      one input and one output. The CANONICALIZE stage is the
+      natural point to produce the canonical hash and write the
+      compiler manifest. Generators only see OPTIMIZED_PIR and
+      cannot accidentally depend on canonical ordering.
+    alternatives:
+      - option: Merge CANONICALIZE and OPTIMIZE into single TRANSFORM stage
+        rejected_because: >
+          Hides the critical boundary. Makes it easy for optimization
+          logic to leak into canonicalization, breaking determinism.
+    implications:
+      - pipeline_testability: "Each stage has dedicated unit and integration tests"
+      - stage_skipping: "OPTIMIZE can be skipped with --no-optimize flag; generators receive CANONICAL_PIR"
+      - manifest_timing: "Compiler Manifest written after GENERATE, using CANONICAL_PIR hash"
+    constitutional_alignment: Pipeline enforces INV-008 (gates) at compile time
+
+# ============================================================
+# DECISION DEPENDENCIES
+# ============================================================
+# Some decisions depend on others. This graph defines the
+# build order for understanding the ADR.
+# ============================================================
+
+decision_dependencies:
+  ADR-COMP-001: []
+  ADR-COMP-002: [ADR-COMP-001]
+  ADR-COMP-012: [ADR-COMP-002]
+  ADR-COMP-008: [ADR-COMP-001, ADR-COMP-002, ADR-COMP-012]
+  ADR-COMP-004: [ADR-COMP-002]
+  ADR-COMP-003: [ADR-COMP-008]
+  ADR-COMP-005: [ADR-COMP-002, ADR-COMP-008, ADR-COMP-012]
+  ADR-COMP-006: [ADR-COMP-008]
+  ADR-COMP-007: [ADR-COMP-001]
+  ADR-COMP-011: [ADR-COMP-007, ADR-COMP-012]
+  ADR-COMP-009: [ADR-COMP-002, ADR-COMP-006]
+  ADR-COMP-010: [ADR-COMP-001, ADR-COMP-008, ADR-COMP-011]
+
+# ============================================================
+# RUNTIME MILESTONE MAPPING
+# ============================================================
+# Maps the ADR decisions to runtime milestones defined by
+# the chief architect. Each milestone has clear entry/exit
+# criteria based on these decisions.
+# ============================================================
+
+runtime_milestones:
+
+  - milestone: "Runtime 0"
+    name: "Compiler Foundation"
+    entry_criteria:
+      - "13_compiler-adr.yaml frozen"
+      - "compiler.yaml specifies all outputs"
+    exit_criteria:
+      - "@sovr/compiler package publishes v0.1.0"
+      - "sovr compile successfully processes full specification"
+      - "All validation passes pass against frozen protocol"
+      - "PIR can be dumped and inspected"
+      - "Generated: types, validators, metadata"
+      - "No business logic exists yet"
+    adr_decisions_implemented: [ADR-COMP-001, ADR-COMP-002, ADR-COMP-004, ADR-COMP-005, ADR-COMP-006, ADR-COMP-007, ADR-COMP-008, ADR-COMP-010, ADR-COMP-011, ADR-COMP-012]
+
+  - milestone: "Runtime 1"
+    name: "Core Runtime"
+    entry_criteria:
+      - "Runtime 0 complete"
+    exit_criteria:
+      - "Command Bus, Event Bus, Policy Engine, Capability Engine implemented"
+      - "State Machine Engine, Saga Engine, Projection Engine, Invariant Engine implemented"
+      - "@sovr/execution package generated and working"
+      - "All engines consume ExecutionContext"
+    adr_decisions_implemented: [ADR-COMP-009]
+
+  - milestone: "Runtime 2"
+    name: "Financial Core"
+    entry_criteria: ["Runtime 1 complete"]
+    exit_criteria: ["Vault, Ledger, Treasury handlers implemented and tested"]
+    adr_decisions_implemented: []
+
+  - milestone: "Runtime 3"
+    name: "Identity and Intelligence"
+    entry_criteria: ["Runtime 2 complete"]
+    exit_criteria: ["Identity, Policy, Intent, Agent handlers implemented"]
+    adr_decisions_implemented: []
+
+  - milestone: "Runtime 4"
+    name: "Execution Boundary"
+    entry_criteria: ["Runtime 3 complete"]
+    exit_criteria: ["Payment domain, Hybrid Boundary, Adapters implemented"]
+    adr_decisions_implemented: []
+
+  - milestone: "Runtime 5"
+    name: "API Layer"
+    entry_criteria: ["Runtime 4 complete"]
+    exit_criteria: ["REST, GraphQL, gRPC, CLI operational"]
+    adr_decisions_implemented: []
+
+  - milestone: "Runtime 6"
+    name: "User Interface"
+    entry_criteria: ["Runtime 5 complete"]
+    exit_criteria: ["UI, Wallet, Admin, Governance interfaces operational"]
+    adr_decisions_implemented: []
+
+  - milestone: "Runtime 7"
+    name: "Production"
+    entry_criteria: ["Runtime 6 complete"]
+    exit_criteria: ["Kubernetes, Observability, CI/CD, Scaling operational"]
+    adr_decisions_implemented: []

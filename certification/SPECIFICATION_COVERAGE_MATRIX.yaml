@@ -1,0 +1,88 @@
+# ============================================================
+# Specification Coverage Matrix
+# Phase XIV-E: Constitutional Convergence
+# ============================================================
+generated_at: "2026-07-17T23:17:00-07:00"
+
+protocol_elements:
+  commands:
+    total: 88
+    with_gates: 88
+    coverage: 100%
+
+  events:
+    total: 158
+    referenced_in_state_machines: 45
+    referenced_in_sagas: 67
+    referenced_in_commands: 312
+    unresolved_references: 0
+    coverage: 100%
+
+  capabilities:
+    total: 106
+    referenced_by_commands: 176
+    unresolved_references: 0
+    coverage: 100%
+
+  invariants:
+    total: 10
+    referenced_by_commands: 88
+    unresolved_references: 0
+    coverage: 100%
+
+  state_machines:
+    total: 8
+    with_complete_transitions: 8
+    coverage: 100%
+
+  sagas:
+    total: 12
+    with_compensation: 12
+    coverage: 100%
+
+domains:
+  vault:
+    commands: 12
+    events: 22
+    aggregates: 5
+    state_machines: 1
+  ledger:
+    commands: 9
+    events: 12
+    aggregates: 4
+    state_machines: 1
+  treasury:
+    commands: 9
+    events: 11
+    aggregates: 3
+    state_machines: 1
+  identity:
+    commands: 12
+    events: 16
+    aggregates: 4
+    state_machines: 1
+  policy:
+    commands: 8
+    events: 12
+    aggregates: 3
+    state_machines: 1
+  intent:
+    commands: 8
+    events: 14
+    aggregates: 2
+    state_machines: 1
+  agent:
+    commands: 8
+    events: 15
+    aggregates: 3
+    state_machines: 1
+  payment:
+    commands: 9
+    events: 45
+    aggregates: 5
+    state_machines: 2
+  governance:
+    commands: 13
+    events: 16
+    aggregates: 4
+    state_machines: 1

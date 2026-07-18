@@ -1,0 +1,68 @@
+# ============================================================
+# SOVR Financial OS — Repository Provenance Standard
+# File: knowledge/PROVENANCE_STANDARD.yaml
+# Phase: 5.10 — Repository Provenance Framework
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no implementation)
+# ============================================================
+# Every artifact records its provenance so the repository is fully
+# self-describing and auditable. Provenance is content-derived, not
+# time-derived (see DETERMINISTIC_BUILD_STANDARD.md).
+#
+# Authority: compiler/BUILD_MANIFEST.yaml, certification/DETERMINISTIC_BUILD_STANDARD.md,
+# knowledge/PROVENANCE_STANDARD.yaml. On divergence, frozen specs prevail.
+# ============================================================
+
+provenance_standard:
+  schema_version: "1.0.0"
+  invariant: EVERY_ARTIFACT_HAS_PROVENANCE
+
+  record_fields:
+    - field: origin
+      meaning: The repository path where the artifact originates.
+      example: protocol/02_domain-model.yaml
+    - field: authoritative_source
+      meaning: The constitutional object that authorizes the artifact.
+      example: SOVR-AGG-000001 (vault.asset)
+    - field: derived_from
+      meaning: The IR node(s) the artifact is generated from.
+      example: ir_node:aggregate:vault.asset
+    - field: compiler_pass
+      meaning: The pass that produced it.
+      example: PASS-016 DOCUMENTATION_GENERATION
+    - field: generator
+      meaning: The generator that emitted it.
+      example: documentation
+    - field: certification
+      meaning: The certification level it satisfies.
+      example: L8_OUTPUT
+    - field: version
+      meaning: protocol_version + compiler_version.
+      example: "1.0.0+0.1.0-arch"
+    - field: timestamp_policy
+      meaning: Provenance uses hashes, not wall-clock.
+      example: canonical_only (no wall-clock)
+    - field: hash
+      meaning: Content hash of the artifact.
+      example: sha256:...
+
+  embedding:
+    rule: EVERY_GENERATED_FILE_CARRIES_A_PROVENANCE_HEADER
+    header_format: |
+      # SOVR-GENERATED
+      # origin: <origin>
+      # authoritative_source: <id>
+      # derived_from: <ir_node>
+      # compiler_pass: <pass_id>
+      # generator: <generator_id>
+      # certification: <level>
+      # version: <protocol_version>+<compiler_version>
+      # hash: <sha256>
+
+  determinism:
+    - provenance is a pure function of (source, IR node, pass, generator, version)
+    - no wall-clock value enters the provenance record
+    - the artifact hash is reproducible across builds (DETERMINISTIC_BUILD_STANDARD)
+
+  verification:
+    method: for every generated artifact, confirm all record_fields present and hash matches
+    on_missing: FAIL_BUILD (CERT-002 untraceable artifact)

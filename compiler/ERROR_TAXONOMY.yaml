@@ -1,0 +1,237 @@
+# ============================================================
+# SOVR Financial OS — Compiler Error Taxonomy
+# File: compiler/ERROR_TAXONOMY.yaml
+# Phase: 4.5 — Compiler Error Taxonomy
+# Status: ARCHITECTURE_ONLY (Rule Zero — no implementation)
+# ============================================================
+# Every compiler failure shall produce deterministic diagnostics.
+# Categories map to pipeline stages; severities gate build outcome.
+# Each diagnostic is reproducible: identical inputs yield identical
+# diagnostics in identical order.
+#
+# Authority: compiler.yaml, SEMANTIC_COMPILER_CONTRACT.yaml,
+# PIPELINE_ARCHITECTURE.md. On divergence, frozen specs prevail.
+# ============================================================
+
+taxonomy:
+  schema_version: "1.0.0"
+  invariant: EVERY_FAILURE_PRODUCES_A_DETERMINISTIC_DIAGNOSTIC
+
+# ------------------------------------------------------------
+# SEVERITY MODEL
+# ------------------------------------------------------------
+severity:
+  INFO:
+    halts_build: false
+    reported_in: compiler_report
+    example: informational note, non-blocking annotation
+  WARNING:
+    halts_build: false
+    reported_in: compiler_report, outstanding_findings
+    example: orphan capability, deprecated field usage
+  ERROR:
+    halts_build: true
+    reported_in: compiler_report, diagnostic_log, build_verdict=FAIL
+    example: unresolved reference, metadata incompleteness
+  FATAL:
+    halts_build: true
+    halts_process: true
+    reported_in: compiler_report, diagnostic_log, build_verdict=FATAL
+    example: invalid YAML (G-01), unregistered generator invoked
+
+# ------------------------------------------------------------
+# CATEGORIES
+# ------------------------------------------------------------
+categories:
+
+  - category: SYNTAX
+    stage: [YAML_PARSING, SYNTAX_VALIDATION]
+    severity_default: FATAL
+    codes:
+      - code: SYNTAX-001
+        meaning: invalid YAML document
+        finding_ref: G-01
+        action: ABORT_WITH_PARSE_ERROR
+      - code: SYNTAX-002
+        meaning: malformed section shape
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: SYNTAX-003
+        meaning: duplicate top-level key
+        action: ABORT_WITH_PARSE_ERROR
+
+  - category: METADATA
+    stage: [METADATA_VALIDATION]
+    severity_default: ERROR
+    codes:
+      - code: META-001
+        meaning: missing required metadata field
+        finding_ref: AMD-0010
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: META-002
+        meaning: invalid enum value
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: META-003
+        meaning: schema_version mismatch
+        action: ABORT_WITH_VALIDATION_ERROR
+
+  - category: REFERENCE
+    stage: [CROSS_REFERENCE_RESOLUTION, AGGREGATE_RESOLUTION, CAPABILITY_RESOLUTION, DEPENDENCY_ANALYSIS]
+    severity_default: ERROR
+    codes:
+      - code: REF-001
+        meaning: unresolved entity reference
+        action: ABORT_WITH_RESOLUTION_ERROR
+      - code: REF-002
+        meaning: unresolved command reference
+        finding_ref: AMD-0003
+        action: ABORT_WITH_RESOLUTION_ERROR
+      - code: REF-003
+        meaning: unresolved event reference
+        finding_ref: AMD-0006/G-09
+        action: ABORT_WITH_RESOLUTION_ERROR
+      - code: REF-004
+        meaning: unresolved capability reference
+        action: ABORT_WITH_RESOLUTION_ERROR
+      - code: REF-005
+        meaning: unresolved invariant reference
+        action: ABORT_WITH_RESOLUTION_ERROR
+      - code: REF-006
+        meaning: unresolved domain reference
+        finding_ref: AMD-0004/G-05
+        action: ABORT_WITH_RESOLUTION_ERROR
+      - code: REF-007
+        meaning: missing aggregate root
+        finding_ref: AMD-0002/G-02
+        action: ABORT_WITH_RESOLUTION_ERROR
+      - code: REF-008
+        meaning: dependency cycle
+        action: ABORT_WITH_RESOLUTION_ERROR
+
+  - category: GRAPH
+    stage: [CANONICAL_GRAPH_CONSTRUCTION]
+    severity_default: ERROR
+    codes:
+      - code: GRAPH-001
+        meaning: duplicate stable identifier
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: GRAPH-002
+        meaning: non-canonical domain reference
+        finding_ref: G-05
+        action: ABORT_WITH_VALIDATION_ERROR
+
+  - category: INVARIANT
+    stage: [CONSTITUTIONAL_VALIDATION, INVARIANT_VERIFICATION]
+    severity_default: ERROR
+    codes:
+      - code: INV-001
+        meaning: invariant constant misuse
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: INV-002
+        meaning: invariant contradiction in artifact
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: INV-003
+        meaning: missing invariant coverage
+        action: ABORT_WITH_VALIDATION_ERROR
+
+  - category: SEMANTIC
+    stage: [SEMANTIC_ANALYSIS]
+    severity_default: ERROR
+    codes:
+      - code: SEM-001
+        meaning: state machine without exit
+        finding_ref: AMD-0009
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: SEM-002
+        meaning: VEL non-conformance
+        finding_ref: AMD-0005
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: SEM-003
+        meaning: event envelope incomplete
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: SEM-004
+        meaning: command gates incomplete
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: SEM-005
+        meaning: entity registration mismatch
+        finding_ref: G-10
+        action: ABORT_WITH_VALIDATION_ERROR
+
+  - category: VALIDATION
+    stage: [CONSTITUTIONAL_VALIDATION, SEMANTIC_ANALYSIS]
+    severity_default: ERROR
+    codes:
+      - code: VAL-001
+        meaning: authority model violation
+        action: ABORT_WITH_VALIDATION_ERROR
+      - code: VAL-002
+        meaning: capability bound to unknown command
+        action: ABORT_WITH_RESOLUTION_ERROR
+      - code: VAL-003
+        meaning: orphan capability
+        severity: WARNING
+        action: REPORT_WARNINGS
+
+  - category: GENERATION
+    stage: [IR_GENERATION, OPTIMIZATION, GENERATOR_DISPATCH, DOCUMENTATION_GENERATION, ACCEPTANCE_TEST_GENERATION, MANIFEST_GENERATION]
+    severity_default: FATAL
+    codes:
+      - code: GEN-001
+        meaning: IR node without source
+        action: ABORT_WITH_GENERATION_ERROR
+      - code: GEN-002
+        meaning: IR type unresolved
+        action: ABORT_WITH_GENERATION_ERROR
+      - code: GEN-003
+        meaning: optimization changed semantics
+        action: ABORT_WITH_GENERATION_ERROR
+      - code: GEN-004
+        meaning: unregistered generator invoked
+        action: HALT
+      - code: GEN-005
+        meaning: generator input contract violation
+        action: ABORT_WITH_GENERATION_ERROR
+      - code: GEN-006
+        meaning: template error
+        action: ABORT_WITH_GENERATION_ERROR
+      - code: GEN-007
+        meaning: manifest hash mismatch
+        action: ABORT_WITH_GENERATION_ERROR
+
+  - category: CERTIFICATION
+    stage: [CERTIFICATION_GENERATION]
+    severity_default: ERROR
+    codes:
+      - code: CERT-001
+        meaning: coverage below target (95%)
+        action: FAIL_BUILD
+      - code: CERT-002
+        meaning: untraceable artifact
+        action: FAIL_BUILD
+      - code: CERT-003
+        meaning: artifact count mismatch
+        action: FAIL_BUILD
+
+# ------------------------------------------------------------
+# DIAGNOSTIC RECORD (deterministic shape)
+# ------------------------------------------------------------
+diagnostic_record:
+  fields:
+    - code: taxonomy code (e.g. REF-002)
+    - category: one of the categories above
+    - severity: INFO | WARNING | ERROR | FATAL
+    - stage: originating pass id
+    - file: source file path
+    - line: source line (when known)
+    - finding_ref: governance finding / amendment id when applicable
+    - message: stable, template-rendered description
+    - action: the abort/halt action taken
+  ordering: sorted by [file, line, code] for reproducibility
+
+# ------------------------------------------------------------
+# FAIL-CLOSED GUARANTEE
+# ------------------------------------------------------------
+fail_closed: >
+  On any ERROR or FATAL diagnostic the compiler halts and emits no partial
+  runtime artifact. Diagnostics are written to the report; the build verdict
+  is FAIL (or FATAL). Deterministic diagnostics enable exact reproduction and
+  traceability to constitutional intent.

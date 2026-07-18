@@ -1,0 +1,200 @@
+# ============================================================
+# SOVR Financial OS — Compiler Certification Matrix
+# File: certification/COMPILER_CERTIFICATION_MATRIX.yaml
+# Phase: 4.9 — Compiler Certification Matrix
+# Status: ARCHITECTURE_ONLY (Rule Zero — no implementation)
+# ============================================================
+# Every compiler pass mapped to: protocol inputs, compiler outputs,
+# acceptance tests, expected evidence, failure conditions, and
+# certification level. This is the binding certification contract
+# that operationalizes COMPILER_VERIFICATION_STANDARD.md.
+#
+# Authority: PASS_REGISTRY.yaml, SEMANTIC_COMPILER_CONTRACT.yaml,
+# ERROR_TAXONOMY.yaml. On divergence, frozen specs prevail.
+# ============================================================
+
+matrix:
+  schema_version: "1.0.0"
+  invariant: EVERY_PASS_HAS_A_CERTIFICATION_LEVEL_AND_EVIDENCE
+
+rows:
+  - pass: PASS-001 PROTOCOL_DISCOVERY
+    protocol_inputs: [repository tree, registries, governance metadata]
+    compiler_outputs: [discovery_manifest, input_frontier]
+    acceptance_tests: ['AT-DISCOVERY-001: all required files discovered']
+    expected_evidence: DISCOVERY_MANIFEST_HASH
+    failure_conditions: [unknown_directory_layout, duplicate_file_id]
+    certification_level: L1_DISCOVERY
+
+  - pass: PASS-002 YAML_PARSING
+    protocol_inputs: [input_frontier]
+    compiler_outputs: [parsed_ast]
+    acceptance_tests: ['AT-PARSE-001: valid YAML parses; AT-PARSE-002: invalid YAML fails (G-01)']
+    expected_evidence: PARSE_PASS
+    failure_conditions: [invalid_yaml, empty_document, duplicate_top_level_key]
+    certification_level: L2_PARSER
+
+  - pass: PASS-003 SYNTAX_VALIDATION
+    protocol_inputs: [parsed_ast]
+    compiler_outputs: [syntactically_valid_ast]
+    acceptance_tests: ['AT-SYNTAX-001: malformed section rejected']
+    expected_evidence: SYNTAX_PASS
+    failure_conditions: [missing_meta_block, malformed_section, wrong_type]
+    certification_level: L2_PARSER
+
+  - pass: PASS-004 METADATA_VALIDATION
+    protocol_inputs: [syntactically_valid_ast, METADATA_STANDARD]
+    compiler_outputs: [metadata_validated_ast]
+    acceptance_tests: ['AT-META-001: missing metadata rejected (AMD-0010)']
+    expected_evidence: METADATA_PASS
+    failure_conditions: [missing_required_metadata, invalid_enum, schema_mismatch]
+    certification_level: L3_METADATA
+
+  - pass: PASS-005 CANONICAL_GRAPH_CONSTRUCTION
+    protocol_inputs: [metadata_validated_ast, DOMAIN_REGISTRY]
+    compiler_outputs: [canonical_graph, node_index]
+    acceptance_tests: ['AT-GRAPH-001: node count == 47/88/134/20/16/58/23']
+    expected_evidence: GRAPH_PASS
+    failure_conditions: [non_canonical_domain (G-05), duplicate_stable_id]
+    certification_level: L4_GRAPH
+
+  - pass: PASS-006 CROSS_REFERENCE_RESOLUTION
+    protocol_inputs: [canonical_graph]
+    compiler_outputs: [resolved_graph, unresolved_reference_report]
+    acceptance_tests: ['AT-REF-001: every reference resolves (AMD-0003/0006)']
+    expected_evidence: REFERENCE_PASS
+    failure_conditions: [unresolved_entity/command/event/capability/invariant]
+    certification_level: L4_GRAPH
+
+  - pass: PASS-007 CONSTITUTIONAL_VALIDATION
+    protocol_inputs: [resolved_graph, 01_constitution.yaml]
+    compiler_outputs: [constitutionally_valid_graph]
+    acceptance_tests: ['AT-CONST-001: INV-001..010 structurally honored']
+    expected_evidence: CONSTITUTIONAL_PASS
+    failure_conditions: [authority_model_violation, invariant_constant_misuse]
+    certification_level: L5_SEMANTIC
+
+  - pass: PASS-008 SEMANTIC_ANALYSIS
+    protocol_inputs: [constitutionally_valid_graph, VEL spec]
+    compiler_outputs: [semantically_annotated_graph]
+    acceptance_tests: ['AT-SEM-001: state-machine coverage (AMD-0009), AT-SEM-002: VEL conformance (AMD-0005)']
+    expected_evidence: SEMANTIC_PASS
+    failure_conditions: [state_machine_without_exit, vel_non_conformance, envelope/gates incomplete]
+    certification_level: L5_SEMANTIC
+
+  - pass: PASS-009 INVARIANT_VERIFICATION
+    protocol_inputs: [semantically_annotated_graph]
+    compiler_outputs: [invariant_verified_graph]
+    acceptance_tests: ['AT-INV-001: cited invariants hold']
+    expected_evidence: INVARIANT_PASS
+    failure_conditions: [invariant_contradiction, missing_coverage]
+    certification_level: L5_SEMANTIC
+
+  - pass: PASS-010 AGGREGATE_RESOLUTION
+    protocol_inputs: [invariant_verified_graph, AGGREGATE_REGISTRY]
+    compiler_outputs: [aggregate_bound_graph]
+    acceptance_tests: ['AT-AGG-001: every aggregate root declared (AMD-0002/0007)']
+    expected_evidence: AGGREGATE_PASS
+    failure_conditions: [missing_aggregate_root (G-02), entity_not_bound]
+    certification_level: L6_RESOLUTION
+
+  - pass: PASS-011 CAPABILITY_RESOLUTION
+    protocol_inputs: [aggregate_bound_graph, 08_security-capabilities.yaml]
+    compiler_outputs: [capability_bound_graph]
+    acceptance_tests: ['AT-CAP-001: command capability resolves']
+    expected_evidence: CAPABILITY_PASS
+    failure_conditions: [command_requires_unknown_capability, orphan_capability(WARN)]
+    certification_level: L6_RESOLUTION
+
+  - pass: PASS-012 DEPENDENCY_ANALYSIS
+    protocol_inputs: [capability_bound_graph]
+    compiler_outputs: [dependency_graph, topological_order]
+    acceptance_tests: ['AT-DEP-001: no dependency cycle']
+    expected_evidence: DEPENDENCY_PASS
+    failure_conditions: [dependency_cycle, unresolvable_type]
+    certification_level: L6_RESOLUTION
+
+  - pass: PASS-013 IR_GENERATION
+    protocol_inputs: [dependency_graph, topological_order]
+    compiler_outputs: [sovr_ir, ir_hash]
+    acceptance_tests: ['AT-IR-001: IR reproducible; AT-IR-002: every node has source_ref']
+    expected_evidence: IR_PASS, IR_HASH
+    failure_conditions: [ir_node_without_source, ir_type_unresolved]
+    certification_level: L7_GENERATOR
+
+  - pass: PASS-014 OPTIMIZATION
+    protocol_inputs: [sovr_ir]
+    compiler_outputs: [optimized_ir]
+    acceptance_tests: ['AT-OPT-001: optimization idempotent']
+    expected_evidence: OPTIMIZATION_PASS
+    failure_conditions: [optimization_changed_semantics]
+    certification_level: L7_GENERATOR
+
+  - pass: PASS-015 GENERATOR_DISPATCH
+    protocol_inputs: [optimized_ir, GENERATOR_REGISTRY]
+    compiler_outputs: [dispatched_generators]
+    acceptance_tests: ['AT-DISP-001: only registered generators run']
+    expected_evidence: DISPATCH_PASS
+    failure_conditions: [unregistered_generator, contract_violation]
+    certification_level: L7_GENERATOR
+
+  - pass: PASS-016 DOCUMENTATION_GENERATION
+    protocol_inputs: [optimized_ir]
+    compiler_outputs: [docs, openapi.yaml]
+    acceptance_tests: ['AT-DOC-001: docs generated deterministically']
+    expected_evidence: DOCGEN_PASS, output_hashes
+    failure_conditions: [doc_template_error]
+    certification_level: L8_OUTPUT
+
+  - pass: PASS-017 ACCEPTANCE_TEST_GENERATION
+    protocol_inputs: [optimized_ir, acceptance-tests.yaml]
+    compiler_outputs: [tests]
+    acceptance_tests: ['AT-TEST-001: 105 skeletons generated']
+    expected_evidence: TESTGEN_PASS, output_hashes
+    failure_conditions: [test_template_error]
+    certification_level: L8_OUTPUT
+
+  - pass: PASS-018 CERTIFICATION_GENERATION
+    protocol_inputs: [optimized_ir, all outputs]
+    compiler_outputs: [certification_artifacts, deterministic_build_hash]
+    acceptance_tests: ['AT-CERT-001: coverage >= 95%, AT-CERT-002: traceability complete']
+    expected_evidence: CERTIFICATION_PASS
+    failure_conditions: [coverage_below_target, untraceable_artifact]
+    certification_level: L9_CERTIFICATION
+
+  - pass: PASS-019 MANIFEST_GENERATION
+    protocol_inputs: [optimized_ir, outputs, certification]
+    compiler_outputs: [build_manifest]
+    acceptance_tests: ['AT-MAN-001: manifest reproducible (byte-identical)']
+    expected_evidence: MANIFEST_PASS, build_hash
+    failure_conditions: [hash_mismatch]
+    certification_level: L10_MANIFEST
+
+  - pass: PASS-020 COMPILER_REPORT
+    protocol_inputs: [full pipeline evidence]
+    compiler_outputs: [compiler_report]
+    acceptance_tests: ['AT-REP-001: verdict emitted deterministically']
+    expected_evidence: REPORT_PASS
+    failure_conditions: []
+    certification_level: L11_REPORT
+
+# ------------------------------------------------------------
+# CERTIFICATION LEVELS
+# ------------------------------------------------------------
+certification_levels:
+  L1_DISCOVERY: input frontier established
+  L2_PARSER: parse + syntax faithful
+  L3_METADATA: metadata conformant
+  L4_GRAPH: graph + references resolved
+  L5_SEMANTIC: constitutional + semantic + invariant verified
+  L6_RESOLUTION: aggregate/capability/dependency resolved
+  L7_GENERATOR: IR built + optimized + dispatched
+  L8_OUTPUT: documentation + tests generated
+  L9_CERTIFICATION: certificates emitted
+  L10_MANIFEST: manifest reproducible
+  L11_REPORT: build verdict emitted
+
+release_gate: >
+  A compiler release is conformant only when all rows show their
+  expected evidence with no ERROR/FATAL diagnostic. Any missing level
+  blocks release (NO_LAYER_BYPASS).

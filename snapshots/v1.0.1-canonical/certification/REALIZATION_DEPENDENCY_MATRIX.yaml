@@ -1,0 +1,274 @@
+# ============================================================
+# SOVR Financial OS — Realization Dependency Matrix
+# File: certification/REALIZATION_DEPENDENCY_MATRIX.yaml
+# Certification ID: REAL-DEP-MATRIX-001
+# Date: 2026-07-14
+# Phase: 2.3 — Realization Dependency Matrix
+# ============================================================
+# Declares the deterministic order in which protocol artifact
+# classes may be realized (generated) by the compiler.
+#
+# This is a DECLARATION, not an implementation (Rule Zero).
+# It records what the compiler must generate first, derived
+# from the frozen protocol's layer model (00_protocol-manifest.yaml)
+# and traceability model (certification/TRACEABILITY_MODEL.yaml).
+#
+# Every object class declares:
+#   depends_on       — classes that must exist before it
+#   required_before  — classes that cannot be generated until it exists
+#   generated_after  — the realization tier that precedes it
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  certification_id: "REAL-DEP-MATRIX-001"
+  protocol_version: "1.0.0"
+  status: CERTIFICATION_ARTIFACT
+  acyclic: true
+  derivation:
+    - source: 00_protocol-manifest.yaml (layer model L0..L7)
+    - source: certification/TRACEABILITY_MODEL.yaml (relationship rules)
+    - source: compiler.yaml (compilation_stage per input)
+
+# ============================================================
+# REALIZATION TIERS (topological order)
+# ============================================================
+# Tier N may only depend on tiers 0..N-1. No back-edges.
+# ============================================================
+
+realization_order:
+  - tier: 0
+    name: Constitutional Foundation
+    classes: [invariants, protocol_manifest]
+  - tier: 1
+    name: Identity & Vocabulary
+    classes: [domains, entities, value_objects]
+  - tier: 2
+    name: Authority
+    classes: [capabilities]
+  - tier: 3
+    name: Behavior Vocabulary
+    classes: [commands, events]
+  - tier: 4
+    name: Aggregation
+    classes: [aggregates, state_machines]
+  - tier: 5
+    name: Interpretation
+    classes: [projections]
+  - tier: 6
+    name: Orchestration
+    classes: [sagas]
+  - tier: 7
+    name: Integration
+    classes: [contracts]
+  - tier: 8
+    name: Boundary & API
+    classes: [boundary_adapters, apis]
+  - tier: 9
+    name: Verification
+    classes: [acceptance_tests]
+  - tier: 10
+    name: Runtime Assembly
+    classes: [runtime]
+
+# ============================================================
+# ARTIFACT CLASS DEPENDENCIES
+# ============================================================
+
+artifacts:
+
+  invariants:
+    tier: 0
+    source: 01_constitution.yaml
+    depends_on: []
+    required_before: [capabilities, commands, events, aggregates, sagas, acceptance_tests]
+    generated_after: none
+    count: 10
+
+  protocol_manifest:
+    tier: 0
+    source: 00_protocol-manifest.yaml
+    depends_on: []
+    required_before: [domains]
+    generated_after: none
+    count: 1
+
+  domains:
+    tier: 1
+    source: 00_protocol-manifest.yaml
+    depends_on: [protocol_manifest]
+    required_before: [entities, capabilities, commands, events, contracts]
+    generated_after: invariants
+    count: 9
+
+  entities:
+    tier: 1
+    source: 02_domain-model.yaml, domains/*.yaml
+    depends_on: [domains]
+    required_before: [aggregates, commands, events, projections]
+    generated_after: domains
+    count: 47
+
+  value_objects:
+    tier: 1
+    source: 02_domain-model.yaml (NOT YET DECLARED)
+    depends_on: [domains]
+    required_before: [entities, aggregates]
+    generated_after: domains
+    count: 0
+    gap: G-04  # no value objects are explicitly declared
+
+  capabilities:
+    tier: 2
+    source: 08_security-capabilities.yaml
+    depends_on: [domains, invariants]
+    required_before: [commands, sagas, apis]
+    generated_after: entities
+    count: 58
+
+  commands:
+    tier: 3
+    source: 03_command-catalog.yaml
+    depends_on: [entities, capabilities, invariants]
+    required_before: [events, aggregates, sagas, apis, acceptance_tests]
+    generated_after: capabilities
+    count: 88
+
+  events:
+    tier: 3
+    source: 04_event-catalog.yaml
+    depends_on: [entities, commands]
+    required_before: [aggregates, projections, state_machines, sagas]
+    generated_after: commands
+    count: 134
+
+  aggregates:
+    tier: 4
+    source: 02_domain-model.yaml, 05_state-machines.yaml, domains/*.yaml
+    depends_on: [entities, commands, events, state_machines]
+    required_before: [runtime]
+    generated_after: events
+    count: 0            # 0 explicitly annotated aggregate roots
+    gap: G-02
+
+  state_machines:
+    tier: 4
+    source: 05_state-machines.yaml
+    depends_on: [entities, events]
+    required_before: [aggregates, sagas, workflows]
+    generated_after: events
+    count: 20
+    note: 8 of 20 lack a transitions block (gap G-08)
+
+  projections:
+    tier: 5
+    source: projection-engine.yaml, 04_event-catalog.yaml
+    depends_on: [events, entities]
+    required_before: [apis]
+    generated_after: state_machines
+    count: schema_based
+
+  sagas:
+    tier: 6
+    source: 09_saga-orchestration.yaml
+    depends_on: [commands, events, capabilities, state_machines]
+    required_before: [workflows, runtime]
+    generated_after: projections
+    count: 16
+    gap: G-01  # source file is invalid YAML; 31 command refs unresolved (G-03)
+
+  contracts:
+    tier: 7
+    source: 12_domain-contracts.yaml
+    depends_on: [domains, commands, events]
+    required_before: [apis, runtime]
+    generated_after: sagas
+    count: 23
+
+  boundary_adapters:
+    tier: 8
+    source: hybrid-boundary.yaml, domains/payment.yaml
+    depends_on: [contracts, commands, events]
+    required_before: [runtime]
+    generated_after: contracts
+    count: rail_and_chain_adapters
+
+  apis:
+    tier: 8
+    source: 03_command-catalog.yaml, 08_security-capabilities.yaml
+    depends_on: [commands, capabilities, projections, contracts]
+    required_before: [runtime]
+    generated_after: contracts
+    count: derived_from_commands
+
+  acceptance_tests:
+    tier: 9
+    source: acceptance-tests.yaml
+    depends_on: [invariants, commands, events, capabilities, sagas]
+    required_before: [runtime]
+    generated_after: apis
+    count: 105
+
+  runtime:
+    tier: 10
+    source: compiler.yaml (assembly of all outputs)
+    depends_on: [aggregates, projections, sagas, contracts, boundary_adapters, apis, acceptance_tests]
+    required_before: []
+    generated_after: acceptance_tests
+    count: 1
+
+# ============================================================
+# CANONICAL REALIZATION CHAIN (worked example)
+# ============================================================
+# Matches the PHASE 2.3 directive example.
+# ============================================================
+
+canonical_chain:
+  - invariant          # 01_constitution.yaml
+  - capability         # 08_security-capabilities.yaml
+  - command            # 03_command-catalog.yaml
+  - event              # 04_event-catalog.yaml
+  - aggregate          # 02_domain-model.yaml + 05_state-machines.yaml
+  - projection         # projection-engine.yaml
+  - saga               # 09_saga-orchestration.yaml
+  - api                # generated from commands + capabilities
+  - runtime            # assembled
+
+# ============================================================
+# CYCLE ANALYSIS
+# ============================================================
+
+cycle_analysis:
+  layer_graph: ACYCLIC          # L0..L7 strict DAG
+  realization_graph: ACYCLIC    # tiers 0..10, no back-edges
+  domain_contract_graph:
+    status: BIDIRECTIONAL_BY_DESIGN
+    note: >
+      Mutual contracts (vault<->treasury, vault<->ledger) express reciprocal
+      obligations, not build-order dependencies. Realization order is resolved
+      by tier/layer, not by contract direction, so no build cycle exists.
+
+# ============================================================
+# BLOCKERS TO DETERMINISTIC ORDERING
+# ============================================================
+
+ordering_blockers:
+  - id: G-01
+    severity: CRITICAL
+    description: 09_saga-orchestration.yaml is invalid YAML; saga tier cannot load.
+  - id: G-02
+    severity: HIGH
+    description: aggregates tier has 0 explicit roots; tier-4 generation is non-deterministic.
+  - id: G-04
+    severity: MEDIUM
+    description: value_objects class is empty; tier-1 vocabulary is incomplete.
+  - id: G-08
+    severity: MEDIUM
+    description: 8 of 20 state machines lack transitions; guard generation incomplete.
+
+determinism_assessment:
+  order_is_deterministic: true      # the ORDER is fully determined
+  order_is_executable: false        # execution blocked by G-01 (invalid YAML)
+  note: >
+    The realization ORDER is deterministic and acyclic. Executing that order
+    end-to-end is currently blocked by the invalid-YAML and inference gaps above.

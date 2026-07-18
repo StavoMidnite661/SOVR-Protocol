@@ -1,0 +1,11 @@
+metadata:
+  canonical_fields:
+    - actor
+    - commandId
+    - protocolVersion
+    - invariants
+  deprecated_fields:
+    correlationId:
+      removed: true
+    causationId:
+      removed: true

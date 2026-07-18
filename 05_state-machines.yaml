@@ -1,0 +1,1945 @@
+# ============================================================
+# SOVR Financial OS — State Machines
+# File: 05_state-machines.yaml
+# Status: FROZEN — Phase J (Protocol Closure) complete
+# ============================================================
+# Defines all state machines in SOVR.
+# This file is populated domain-by-domain.
+# Current domains: Vault, Ledger, Identity, Policy, Intent, Agent, Payment
+# ============================================================
+
+state_machines:
+
+  # ========================================================
+  # VAULT — ASSET LIFECYCLE
+  # ========================================================
+
+  vault_asset_lifecycle:
+    domain: vault
+    aggregate: asset
+    initial_state: REGISTERED
+    final_states: [REJECTED, IMPAIRED]
+    description: >
+      Manages the lifecycle of an asset from registration
+      through operational use to potential impairment or rejection.
+
+    states:
+
+      REGISTERED:
+        description: Asset has been registered but not yet verified
+        allowed_commands:
+          - vault.asset.verify
+          - vault.asset.reject
+        entry_actions: []
+        exit_actions: []
+
+      VERIFIED:
+        description: Asset existence has been confirmed through attestation
+        allowed_commands:
+          - vault.reserve.create
+          - vault.valuation.update
+          - vault.asset.reconcile
+          - vault.asset.reject  # post-verification rejection
+        entry_actions:
+          - emit vault.custody.attested
+        exit_actions: []
+
+      AVAILABLE:
+        description: Asset is verified and available for financial operations
+        allowed_commands:
+          - vault.reserve.create
+          - vault.valuation.update
+          - vault.asset.reconcile
+          - vault.collateral.add
+          - vault.ownership.transfer  # via ownership command
+        entry_actions: []
+        exit_actions: []
+
+      RESERVED:
+        description: Portion of asset value is reserved for a pending operation
+        allowed_commands:
+          - vault.reserve.lock
+          - vault.reserve.release
+          - vault.valuation.update
+          - vault.asset.reconcile
+        entry_actions: []
+        exit_actions: []
+
+      LOCKED:
+        description: Reservation is hard-locked, awaiting consuming transaction
+        allowed_commands:
+          - vault.reserve.release  # only on consuming transaction failure
+          - vault.valuation.update
+        entry_actions: []
+        exit_actions: []
+
+      CONSUMED:
+        description: Reservation was consumed by a completed financial operation
+        allowed_commands: []
+        entry_actions:
+          - recalculate available_balance
+        exit_actions: []
+
+      RELEASED:
+        description: Reserved value has been returned to available pool
+        allowed_commands: []
+        entry_actions:
+          - recalculate available_balance
+        exit_actions: []
+
+      RECONCILIATION_REQUIRED:
+        description: Vault state may be inconsistent with external reality
+        allowed_commands:
+          - vault.asset.reconcile
+        entry_actions:
+          - emit governance notification if severity >= medium
+        exit_actions: []
+
+      REJECTED:
+        description: Asset failed verification or was explicitly rejected
+        allowed_commands: []  # terminal state
+        entry_actions:
+          - restrict all operations
+        exit_actions: []
+
+      IMPAIRED:
+        description: Asset has suffered significant value loss
+        allowed_commands:
+          - vault.asset.write_down  # governance approved
+          - vault.asset.reconcile
+        entry_actions:
+          - restrict new operations
+          - notify governance
+        exit_actions: []
+
+    transitions:
+
+      # Registration → Verification flow
+      REGISTERED_to_VERIFIED:
+        trigger: vault.asset.verified
+        condition: attestation_valid
+        emitted_events: [vault.asset.verified]
+        invalid: false
+
+      REGISTERED_to_REJECTED:
+        trigger: vault.asset.rejected
+        condition: verification_failed
+        emitted_events: [vault.asset.rejected]
+        invalid: false
+
+      VERIFIED_to_AVAILABLE:
+        trigger: vault.reserve.created  # first reservation proves readiness
+        condition: asset_ready_for_operations
+        emitted_events: []
+        invalid: false
+
+      VERIFIED_to_REJECTED:
+        trigger: vault.asset.rejected
+        condition: post_verification_rejection
+        emitted_events: [vault.asset.rejected]
+        invalid: false
+
+      VERIFIED_to_RECONCILIATION_REQUIRED:
+        trigger: vault.reconciliation.discrepancy_found
+        condition: discrepancy_detected
+        emitted_events: [vault.reconciliation.discrepancy_found]
+        invalid: false
+
+      # Operational flow
+      AVAILABLE_to_RESERVED:
+        trigger: vault.reserve.created
+        condition: none
+        emitted_events: [vault.reserve.created]
+        invalid: false
+
+      RESERVED_to_LOCKED:
+        trigger: vault.reserve.locked
+        condition: reservation_not_expired
+        emitted_events: [vault.reserve.locked]
+        invalid: false
+
+      RESERVED_to_AVAILABLE:
+        trigger: vault.reserve.released
+        condition: none
+        emitted_events: [vault.reserve.released]
+        invalid: false
+
+      RESERVED_to_RECONCILIATION_REQUIRED:
+        trigger: vault.reconciliation.discrepancy_found
+        condition: discrepancy_detected
+        emitted_events: [vault.reconciliation.discrepancy_found]
+        invalid: false
+
+      LOCKED_to_CONSUMED:
+        trigger: treasury.transfer.settled  # or consuming domain event
+        condition: consuming_transaction_completed
+        emitted_events: []
+        invalid: false
+
+      LOCKED_to_AVAILABLE:
+        trigger: vault.reserve.released
+        condition: consuming_transaction_failed
+        emitted_events: [vault.reserve.released]
+        invalid: false
+
+      CONSUMED_to_AVAILABLE:
+        trigger: automatic
+        condition: balance_recalculated
+        emitted_events: []
+        invalid: false
+
+      RELEASED_to_AVAILABLE:
+        trigger: automatic
+        condition: balance_recalculated
+        emitted_events: []
+        invalid: false
+
+      # Reconciliation flow
+      RECONCILIATION_REQUIRED_to_AVAILABLE:
+        trigger: vault.reconciliation.completed
+        condition: no_discrepancy_or_discrepancy_resolved
+        emitted_events: [vault.reconciliation.completed]
+        invalid: false
+
+      RECONCILIATION_REQUIRED_to_VERIFIED:
+        trigger: vault.reconciliation.completed
+        condition: asset_downgraded_during_reconciliation
+        emitted_events: [vault.reconciliation.completed]
+        invalid: false
+
+      RECONCILIATION_REQUIRED_to_LOCKED:
+        trigger: vault.reconciliation.completed
+        condition: active_reservation_confirmed_valid
+        emitted_events: [vault.reconciliation.completed]
+        invalid: false
+
+      # Impairment flow
+      AVAILABLE_to_IMPAIRED:
+        trigger: vault.asset.impaired
+        condition: significant_value_decline
+        emitted_events: [vault.asset.impaired]
+        invalid: false
+
+      RESERVED_to_IMPAIRED:
+        trigger: vault.asset.impaired
+        condition: significant_value_decline
+        emitted_events: [vault.asset.impaired]
+        invalid: false
+
+      IMPAIRED_to_AVAILABLE:
+        trigger: vault.valuation.updated
+        condition: value_recovered_and_reconciliation_passed
+        emitted_events: [vault.valuation.updated, vault.reconciliation.completed]
+        invalid: false
+
+      # Explicitly invalid transitions
+      invalid_transitions:
+        - { from: REJECTED, to: any }  # terminal
+        - { from: REGISTERED, to: AVAILABLE }  # must verify first
+        - { from: REGISTERED, to: RESERVED }  # must verify first
+        - { from: REGISTERED, to: LOCKED }    # must verify first
+        - { from: AVAILABLE, to: REGISTERED } # no backwards
+        - { from: AVAILABLE, to: VERIFIED }   # no backwards
+        - { from: LOCKED, to: RESERVED }      # cannot downgrade lock
+        - { from: CONSUMED, to: LOCKED }      # no backwards
+
+  # ========================================================
+  # VAULT — RESERVATION LIFECYCLE
+  # ========================================================
+
+  vault_reservation_lifecycle:
+    domain: vault
+    aggregate: reservation
+    initial_state: PENDING
+    final_states: [EXPIRED, FAILED]
+    description: >
+      Manages the lifecycle of a value reservation from creation
+      through locking, consumption, or expiry.
+
+    states:
+
+      PENDING:
+        description: Reservation created, awaiting lock
+        allowed_commands:
+          - vault.reserve.lock
+          - vault.reserve.release
+        time_limit: 86400s  # max reservation duration
+        on_timeout: EXPIRED
+
+      ACTIVE:
+        description: Reservation locked, value committed
+        allowed_commands:
+          - vault.reserve.release  # only on consuming transaction failure
+        time_limit: 86400s
+        on_timeout: EXPIRED
+
+      CONSUMED:
+        description: Reservation consumed by a completed transaction
+        allowed_commands: []
+
+      EXPIRED:
+        description: Reservation expired without being consumed
+        allowed_commands: []
+
+      RELEASED:
+        description: Reservation explicitly released
+        allowed_commands: []
+
+      FAILED:
+        description: Reservation failed during creation or locking
+        allowed_commands: []
+
+    transitions:
+
+      PENDING_to_ACTIVE:
+        trigger: vault.reserve.locked
+        condition: balance_sufficient
+        emitted_events: [vault.reserve.locked]
+        invalid: false
+
+      PENDING_to_RELEASED:
+        trigger: vault.reserve.released
+        condition: actor_requests_release
+        emitted_events: [vault.reserve.released]
+        invalid: false
+
+      PENDING_to_EXPIRED:
+        trigger: vault.reserve.expired
+        condition: expiration_time_passed
+        emitted_events: [vault.reserve.expired]
+        invalid: false
+
+      PENDING_to_FAILED:
+        trigger: vault.reserve.creation_failed
+        condition: validation_failed
+        emitted_events: [vault.reserve.creation_failed]
+        invalid: false
+
+      ACTIVE_to_CONSUMED:
+        trigger: consuming_transaction_completed
+        condition: consuming_event_received
+        emitted_events: []
+        invalid: false
+
+      ACTIVE_to_RELEASED:
+        trigger: vault.reserve.released
+        condition: consuming_transaction_failed
+        emitted_events: [vault.reserve.released]
+        invalid: false
+
+      ACTIVE_to_EXPIRED:
+        trigger: vault.reserve.expired
+        condition: expiration_time_passed
+        emitted_events: [vault.reserve.expired]
+        invalid: false
+
+      invalid_transitions:
+        - { from: CONSUMED, to: any }
+        - { from: EXPIRED, to: any }
+        - { from: RELEASED, to: any }
+        - { from: FAILED, to: any }
+        - { from: ACTIVE, to: PENDING }
+        - { from: CONSUMED, to: ACTIVE }
+
+  # ========================================================
+  # VAULT — COLLATERAL LIFECYCLE
+  # ========================================================
+
+  vault_collateral_lifecycle:
+    domain: vault
+    aggregate: collateral
+    initial_state: PROPOSED
+    final_states: [RELEASED, LIQUIDATED]
+    description: >
+      Manages the lifecycle of a collateral position from proposal
+      through active use, potential margin calls, and release or
+      liquidation.
+
+    states:
+
+      PROPOSED:
+        description: Collateral has been proposed but not yet activated
+        allowed_commands:
+          - vault.collateral.add  # activates the position
+
+      ACTIVE:
+        description: Collateral is securing an obligation
+        allowed_commands:
+          - vault.collateral.remove
+          - vault.collateral.revalue
+        time_limit: none  # ongoing until released or liquidated
+
+      MARGIN_CALL:
+        description: Margin ratio has fallen below maintenance threshold
+        allowed_commands:
+          - vault.collateral.remove  # if adding more collateral elsewhere
+          - vault.collateral.revalue
+        time_limit: 86400s
+        on_timeout: LIQUIDATING
+
+      LIQUIDATING:
+        description: Collateral is being liquidated to cover obligation
+        allowed_commands: []
+        time_limit: 604800s  # 7 days max liquidation
+        on_timeout: escalate_to_governance
+
+      RELEASED:
+        description: Collateral has been released
+        allowed_commands: []
+
+      LIQUIDATED:
+        description: Collateral has been liquidated
+        allowed_commands: []
+
+    transitions:
+
+      PROPOSED_to_ACTIVE:
+        trigger: vault.collateral.added
+        condition: eligibility_and_concentration_checks_passed
+        emitted_events: [vault.collateral.added, vault.collateral.valued]
+        invalid: false
+
+      PROPOSED_to_FAILED:
+        trigger: vault.collateral.addition_failed
+        condition: validation_failed
+        emitted_events: [vault.collateral.addition_failed]
+        invalid: false
+
+      ACTIVE_to_MARGIN_CALL:
+        trigger: vault.collateral.margin_call
+        condition: margin_ratio_below_maintenance
+        emitted_events: [vault.collateral.margin_call]
+        invalid: false
+
+      ACTIVE_to_RELEASED:
+        trigger: vault.collateral.released
+        condition: obligation_satisfied_or_reduced
+        emitted_events: [vault.collateral.released]
+        invalid: false
+
+      MARGIN_CALL_to_ACTIVE:
+        trigger: vault.collateral.revalued
+        condition: margin_ratio_restored_above_initial
+        emitted_events: [vault.collateral.revalued]
+        invalid: false
+
+      MARGIN_CALL_to_LIQUIDATING:
+        trigger: margin_call_timeout
+        condition: unresolved_past_deadline
+        emitted_events: [vault.collateral.liquidation_initiated]
+        invalid: false
+
+      MARGIN_CALL_to_RELEASED:
+        trigger: vault.collateral.released
+        condition: obligation_satisfied_despite_margin_call
+        emitted_events: [vault.collateral.released]
+        invalid: false
+
+      LIQUIDATING_to_LIQUIDATED:
+        trigger: liquidation_completed
+        condition: proceeds_applied_to_obligation
+        emitted_events: []
+        invalid: false
+
+      LIQUIDATING_to_RELEASED:
+        trigger: liquidation_cancelled
+        condition: governance_overrides_liquidation
+        emitted_events: [vault.collateral.released]
+        invalid: false
+
+      invalid_transitions:
+        - { from: RELEASED, to: any }
+        - { from: LIQUIDATED, to: any }
+        - { from: LIQUIDATING, to: ACTIVE }
+        - { from: LIQUIDATING, to: PROPOSED }
+        - { from: MARGIN_CALL, to: PROPOSED }
+
+  # ========================================================
+  # VAULT — TRANSACTION LIFECYCLE
+  # ========================================================
+  # Separate from asset lifecycle. Tracks funding and
+  # disbursement transactions through the vault.
+
+  vault_transaction_lifecycle:
+    domain: vault
+    aggregate: transaction
+    initial_state: CREATED
+    final_states: [CLOSED, FAILED]
+    description: >
+      Manages the lifecycle of a vault funding or disbursement
+      transaction from creation through funding, authorization,
+      and disbursement. This is a SEPARATE aggregate from the
+      asset lifecycle and reservation lifecycle.
+
+    states:
+
+      CREATED:
+        description: Transaction record created, awaiting funding
+        allowed_commands:
+          - vault.transaction.fund
+          - vault.transaction.cancel
+        entry_actions: []
+        exit_actions: []
+
+      FUNDING_REQUESTED:
+        description: Funding has been requested from external source
+        allowed_commands:
+          - vault.transaction.cancel
+        entry_actions: []
+        exit_actions: []
+
+      FUNDING_PENDING:
+        description: Funding is in transit or being confirmed
+        allowed_commands: []
+        time_limit: 86400s
+        on_timeout: FAILED
+
+      FUNDED:
+        description: Funding confirmed, value available for disbursement
+        allowed_commands:
+          - vault.transaction.authorize_release
+          - vault.transfer.request
+        entry_actions: []
+        exit_actions: []
+
+      RELEASE_PENDING:
+        description: Disbursement authorization pending
+        allowed_commands:
+          - vault.transaction.authorize_release
+          - vault.transaction.cancel
+        entry_actions: []
+        exit_actions: []
+
+      RELEASE_AUTHORIZED:
+        description: Disbursement has been authorized
+        allowed_commands:
+          - vault.transaction.disburse
+          - vault.transaction.cancel
+        entry_actions: []
+        exit_actions: []
+
+      DISBURSED:
+        description: Value has been disbursed from vault
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      CLOSED:
+        description: Transaction is complete and closed
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      FAILED:
+        description: Transaction failed at some stage
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+    transitions:
+
+      CREATED_to_FUNDING_REQUESTED:
+        trigger: vault.transaction.fund
+        condition: funding_source_valid
+        emitted_events: [vault.transaction.funding_requested]
+        invalid: false
+
+      FUNDING_REQUESTED_to_FUNDING_PENDING:
+        trigger: external_funding_confirmed
+        condition: confirmation_received
+        emitted_events: []
+        invalid: false
+
+      FUNDING_PENDING_to_FUNDED:
+        trigger: funding_settlement_confirmed
+        condition: settlement_verified
+        emitted_events: [vault.transaction.funded]
+        invalid: false
+
+      FUNDING_PENDING_to_FAILED:
+        trigger: timeout
+        condition: funding_not_confirmed_within_timeout
+        emitted_events: [vault.transaction.failed]
+        invalid: false
+
+      FUNDED_to_RELEASE_PENDING:
+        trigger: vault.transaction.authorize_release
+        condition: authorization_valid
+        emitted_events: [vault.transaction.release_pending]
+        invalid: false
+
+      RELEASE_PENDING_to_RELEASE_AUTHORIZED:
+        trigger: vault.transaction.authorize_release
+        condition: governance_approved_or_policy_met
+        emitted_events: [vault.transaction.release_authorized]
+        invalid: false
+
+      RELEASE_AUTHORIZED_to_DISBURSED:
+        trigger: vault.transaction.disburse
+        condition: disbursement_completed
+        emitted_events: [vault.transaction.disbursed]
+        invalid: false
+
+      DISBURSED_to_CLOSED:
+        trigger: automatic
+        condition: reconciliation_complete
+        emitted_events: [vault.transaction.closed]
+        invalid: false
+
+      CREATED_to_FAILED:
+        trigger: vault.transaction.cancel
+        condition: cancellation_requested
+        emitted_events: [vault.transaction.failed]
+        invalid: false
+
+      FUNDING_REQUESTED_to_FAILED:
+        trigger: vault.transaction.cancel
+        condition: cancellation_before_funding
+        emitted_events: [vault.transaction.failed]
+        invalid: false
+
+      RELEASE_PENDING_to_FAILED:
+        trigger: vault.transaction.cancel
+        condition: cancellation_before_disbursement
+        emitted_events: [vault.transaction.failed]
+        invalid: false
+
+      invalid_transitions:
+        - { from: CLOSED, to: any }
+        - { from: FAILED, to: any }
+        - { from: DISBURSED, to: FUNDED }
+        - { from: FUNDED, to: CREATED }
+
+  # ========================================================
+  # LEDGER — JOURNAL ENTRY LIFECYCLE
+  # ========================================================
+
+  ledger_journal_lifecycle:
+    domain: ledger
+    aggregate: journal_entry
+    initial_state: CREATED
+    final_states: [REJECTED]
+    description: >
+      Manages the lifecycle of a journal entry from creation
+      through validation, posting, settlement, and reconciliation.
+
+    states:
+
+      CREATED:
+        description: Entry has been created but not yet validated
+        allowed_commands:
+          - system begins validation
+        time_limit: 300s
+        on_timeout: REJECTED
+
+      VALIDATING:
+        description: Entry is passing through the validation pipeline
+        allowed_commands: []  # system-driven
+        time_limit: 600s
+        on_timeout: REJECTED
+
+      POSTED:
+        description: Entry has passed validation and been appended to the journal
+        allowed_commands:
+          - ledger.entry.reverse
+          - ledger.entry.correct
+        entry_actions:
+          - update account balance projections
+          - emit ledger.entry.posted event
+
+      SETTLED:
+        description: Entry has been confirmed by the originating domain
+        allowed_commands:
+          - ledger.entry.reverse
+          - ledger.entry.correct
+        entry_actions:
+          - mark as settled in projections
+
+      RECONCILED:
+        description: Entry has been verified against external source
+        allowed_commands:
+          - ledger.entry.reverse
+          - ledger.entry.correct
+        entry_actions:
+          - mark as reconciled in projections
+
+      REJECTED:
+        description: Entry failed validation and was not posted
+        allowed_commands: []
+        entry_actions:
+          - emit ledger.entry.rejected event
+          - notify source domain
+
+    transitions:
+
+      CREATED_to_VALIDATING:
+        trigger: validation_started
+        condition: none
+        emitted_events: []
+        invalid: false
+
+      VALIDATING_to_POSTED:
+        trigger: validation_passed
+        condition: all_validation_steps_passed
+        emitted_events: [ledger.entry.posted]
+        invalid: false
+
+      VALIDATING_to_REJECTED:
+        trigger: validation_failed
+        condition: any_validation_step_failed
+        emitted_events: [ledger.entry.rejected]
+        invalid: false
+
+      CREATED_to_REJECTED:
+        trigger: timeout
+        condition: creation_timeout_exceeded
+        emitted_events: [ledger.entry.rejected]
+        invalid: false
+
+      POSTED_to_SETTLED:
+        trigger: originating_domain_confirms
+        condition: settlement_event_received
+        emitted_events: []
+        invalid: false
+
+      SETTLED_to_RECONCILED:
+        trigger: reconciliation_confirms
+        condition: reconciliation_passed
+        emitted_events: []
+        invalid: false
+
+      POSTED_to_RECONCILED:
+        trigger: reconciliation_confirms
+        condition: reconciliation_passed_without_settlement
+        emitted_events: []
+        invalid: false
+
+      invalid_transitions:
+        - { from: REJECTED, to: any }
+        - { from: RECONCILED, to: POSTED }
+        - { from: SETTLED, to: CREATED }
+        - { from: VALIDATING, to: POSTED }  # must go through VALIDATING_to_POSTED
+
+  # ========================================================
+  # LEDGER — RECONCILIATION LIFECYCLE
+  # ========================================================
+
+  treasury_transfer_lifecycle:
+    domain: treasury
+    aggregate: transfer_order
+    initial_state: REQUESTED
+    final_states: [SETTLED, REJECTED, EXPIRED]
+    description: >
+      Manages the lifecycle of a treasury transfer order from
+      request through authorization, vault reservation, execution,
+      settlement, and potential failure or compensation.
+
+    states:
+
+      REQUESTED:
+        description: Transfer has been requested but not yet authorized
+        allowed_commands:
+          - treasury.transfer.authorize
+          - treasury.transfer.cancel
+        time_limit: 3600s
+        on_timeout: EXPIRED
+
+      AUTHORIZED:
+        description: Transfer has passed identity, capability, and policy gates
+        allowed_commands:
+          - treasury.transfer.reserve
+          - treasury.transfer.cancel
+        time_limit: 300s
+        on_timeout: REJECTED
+
+      RESERVED:
+        description: Vault reservation is locked for this transfer
+        allowed_commands:
+          - treasury.transfer.execute
+          - treasury.transfer.cancel
+        time_limit: none  # governed by vault reservation expiry
+
+      EXECUTING:
+        description: Transfer execution has begun (external payment rail engaged)
+        allowed_commands: []  # system-driven
+        time_limit: none  # governed by payment rail SLA
+
+      PENDING_SETTLEMENT:
+        description: Execution completed, awaiting settlement confirmation
+        allowed_commands: []  # system-driven
+        time_limit: none  # governed by settlement rail SLA
+
+      SETTLED:
+        description: Transfer has been confirmed as settled
+        allowed_commands: []
+
+      REJECTED:
+        description: Transfer was rejected at any stage
+        allowed_commands: []
+
+      EXPIRED:
+        description: Transfer timed out without completing
+        allowed_commands: []
+
+      FAILED:
+        description: Transfer execution or settlement failed
+        allowed_commands:
+          - treasury.transfer.compensate
+
+      COMPENSATION_REQUIRED:
+        description: A compensation saga has been initiated
+        allowed_commands:
+          - treasury.transfer.compensate
+
+      UNKNOWN_EXTERNAL_STATE:
+        description: External system returned unknown or no response
+        allowed_commands: []  # resolved by late confirmation, failure, or governance
+
+    transitions:
+
+      REQUESTED_to_AUTHORIZED:
+        trigger: identity+capability+policy passed
+        condition: all authorization gates passed
+        emitted_events: [treasury.transfer.authorized]
+        invalid: false
+
+      AUTHORIZED_to_RESERVED:
+        trigger: vault reservation locked
+        condition: vault confirms reservation in ACTIVE state
+        emitted_events: [treasury.transfer.reserved]
+        invalid: false
+
+      RESERVED_to_EXECUTING:
+        trigger: execution begins
+        condition: payment rail accepts instruction
+        emitted_events: [treasury.transfer.executing]
+        invalid: false
+
+      EXECUTING_to_PENDING_SETTLEMENT:
+        trigger: execution completed, awaiting confirmation
+        condition: payment rail reports execution complete
+        emitted_events: []
+        invalid: false
+
+      PENDING_SETTLEMENT_to_SETTLED:
+        trigger: settlement confirmed
+        condition: settlement confirmation received from rail
+        emitted_events: [treasury.transfer.settled, treasury.settlement.confirmed]
+        invalid: false
+
+      EXECUTING_to_SETTLED:
+        trigger: internal settlement confirmed directly
+        condition: execution and settlement confirmed atomically
+        emitted_events: [treasury.transfer.settled, treasury.settlement.confirmed]
+        invalid: false
+
+      REQUESTED_to_REJECTED:
+        trigger: validation failed
+        condition: request payload fails validation
+        emitted_events: [treasury.transfer.rejected]
+        invalid: false
+
+      AUTHORIZED_to_REJECTED:
+        trigger: policy denied
+        condition: policy evaluation returned DENY
+        emitted_events: [treasury.transfer.rejected]
+        invalid: false
+
+      REQUESTED_to_EXPIRED:
+        trigger: timeout
+        condition: 3600s elapsed without authorization
+        emitted_events: [treasury.transfer.expired]
+        invalid: false
+
+      RESERVED_to_EXPIRED:
+        trigger: vault reservation expired
+        condition: vault reservation reached expiry
+        emitted_events: [treasury.transfer.expired]
+        invalid: false
+
+      EXECUTING_to_FAILED:
+        trigger: execution error
+        condition: payment rail returned failure
+        emitted_events: [treasury.transfer.failed]
+        invalid: false
+
+      PENDING_SETTLEMENT_to_FAILED:
+        trigger: settlement failed
+        condition: settlement confirmation returned failure
+        emitted_events: [treasury.transfer.failed]
+        invalid: false
+
+      PENDING_SETTLEMENT_to_UNKNOWN_EXTERNAL_STATE:
+        trigger: timeout or unknown response
+        condition: no response received within SLA or response unparseable
+        emitted_events: []
+        invalid: false
+
+      EXECUTING_to_UNKNOWN_EXTERNAL_STATE:
+        trigger: external timeout
+        condition: payment rail did not respond within execution SLA
+        emitted_events: []
+        invalid: false
+
+      FAILED_to_COMPENSATION_REQUIRED:
+        trigger: compensation saga initiated
+        condition: governance or automated compensation triggered
+        emitted_events: [treasury.transfer.compensation_required]
+        invalid: false
+
+      UNKNOWN_EXTERNAL_STATE_to_SETTLED:
+        trigger: late confirmation received
+        condition: settlement confirmed after unknown period
+        emitted_events: [treasury.transfer.settled, treasury.settlement.confirmed]
+        invalid: false
+
+      UNKNOWN_EXTERNAL_STATE_to_FAILED:
+        trigger: failure confirmed
+        condition: late failure received after unknown period
+        emitted_events: [treasury.transfer.failed]
+        invalid: false
+
+      UNKNOWN_EXTERNAL_STATE_to_COMPENSATION_REQUIRED:
+        trigger: governance orders compensation
+        condition: governance determines compensation necessary
+        emitted_events: [treasury.transfer.compensation_required]
+        invalid: false
+
+    invalid_transitions:
+      - { from: SETTLED, to: any }
+      - { from: REJECTED, to: any }
+      - { from: EXPIRED, to: any }
+      - { from: REQUESTED, to: EXECUTING }
+      - { from: AUTHORIZED, to: EXECUTING }
+      - { from: EXECUTING, to: REQUESTED }
+      - { from: PENDING_SETTLEMENT, to: AUTHORIZED }
+      - { from: FAILED, to: SETTLED }
+      - { from: UNKNOWN_EXTERNAL_STATE, to: FAILED }
+
+  # ========================================================
+  # IDENTITY — ACTOR LIFECYCLE
+  # ========================================================
+
+  identity_actor_lifecycle:
+    domain: identity
+    aggregate: actor
+    initial_state: PENDING_VERIFICATION
+    final_states: [REVOKED, ARCHIVED]
+
+    states:
+
+      PENDING_VERIFICATION:
+        description: Actor registered but not yet verified
+        allowed_commands:
+          - identity.actor.verify
+          - identity.actor.revoke
+        entry_actions:
+          - emit identity.actor.registered
+        exit_actions: []
+
+      VERIFYING:
+        description: Verification in progress (governance review)
+        allowed_commands:
+          - identity.actor.verify
+          - identity.actor.revoke
+        entry_actions: []
+        exit_actions: []
+
+      ACTIVE:
+        description: Actor is fully verified and operational
+        allowed_commands:
+          - identity.actor.suspend
+          - identity.actor.revoke
+          - identity.credential.issue
+          - identity.session.create
+          - identity.delegation.create
+        entry_actions:
+          - emit identity.actor.verified
+        exit_actions: []
+
+      SUSPENDED:
+        description: Actor temporarily suspended
+        allowed_commands:
+          - identity.actor.revoke
+          - identity.actor.verify
+        entry_actions:
+          - emit identity.actor.suspended
+        exit_actions: []
+
+      REVOKED:
+        description: Actor permanently revoked
+        allowed_commands:
+          - identity.actor.archive
+        entry_actions:
+          - emit identity.actor.revoked
+        exit_actions: []
+
+      ARCHIVED:
+        description: Actor record archived (final)
+        allowed_commands: []
+        entry_actions:
+          - emit identity.actor.archived
+        exit_actions: []
+
+  # ========================================================
+  # IDENTITY — CREDENTIAL LIFECYCLE
+  # ========================================================
+
+  identity_credential_lifecycle:
+    domain: identity
+    aggregate: credential
+    initial_state: ACTIVE
+    final_states: [REVOKED, ROTATED]
+
+    states:
+
+      ACTIVE:
+        description: Credential is valid and usable
+        allowed_commands:
+          - identity.credential.revoke
+        entry_actions:
+          - emit identity.credential.issued
+        exit_actions: []
+
+      EXPIRED:
+        description: Credential has passed its expiration time
+        allowed_commands: []
+        entry_actions:
+          - emit identity.credential.expired
+        exit_actions: []
+
+      REVOKED:
+        description: Credential has been revoked before expiration
+        allowed_commands: []
+        entry_actions:
+          - emit identity.credential.revoked
+        exit_actions: []
+
+      SUSPENDED:
+        description: Credential temporarily suspended
+        allowed_commands:
+          - identity.credential.revoke
+        entry_actions: []
+        exit_actions: []
+
+      ROTATED:
+        description: Credential has been replaced by a new one
+        allowed_commands: []
+        entry_actions:
+          - emit identity.credential.revoked
+          - emit identity.credential.issued
+        exit_actions: []
+
+  # ========================================================
+  # IDENTITY — SESSION LIFECYCLE
+  # ========================================================
+
+  identity_session_lifecycle:
+    domain: identity
+    aggregate: session
+    initial_state: ACTIVE
+    final_states: [EXPIRED, REVOKED, TERMINATED]
+
+    states:
+
+      ACTIVE:
+        description: Session is live and can be used for authentication
+        allowed_commands:
+          - identity.session.terminate
+        entry_actions:
+          - emit identity.session.created
+          - emit identity.authentication.succeeded
+        exit_actions: []
+
+      EXPIRED:
+        description: Session has passed its TTL
+        allowed_commands: []
+        entry_actions:
+          - emit identity.session.expired
+        exit_actions: []
+
+      REVOKED:
+        description: Session revoked (e.g., credential revoked upstream)
+        allowed_commands: []
+        entry_actions:
+          - emit identity.session.terminated
+        exit_actions: []
+
+      TERMINATED:
+        description: Session explicitly terminated by actor or system
+        allowed_commands: []
+        entry_actions:
+          - emit identity.session.terminated
+        exit_actions: []
+
+  # ========================================================
+  # IDENTITY — DELEGATION LIFECYCLE
+  # ========================================================
+
+  identity_delegation_lifecycle:
+    domain: identity
+    aggregate: delegation
+    initial_state: PENDING_ACCEPTANCE
+    final_states: [EXPIRED, REVOKED]
+
+    states:
+
+      PENDING_ACCEPTANCE:
+        description: Delegation proposed, awaiting delegate acceptance
+        allowed_commands:
+          - identity.delegation.revoke
+        entry_actions:
+          - emit identity.delegation.created
+        exit_actions: []
+
+      ACTIVE:
+        description: Delegation is active and being used
+        allowed_commands:
+          - identity.delegation.revoke
+        entry_actions: []
+        exit_actions: []
+
+      EXPIRED:
+        description: Delegation has passed its valid_until time
+        allowed_commands: []
+        entry_actions:
+          - emit identity.delegation.expired
+        exit_actions: []
+
+      REVOKED:
+        description: Delegation revoked by delegator or governance
+        allowed_commands: []
+        entry_actions:
+          - emit identity.delegation.revoked
+        exit_actions: []
+
+  # ========================================================
+  # POLICY — EVALUATION LIFECYCLE
+  # ========================================================
+
+  policy_evaluation_lifecycle:
+    domain: policy
+    aggregate: evaluation
+    initial_state: IDLE
+    final_states: [ARCHIVED]
+
+    states:
+
+      IDLE:
+        description: No evaluation in progress
+        allowed_commands:
+          - policy.set.evaluate
+        entry_actions: []
+        exit_actions: []
+
+      GATHERING_CONTEXT:
+        description: Collecting identity, vault, treasury, governance context
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      EVALUATING_RULES:
+        description: Running policy rules in deterministic order
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      COMPUTING_DECISION:
+        description: Calculating composite decision from rule results
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      DECISION_RENDERED:
+        description: Final decision computed and ready
+        allowed_commands:
+          - policy.escalation.resolve
+        entry_actions:
+          - emit policy.evaluation.completed
+        exit_actions: []
+
+      ARCHIVED:
+        description: Evaluation record archived
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+  # ========================================================
+  # POLICY — RULE LIFECYCLE
+  # ========================================================
+
+  policy_rule_lifecycle:
+    domain: policy
+    aggregate: rule
+    initial_state: DRAFT
+    final_states: [ARCHIVED]
+
+    states:
+
+      DRAFT:
+        description: Rule is being written
+        allowed_commands:
+          - policy.rule.activate
+          - policy.rule.update
+        entry_actions:
+          - emit policy.rule.created
+        exit_actions: []
+
+      ACTIVE:
+        description: Rule is live and being evaluated
+        allowed_commands:
+          - policy.rule.deactivate
+          - policy.rule.update
+        entry_actions:
+          - emit policy.rule.activated
+        exit_actions: []
+
+      INACTIVE:
+        description: Rule is disabled but not deleted
+        allowed_commands:
+          - policy.rule.activate
+          - policy.rule.update
+        entry_actions:
+          - emit policy.rule.deactivated
+        exit_actions: []
+
+      ARCHIVED:
+        description: Rule is permanently archived
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+  # ========================================================
+  # POLICY — ESCALATION LIFECYCLE
+  # ========================================================
+
+  intent_lifecycle:
+    domain: intent
+    aggregate: intent
+    initial_state: RECEIVED
+    final_states: [ARCHIVED, FAILED, CANCELLED, EXPIRED]
+
+    states:
+
+      RECEIVED:
+        description: Intent submitted, awaiting enrichment
+        allowed_commands:
+          - intent.enrich
+          - intent.cancel
+        entry_actions:
+          - emit intent.received
+        exit_actions: []
+
+      ENRICHING:
+        description: Intent is being enriched (missing fields resolved)
+        allowed_commands:
+          - intent.enrich
+          - intent.cancel
+        entry_actions:
+          - emit intent.enriching.started
+        exit_actions: []
+
+      VALIDATING:
+        description: Intent is being validated against business rules
+        allowed_commands:
+          - intent.validate
+          - intent.cancel
+        entry_actions: []
+        exit_actions: []
+
+      READY:
+        description: Intent is validated and ready for command conversion
+        allowed_commands:
+          - intent.convert_to_command
+          - intent.cancel
+        entry_actions:
+          - emit intent.validation.completed
+          - emit intent.validated
+        exit_actions: []
+
+      CONVERTED_TO_COMMAND:
+        description: Intent has been converted to an executable command
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.converted_to_command
+        exit_actions: []
+
+      FAILED:
+        description: Intent processing failed
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.failed
+        exit_actions: []
+
+      CANCELLED:
+        description: Intent was cancelled by actor or governance
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.cancelled
+        exit_actions: []
+
+      EXPIRED:
+        description: Intent passed its expiration time
+        allowed_commands:
+          - intent.archive
+        entry_actions:
+          - emit intent.expired
+        exit_actions: []
+
+      ARCHIVED:
+        description: Intent record archived
+        allowed_commands: []
+        entry_actions:
+          - emit intent.archived
+        exit_actions: []
+
+  # ========================================================
+  # INTENT — ENRICHMENT STEP LIFECYCLE
+  # ========================================================
+
+  agent_execution_lifecycle:
+    domain: agent
+    aggregate: instance
+    initial_state: ACTIVE
+    final_states: [TERMINATED]
+
+    states:
+
+      ACTIVE:
+        description: Agent ready to execute
+        allowed_commands:
+          - agent.execution.execute
+        entry_actions: []
+        exit_actions: []
+
+      EXECUTING:
+        description: Agent is executing a command
+        allowed_commands:
+          - agent.governance.override
+        entry_actions:
+          - emit agent.execution.started
+        exit_actions: []
+
+      COMPLETED:
+        description: Execution completed successfully
+        allowed_commands:
+          - agent.execution.execute
+        entry_actions:
+          - emit agent.execution.completed
+        exit_actions: []
+
+      ESCALATED:
+        description: Execution escalated to governance
+        allowed_commands:
+          - agent.governance.override
+          - agent.terminate
+        entry_actions:
+          - emit agent.execution.escalated
+        exit_actions: []
+
+      FAILED:
+        description: Execution failed
+        allowed_commands:
+          - agent.execution.execute
+        entry_actions:
+          - emit agent.execution.failed
+        exit_actions: []
+
+      TERMINATED:
+        description: Agent terminated
+        allowed_commands: []
+        entry_actions:
+          - emit agent.terminated
+        exit_actions: []
+
+  # ========================================================
+  # PAYMENT — PAYMENT REQUEST LIFECYCLE (Phase E — Mechanical Registration)
+  # ========================================================
+
+  payment_request_lifecycle:
+    domain: payment
+    aggregate: payment_request
+    initial_state: RECEIVED
+    final_states: [SETTLED, REVERSED, CANCELLED]
+    description: >
+      Manages the full lifecycle of a payment request from receipt
+      through routing, execution, confirmation, reconciliation, to settlement.
+
+    states:
+
+      RECEIVED:
+        description: Payment request has been created and is awaiting planning
+        allowed_commands:
+          - payment.execution.plan
+          - payment.request.cancel
+        timeout_ms: null
+        entry_actions: []
+        exit_actions: []
+
+      PLANNING:
+        description: Routing engine is evaluating available rails
+        allowed_commands:
+          - payment.request.cancel
+        timeout_ms: 30000
+        timeout_transition: FAILED
+        entry_actions: []
+        exit_actions: []
+
+      ROUTING:
+        description: Execution plan has been created, rail selected
+        allowed_commands:
+          - payment.execution.execute
+          - payment.request.cancel
+        timeout_ms: 15000
+        timeout_transition: FAILED
+        entry_actions: []
+        exit_actions: []
+
+      PREPARING:
+        description: Rail adapter is preparing the transaction
+        allowed_commands:
+          - payment.execution.execute
+        timeout_ms: 30000
+        timeout_transition: FAILED
+        entry_actions: []
+        exit_actions: []
+
+      EXECUTING:
+        description: Rail adapter is executing the transaction
+        allowed_commands:
+          - payment.execution.confirm
+          - payment.execution.compensate
+        timeout_ms: 300000
+        timeout_transition: FAILED
+        entry_actions: []
+        exit_actions: []
+
+      CONFIRMING:
+        description: Awaiting confirmation from external rail
+        allowed_commands:
+          - payment.execution.confirm
+          - payment.reconciliation.start
+          - payment.execution.compensate
+        timeout_ms: 86400000
+        timeout_transition: FAILED
+        entry_actions: []
+        exit_actions: []
+
+      RECONCILING:
+        description: Comparing external settlement with internal records
+        allowed_commands:
+          - payment.reconciliation.complete
+          - payment.receipt.issue
+        timeout_ms: 172800000
+        timeout_transition: SETTLED
+        entry_actions: []
+        exit_actions: []
+
+      SETTLED:
+        description: Payment is fully settled and receipted
+        allowed_commands:
+          - payment.receipt.issue
+        timeout_ms: null
+        entry_actions: []
+        exit_actions: []
+
+      FAILED:
+        description: Payment failed at some stage
+        allowed_commands:
+          - payment.execution.compensate
+        timeout_ms: null
+        entry_actions: []
+        exit_actions: []
+
+      COMPENSATING:
+        description: Compensation is in progress
+        allowed_commands: []
+        timeout_ms: 300000
+        timeout_transition: FAILED
+        entry_actions: []
+        exit_actions: []
+
+      REVERSED:
+        description: Payment has been fully reversed through compensation
+        allowed_commands: []
+        timeout_ms: null
+        entry_actions: []
+        exit_actions: []
+
+      CANCELLED:
+        description: Payment was cancelled before execution
+        allowed_commands: []
+        timeout_ms: null
+        entry_actions: []
+        exit_actions: []
+
+    transitions:
+      - from: RECEIVED
+        to: PLANNING
+        command: payment.execution.plan
+        guard: execution_plan_does_not_exist
+      - from: RECEIVED
+        to: CANCELLED
+        command: payment.request.cancel
+      - from: PLANNING
+        to: ROUTING
+        event: payment.execution.planned
+        guard: plan_approved
+      - from: PLANNING
+        to: FAILED
+        event: payment.execution.planning_failed
+      - from: PLANNING
+        to: CANCELLED
+        command: payment.request.cancel
+      - from: ROUTING
+        to: PREPARING
+        command: payment.execution.execute
+        guard: adapter_registered
+      - from: ROUTING
+        to: FAILED
+        event: payment.execution.start_failed
+      - from: ROUTING
+        to: CANCELLED
+        command: payment.request.cancel
+      - from: PREPARING
+        to: EXECUTING
+        event: payment.rail.prepared
+        guard: preparation_successful
+      - from: PREPARING
+        to: FAILED
+        event: payment.rail.prepare_timed_out
+      - from: EXECUTING
+        to: CONFIRMING
+        event: payment.rail.executed
+        guard: execution_submitted
+      - from: EXECUTING
+        to: FAILED
+        event: payment.rail.execution_timed_out
+      - from: EXECUTING
+        to: FAILED
+        event: payment.rail.failed
+        guard: not_retryable
+      - from: EXECUTING
+        to: COMPENSATING
+        command: payment.execution.compensate
+      - from: CONFIRMING
+        to: RECONCILING
+        event: payment.rail.confirmed
+        guard: confirmation_positive
+      - from: CONFIRMING
+        to: FAILED
+        event: payment.rail.failed
+      - from: CONFIRMING
+        to: COMPENSATING
+        command: payment.execution.compensate
+      - from: RECONCILING
+        to: SETTLED
+        event: payment.reconciliation.completed
+        guard: reconciliation_matched
+      - from: RECONCILING
+        to: SETTLED
+        command: payment.receipt.issue
+        guard: reconciliation_bypassed
+      - from: FAILED
+        to: COMPENSATING
+        command: payment.execution.compensate
+      - from: COMPENSATING
+        to: REVERSED
+        event: payment.compensation.completed
+        guard: compensation_successful
+
+  # ========================================================
+  # GOVERNANCE — PROPOSAL LIFECYCLE
+  # ========================================================
+
+  governance_proposal_lifecycle:
+    domain: governance
+    aggregate: governance_proposal
+    initial_state: DRAFT
+    final_states: [REJECTED, EXPIRED, CANCELLED, IMPLEMENTED]
+    description: >
+      Manages the lifecycle of a governance proposal from
+      submission through approval/rejection to implementation.
+
+    states:
+
+      DRAFT:
+        description: Proposal is being composed
+        allowed_commands:
+          - governance.proposal.submit
+        entry_actions: []
+        exit_actions: []
+
+      PENDING_REVIEW:
+        description: Proposal is under review by governance actors
+        allowed_commands:
+          - governance.proposal.approve
+          - governance.proposal.reject
+        entry_actions:
+          - emit governance.proposal.submitted
+        exit_actions: []
+
+      APPROVED:
+        description: Proposal has received required approvals
+        allowed_commands:
+          - governance.proposal.implement
+        entry_actions:
+          - emit governance.proposal.approved
+        exit_actions: []
+
+      REJECTED:
+        description: Proposal was rejected
+        allowed_commands: []
+        entry_actions:
+          - emit governance.proposal.rejected
+        exit_actions: []
+
+      EXPIRED:
+        description: Proposal expired before reaching required approvals
+        allowed_commands: []
+        entry_actions:
+          - emit governance.proposal.expired
+        exit_actions: []
+
+      IMPLEMENTED:
+        description: Proposal has been implemented
+        allowed_commands: []
+        entry_actions:
+          - emit governance.proposal.implemented
+        exit_actions: []
+
+      CANCELLED:
+        description: Proposal was cancelled by proposer
+        allowed_commands: []
+        entry_actions:
+          - emit governance.proposal.cancelled
+        exit_actions: []
+
+    transitions:
+      - from: DRAFT
+        to: PENDING_REVIEW
+        command: governance.proposal.submit
+      - from: PENDING_REVIEW
+        to: APPROVED
+        command: governance.proposal.approve
+        guard: required_approvals_reached
+      - from: PENDING_REVIEW
+        to: REJECTED
+        command: governance.proposal.reject
+      - from: PENDING_REVIEW
+        to: EXPIRED
+        event: governance.proposal.expired
+        guard: expiration_reached
+      - from: PENDING_REVIEW
+        to: CANCELLED
+        command: governance.proposal.cancel
+      - from: APPROVED
+        to: IMPLEMENTED
+        command: governance.proposal.implement
+      - from: DRAFT
+        to: CANCELLED
+        command: governance.proposal.cancel
+
+  # ========================================================
+  # LEDGER — ACCOUNT LIFECYCLE
+  # ========================================================
+
+  ledger_account_lifecycle:
+    domain: ledger
+    aggregate: account
+    initial_state: ACTIVE
+    final_states: [FROZEN, CLOSED]
+    description: >
+      Manages the lifecycle of a ledger account from creation
+      through normal operation to closure or freeze.
+
+    states:
+
+      ACTIVE:
+        description: Account is active and accepting postings
+        allowed_commands:
+          - ledger.account.freeze
+        entry_actions: []
+        exit_actions: []
+
+      FROZEN:
+        description: Account is frozen — no new postings allowed
+        allowed_commands: []
+        entry_actions:
+          - emit ledger.account.frozen
+        exit_actions: []
+
+      CLOSED:
+        description: Account is closed — period ended
+        allowed_commands: []
+        entry_actions:
+          - emit ledger.account.closed
+        exit_actions: []
+
+    transitions:
+      - from: ACTIVE
+        to: FROZEN
+        command: ledger.account.freeze
+      - from: ACTIVE
+        to: CLOSED
+        command: ledger.period.close
+
+  # ========================================================
+  # AGENT — LIFECYCLE
+  # ========================================================
+
+  agent_lifecycle:
+    domain: agent
+    aggregate: agent_profile
+    initial_state: REGISTERED
+    final_states: [TERMINATED]
+    description: >
+      Manages the lifecycle of an AI agent from registration
+      through activation, operation, and termination.
+
+    states:
+
+      REGISTERED:
+        description: Agent is registered but not yet activated
+        allowed_commands:
+          - agent.activate
+          - agent.terminate
+        entry_actions:
+          - emit agent.registered
+        exit_actions: []
+
+      ACTIVE:
+        description: Agent is active and may execute commands
+        allowed_commands:
+          - agent.suspend
+          - agent.terminate
+        entry_actions:
+          - emit agent.activated
+        exit_actions: []
+
+      SUSPENDED:
+        description: Agent is temporarily suspended
+        allowed_commands:
+          - agent.activate
+          - agent.terminate
+        entry_actions:
+          - emit agent.suspended
+        exit_actions: []
+
+      TERMINATED:
+        description: Agent has been permanently terminated
+        allowed_commands: []
+        entry_actions:
+          - emit agent.terminated
+        exit_actions: []
+
+    transitions:
+      - from: REGISTERED
+        to: ACTIVE
+        command: agent.activate
+      - from: ACTIVE
+        to: SUSPENDED
+        command: agent.suspend
+      - from: SUSPENDED
+        to: ACTIVE
+        command: agent.activate
+      - from: ACTIVE
+        to: TERMINATED
+        command: agent.terminate
+      - from: SUSPENDED
+        to: TERMINATED
+        command: agent.terminate
+      - from: REGISTERED
+        to: TERMINATED
+        command: agent.terminate
+
+  # ========================================================
+  # PAYMENT — ADAPTER LIFECYCLE
+  # ========================================================
+
+  payment_adapter_lifecycle:
+    domain: payment
+    aggregate: rail_adapter
+    initial_state: ENABLED
+    final_states: [DISABLED]
+    description: >
+      Manages the lifecycle of a payment rail adapter
+      from enablement through operation to disablement.
+
+    states:
+
+      ENABLED:
+        description: Adapter is enabled and available for execution
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      PREPARING:
+        description: Adapter is preparing an execution
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      EXECUTING:
+        description: Adapter is executing a payment
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      DISABLED:
+        description: Adapter is disabled — no executions allowed
+        allowed_commands: []
+        entry_actions:
+          - emit payment.adapter.disabled
+        exit_actions: []
+
+    transitions:
+      - from: ENABLED
+        to: PREPARING
+        command: payment.execution.prepare
+      - from: PREPARING
+        to: EXECUTING
+        command: payment.execution.execute
+      - from: EXECUTING
+        to: ENABLED
+        event: payment.execution.settled
+      - from: ENABLED
+        to: DISABLED
+        command: payment.adapter.disable
+
+  # ========================================================
+  # KERNEL — SAGA LIFECYCLE
+  # ========================================================
+
+  saga_lifecycle:
+    domain: kernel
+    aggregate: saga_instance
+    initial_state: PENDING
+    final_states: [COMPLETED, FAILED, COMPENSATED]
+    description: >
+      Manages the lifecycle of a distributed saga from
+      initiation through completion or compensation.
+
+    states:
+
+      PENDING:
+        description: Saga is pending execution
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      RUNNING:
+        description: Saga is currently executing
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      COMPLETED:
+        description: Saga completed successfully
+        allowed_commands: []
+        entry_actions:
+          - emit saga.completed
+        exit_actions: []
+
+      FAILED:
+        description: Saga failed — compensation may be required
+        allowed_commands: []
+        entry_actions:
+          - emit saga.failed
+        exit_actions: []
+
+      COMPENSATING:
+        description: Saga is executing compensation path
+        allowed_commands: []
+        entry_actions:
+          - emit saga.compensating
+        exit_actions: []
+
+      COMPENSATED:
+        description: Saga compensation completed
+        allowed_commands: []
+        entry_actions:
+          - emit saga.compensated
+        exit_actions: []
+
+    transitions:
+      - from: PENDING
+        to: RUNNING
+        event: saga.started
+      - from: RUNNING
+        to: COMPLETED
+        event: saga.completed
+      - from: RUNNING
+        to: FAILED
+        event: saga.failed
+      - from: FAILED
+        to: COMPENSATING
+        command: saga.compensate
+      - from: COMPENSATING
+        to: COMPENSATED
+        event: saga.compensated
+
+  # ========================================================
+  # KERNEL — SYSTEM HEALTH LIFECYCLE
+  # ========================================================
+
+  system_health_lifecycle:
+    domain: kernel
+    aggregate: system_health
+    initial_state: HEALTHY
+    final_states: [HALTED]
+    description: >
+      Manages the lifecycle of system health state from
+      healthy operation through degradation to emergency halt.
+
+    states:
+
+      HEALTHY:
+        description: System is operating normally
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      DEGRADED:
+        description: System is operating with reduced capacity
+        allowed_commands: []
+        entry_actions:
+          - emit system.health.degraded
+        exit_actions: []
+
+      HALTED:
+        description: System is halted — no commands accepted
+        allowed_commands: []
+        entry_actions:
+          - emit system.health.halted
+        exit_actions: []
+
+      UNKNOWN:
+        description: System health cannot be determined
+        allowed_commands: []
+        entry_actions:
+          - emit system.health.unknown
+        exit_actions: []
+
+    transitions:
+      - from: HEALTHY
+        to: DEGRADED
+        event: system.health.degraded
+      - from: DEGRADED
+        to: HEALTHY
+        event: system.health.restored
+      - from: HEALTHY
+        to: HALTED
+        command: governance.emergency.halt
+      - from: DEGRADED
+        to: HALTED
+        command: governance.emergency.halt
+      - from: HEALTHY
+        to: UNKNOWN
+        event: system.health.unknown
+      - from: UNKNOWN
+        to: HEALTHY
+        event: system.health.restored

@@ -1,0 +1,51 @@
+# ============================================================
+# Command Catalog Completeness Verification
+# Phase XIV-E: Constitutional Convergence
+# ============================================================
+generated_at: "2026-07-17T23:17:00-07:00"
+auditor: ConstitutionalDriftDetector
+
+summary:
+  total_commands: 88
+  commands_with_gates: 88
+  commands_missing_gates: 0
+  gates_completeness_pct: 100
+
+domains:
+  vault:
+    commands: 12
+    gates_complete: 12
+  ledger:
+    commands: 9
+    gates_complete: 9
+  treasury:
+    commands: 9
+    gates_complete: 9
+  identity:
+    commands: 12
+    gates_complete: 12
+  policy:
+    commands: 8
+    gates_complete: 8
+  intent:
+    commands: 8
+    gates_complete: 8
+  agent:
+    commands: 8
+    gates_complete: 8
+  payment:
+    commands: 9
+    gates_complete: 9
+  governance:
+    commands: 13
+    gates_complete: 13
+
+invariant_coverage:
+  total_invariant_references: 88
+  resolved_invariants: 88
+  missing_invariants: 0
+
+capability_coverage:
+  total_capability_references: 176
+  registered_capabilities: 106
+  unresolved_capabilities: 0

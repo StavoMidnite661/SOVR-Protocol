@@ -1,0 +1,71 @@
+compiler_runtime_realization:
+
+  input:
+    yaml_sources_count: 118
+    constitutional_files:
+      - 00_protocol-manifest.yaml
+      - 01_constitution.yaml
+      - 02_domain-model.yaml
+      - 03_command-catalog.yaml
+      - 04_event-catalog.yaml
+      - 05_state-machines.yaml
+      - 08_security-capabilities.yaml
+    domain_files:
+      - domains/vault.yaml
+      - domains/ledger.yaml
+      - domains/treasury.yaml
+      - domains/payment.yaml
+      - domains/identity.yaml
+      - domains/policy.yaml
+      - domains/intent.yaml
+      - domains/agent.yaml
+      - domains/governance.yaml
+
+  compilation:
+    compiler_package: packages/compiler
+    pipeline_modules:
+      - YamlLoader.ts
+      - SchemaValidator.ts
+      - SemanticAnalyzer.ts
+      - IntermediateRepresentation.ts
+      - RuntimeGenerator.ts
+      - EvidenceEmitter.ts
+    artifacts_generated:
+      - packages/runtime/generated/GeneratedStateMachine.ts
+      - packages/compiler/runtime/src/state-machine-compiler.ts
+    build_id: phase-xiii-build-001
+    status: partial
+
+  runtime:
+    generated_components_executed:
+      - GeneratedStateMachine imported by VaultAggregate
+      - ProtocolVersionProvider reads 01_constitution.yaml
+    existing_tests_pass: 71/71
+    new_compiler_tests: 0/0 (no compiler-specific tests yet)
+
+  evidence:
+    tests:
+      total: 71
+      passed: 71
+      failed: 0
+    build:
+      npm_run_build: PASS
+      tsc_exit_code: 0
+    compiler:
+      SOVRCompiler.compile(): STUB (returns empty ParsedProtocol)
+      YamlLoader.loadAll(): implemented
+      SemanticAnalyzer.analyze(): implemented
+      RuntimeGeneratorPipeline.generate(): implemented
+      StateMachineCompiler.compileVault(): implemented
+
+  integrity:
+    vault_state_machine_hash: sha256:generated-at-build-time
+    protocol_version_hash: sha256:computed-from-constitution
+    build_deterministic: true
+
+  gaps:
+    - Compiler does not yet wire YAML bridge end-to-end
+    - StateMachineCompiler output not yet wired into build pipeline
+    - Treasury/Payment/Agent domains not yet compiler-connected
+    - Generated catalogs not yet imported by protocol package
+    - Amendment AMD-0002/0004/0005/0009/0010 not yet ratified

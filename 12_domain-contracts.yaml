@@ -1,0 +1,1411 @@
+# ============================================================
+# SOVR Financial OS — Domain Contracts
+# File: 12_domain-contracts.yaml
+# Status: FROZEN
+# ============================================================
+# Defines coupling contracts between domains and boundary
+# contracts with external systems.
+# This file is populated as domains are built.
+# Current domains: Vault, Treasury, Payment, Ledger, Policy, Identity, Intent, Agent, Audit (Security & Intelligence Subsystem)
+# ============================================================
+
+# ============================================================
+# INTER-DOMAIN COUPLING CONTRACTS
+# ============================================================
+
+domain_contracts:
+
+  # ========================================================
+  # VAULT → TREASURY
+  # ========================================================
+
+  vault_to_treasury:
+    description: >
+      Treasury depends on Vault to confirm that value exists
+      and is available before initiating any movement. This
+      is the most critical coupling contract in SOVR — it
+      ensures no value moves that doesn't exist.
+    direction: vault_provides_to_treasury
+    constitutional_reference: INV-007 (asset_security)
+
+    vault_guarantees:
+      - guarantee_id: VG-T-001
+        name: asset_exists_and_verified
+        description: The asset is in a verified or higher operational state
+        proof: asset.state in [VERIFIED, AVAILABLE, RESERVED, LOCKED]
+        verification: vault_service queries asset state
+        response_format:
+          asset_id: uuid
+          state: enum
+          exists: boolean
+
+      - guarantee_id: VG-T-002
+        name: reservation_created_and_locked
+        description: Value has been reserved and locked for this specific operation
+        proof: reservation exists in ACTIVE state with matching lock_id
+        verification: vault_service queries reservation by reservation_id
+        response_format:
+          reservation_id: uuid
+          lock_id: uuid
+          state: enum
+          amount: decimal
+          expiration: timestamp
+
+      - guarantee_id: VG-T-003
+        name: available_balance_confirmed
+        description: The actor has sufficient available balance for this operation
+        proof: balance.available_balance >= requested_amount at time of reservation
+        verification: vault_service computes balance projection
+        response_format:
+          actor_id: uuid
+          asset_id: uuid
+          total_balance: decimal
+          available_balance: decimal
+          reserved_balance: decimal
+          locked_balance: decimal
+
+      - guarantee_id: VG-T-004
+        name: ownership_authority_confirmed
+        description: The actor has transfer authority over this asset
+        proof: actor_id has full_control or transfer_control on asset.ownership_id
+        verification: vault_service checks ownership and control records
+        response_format:
+          asset_id: uuid
+          actor_id: uuid
+          ownership_id: uuid
+          control_level: enum
+          has_transfer_authority: boolean
+
+      - guarantee_id: VG-T-005
+        name: lock_id_provided_for_deduplication
+        description: A unique lock_id is provided to prevent double-spending
+        proof: lock_id is globally unique and tied to a single reservation
+        verification: vault_service confirms lock_id uniqueness
+        response_format:
+          lock_id: uuid
+          reservation_id: uuid
+          created_at: timestamp
+
+    treasury_requires_from_vault:
+      - field: vault_lock_id
+        type: uuid
+        description: Unique identifier for the locked reservation
+        required: true
+      - field: reservation_id
+        type: uuid
+        description: The parent reservation
+        required: true
+      - field: asset_id
+        type: uuid
+        required: true
+      - field: amount
+        type: decimal
+        required: true
+      - field: expiration_timestamp
+        type: timestamp
+        required: true
+      - field: actor_authorization_context
+        type: object
+        required: true
+        fields:
+          actor_id: uuid
+          identity_id: uuid
+          capability: string
+          scope: string
+          policy_result: enum
+      - field: transaction_intent_reference
+        type: uuid
+        description: The intent that originated this operation
+        required: true
+
+    failure_protocol:
+      - condition: vault_cannot_confirm_asset_exists
+        action: treasury.command.rejected
+        event: treasury.transfer.failed
+        error_code: VAULT_ASSET_NOT_FOUND
+        retryable: false
+      - condition: vault_cannot_confirm_reservation
+        action: treasury.command.rejected
+        event: treasury.transfer.failed
+        error_code: VAULT_RESERVATION_NOT_FOUND
+        retryable: false
+      - condition: vault_lock_expired
+        action: treasury.command.rejected
+        event: treasury.transfer.failed
+        error_code: VAULT_LOCK_EXPIRED
+        retryable: false
+      - condition: ownership_disputed
+        action: treasury.command.halted
+        event: treasury.transfer.halted
+        error_code: VAULT_OWNERSHIP_DISPUTE
+        retryable: false
+        escalation: governance
+      - condition: vault_service_unavailable
+        action: treasury.command.rejected
+        event: treasury.transfer.failed
+        error_code: VAULT_UNAVAILABLE
+        retryable: true
+        retry_strategy: exponential_backoff
+
+    timeout:
+      vault_response_timeout: 5000ms
+      on_timeout: reject_and_retry
+
+  # ========================================================
+  # VAULT → LEDGER
+  # ========================================================
+
+  vault_to_ledger:
+    description: >
+      Ledger depends on Vault for authoritative asset state
+      when recording financial events. The Ledger records the
+      truth — the Vault is the authority on current state.
+    direction: vault_provides_to_ledger
+    constitutional_reference: INV-002 (double_entry_balance), INV-006 (event_describes_does_not_mutate)
+
+    vault_guarantees:
+      - guarantee_id: VG-L-001
+        name: asset_state_at_time_of_event
+        description: Vault provides authoritative asset state at the moment an event occurs
+        proof: state snapshot from vault projection
+        response_format:
+          asset_id: uuid
+          state: enum
+          balance_snapshot: decimal
+          timestamp: timestamp
+
+      - guarantee_id: VG-L-002
+        name: balance_before_operation
+        description: The balance before a financial operation was applied
+        proof: computed from event log and current projections
+        response_format:
+          actor_id: uuid
+          asset_id: uuid
+          total_balance: decimal
+          available_balance: decimal
+          reserved_balance: decimal
+          timestamp: timestamp
+
+      - guarantee_id: VG-L-003
+        name: reservation_status
+        description: Status of any reservation related to the ledger entry
+        proof: reservation lookup by consuming_transaction_id
+        response_format:
+          reservation_id: uuid
+          state: enum
+          consumed: boolean
+          consumed_at: timestamp
+
+      - guarantee_id: VG-L-004
+        name: custody_attestation_reference
+        description: Reference to the latest custody attestation for the asset
+        proof: attestation record lookup
+        response_format:
+          attestation_id: uuid
+          proof_hash: string
+          attested_at: timestamp
+          valid_until: timestamp
+
+    ledger_requires_from_vault:
+      - field: event_id_for_correlation
+        type: uuid
+        required: true
+      - field: asset_id
+        type: uuid
+        required: true
+      - field: amount
+        type: decimal
+        required: true
+      - field: operation_type
+        type: enum
+        values: [debit, credit, reserve, release, lock, consume, write_down]
+        required: true
+
+    failure_protocol:
+      - condition: vault_state_unknown
+        action: ledger.records_as_pending
+        event: ledger.entry.pending
+        error_code: VAULT_STATE_UNKNOWN
+        description: >
+          Ledger records the entry in PENDING state rather than
+          rejecting it. This preserves the operation while
+          Vault state is clarified. Constitution INV-009
+          requires unknown states be explicit.
+        retryable: true
+        resolution_trigger: vault_state_becomes_known
+
+  # ========================================================
+  # VAULT → POLICY
+  # ========================================================
+
+  vault_to_policy:
+    description: >
+      Policy engine depends on Vault for asset context when
+      evaluating rules. The policy engine cannot make
+      correct decisions without knowing the current Vault state.
+    direction: vault_provides_to_policy
+    constitutional_reference: INV-008 (command_execution_gates)
+
+    vault_guarantees:
+      - guarantee_id: VG-P-001
+        name: current_asset_state
+        description: The current state of the asset being evaluated
+        response_format:
+          asset_id: uuid
+          state: enum
+          risk_classification: enum
+          current_valuation: decimal
+          valuation_stale: boolean
+
+      - guarantee_id: VG-P-002
+        name: available_balance
+        description: The available balance for the actor on this asset
+        response_format:
+          actor_id: uuid
+          asset_id: uuid
+          available_balance: decimal
+
+      - guarantee_id: VG-P-003
+        name: reserve_status
+        description: Active reservations for this actor and asset
+        response_format:
+          reservations: array
+          total_reserved: decimal
+
+      - guarantee_id: VG-P-004
+        name: collateral_positions
+        description: Active collateral positions for this actor
+        response_format:
+          positions: array
+          total_encumbered: decimal
+
+      - guarantee_id: VG-P-005
+        name: risk_classification
+        description: The risk classification of the asset
+        response_format:
+          asset_id: uuid
+          risk_classification: enum
+          quality_score: decimal
+
+    policy_requires_from_vault:
+      - field: asset_id
+        type: uuid
+        required: true
+      - field: actor_id
+        type: uuid
+        required: true
+      - field: operation_type
+        type: enum
+        required: true
+      - field: amount
+        type: decimal
+        required: true
+
+    failure_protocol:
+      - condition: vault_unavailable
+        action: policy.defaults_to_deny
+        description: >
+          If Vault is unavailable, the policy engine defaults
+          to DENY for any operation requiring vault state.
+          This implements the constitutional principle that
+          uncertainty blocks action (INV-009).
+        event: policy.evaluation.vault_unavailable
+        error_code: VAULT_UNAVAILABLE
+        retryable: true
+
+  # ========================================================
+  # VAULT → PAYMENT
+  # ========================================================
+
+  vault_to_payment:
+    description: >
+      Payment domain depends on Vault for value confirmation
+      before executing external settlement. No payment leaves
+      SOVR without Vault confirmation.
+    direction: vault_provides_to_payment
+    constitutional_reference: INV-007 (asset_security), INV-005 (audit_trail_completeness)
+
+    vault_guarantees:
+      - guarantee_id: VG-PY-001
+        name: value_locked_for_payment
+        description: Value has been locked specifically for this payment
+        proof: reservation in ACTIVE state with consuming_transaction_id matching payment
+        response_format:
+          lock_id: uuid
+          reservation_id: uuid
+          amount: decimal
+          asset_id: uuid
+          state: ACTIVE
+
+      - guarantee_id: VG-PY-002
+        name: lock_id_for_correlation
+        description: Unique lock_id to prevent double-settlement
+        proof: lock_id is globally unique
+        response_format:
+          lock_id: uuid
+          created_at: timestamp
+
+      - guarantee_id: VG-PY-003
+        name: asset_exists_in_locked_state
+        description: The asset backing this payment is confirmed locked
+        proof: asset state is LOCKED with matching lock
+        response_format:
+          asset_id: uuid
+          state: LOCKED
+          lock_id: uuid
+
+      - guarantee_id: VG-PY-004
+        name: ownership_confirmed
+        description: The payment initiator has authority to move this asset
+        proof: actor has full_control or transfer_control
+        response_format:
+          actor_id: uuid
+          ownership_id: uuid
+          has_authority: boolean
+
+    payment_requires_from_vault:
+      - field: vault_lock_id
+        type: uuid
+        required: true
+      - field: reservation_id
+        type: uuid
+        required: true
+      - field: asset_id
+        type: uuid
+        required: true
+      - field: amount
+        type: decimal
+        required: true
+      - field: payment_rail_identifier
+        type: string
+        required: true
+        description: Which external rail will execute the payment
+
+    failure_protocol:
+      - condition: vault_lock_not_found
+        action: payment.command.rejected
+        event: payment.initiation.failed
+        error_code: VAULT_LOCK_NOT_FOUND
+        retryable: false
+      - condition: vault_lock_expired
+        action: payment.command.rejected
+        event: payment.initiation.failed
+        error_code: VAULT_LOCK_EXPIRED
+        retryable: false
+      - condition: asset_not_in_locked_state
+        action: payment.command.rejected
+        event: payment.initiation.failed
+        error_code: VAULT_ASSET_NOT_LOCKED
+        retryable: false
+      - condition: ownership_mismatch
+        action: payment.command.halted
+        event: payment.initiation.halted
+        error_code: VAULT_OWNERSHIP_MISMATCH
+        retryable: false
+        escalation: governance
+      - condition: vault_service_unavailable
+        action: payment.command.rejected
+        event: payment.initiation.failed
+        error_code: VAULT_UNAVAILABLE
+        retryable: true
+        retry_strategy: exponential_backoff
+
+    timeout:
+      vault_response_timeout: 5000ms
+      on_timeout: reject_and_retry
+
+  # ========================================================
+  # LEDGER → VAULT (Vault→Ledger already defined above)
+  # ========================================================
+
+  vault_to_ledger_reverse:
+    description: >
+      Ledger depends on Vault for asset state snapshots when
+      recording financial events. This is the Ledger's view
+      of the same contract defined in vault_to_ledger above.
+    direction: ledger_requires_from_vault
+    constitutional_reference: INV-002, INV-006
+
+    vault_guarantees_to_ledger:
+      - guarantee_id: VL-V-001
+        name: asset_exists
+        description: The asset referenced in the journal entry exists and is verified
+        proof: vault.asset.verified event exists for this asset_id
+      - guarantee_id: VL-V-002
+        name: ownership_verified
+        description: The actor posting to the ledger has ownership/control of the asset
+        proof: vault.ownership record confirms actor authority
+      - guarantee_id: VL-V-003
+        name: valuation_reference_exists
+        description: If the entry references a valuation, a trusted valuation exists
+        proof: vault.valuation.updated event with non-stale price
+      - guarantee_id: VL-V-004
+        name: reservation_reference_valid
+        description: If the entry references a reservation, the reservation is in a valid state
+        proof: vault.reserve state matches the entry's expected state
+
+    ledger_requires_from_vault:
+      - field: asset_reference
+        type: uuid
+        required: true
+        description: asset_id for every asset referenced in postings
+      - field: transaction_reference
+        type: uuid
+        required: true
+        description: correlation_id linking to the originating operation
+      - field: authorized_actor
+        type: object
+        required: true
+        fields:
+          actor_id: uuid
+          authority_level: enum
+          scope: string
+
+    failure_protocol:
+      - condition: vault_asset_not_found
+        action: ledger.records_as_pending
+        event: ledger.entry.rejected
+        error_code: VAULT_ASSET_NOT_FOUND
+        retryable: false
+      - condition: vault_ownership_not_verified
+        action: ledger.entry.rejected
+        event: ledger.entry.rejected
+        error_code: VAULT_OWNERSHIP_NOT_VERIFIED
+        retryable: false
+      - condition: vault_unavailable
+        action: ledger.records_as_pending
+        event: none
+        error_code: VAULT_UNAVAILABLE
+        retryable: true
+        constitutional_note: INV-009 requires unknown state be explicit
+
+  # ========================================================
+  # TREASURY → LEDGER (Prepared for Treasury phase)
+  # ========================================================
+
+  treasury_to_ledger:
+    description: >
+      Treasury depends on Ledger to record the financial
+      interpretation of every value movement. Ledger provides
+      the authoritative record; Treasury provides the operation
+      context.
+    direction: mutual
+    constitutional_reference: INV-002, INV-005
+    status: ACTIVE
+
+    treasury_provides_to_ledger:
+      - guarantee_id: TL-T-001
+        name: transfer_intent
+        description: The purpose and context of the value movement
+        response_format:
+          transfer_id: uuid
+          intent_id: uuid
+          purpose: string
+          amount: decimal
+          asset_id: uuid
+      - guarantee_id: TL-T-002
+        name: source_account
+        description: The source of the value movement
+        response_format:
+          account_id: uuid
+          owner_id: uuid
+      - guarantee_id: TL-T-003
+        name: destination_account
+        description: The destination of the value movement
+        response_format:
+          account_id: uuid
+          owner_id: uuid
+      - guarantee_id: TL-T-004
+        name: settlement_status
+        description: Whether the transfer completed, failed, or is pending
+        response_format:
+          transfer_id: uuid
+          status: enum [INITIATED, PROCESSING, SETTLED, FAILED]
+          settled_at: timestamp
+
+    ledger_returns_to_treasury:
+      - guarantee_id: TL-L-001
+        name: journal_reference
+        description: The journal entry_id that records this transfer
+        response_format:
+          entry_id: uuid
+          journal_id: uuid
+          posted_at: timestamp
+      - guarantee_id: TL-L-002
+        name: posting_confirmation
+        description: Confirmation that the entry was posted and balanced
+        response_format:
+          balanced: boolean
+          total_debits: decimal
+          total_credits: decimal
+      - guarantee_id: TL-L-003
+        name: reconciliation_state
+        description: Whether this transfer's ledger entry has been reconciled
+        response_format:
+          entry_id: uuid
+          reconciliation_status: enum [NOT_RECONCILED, RECONCILED, DISCREPANCY]
+
+    failure_protocol:
+      - condition: ledger_rejects_entry
+        action: treasury.command.halted
+        event: treasury.transfer.halted
+        error_code: LEDGER_ENTRY_REJECTED
+        retryable: false
+        escalation: governance
+      - condition: ledger_unavailable
+        action: treasury.command.proceeds_with_warning
+        event: treasury.transfer.ledger_unavailable
+        error_code: LEDGER_UNAVAILABLE
+        retryable: true
+        constitutional_note: >
+          Treasury may proceed if Vault confirms value exists.
+          Ledger recording catches up. This respects the
+          priority ordering: asset_security (2) >
+          ledger_integrity (4).
+
+  # ========================================================
+  # TREASURY → PAYMENT
+  # ========================================================
+
+  treasury_to_payment:
+    description: >
+      Payment domain depends on Treasury for approved execution
+      instructions with Vault-backed value guarantees.
+    direction: treasury_provides_to_payment
+    constitutional_reference: INV-005, INV-007
+
+    treasury_guarantees:
+      - guarantee_id: TP-T-001
+        name: approved_execution_instruction
+        description: Transfer has passed all authorization gates
+        proof: transfer_order.state in [RESERVED, EXECUTING]
+      - guarantee_id: TP-T-002
+        name: vault_backed_value
+        description: Value is locked in Vault for this specific payment
+        proof: vault_lock_id provided and verified
+      - guarantee_id: TP-T-003
+        name: authorized_asset_movement
+        description: The asset type and amount are policy-approved
+        proof: policy evaluation passed for this specific transfer
+      - guarantee_id: TP-T-004
+        name: compensation_path_exists
+        description: If settlement fails, a compensation saga is defined
+        proof: external_transfer_saga defined with compensation steps
+
+    payment_requires_from_treasury:
+      - field: instruction_id
+        type: uuid
+        required: true
+      - field: order_id
+        type: uuid
+        required: true
+      - field: asset_id
+        type: uuid
+        required: true
+      - field: amount
+        type: decimal
+        required: true
+      - field: destination_details
+        type: object
+        required: true
+        fields: [type, address, rail, reference]
+      - field: vault_lock_id
+        type: uuid
+        required: true
+      - field: vault_reservation_id
+        type: uuid
+        required: true
+      - field: max_attempts
+        type: integer
+        required: true
+      - field: timeout
+        type: integer
+        required: true
+
+    payment_returns_to_treasury:
+      - settlement confirmation or failure or unknown state
+      - via: treasury.settlement.confirm or treasury.transfer.failed or UNKNOWN_EXTERNAL_STATE
+
+    failure_protocol:
+      - condition: payment_execution_fails
+        action: treasury initiates compensation saga
+        event: treasury.transfer.failed
+        error_code: PAYMENT_EXECUTION_FAILED
+        retryable: depends_on_failure_type
+      - condition: payment_returns_unknown
+        action: treasury enters UNKNOWN_EXTERNAL_STATE
+        event: none (state change only)
+        error_code: PAYMENT_STATE_UNKNOWN
+        retryable: false
+        constitutional_note: INV-009 — uncertainty modeled explicitly
+
+  # ========================================================
+  # POLICY → TREASURY
+  # ========================================================
+
+  policy_to_treasury:
+    description: >
+      Treasury depends on Policy for execution permission
+      and risk evaluation before any transfer.
+    direction: policy_provides_to_treasury
+    constitutional_reference: INV-008 (gate 4)
+
+    policy_guarantees:
+      - guarantee_id: PT-P-001
+        name: execution_permission
+        description: Policy has evaluated and approved this transfer
+        proof: policy_result == APPROVE
+      - guarantee_id: PT-P-002
+        name: risk_evaluation
+        description: Risk assessment completed
+        proof: risk_level assigned
+      - guarantee_id: PT-P-003
+        name: compliance_check
+        description: Transfer complies with all active regulations
+        proof: all compliance rules passed
+
+    treasury_requires_from_policy:
+      - field: transfer_context
+        type: object
+        required: true
+        fields: [source_actor_id, destination_actor_id, asset_id, amount, purpose]
+      - field: result
+        type: enum
+        values: [APPROVE, DENY, REQUIRE_APPROVAL]
+        required: true
+      - field: rules_applied
+        type: array
+        required: true
+      - field: conditions
+        type: array
+        required: false
+
+    failure_protocol:
+      - condition: policy_denies
+        action: treasury.transfer.rejected
+        event: treasury.transfer.rejected
+        error_code: POLICY_DENIED
+        retryable: false
+      - condition: policy_requires_approval
+        action: treasury.halts_awaiting_governance
+        event: none
+        error_code: POLICY_REQUIRES_APPROVAL
+        retryable: false
+        escalation: governance
+      - condition: policy_unavailable
+        action: treasury.defaults_to_deny
+        event: treasury.transfer.rejected
+        error_code: POLICY_UNAVAILABLE
+        retryable: true
+
+  # ========================================================
+  # IDENTITY → POLICY (Security & Intelligence Subsystem)
+  # ========================================================
+
+  identity_to_policy:
+    description: >
+      Policy depends on Identity for authorization context
+      before any evaluation can occur.
+    direction: identity_provides_to_policy
+    constitutional_reference: INV-003, INV-008 (gates 1→2)
+
+    identity_guarantees:
+      - guarantee_id: IG-P-001
+        name: actor_authenticated
+        description: identity_id maps to an ACTIVE actor with valid session
+        proof: identity lookup confirms actor.state == ACTIVE and session valid
+        response_format:
+          identity_id: uuid
+          actor_id: uuid
+          state: enum
+          session_valid: boolean
+
+      - guarantee_id: IG-P-002
+        name: trust_level_established
+        description: trust_level is set and binding_strength verified
+        proof: trust assessment record exists and is current
+        response_format:
+          trust_level: enum
+          binding_strength: enum
+          assessed_at: timestamp
+
+      - guarantee_id: IG-P-003
+        name: capability_set_computed
+        description: effective capabilities computed from identity + delegation chain
+        proof: capability computation result with full provenance
+        response_format:
+          capabilities: array
+          computation_hash: string
+
+      - guarantee_id: IG-P-004
+        name: delegation_chain_valid
+        description: all delegations in chain are ACTIVE and within limits
+        proof: chain traversal confirms every link is ACTIVE and not exceeded
+        response_format:
+          delegation_chain: array
+          chain_valid: boolean
+          depth: integer
+
+      - guarantee_id: IG-P-005
+        name: session_active
+        description: session has not expired and has not been revoked
+        proof: session record confirms not_expired and not_revoked
+        response_format:
+          session_id: uuid
+          expires_at: timestamp
+          revoked: boolean
+
+    policy_requires_from_identity:
+      - field: authorization_context
+        type: object
+        required: true
+        description: Full authorization context object
+      - field: identity_id
+        type: uuid
+        required: true
+      - field: actor_type
+        type: enum
+        required: true
+      - field: trust_level
+        type: enum
+        required: true
+      - field: session_id
+        type: uuid
+        required: true
+      - field: delegation_chain
+        type: array
+        required: true
+
+    failure_protocol:
+      - condition: identity_not_authenticated
+        action: policy.defaults_to_deny
+        event: policy.evaluation.identity_failed
+        error_code: IDENTITY_NOT_AUTHENTICATED
+        retryable: false
+      - condition: session_expired
+        action: policy.defaults_to_deny
+        event: policy.evaluation.session_expired
+        error_code: SESSION_EXPIRED
+        retryable: true
+        retry_note: re-authenticate
+      - condition: delegation_chain_invalid
+        action: policy.defaults_to_deny
+        event: policy.evaluation.delegation_invalid
+        error_code: DELEGATION_CHAIN_INVALID
+        retryable: false
+        escalation: governance
+      - condition: identity_service_unavailable
+        action: policy.defaults_to_deny
+        event: policy.evaluation.identity_unavailable
+        error_code: IDENTITY_UNAVAILABLE
+        retryable: true
+
+    timeout:
+      identity_response_timeout: 5000ms
+      on_timeout: deny
+
+  # ========================================================
+  # POLICY → INTENT (Security & Intelligence Subsystem)
+  # ========================================================
+
+  policy_to_intent:
+    description: >
+      Intent depends on Policy for a decision before
+      normalization can proceed.
+    direction: policy_provides_to_intent
+    constitutional_reference: INV-003, INV-008 (gate 4)
+
+    policy_guarantees:
+      - guarantee_id: PI-I-001
+        name: evaluation_completed
+        description: policy evaluation has produced a decision
+        proof: policy_result record exists with non-null decision
+        response_format:
+          policy_decision_id: uuid
+          decision: enum
+          evaluated_at: timestamp
+
+      - guarantee_id: PI-I-002
+        name: decision_deterministic
+        description: same inputs produce same decision (deterministic_hash)
+        proof: deterministic_hash computed over all inputs matches stored hash
+        response_format:
+          deterministic_hash: string
+          input_hash: string
+
+      - guarantee_id: PI-I-003
+        name: risk_assessed
+        description: risk level and factors are computed
+        proof: risk assessment record with level and factor breakdown
+        response_format:
+          risk_level: enum
+          risk_factors: array
+
+      - guarantee_id: PI-I-004
+        name: compliance_checked
+        description: all applicable compliance rules evaluated
+        proof: compliance evaluation record with per-rule results
+        response_format:
+          compliance_rules_applied: array
+          all_passed: boolean
+
+    intent_requires_from_policy:
+      - field: policy_decision_id
+        type: uuid
+        required: true
+      - field: decision
+        type: enum
+        values: [ALLOW, DENY, ESCALATE, DEFER]
+        required: true
+      - field: confidence
+        type: enum
+        required: true
+      - field: risk_level
+        type: enum
+        required: true
+      - field: deterministic_hash
+        type: string
+        required: true
+      - field: conditions
+        type: array
+        required: false
+
+    failure_protocol:
+      - condition: policy_denied
+        action: intent.enters_failed_state
+        event: intent.validation.policy_denied
+        error_code: POLICY_DENIED
+        retryable: false
+      - condition: policy_escalated
+        action: intent.enters_validating_with_pending_escalation
+        event: intent.validation.policy_escalated
+        error_code: POLICY_ESCALATED
+        retryable: false
+      - condition: policy_deferred
+        action: intent.waits_until_defer_until
+        event: intent.validation.policy_deferred
+        error_code: POLICY_DEFERRED
+        retryable: true
+        retry_note: retry at defer_until
+      - condition: policy_unavailable
+        action: intent.halts
+        event: intent.validation.policy_unavailable
+        error_code: POLICY_UNAVAILABLE
+        retryable: true
+
+    timeout:
+      policy_response_timeout: 10000ms
+      on_timeout: halt
+
+  # ========================================================
+  # INTENT → AGENT (Security & Intelligence Subsystem)
+  # ========================================================
+
+  intent_to_agent:
+    description: >
+      Agent depends on Intent for a fully validated command
+      with complete authorization chain.
+    direction: intent_provides_to_agent
+    constitutional_reference: INV-004, INV-005, INV-008, INV-010
+
+    intent_guarantees:
+      - guarantee_id: II-A-001
+        name: intent_validated
+        description: intent has passed validation (state == READY or CONVERTED_TO_COMMAND)
+        proof: intent.state in [READY, CONVERTED_TO_COMMAND]
+        response_format:
+          intent_id: uuid
+          state: enum
+          validated_at: timestamp
+
+      - guarantee_id: II-A-002
+        name: policy_approval_attached
+        description: policy_decision_id with ALLOW decision is present
+        proof: linked policy_decision exists with decision == ALLOW
+        response_format:
+          policy_decision_id: uuid
+          decision: enum
+
+      - guarantee_id: II-A-003
+        name: authorization_context_attached
+        description: full authorization context from Identity is linked
+        proof: authorization_context_id references a valid context record
+        response_format:
+          authorization_context_id: uuid
+          identity_id: uuid
+          trust_level: enum
+
+      - guarantee_id: II-A-004
+        name: command_fully_specified
+        description: converted command has all required fields
+        proof: command schema validation passes with no missing required fields
+        response_format:
+          command_id: uuid
+          command_name: string
+          payload_complete: boolean
+
+      - guarantee_id: II-A-005
+        name: ambiguity_resolved
+        description: all ambiguities explicitly resolved with enrichment records
+        proof: no unresolved ambiguity records; all have resolution records
+        response_format:
+          ambiguities_resolved: integer
+          unresolved_count: integer
+
+    agent_requires_from_intent:
+      - field: intent_id
+        type: uuid
+        required: true
+      - field: command_id
+        type: uuid
+        required: true
+      - field: command_name
+        type: string
+        required: true
+      - field: command_payload
+        type: object
+        required: true
+      - field: policy_decision_id
+        type: uuid
+        required: true
+      - field: authorization_context_id
+        type: uuid
+        required: true
+      - field: conversion_confidence
+        type: enum
+        required: true
+      - field: assumptions_made
+        type: array
+        required: true
+
+    failure_protocol:
+      - condition: intent_not_validated
+        action: agent.rejects_execution
+        event: agent.execution.rejected
+        error_code: INTENT_NOT_VALIDATED
+        retryable: false
+      - condition: policy_not_approved
+        action: agent.rejects_execution
+        event: agent.execution.rejected
+        error_code: POLICY_NOT_APPROVED
+        retryable: false
+      - condition: authorization_missing
+        action: agent.rejects_execution
+        event: agent.execution.rejected
+        error_code: AUTHORIZATION_MISSING
+        retryable: false
+        escalation: governance
+      - condition: command_incomplete
+        action: agent.rejects_execution
+        event: agent.execution.rejected
+        error_code: COMMAND_INCOMPLETE
+        retryable: false
+
+    timeout:
+      intent_response_timeout: 5000ms
+      on_timeout: reject
+
+  # ========================================================
+  # AGENT → TREASURY (Security & Intelligence Subsystem)
+  # ========================================================
+
+  agent_to_treasury:
+    description: >
+      Treasury receives commands from Agent that carry the full
+      audit envelope. Agent does not bypass any pipeline stage.
+    direction: agent_provides_to_treasury (via standard command pipeline)
+    constitutional_reference: INV-004, INV-005, INV-007, INV-008, INV-010
+
+    agent_guarantees:
+      - guarantee_id: AG-T-001
+        name: audit_envelope_attached
+        description: complete agent_audit_envelope is present
+        proof: audit_envelope object with all required fields populated
+        response_format:
+          audit_envelope: object
+
+      - guarantee_id: AG-T-002
+        name: policy_decision_valid
+        description: ALLOW decision with valid policy_decision_id
+        proof: policy_decision lookup confirms decision == ALLOW
+        response_format:
+          policy_decision_id: uuid
+          decision: enum
+
+      - guarantee_id: AG-T-003
+        name: within_quota
+        description: agent has not exceeded execution quotas
+        proof: agent quota counters below limits
+        response_format:
+          agent_id: uuid
+          quota_used: integer
+          quota_limit: integer
+
+      - guarantee_id: AG-T-004
+        name: within_concurrency
+        description: agent is within concurrent execution limit
+        proof: active execution count below concurrency limit
+        response_format:
+          agent_id: uuid
+          active_executions: integer
+          concurrency_limit: integer
+
+      - guarantee_id: AG-T-005
+        name: capability_bound
+        description: agent holds the required capability binding
+        proof: capability_binding record exists and is ACTIVE
+        response_format:
+          capability_id: string
+          binding_state: enum
+
+      - guarantee_id: AG-T-006
+        name: not_self_approving
+        description: policy decision was made by different identity than agent
+        proof: policy_decision.authorizing_identity_id != agent.identity_id
+        response_format:
+          policy_identity_id: uuid
+          agent_identity_id: uuid
+          different: boolean
+
+    treasury_requires_from_agent:
+      - field: audit_envelope
+        type: object
+        required: true
+        description: Full audit envelope object
+      - field: agent_id
+        type: uuid
+        required: true
+      - field: command
+        type: object
+        required: true
+        description: Fully qualified command
+      - field: policy_decision_id
+        type: uuid
+        required: true
+      - field: intent_id
+        type: uuid
+        required: true
+      - field: capability_id
+        type: string
+        required: true
+
+    failure_protocol:
+      - condition: audit_envelope_missing
+        action: treasury.rejects
+        event: treasury.command.rejected
+        error_code: AGENT_AUDIT_MISSING
+        retryable: false
+        escalation: governance
+      - condition: quota_exceeded
+        action: treasury.rejects
+        event: treasury.command.rejected
+        error_code: AGENT_QUOTA_EXCEEDED
+        retryable: false
+      - condition: concurrency_exceeded
+        action: treasury.queues
+        event: treasury.command.queued
+        error_code: AGENT_CONCURRENCY_LIMIT
+        retryable: true
+        retry_note: retry after delay
+      - condition: capability_not_bound
+        action: treasury.rejects
+        event: treasury.command.rejected
+        error_code: AGENT_CAPABILITY_NOT_BOUND
+        retryable: false
+        escalation: governance
+      - condition: self_approval_detected
+        action: treasury.rejects
+        event: treasury.command.rejected
+        error_code: AGENT_SELF_APPROVAL
+        retryable: false
+        escalation: governance
+
+    timeout:
+      agent_response_timeout: 5000ms
+      on_timeout: reject
+
+  # ========================================================
+  # IDENTITY → TREASURY (Security & Intelligence Subsystem, cross-reference)
+  # ========================================================
+
+  identity_to_treasury:
+    description: >
+      Treasury depends on Identity for actor verification
+      before processing transfers.
+    direction: identity_provides_to_treasury
+    constitutional_reference: INV-003, INV-008
+
+    identity_guarantees:
+      - guarantee_id: IT-T-001
+        name: actor_exists_and_active
+        description: actor_id maps to ACTIVE identity
+        proof: identity lookup confirms actor.state == ACTIVE
+        response_format:
+          identity_id: uuid
+          actor_id: uuid
+          state: enum
+
+      - guarantee_id: IT-T-002
+        name: ownership_verified
+        description: actor has ownership or transfer authority for the asset
+        proof: ownership record confirms full_control or transfer_control
+        response_format:
+          actor_id: uuid
+          asset_id: uuid
+          ownership_id: uuid
+          has_authority: boolean
+
+    treasury_requires_from_identity:
+      - field: identity_id
+        type: uuid
+        required: true
+      - field: actor_type
+        type: enum
+        required: true
+      - field: trust_level
+        type: enum
+        required: true
+
+    failure_protocol:
+      - condition: actor_not_found
+        action: treasury.rejects
+        event: treasury.transfer.rejected
+        error_code: ACTOR_NOT_FOUND
+        retryable: false
+      - condition: actor_not_active
+        action: treasury.rejects
+        event: treasury.transfer.rejected
+        error_code: ACTOR_NOT_ACTIVE
+        retryable: false
+      - condition: identity_unavailable
+        action: treasury.defaults_to_deny
+        event: treasury.transfer.identity_unavailable
+        error_code: IDENTITY_UNAVAILABLE
+        retryable: true
+
+    timeout:
+      identity_response_timeout: 5000ms
+      on_timeout: deny
+
+  # ========================================================
+  # LEDGER → AUDIT (Security & Intelligence Subsystem)
+  # ========================================================
+
+  ledger_to_audit:
+    description: >
+      Governance/Audit depends on Ledger for the complete,
+      immutable financial truth.
+    direction: ledger_provides_to_audit
+    constitutional_reference: INV-001, INV-005, INV-006
+
+    ledger_guarantees:
+      - guarantee_id: LA-A-001
+        name: journal_immutability
+        description: all journal entries are append-only and never modified
+        proof: no UPDATE or DELETE operations on journal entries; only INSERT
+        response_format:
+          journal_id: uuid
+          entry_count: integer
+          immutability_verified: boolean
+
+      - guarantee_id: LA-A-002
+        name: double_entry_integrity
+        description: every journal entry is balanced (debits == credits)
+        proof: sum(debit_postings.amount) == sum(credit_postings.amount) for every entry
+        response_format:
+          entry_id: uuid
+          total_debits: decimal
+          total_credits: decimal
+          balanced: boolean
+
+      - guarantee_id: LA-A-003
+        name: event_completeness
+        description: every financial event has a corresponding journal entry
+        proof: every financial event correlates to at least one journal entry
+        response_format:
+          event_id: uuid
+          journal_entry_id: uuid
+          correlated: boolean
+
+      - guarantee_id: LA-A-004
+        name: audit_trail_queryable
+        description: all entries are queryable by identity_id, time range, asset_id, transaction_id
+        proof: query interface supports all filter dimensions
+        response_format:
+          query_results: array
+          total_matching: integer
+          filters_applied: array
+
+      - guarantee_id: LA-A-005
+        name: reconciliation_state
+        description: reconciliation status is available for any time period
+        proof: reconciliation records exist for requested time range
+        response_format:
+          time_range_start: timestamp
+          time_range_end: timestamp
+          reconciliation_status: enum
+          discrepancies: array
+
+    audit_requires_from_ledger:
+      - field: journal_entries
+        type: array
+        required: true
+        description: Filterable journal entries
+      - field: account_balances
+        type: array
+        required: true
+        description: Filterable account balances
+      - field: reconciliation_records
+        type: array
+        required: true
+        description: Filterable reconciliation records
+      - field: time_range
+        type: object
+        required: true
+        description: Time range with start and end
+        fields: [start, end]
+      - field: actor_filter
+        type: uuid
+        required: false
+        description: Optional identity_id filter
+      - field: asset_filter
+        type: uuid
+        required: false
+        description: Optional asset_id filter
+
+    failure_protocol:
+      - condition: ledger_unavailable
+        action: audit.queries_fail
+        event: audit.query.failed
+        error_code: LEDGER_UNAVAILABLE
+        retryable: true
+      - condition: query_timeout
+        action: audit.partial_results_returned_with_timeout_flag
+        event: audit.query.partial
+        error_code: LEDGER_QUERY_TIMEOUT
+        retryable: true
+
+  # ========================================================
+  # GOVERNANCE DOMAIN CONTRACTS
+  # ========================================================
+
+  governance_to_policy:
+    description: >
+      Governance modifies and approves policy rules. Policy enforces
+      governance decisions. Governance receives escalation notifications.
+    governance_guarantees:
+      - policy_rule_reviewed_before_activation
+      - escalation_target_notified
+      - constitutional_compliance_verified
+    policy_requires:
+      - governance_approval_id
+      - review_decision
+      - constitutional_references
+    failure_protocol:
+      - condition: governance_unavailable
+        action: policy.defaults_to_deny
+        event: policy.governance_unavailable
+        error_code: GOVERNANCE_UNAVAILABLE
+        retryable: true
+
+  governance_to_identity:
+    description: >
+      Governance manages capabilities through Identity. Identity
+      enforces capability grants and revocations.
+    governance_guarantees:
+      - capability_grant_recorded
+      - capability_revocation_recorded
+    identity_requires:
+      - capability_id
+      - actor_id
+      - scope_pattern
+      - grant_expiry
+    failure_protocol:
+      - condition: identity_unavailable
+        action: governance.command.rejected
+        event: governance.identity_unavailable
+        error_code: IDENTITY_UNAVAILABLE
+        retryable: true
+
+  governance_to_agent:
+    description: >
+      Governance approves agents and can override agent decisions.
+      Agent executes within governance-approved boundaries.
+    governance_guarantees:
+      - agent_registration_reviewed
+      - override_recorded_and_audited
+    agent_requires:
+      - governance_approval_id
+      - approved_capabilities
+      - execution_limits
+    failure_protocol:
+      - condition: governance_unavailable
+        action: agent.defaults_to_deny
+        event: agent.governance_unavailable
+        error_code: GOVERNANCE_UNAVAILABLE
+        retryable: true
+
+  governance_to_all_domains:
+    description: >
+      Governance has oversight authority over all domains.
+      Domains must report escalation events to Governance.
+    governance_guarantees:
+      - audit_trail_queryable
+      - escalation_response_within_timeout
+    all_domains_require:
+      - escalation_notification_channel
+      - audit_event_format
+    failure_protocol:
+      - condition: governance_unavailable
+        action: domain.defaults_to_safe_state
+        event: governance.unavailable
+        error_code: GOVERNANCE_UNAVAILABLE
+        retryable: true
+
+  governance_to_treasury:
+    description: >
+      Governance can halt treasury operations, block transactions,
+      and review financial state during emergency situations.
+    governance_guarantees:
+      - emergency_halt_enforced
+      - transaction_block_recorded
+      - financial_state_preserved
+    treasury_requires:
+      - halt_command_verified
+      - block_reason
+      - affected_accounts
+    failure_protocol:
+      - condition: treasury_unavailable_during_halt
+        action: payment.defaults_to_reject
+        event: treasury.halt_enforcement_failed
+        error_code: TREASURY_UNAVAILABLE
+        retryable: false
+
+  governance_to_ledger:
+    description: >
+      Governance can query the complete audit trail and verify
+      ledger integrity. Ledger provides immutable evidence to Governance.
+    governance_guarantees:
+      - complete_audit_trail_available
+      - ledger_integrity_verifiable
+    ledger_requires:
+      - audit_query_parameters
+      - time_range
+    failure_protocol:
+      - condition: ledger_unavailable
+        action: governance.query_fails_with_error
+        event: governance.ledger_unavailable
+        error_code: LEDGER_UNAVAILABLE
+        retryable: true
+
+# ============================================================
+# BOUNDARY CONTRACTS — Pending Phase G
+# ============================================================
+
+boundary_contracts:
+  sovr_runtime_to_on_chain:
+    status: PENDING_PHASE_G
+  sovr_runtime_to_payment_rails:
+    status: PENDING_PHASE_F
+  sovr_runtime_to_regulatory:
+    status: PENDING_PHASE_G

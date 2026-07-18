@@ -1,0 +1,135 @@
+# ============================================================
+# SOVR Financial OS — Amendment Index
+# File: governance/amendments/INDEX.yaml
+# Phase: 3.2 — Constitutional Amendment Package Generator
+# Date: 2026-07-15
+# ============================================================
+# Registry of all constitutional amendments generated from the
+# Constitutional Finding Registry. Each amendment transforms one
+# or more certified findings into a governed change proposal.
+# No amendment is applied until RATIFIED per 11_governance-amendments.yaml.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  protocol_version: "1.0.0"
+  target_protocol_version: "1.0.1"
+  total_amendments: 12
+  source: governance/CONSTITUTIONAL_FINDING_REGISTRY.yaml
+
+amendments:
+  - id: AMD-0001
+    title: Repair Invalid YAML Structure
+    findings: [G-01]
+    severity: critical
+    type: constitutional_amendment
+    vote: unanimous
+    compiler_impact: CRITICAL
+    status: PROPOSED
+  - id: AMD-0002
+    title: Aggregate Root Constitutional Registry
+    findings: [G-02]
+    severity: high
+    type: constitutional_amendment
+    vote: unanimous
+    compiler_impact: HIGH
+    status: PROPOSED
+  - id: AMD-0003
+    title: Saga Command Reference Resolution
+    findings: [G-03]
+    severity: high
+    type: constitutional_amendment
+    vote: unanimous
+    compiler_impact: HIGH
+    status: PROPOSED
+  - id: AMD-0004
+    title: Canonical Domain Registry
+    findings: [G-05]
+    severity: high
+    type: constitutional_amendment
+    vote: unanimous
+    compiler_impact: HIGH
+    status: PROPOSED
+  - id: AMD-0005
+    title: Validation Expression Language Specification
+    findings: [G-06]
+    severity: high
+    type: constitutional_amendment
+    vote: unanimous
+    compiler_impact: HIGH
+    status: PROPOSED
+  - id: AMD-0006
+    title: Event Catalog Completion
+    findings: [G-09]
+    severity: high
+    type: constitutional_amendment
+    vote: unanimous
+    compiler_impact: HIGH
+    status: PROPOSED
+  - id: AMD-0007
+    title: Entity Registration Reconciliation
+    findings: [G-10]
+    severity: high
+    type: constitutional_amendment
+    vote: unanimous
+    compiler_impact: HIGH
+    status: PROPOSED
+  - id: AMD-0008
+    title: Value Object Model
+    findings: [G-04]
+    severity: medium
+    type: constitutional_amendment
+    vote: majority
+    compiler_impact: MEDIUM
+    status: PROPOSED
+  - id: AMD-0009
+    title: State Machine Transition Completion
+    findings: [G-08]
+    severity: medium
+    type: constitutional_amendment
+    vote: majority
+    compiler_impact: MEDIUM
+    status: PROPOSED
+  - id: AMD-0010
+    title: Constitutional Metadata Standard
+    findings: [G-11, G-12, G-13]
+    severity: medium
+    type: constitutional_amendment
+    vote: majority
+    compiler_impact: MEDIUM
+    status: PROPOSED
+  - id: AMD-0011
+    title: Domain File Structure Normalization
+    findings: [G-15]
+    severity: medium
+    type: constitutional_amendment
+    vote: majority
+    compiler_impact: MEDIUM
+    status: PROPOSED
+  - id: AMD-0012
+    title: Inventory & Documentation Reconciliation
+    findings: [G-14]
+    severity: low
+    type: operational_amendment
+    vote: single_authorized_governor
+    compiler_impact: NONE
+    status: PROPOSED
+
+engineering_only_no_amendment:
+  - finding: G-07
+    reason: No protocol change; build compiler RESOLVE stage to emit edge manifest (Phase 4).
+
+application_sequence:
+  # Recommended ratification/application order (dependency-aware)
+  - AMD-0001   # unblock parsing first
+  - AMD-0004   # domain registry (referenced by others)
+  - AMD-0010   # metadata standard (applies to all)
+  - AMD-0007   # entity reconciliation
+  - AMD-0006   # event completion
+  - AMD-0002   # aggregate registry (needs entities + events)
+  - AMD-0003   # saga command resolution (needs commands + boundary)
+  - AMD-0005   # validation language
+  - AMD-0009   # state machine transitions (needs events)
+  - AMD-0011   # domain file normalization (with AMD-0001 for vault)
+  - AMD-0008   # value objects
+  - AMD-0012   # documentation reconciliation (last)

@@ -1,0 +1,128 @@
+# ============================================================
+# SOVR Financial OS — Acceptance Test Constitution
+# File: protocol/ACCEPTANCE_STANDARD.yaml
+# Phase: 3.9 — Acceptance Test Constitution
+# Date: 2026-07-15
+# ============================================================
+# Every protocol artifact shall own acceptance evidence. This
+# standard defines the required shape of acceptance records and
+# the certification levels an artifact can attain. It aligns the
+# existing 105 acceptance tests (acceptance-tests.yaml) to a
+# uniform, machine-consumable contract.
+#
+# Status: GOVERNANCE_DRAFT — authoritative on ratification.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  standard_id: "acceptance-standard"
+  status: GOVERNANCE_DRAFT
+  protocol_version: "1.0.0"
+  target_protocol_version: "1.0.1"
+  owner: chief_architect
+  aligns: acceptance-tests.yaml   # 105 existing tests
+
+# ============================================================
+# REQUIRED ACCEPTANCE RECORD SHAPE
+# ============================================================
+
+acceptance_record_schema:
+  acceptance:
+    id:
+      type: string
+      rule: 'pattern CATEGORY-[REF]-T0NN, unique'
+    domain:
+      type: string
+      rule: resolves via DOMAIN_REGISTRY
+    invariant:
+      type: string
+      rule: invariant ID this test protects (optional if not invariant-scoped)
+    command:
+      type: string
+      rule: command ID under test (optional)
+    event:
+      type: string
+      rule: event ID asserted (optional)
+    expected_result:
+      type: string
+      rule: deterministic expected outcome
+    evidence:
+      type: string
+      rule: assertion or artifact proving the result (given/when/then + assertion)
+    certification_level:
+      type: enum
+      values: [UNCERTIFIED, DECLARED, COVERED, VERIFIED, CERTIFIED]
+
+# ============================================================
+# CERTIFICATION LEVELS
+# ============================================================
+
+certification_levels:
+  UNCERTIFIED:
+    meaning: no acceptance evidence exists for the artifact
+  DECLARED:
+    meaning: a test exists (given/when/then) but not yet mapped to a compiled assertion
+  COVERED:
+    meaning: test maps to a generated test skeleton
+  VERIFIED:
+    meaning: generated test executes and passes against a reference implementation
+  CERTIFIED:
+    meaning: VERIFIED + traceable to constitutional invariant + included in a signed build
+
+# ============================================================
+# OWNERSHIP RULE — EVERY ARTIFACT OWNS EVIDENCE
+# ============================================================
+
+ownership_requirements:
+  - every invariant MUST have >=1 acceptance record   (currently: 10/10 satisfied)
+  - every command SHOULD have >=1 acceptance record
+  - every capability MUST have >=1 acceptance record  (traceability model: required)
+  - every saga MUST have >=1 acceptance record
+  - every state_machine MUST have >=1 acceptance record
+  - every domain_contract SHOULD have >=1 acceptance record
+
+# ============================================================
+# CURRENT STATE (from Phase 2 measurement)
+# ============================================================
+
+current_state:
+  total_tests: 105
+  invariant_coverage: complete   # INV-001..INV-010 all covered
+  categories_present:
+    - INV-*        # invariant tests
+    - CAP-*        # capability tests
+    - CMD-*        # command tests
+    - EVT-ENV-*    # event envelope tests
+    - DC-*         # domain contract tests
+    - SAGA-*       # saga tests
+    - PRJ-*        # projection tests
+  gaps:
+    - some commands (88 total) lack a dedicated CMD-* test (default level: DECLARED)
+    - certification_level field not yet present on existing tests (add via alignment)
+
+# ============================================================
+# COMPILER ENFORCEMENT
+# ============================================================
+
+compiler_enforcement:
+  stage: VERIFY
+  rules:
+    - EVERY_INVARIANT_HAS_ACCEPTANCE: REJECT on failure
+    - EVERY_CAPABILITY_HAS_ACCEPTANCE: REJECT on failure
+    - COVERAGE_TARGET: 95   # from acceptance-tests.yaml meta
+  emits: acceptance_coverage_report
+
+# ============================================================
+# EXAMPLE
+# ============================================================
+
+example:
+  acceptance:
+    id: INV-002-T001
+    domain: ledger
+    invariant: INV-002
+    command: ledger.journal.post
+    event: ledger.journal.posted
+    expected_result: "unbalanced journal entry is rejected"
+    evidence: "given a journal with debits != credits, when posted, then DOUBLE_ENTRY_VIOLATION"
+    certification_level: DECLARED

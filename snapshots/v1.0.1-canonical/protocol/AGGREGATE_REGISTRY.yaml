@@ -1,0 +1,276 @@
+# ============================================================
+# SOVR Financial OS — Aggregate Registry
+# File: protocol/AGGREGATE_REGISTRY.yaml
+# Phase: 3.5 — Aggregate Root Constitutional Specification
+# Date: 2026-07-15
+# Ratified by: AMD-0002 (PROPOSED)
+# ============================================================
+# Explicit declaration of every aggregate root so the compiler
+# never infers aggregate boundaries. Aggregate roots are derived
+# from the 20 state machines (05_state-machines.yaml) — the
+# state-machine subject is the aggregate consistency boundary —
+# cross-checked against entities (02_domain-model.yaml) and
+# domain commands/events.
+#
+# This is a DECLARATION, not an implementation (Rule Zero).
+# owns_events / owns_commands use canonical ID prefixes; exact
+# membership is finalized by the compiler RESOLVE stage.
+#
+# Status: GOVERNANCE_DRAFT — authoritative on AMD-0002 RATIFIED.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  registry_id: "aggregate-registry"
+  status: GOVERNANCE_DRAFT
+  protocol_version: "1.0.0"
+  target_protocol_version: "1.0.1"
+  authoritative_on: AMD-0002
+  derivation:
+    - source: 05_state-machines.yaml (aggregate == state-machine subject)
+    - source: 02_domain-model.yaml (root_entity validation)
+    - source: 03_command-catalog.yaml / 04_event-catalog.yaml (ownership by prefix)
+  owner: chief_architect
+  total_aggregates: 17
+  note: >
+    saga_lifecycle and system_health_lifecycle are infrastructure state machines,
+    NOT business aggregates (see DOMAIN_REGISTRY non_domain_constructs).
+
+# ============================================================
+# AGGREGATES
+# ============================================================
+
+aggregates:
+
+  # -------- VAULT --------
+  - id: vault.asset
+    domain: vault
+    root_entity: vault.asset
+    state_machine: vault_asset_lifecycle
+    invariants: [INV-001, INV-005, INV-007]
+    owns_events: ["vault.asset.*"]
+    owns_commands: ["vault.asset.*"]
+    repositories: [AssetRepository]
+    projections: [asset_registry_view, reserve_position_view]
+    capabilities: [vault.asset.create, vault.asset.verify, vault.asset.read, vault.asset.reconcile, vault.asset.reject, vault.asset.impair]
+
+  - id: vault.reservation
+    domain: vault
+    root_entity: vault.reservation
+    state_machine: vault_reservation_lifecycle
+    invariants: [INV-001, INV-007]
+    owns_events: ["vault.reserve.*", "vault.reservation.*"]
+    owns_commands: ["vault.reserve.*"]
+    repositories: [ReservationRepository]
+    projections: [reserve_position_view]
+    capabilities: [vault.reserve.create, vault.reserve.release, vault.reserve.lock, vault.reserve.consume]
+
+  - id: vault.collateral
+    domain: vault
+    root_entity: vault.collateral_position
+    state_machine: vault_collateral_lifecycle
+    invariants: [INV-001, INV-007]
+    owns_events: ["vault.collateral.*"]
+    owns_commands: ["vault.collateral.*"]
+    repositories: [CollateralRepository]
+    projections: [collateral_view]
+    capabilities: [vault.collateral.add, vault.valuation.update]
+
+  # -------- LEDGER --------
+  - id: ledger.journal
+    domain: ledger
+    root_entity: ledger.journal
+    state_machine: ledger_journal_lifecycle
+    invariants: [INV-001, INV-002, INV-005, INV-006]
+    owns_events: ["ledger.journal.*"]
+    owns_commands: ["ledger.journal.*"]
+    repositories: [JournalRepository]
+    projections: [transaction_history_view, audit_trail_view]
+    capabilities: [ledger.journal.create, ledger.journal.post, ledger.journal.reverse, ledger.journal.compensate, ledger.journal.read]
+
+  - id: ledger.account
+    domain: ledger
+    root_entity: ledger.account
+    state_machine: ledger_account_lifecycle
+    invariants: [INV-002, INV-005]
+    owns_events: ["ledger.account.*", "ledger.period.*"]
+    owns_commands: ["ledger.account.*", "ledger.period.*", "ledger.reconcile.*"]
+    repositories: [AccountRepository]
+    projections: [account_balance_view, reconciliation_dashboard_view]
+    capabilities: [ledger.account.read, ledger.account.freeze, ledger.period.close, ledger.balance.query, ledger.reconcile.initiate]
+
+  # -------- TREASURY --------
+  - id: treasury.transfer
+    domain: treasury
+    root_entity: treasury.transfer_order
+    state_machine: treasury_transfer_lifecycle
+    invariants: [INV-002, INV-003, INV-007, INV-008, INV-009]
+    owns_events: ["treasury.transfer.*", "treasury.settlement.*"]
+    owns_commands: ["treasury.transfer.*", "treasury.settlement.*"]
+    repositories: [TransferRepository, SettlementRepository]
+    projections: [transfer_status_view, liquidity_view]
+    capabilities: [treasury.transfer.initiate, treasury.transfer.approve, treasury.settlement.confirm, treasury.liquidity.manage]
+
+  # -------- IDENTITY --------
+  - id: identity.actor
+    domain: identity
+    root_entity: identity.actor
+    state_machine: identity_actor_lifecycle
+    invariants: [INV-003, INV-005]
+    owns_events: ["identity.actor.*"]
+    owns_commands: ["identity.actor.*"]
+    repositories: [ActorRepository]
+    projections: [actor_directory_view]
+    capabilities: [identity.actor.create, identity.actor.verify, identity.actor.suspend, identity.actor.revoke, identity.actor.read]
+
+  - id: identity.credential
+    domain: identity
+    root_entity: identity.credential
+    state_machine: identity_credential_lifecycle
+    invariants: [INV-003]
+    owns_events: ["identity.credential.*"]
+    owns_commands: ["identity.credential.*"]
+    repositories: [CredentialRepository]
+    projections: [credential_view]
+    capabilities: [identity.credential.issue, identity.credential.revoke]
+
+  - id: identity.session
+    domain: identity
+    root_entity: identity.session
+    state_machine: identity_session_lifecycle
+    invariants: [INV-003]
+    owns_events: ["identity.session.*"]
+    owns_commands: ["identity.session.*"]
+    repositories: [SessionRepository]
+    projections: [active_session_view]
+    capabilities: [identity.session.create]
+
+  - id: identity.delegation
+    domain: identity
+    root_entity: identity.delegation
+    state_machine: identity_delegation_lifecycle
+    invariants: [INV-003, INV-004]
+    owns_events: ["identity.delegation.*"]
+    owns_commands: ["identity.delegation.*"]
+    repositories: [DelegationRepository]
+    projections: [delegation_view]
+    capabilities: [identity.delegation.create, identity.trust_anchor.create]
+
+  # -------- POLICY --------
+  - id: policy.rule
+    domain: policy
+    root_entity: policy.policy_rule
+    state_machine: policy_rule_lifecycle
+    invariants: [INV-003, INV-008]
+    owns_events: ["policy.rule.*", "policy.set.*", "policy.compliance.*"]
+    owns_commands: ["policy.rule.*", "policy.set.*", "policy.compliance.*"]
+    repositories: [PolicyRuleRepository]
+    projections: [policy_catalog_view]
+    capabilities: [policy.rule.create, policy.rule.update, policy.rule.read, policy.set.evaluate, policy.compliance.create]
+
+  - id: policy.evaluation
+    domain: policy
+    root_entity: policy.policy_evaluation
+    state_machine: policy_evaluation_lifecycle
+    invariants: [INV-003, INV-008]
+    owns_events: ["policy.evaluation.*", "policy.decision.*", "policy.escalation.*"]
+    owns_commands: ["policy.escalation.*"]
+    repositories: [EvaluationRepository]
+    projections: [policy_decision_view]
+    capabilities: [policy.escalation.resolve]
+
+  # -------- INTENT --------
+  - id: intent.intent
+    domain: intent
+    root_entity: intent.intent
+    state_machine: intent_lifecycle
+    invariants: [INV-008, INV-010]
+    owns_events: ["intent.*"]
+    owns_commands: ["intent.*"]
+    repositories: [IntentRepository]
+    projections: [intent_status_view]
+    capabilities: [intent.submit, intent.convert, intent.cancel, intent.read]
+
+  # -------- AGENT --------
+  - id: agent.instance
+    domain: agent
+    root_entity: agent.agent_instance
+    state_machine: agent_lifecycle
+    invariants: [INV-004, INV-010]
+    owns_events: ["agent.register*", "agent.activate*", "agent.terminate*", "agent.capability.*", "agent.quota.*"]
+    owns_commands: ["agent.register", "agent.activate", "agent.terminate", "agent.capability.*", "agent.quota.*"]
+    repositories: [AgentRepository]
+    projections: [agent_directory_view]
+    capabilities: [agent.register, agent.activate, agent.terminate, agent.capability.bind, agent.capability.revoke, agent.quota.update]
+
+  - id: agent.execution
+    domain: agent
+    root_entity: agent.agent_audit_envelope
+    state_machine: agent_execution_lifecycle
+    invariants: [INV-004, INV-010]
+    owns_events: ["agent.execution.*", "agent.governance.*"]
+    owns_commands: ["agent.execution.*", "agent.governance.*"]
+    repositories: [AgentExecutionRepository]
+    projections: [agent_execution_view]
+    capabilities: [agent.governance.override]
+
+  # -------- PAYMENT --------
+  - id: payment.request
+    domain: payment
+    root_entity: payment.payment_request
+    state_machine: payment_request_lifecycle
+    invariants: [INV-007, INV-009]
+    owns_events: ["payment.request.*", "payment.execution.*"]
+    owns_commands: ["payment.initiate", "payment.execution.*"]
+    repositories: [PaymentRequestRepository]
+    projections: [payment_status_view]
+    capabilities: [payment.initiate]
+
+  - id: payment.adapter
+    domain: payment
+    root_entity: payment.execution_receipt
+    state_machine: payment_adapter_lifecycle
+    invariants: [INV-009]
+    owns_events: ["payment.rail.*", "payment.reconcile*"]
+    owns_commands: ["payment.reconcile"]
+    repositories: [AdapterRepository, ReconciliationRepository]
+    projections: [reconciliation_view]
+    capabilities: [payment.reconcile]
+
+  # -------- GOVERNANCE --------
+  - id: governance.proposal
+    domain: governance
+    root_entity: governance.governance_proposal
+    state_machine: governance_proposal_lifecycle
+    invariants: [INV-003, INV-004, INV-005]
+    owns_events: ["governance.proposal.*", "governance.amendment.*", "governance.override.*", "governance.emergency.*", "governance.audit.*"]
+    owns_commands: ["governance.*"]
+    repositories: [ProposalRepository, AmendmentRepository]
+    projections: [governance_activity_view, audit_trail_view]
+    capabilities: [governance.audit.query, governance.oversight.review, governance.emergency.halt]
+
+# ============================================================
+# INFRASTRUCTURE STATE MACHINES (NOT aggregates)
+# ============================================================
+
+infrastructure_state_machines:
+  - saga_lifecycle          # orchestration engine state, not a business aggregate
+  - system_health_lifecycle # platform health, not a business aggregate
+
+# ============================================================
+# VALIDATION RULES (compiler enforcement)
+# ============================================================
+
+validation_rules:
+  - rule: ROOT_ENTITY_EXISTS
+    check: every aggregate.root_entity exists in 02_domain-model.yaml (post AMD-0007).
+    on_failure: REJECT
+  - rule: SINGLE_ROOT_OWNERSHIP
+    check: no entity is the root_entity of more than one aggregate.
+    on_failure: REJECT
+  - rule: COMMAND_EVENT_OWNERSHIP_PARTITION
+    check: every command and event is owned by exactly one aggregate.
+    on_failure: REJECT
+  - rule: STATE_MACHINE_BINDING
+    check: every business state machine maps to exactly one aggregate.
+    on_failure: REJECT

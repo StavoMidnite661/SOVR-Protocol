@@ -1,0 +1,20 @@
+warnings:
+  dead_events:
+    total: 134
+    accepted: 134
+    remediation: Events are declared in 04_event-catalog.yaml but not yet referenced by transitions in 05_state-machines.yaml. This is expected for future protocol capabilities.
+
+  missing_projections:
+    total: 134
+    accepted: 134
+    remediation: Events lack projection definitions. Projections will be implemented in Phase XV as read models for the Vendor Audit Package.
+
+  unused_capabilities:
+    total: 58
+    accepted: 58
+    remediation: Capabilities are declared in 08_security-capabilities.yaml but not yet bound to commands in 03_command-catalog.yaml. This is expected for future protocol capabilities.
+
+  dead_states:
+    total: 50
+    accepted: 50
+    remediation: States are declared in domain YAML files but not referenced by transitions in 05_state-machines.yaml. This is expected for future protocol capabilities.

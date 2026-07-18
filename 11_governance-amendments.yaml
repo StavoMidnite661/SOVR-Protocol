@@ -1,0 +1,237 @@
+# ============================================================
+# SOVR Financial OS — Governance Amendments
+# File: 11_governance-amendments.yaml
+# Status: FROZEN
+# Build Phase: E
+# ============================================================
+# Defines the amendment process for the SOVR Constitution.
+# This file is referenced by 01_constitution.yaml Section 6.
+#
+# The amendment process is the ONLY mechanism by which the
+# constitutional framework may be modified.
+#
+# Constitutional references:
+#   INV-003: No actor may exceed granted authority
+#   INV-008: No command executes without identity, capability, scope, and policy validation
+# ============================================================
+
+amendment_process:
+
+  # ========================================================
+  # AMENDMENT TYPES
+  # ========================================================
+  # Different types of amendments have different thresholds
+  # and processes.
+  # ========================================================
+
+  amendment_types:
+
+    constitutional_amendment:
+      description: >
+        Changes to the constitutional text itself. These are the
+        highest-stakes changes and require the highest threshold.
+      threshold: unanimous
+      quorum: all_oversight_committee_members
+      cooling_period_days: 14
+      public_comment_period_days: 30
+      ratifiable_by: oversight_committee
+      affected_sections:
+        - INVARIANTS
+        - CONFLICT_RESOLUTION
+        - AUTHORITY_MODEL
+        - FINANCIAL_INTEGRITY
+        - AGENT_GOVERNANCE
+        - GOVERNANCE_STRUCTURE
+        - RUNTIME_ENFORCEMENT
+        - PROTECTED_ARTICLES
+
+    policy_amendment:
+      description: Changes to policy rules or policy sets
+      threshold: majority
+      quorum: 3_governance_members
+      cooling_period_days: 3
+      public_comment_period_days: 0
+      ratifiable_by: operational_governance
+      affected_sections:
+        - POLICY_RULES
+        - COMPLIANCE_REQUIREMENTS
+
+    operational_amendment:
+      description: Changes to operational parameters, limits, or configurations
+      threshold: single_authorized_governor
+      quorum: 1
+      cooling_period_days: 1
+      public_comment_period_days: 0
+      ratifiable_by: operational_governance
+      affected_sections:
+        - AGENT_LIMITS
+        - CAPABILITY_SCOPES
+        - TRUST_LEVEL_THRESHOLDS
+        - RESERVE_RATIOS
+
+    boundary_amendment:
+      description: Changes to external system boundaries, adapters, or integrations
+      threshold: majority
+      quorum: 3_governance_members
+      cooling_period_days: 7
+      public_comment_period_days: 14
+      ratifiable_by: oversight_committee
+      affected_sections:
+        - BOUNDARY_SYSTEMS
+        - PAYMENT_RAILS
+        - ORACLE_INTEGRATIONS
+        - BLOCKCHAIN_BOUNDARIES
+
+  # ========================================================
+  # AMENDMENT LIFECYCLE
+  # ========================================================
+  # Every amendment follows this lifecycle regardless of type.
+  # ========================================================
+
+  amendment_lifecycle:
+
+    stages:
+
+      - stage: PROPOSED
+        description: Amendment has been proposed and assigned an amendment_number
+        actor: any_authorized_governor
+        actions:
+          - assign_amendment_number
+          - record_current_text
+          - record_proposed_text
+          - set_voting_ends_at
+        next_stage: UNDER_REVIEW
+
+      - stage: UNDER_REVIEW
+        description: Amendment is under constitutional and legal review
+        actor: governance_secretary
+        actions:
+          - constitutional_compliance_check
+          - legal_review
+          - impact_assessment
+          - public_comment_collection (if applicable)
+        duration_max_days: 30
+        next_stage: VOTING
+
+      - stage: VOTING
+        description: Oversight committee is voting on the amendment
+        actor: oversight_committee_members
+        actions:
+          - record_votes
+          - track_quorum
+          - emit_voting_events
+        duration_max_days: 90
+        next_stage: APPROVED or REJECTED
+
+      - stage: APPROVED
+        description: Amendment received required quorum and threshold
+        actor: system (automatic upon quorum)
+        actions:
+          - lock_amendment_text
+          - prepare_constitution_update
+          - schedule_effective_date
+        next_stage: RATIFIED
+
+      - stage: REJECTED
+        description: Amendment did not receive required quorum or threshold
+        actor: system (automatic upon voting end)
+        actions:
+          - record_rejection_reason
+          - notify_proposer
+          - archive_amendment
+        final: true
+
+      - stage: RATIFIED
+        description: Amendment has been formally ratified and applied to the constitution
+        actor: governance_secretary
+        actions:
+          - update_constitution_text
+          - emit_constitutional_update_event
+          - invalidate_compiled_artifacts
+          - notify_all_domains
+          - update_compiler_manifest
+        next_stage: EFFECTIVE
+
+      - stage: EFFECTIVE
+        description: Amendment is now in effect
+        actor: system (automatic after ratification)
+        actions:
+          - apply_constitutional_changes
+          - rebuild_projections
+          - emit_effectiveness_event
+        final: true
+
+      - stage: EXPIRED
+        description: Voting period ended without reaching required quorum
+        actor: system (automatic)
+        actions:
+          - archive_amendment
+          - notify_proposer_and_committee
+        final: true
+
+  # ========================================================
+  # VOTING RULES
+  # ========================================================
+
+  voting_rules:
+
+    unanimous:
+      description: All committee members must approve
+      required_votes: "all"
+      abstention_allowed: true
+      abstention_effect: counts_as_not_approved
+
+    majority:
+      description: More than half of committee members must approve
+      required_votes: ">50%"
+      abstention_allowed: true
+      abstention_effect: excluded_from_count
+
+    single:
+      description: Single authorized governor may approve
+      required_votes: 1
+      abstention_allowed: false
+
+  # ========================================================
+  # CONSTITUTIONAL PROTECTION
+  # ========================================================
+  # Certain articles require unanimous consent and cannot
+  # be amended by lower thresholds.
+  # ========================================================
+
+  protected_articles:
+    immutable:
+      - ledger_integrity
+      - event_immutability
+      - double_entry_accounting
+      - audit_trail_completeness
+      - value_preservation_priority
+      - agent_financial_authority_prohibition
+      - event_describes_does_not_mutate
+    threshold_override: unanimous
+    cooling_period_override_days: 30
+    public_comment_override_days: 60
+
+  # ========================================================
+  # EMERGENCY AMENDMENTS
+  # ========================================================
+  # In extreme circumstances, an emergency amendment process
+  # may be invoked. This requires unanimous oversight committee
+  # approval and is subject to mandatory post-action review.
+  # ========================================================
+
+  emergency_amendment:
+    description: Emergency constitutional amendment process for critical situations
+    threshold: unanimous
+    quorum: all_oversight_committee_members
+    cooling_period_days: 0
+    public_comment_period_days: 0
+    ratifiable_by: oversight_committee
+    max_duration_days: 90
+    mandatory_post_action_review: true
+    post_action_review_deadline_days: 30
+    conditions:
+      - active_breach_detected
+      - asset_integrity_compromised
+      - regulatory_mandate_requiring_immediate_action
+      - systemic_failure_preventing_normal_operations

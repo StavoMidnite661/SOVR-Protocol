@@ -1,0 +1,12 @@
+project:
+  name: SOVR Financial OS
+  version: 1.0.0
+  constitutional_state: FROZEN
+  implementation_state: PRE_REALIZATION
+  execution_phase: GOVERNANCE_LAYER
+  next_gate: DOMAIN_CONTAINERIZATION
+  source_of_truth:
+    protocol: ./
+    governance: governance/
+    management: management/
+    runtime: runtime/

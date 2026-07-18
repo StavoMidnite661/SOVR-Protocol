@@ -1,0 +1,556 @@
+# ============================================================
+# SOVR Financial OS — Constitution
+# File: 01_constitution.yaml
+# Status: FROZEN
+# ============================================================
+# This is the supreme law of the SOVR Financial Operating System.
+# All domains, services, agents, and external integrations must
+# operate within the boundaries defined herein.
+#
+# This file is referenced by every other file in the protocol.
+# Violation of any invariant in this file is a constitutional
+# violation and must be prevented at runtime.
+# ============================================================
+
+system:
+  name: SOVR Financial OS
+  version: 1.0.0
+  constitution_version: 1.0.0
+  ratification_date: 2025-07-07
+  enforcement_model: compiled_runtime
+  validation_required_before: [command_execution, event_publication, state_transition, saga_step, external_call]
+
+# ============================================================
+# SECTION 1 — IMMUTABLE INVARIANTS
+# ============================================================
+# These rules CANNOT be violated under any circumstance.
+# They are enforced at runtime by the constitutional validation
+# pipeline. No service, agent, or human may override them.
+# ============================================================
+
+invariants:
+
+  - id: INV-001
+    name: event_immutability
+    rule: Every state change requires an immutable event
+    description: >
+      The system of record is an append-only event log.
+      No state may change without a corresponding event.
+      Events, once published, are never modified or deleted.
+    enforcement_point: event_store
+    violation_severity: critical
+    violation_action: halt_system
+
+  - id: INV-002
+    name: double_entry_balance
+    rule: No ledger mutation without balanced journal entry
+    description: >
+      Every financial movement must be recorded as a balanced
+      double-entry journal. Total debits must exactly equal
+      total credits for every journal entry. Zero exceptions.
+    enforcement_point: ledger_service
+    violation_severity: critical
+    violation_action: reject_command
+
+  - id: INV-003
+    name: authority_boundary
+    rule: No actor may exceed granted authority
+    description: >
+      Every command is executed under a specific identity
+      with specific capabilities scoped to specific resources.
+      If the actor lacks the required capability, scope, or
+      condition, the command must be rejected before execution.
+    enforcement_point: policy_engine
+    violation_severity: critical
+    violation_action: reject_command_and_audit
+
+  - id: INV-004
+    name: agent_financial_authority_prohibition
+    rule: No agent may create, grant, or modify financial authority
+    description: >
+      AI agents may not create new capabilities, grant capabilities
+      to other actors, modify existing authority boundaries, or
+      escalate their own permissions. Only the Governance domain
+      through human approval may modify authority.
+    enforcement_point: security_layer
+    violation_severity: critical
+    violation_action: terminate_agent_and_audit
+
+  - id: INV-005
+    name: audit_trail_completeness
+    rule: Every financial action must produce an auditable event trail
+    description: >
+      Every command that affects financial state must emit events
+      that fully describe what happened, who caused it, when it
+      occurred, and what the before/after state was. The audit
+      trail must be queryable by Governance domain.
+    enforcement_point: event_store
+    violation_severity: critical
+    violation_action: reject_command
+
+  - id: INV-006
+    name: event_describes_does_not_mutate
+    rule: Events do not mutate reality. Events describe reality. Projections interpret reality.
+    description: >
+      Events are observations of state changes, not instructions
+      to mutate state. The source of truth is the append-only
+      event log. Projections are derived read models that
+      interpret events but are not themselves authoritative.
+      If a projection disagrees with the event log, the event
+      log is authoritative.
+    enforcement_point: projection_engine
+    violation_severity: critical
+    violation_action: rebuild_projection
+
+  - id: INV-007
+    name: value_preservation_priority
+    rule: Value preservation outranks execution speed
+    description: >
+      No optimization for throughput, latency, or efficiency
+      may compromise asset safety, reserve integrity, or
+      custody guarantees. When performance and safety conflict,
+      safety wins unconditionally.
+    enforcement_point: constitutional_validator
+    violation_severity: critical
+    violation_action: reject_optimization
+
+  - id: INV-008
+    name: command_execution_gates
+    rule: No command executes without identity, capability, scope, and policy validation
+    description: >
+      Every command must pass through four gates before execution:
+      1. Identity verification (who is acting)
+      2. Capability check (is the actor authorized for this action)
+      3. Scope check (is the actor authorized for this specific resource)
+      4. Policy evaluation (does this action comply with all active policies)
+      Failure at any gate prevents execution.
+    enforcement_point: command_bus
+    violation_severity: critical
+    violation_action: reject_command
+
+  - id: INV-009
+    name: unknown_state_representation
+    rule: Unknown financial states must be represented explicitly, never hidden
+    description: >
+      When the system cannot determine the definitive state of
+      a financial operation (e.g., external settlement pending,
+      attestation timeout, network partition), the state must be
+      recorded as UNKNOWN or PENDING with full context. The system
+      must never assume success or silently resolve ambiguity.
+    enforcement_point: state_machine_engine
+    violation_severity: high
+    violation_action: flag_for_governance_review
+
+  - id: INV-010
+    name: no_autonomous_constitutional_bypass
+    rule: No autonomous agent may bypass constitutional enforcement
+    description: >
+      AI agents operate within the same constitutional constraints
+      as human actors. Agents may not issue commands directly to
+      services that bypass the command bus, policy engine, or
+      audit pipeline. All agent actions must flow through the
+      standard command → policy → execute → event pipeline.
+    enforcement_point: agent_runtime
+    violation_severity: critical
+    violation_action: terminate_agent_and_audit
+
+# ============================================================
+# SECTION 2 — CONFLICT RESOLUTION
+# ============================================================
+# When multiple constraints or domain priorities conflict,
+# this ordering determines which constraint wins.
+# This is an EXECUTABLE rule. Services must implement conflict
+# resolution by referencing this ordering.
+# ============================================================
+
+conflict_resolution:
+
+  priority_order:
+
+    - rank: 1
+      category: invariant_preservation
+      description: Constitutional invariants are absolute. They cannot be overridden by any lower priority.
+      applies_to: all_layers
+      resolution: lower_priority_yields_unconditionally
+
+    - rank: 2
+      category: asset_security
+      description: Physical and digital asset custody, reserve integrity, and collateral protection.
+      applies_to: [vault, treasury, payment]
+      resolution: transaction_blocks_until_resolved
+
+    - rank: 3
+      category: regulatory_compliance
+      description: Legal and regulatory requirements imposed by external authorities.
+      applies_to: [policy, governance, payment, treasury]
+      resolution: transaction_blocks_until_compliance_verified
+
+    - rank: 4
+      category: ledger_integrity
+      description: Double-entry balance, audit completeness, event immutability.
+      applies_to: [ledger, treasury, vault]
+      resolution: transaction_rejected_if_ledger_cannot_record
+
+    - rank: 5
+      category: transaction_completion
+      description: Successfully completing an initiated financial operation.
+      applies_to: [treasury, payment]
+      resolution: retry_with_backoff_then_escalate
+
+    - rank: 6
+      category: operational_efficiency
+      description: System throughput, latency optimization, resource utilization.
+      applies_to: [treasury, payment, ledger]
+      resolution: efficiency_yields_to_higher_priorities
+
+    - rank: 7
+      category: agent_autonomy
+      description: AI agent ability to act without human intervention.
+      applies_to: [agent, intent]
+      resolution: agent_escalates_to_human_when_conflict_detected
+
+  principle: >
+    Speed never outranks safety. Autonomy never outranks authority.
+    The system may be slow but it must be correct.
+
+# ============================================================
+# SECTION 3 — AUTHORITY MODEL
+# ============================================================
+# Defines the categories of actors and their permitted actions
+# within the SOVR system. This section establishes the authority
+# ceiling — individual capabilities (08_security-capabilities.yaml)
+# may further restrict but never expand these boundaries.
+# ============================================================
+
+authority:
+
+  human:
+    description: Authenticated human users operating through verified identity
+    allowed:
+      - express_intent
+      - authorize
+      - approve
+      - govern
+      - configure_policy
+      - initiate_transfer
+      - manage_own_assets
+      - delegate_limited_authority
+    forbidden:
+      - modify_events
+      - alter_ledger_history
+      - bypass_policy_engine
+      - grant_unscoped_capabilities
+    maximum_autonomy: full_with_policy_governance
+
+  ai_agent:
+    description: AI-driven financial operators operating under constitutional constraints
+    allowed:
+      - analyze
+      - recommend
+      - execute_approved_workflows
+      - express_intent_on_behalf_of_principal
+      - submit_commands_within_granted_capabilities
+      - query_read_models
+      - emit_audit_events
+    forbidden:
+      - mint_assets
+      - alter_history
+      - bypass_policy
+      - grant_capabilities_to_self_or_others
+      - modify_constitutional_rules
+      - modify_governance_settings
+      - approve_own_commands
+      - escalate_own_authority
+    maximum_autonomy: bounded_execution_within_policy
+
+  governance:
+    description: Constitutional oversight function requiring human consensus
+    allowed:
+      - amend_constitution (subject to amendment process)
+      - modify_policies
+      - override_agent_decisions
+      - audit_all_domains
+      - emergency_halt
+      - manage_capabilities
+      - manage_trust_levels
+    forbidden:
+      - modify_immutable_events
+      - bypass_double_entry
+      - create_financial_authority_without_audit
+    maximum_autonomy: constitutional_authority_with_human_consensus
+
+  system:
+    description: Internal runtime processes that maintain system integrity
+    allowed:
+      - enforce_invariants
+      - validate_commands
+      - evaluate_policies
+      - rebuild_projections
+      - emit_system_events
+      - manage_internal_state
+    forbidden:
+      - originate_financial_commands
+      - modify_business_state
+      - bypass_validation
+    maximum_autonomy: operational_only
+
+# ============================================================
+# SECTION 4 — FINANCIAL INTEGRITY RULES
+# ============================================================
+# Rules specific to the financial nature of SOVR.
+# These are constitutional because financial integrity is
+# non-negotiable in a financial operating system.
+# ============================================================
+
+financial_integrity:
+
+  double_entry:
+    required: true
+    debit_credit_must_balance: true
+    zero_tolerance: true
+    description: >
+      Every financial state change must be recorded as a
+      balanced journal entry. The system must reject any
+      journal entry where total debits do not exactly equal
+      total credits.
+
+  asset_existence:
+    rule: No transfer of an asset that does not exist in the Vault
+    enforcement: vault_pre_check_before_treasury_execution
+    description: >
+      Before any value movement, the Vault must confirm the
+      asset exists, is in the claimed state, and the actor
+      has authority over it.
+
+  reserve_sufficiency:
+    rule: No transfer exceeding available reserve
+    enforcement: reserve_check_before_lock
+    description: >
+      The total value locked or reserved for pending
+      transactions plus the transfer amount must not exceed
+      the total asset balance.
+
+  atomicity:
+    rule: Financial operations are atomic — they either complete fully or roll back completely
+    enforcement: saga_orchestration
+    description: >
+      A multi-step financial operation (reserve, transfer,
+      settle, record) must be treated as a single atomic unit.
+      Partial completion must trigger compensating transactions.
+
+  uniqueness:
+    rule: Every financial operation has a unique, globally immutable identifier
+    enforcement: command_bus_id_generation
+    description: >
+      No two financial operations may share the same identifier.
+      Idempotency is handled through these identifiers, not
+      through content deduplication.
+
+  finality:
+    rule: Once settled, a financial operation is final unless reversed through an explicit, audited reversal command
+    enforcement: ledger_immutability
+    description: >
+      Settlement is a one-way state transition. Reversal requires
+      a new command that passes the same validation pipeline,
+      produces new events, and creates a new journal entry.
+      There is no "undo" — only "reverse."
+
+# ============================================================
+# SECTION 5 — AI AGENT GOVERNANCE RULES
+# ============================================================
+# Specific constraints on AI-driven financial agents.
+# These rules exist because AI agents pose unique risks:
+# they can act at machine speed, they may interpret
+# instructions creatively, and their decision-making
+# process is not fully transparent.
+# ============================================================
+
+agent_governance:
+
+  execution_constraints:
+    - Every agent action requires a traceable intent_id linking to the originating human or governance directive
+    - Agents may not batch commands in a way that obscures individual command audit trails
+    - Agents may not modify their own capability grants
+    - Agents must emit an audit envelope for every action taken
+    - Agents must declare their model_version in every audit event
+
+  escalation_requirements:
+    - Approaching any authority boundary (within 10% of limit) triggers mandatory escalation
+    - Novel situation with no matching policy triggers mandatory escalation
+    - External system unavailability triggers mandatory escalation
+    - Any financial operation exceeding agent-specific limits triggers mandatory escalation
+    - Conflicting policy evaluations trigger mandatory escalation
+
+  audit_envelope:
+    required_fields:
+      - agent_id
+      - intent_id
+      - command_id
+      - policy_evaluation_result
+      - rules_used
+      - resources_changed
+      - execution_result
+      - timestamp
+      - model_version
+      - constitutional_rules_referenced
+    retention: permanent
+    queryable_by: [governance, audit]
+
+  autonomy_boundaries:
+    read_only: unlimited_within_granted_scope
+    analysis: unlimited_within_granted_scope
+    recommendation: requires_human_consumption
+    execution:
+      single_operation:
+        within_limits: autonomous
+        approaching_limits: escalation_required
+        exceeding_limits: blocked
+      workflow:
+        pre_approved: autonomous
+        novel: requires_governance_approval
+    financial_authority_creation: absolutely_prohibited
+
+# ============================================================
+# SECTION 6 — GOVERNANCE STRUCTURE
+# ============================================================
+# Defines how the system governs itself.
+# Governance is the only authority that can modify the
+# constitutional framework (subject to amendment process
+# defined in 11_governance-amendments.yaml).
+# ============================================================
+
+governance_structure:
+
+  oversight_committee:
+    description: Human governance body with ultimate constitutional authority
+    authority:
+      - constitutional_amendment_proposal
+      - policy_creation_and_modification
+      - agent_capability_grant_and_revocation
+      - emergency_system_halt
+      - audit_review_and_investigation
+      - boundary_system_approval
+    quorum_required: majority
+    for_constitutional_changes: unanimous
+
+  operational_governance:
+    description: Day-to-day governance decisions that do not require constitutional changes
+    authority:
+      - policy_parameter_adjustment
+      - agent_limit_modification (within constitutional bounds)
+      - escalation_resolution
+      - incident_response
+    quorum_required: single_authorized_governor
+    audit_requirement: all_actions_logged
+
+  emergency_powers:
+    description: Extraordinary authority available during system emergencies
+    trigger_conditions:
+      - active_breach_detected
+      - asset_integrity_compromised
+      - regulatory_mandate_requiring_immediate_action
+    authority:
+      - immediate_system_halt
+      - temporary_capability_suspension
+      - targeted_transaction_blocking
+    activation_requires: two_governors_concurrent
+    duration_limit: 24_hours
+    mandatory_post_action_review: true
+    review_deadline: 72_hours_after_activation
+
+# ============================================================
+# SECTION 7 — RUNTIME ENFORCEMENT MODEL
+# ============================================================
+# Defines how constitutional rules are enforced at runtime.
+# The constitution is not a document that is read once — it is
+# a compiled artifact that is active during every operation.
+# ============================================================
+
+runtime_enforcement:
+
+  command_pipeline:
+    description: Every command passes through this pipeline before execution
+    stages:
+      - stage: identity_verification
+        enforce: INV-008 (gate 1)
+        failure_action: reject_with_unauthenticated
+      - stage: capability_check
+        enforce: INV-003, INV-008 (gate 2)
+        failure_action: reject_with_unauthorized
+      - stage: scope_validation
+        enforce: INV-003, INV-008 (gate 3)
+        failure_action: reject_with_scope_violation
+      - stage: policy_evaluation
+        enforce: INV-008 (gate 4)
+        failure_action: reject_with_policy_violation
+      - stage: constitutional_compliance
+        enforce: all_invariants
+        failure_action: reject_with_constitutional_violation
+      - stage: execution
+        enforce: INV-002, INV-005, INV-006
+        failure_action: rollback_and_emit_error
+      - stage: event_publication
+        enforce: INV-001, INV-005
+        failure_action: halt_and_alert_governance
+
+  validation_triggers:
+    - before_command_execution
+    - before_event_publication
+    - before_state_transition
+    - before_saga_step
+    - before_external_call
+    - on_projection_rebuild
+    - on_agent_action
+
+  violation_handling:
+    critical:
+      action: immediate_halt
+      notify: governance
+      audit: mandatory_full_incident_record
+      recovery: requires_governance_approval
+    high:
+      action: block_operation
+      notify: governance
+      audit: mandatory_event_record
+      recovery: requires_policy_review
+    medium:
+      action: warn_and_log
+      notify: domain_operator
+      audit: standard_event_record
+      recovery: automatic_with_logging
+    low:
+      action: log_only
+      notify: none
+      audit: standard_event_record
+      recovery: automatic
+
+# ============================================================
+# SECTION 8 — PROTECTED ARTICLES
+# ============================================================
+# These articles of the constitution require the highest
+# bar for modification. They define the non-negotiable
+# character of the SOVR Financial OS.
+# ============================================================
+
+protected_articles:
+
+  immutable:
+    - ledger_integrity
+    - event_immutability
+    - double_entry_accounting
+    - audit_trail_completeness
+    - value_preservation_priority
+    - agent_financial_authority_prohibition
+    - event_describes_does_not_mutate
+
+  highly_protected:
+    - conflict_resolution_priority_order
+    - authority_model
+    - financial_integrity_rules
+    - agent_governance_rules
+
+  modifiable_with_standard_amendment:
+    - governance_structure_details
+    - operational_parameters
+    - domain_contracts
+    - boundary_system_configuration

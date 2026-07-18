@@ -1,0 +1,7 @@
+module_resolution:
+  typescript:
+    status: PASS
+  jest:
+    status: PASS
+  runtime:
+    status: PASS

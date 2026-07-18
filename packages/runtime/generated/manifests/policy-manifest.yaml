@@ -1,0 +1,20 @@
+{
+  "domain": "policy",
+  "buildId": "5678ed61edbc97e3",
+  "generatedAt": "1970-01-01T00:00:00.000Z",
+  "artifacts": [
+    {
+      "file": "state-machines/policy-state-machine.ts",
+      "hash": "2524342d0fea45fa"
+    },
+    {
+      "file": "commands/policy-commands.ts",
+      "hash": "beda53b814f82e1d"
+    },
+    {
+      "file": "events/policy-events.ts",
+      "hash": "8984322274292c22"
+    }
+  ],
+  "sourceHash": "02142ca59b6911c9"
+}

@@ -1,0 +1,830 @@
+# ============================================================
+# SOVR Financial OS — Acceptance Test Suite
+# File: acceptance-tests.yaml
+# Status: FROZEN
+# Build Phase: I
+# ============================================================
+# Every invariant gets tests. Every saga gets tests.
+# Every state machine gets tests. Every command gets tests.
+# Every event gets tests. Every policy gets tests.
+# Every capability gets tests. Every projection gets tests.
+# Every domain contract gets tests. Every compiler output
+# gets tests. Every constitutional article gets tests.
+#
+# Nothing ships without passing these.
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  file_id: "acceptance-tests"
+  status: CONSTITUTIONAL_FREEZE
+  build_phase: "I"
+  principle: NOTHING_SHIPS_WITHOUT_PASSING_THESE
+  test_framework: VITEST
+  assertion_style: EXPECT
+  coverage_target_pct: 95
+
+# ============================================================
+# SECTION 2 — INVARIANT TESTS
+# ============================================================
+
+invariant_tests:
+
+  INV-001_event_immutability:
+    - test_id: INV-001-T001
+      name: published_event_cannot_be_modified
+      category: event_store
+      given: "An event has been published to the event store"
+      when: "Any actor attempts to modify any field of the event"
+      then: "The modification is rejected with IMMUTABLE_VIOLATION error"
+      assertion: "eventStore.attemptModification() throws IMMUTABLE_VIOLATION"
+
+    - test_id: INV-001-T002
+      name: published_event_cannot_be_deleted
+      category: event_store
+      given: "An event has been published to the event store"
+      when: "Any actor attempts to delete the event"
+      then: "The deletion is rejected with IMMUTABLE_VIOLATION error"
+      assertion: "eventStore.attemptDeletion() throws IMMUTABLE_VIOLATION"
+
+    - test_id: INV-001-T003
+      name: every_state_change_produces_event
+      category: event_store
+      given: "A command is executed that changes aggregate state"
+      when: "The command completes successfully"
+      then: "At least one event is published to the event store"
+      assertion: "eventStore.eventsAfter(command.timestamp).length >= 1"
+
+    - test_id: INV-001-T004
+      name: event_append_only_enforced
+      category: event_store
+      given: "The event store contains events E1, E2, E3"
+      when: "A new event E4 is published"
+      then: "E4 is appended after E3 with a monotonically increasing sequence number"
+      assertion: "E4.sequence > E3.sequence"
+
+  INV-002_double_entry_balance:
+    - test_id: INV-002-T001
+      name: balanced_journal_accepted
+      category: ledger
+      given: "A journal entry with total debits == total credits"
+      when: "The journal entry is posted"
+      then: "The entry is accepted and recorded"
+      assertion: "ledger.post(journal) succeeds"
+
+    - test_id: INV-002-T002
+      name: unbalanced_journal_rejected
+      category: ledger
+      given: "A journal entry with total debits != total credits"
+      when: "The journal entry is posted"
+      then: "The entry is rejected with BALANCE_VIOLATION error"
+      assertion: "ledger.post(journal) throws BALANCE_VIOLATION"
+
+    - test_id: INV-002-T003
+      name: zero_debit_credit_prevented
+      category: ledger
+      given: "A journal entry with all debits and credits equal to zero"
+      when: "The journal entry is posted"
+      then: "The entry is rejected as it represents no financial movement"
+      assertion: "ledger.post(journal) throws ZERO_AMOUNT_VIOLATION"
+
+  INV-003_authority_boundary:
+    - test_id: INV-003-T001
+      name: actor_within_authority_succeeds
+      category: policy
+      given: "An actor holds capability C scoped to resource R"
+      when: "The actor issues a command requiring C on R"
+      then: "The command passes the capability gate"
+      assertion: "policyEngine.evaluate(actor, C, R) == ALLOW"
+
+    - test_id: INV-003-T002
+      name: actor_without_capability_rejected
+      category: policy
+      given: "An actor does NOT hold capability C"
+      when: "The actor issues a command requiring C"
+      then: "The command is rejected at the capability gate"
+      assertion: "policyEngine.evaluate(actor, C, R) == DENY"
+
+    - test_id: INV-003-T003
+      name: actor_with_wrong_scope_rejected
+      category: policy
+      given: "An actor holds capability C scoped to resource R1"
+      when: "The actor issues a command requiring C on R2"
+      then: "The command is rejected at the scope gate"
+      assertion: "policyEngine.evaluate(actor, C, R2) == DENY"
+
+    - test_id: INV-003-T004
+      name: actor_cannot_exceed_granted_authority
+      category: policy
+      given: "An actor holds READ capability on resource R"
+      when: "The actor issues a command requiring WRITE capability on R"
+      then: "The command is rejected at the capability gate"
+      assertion: "policyEngine.evaluate(actor, WRITE, R) == DENY"
+
+  INV-004_agent_financial_authority_prohibition:
+    - test_id: INV-004-T001
+      name: agent_cannot_create_capabilities
+      category: agent
+      given: "An AI agent is registered and active"
+      when: "The agent attempts to create a new capability"
+      then: "The attempt is rejected with AGENT_AUTHORITY_PROHIBITION"
+      assertion: "agent.attemptCreateCapability() throws AGENT_AUTHORITY_PROHIBITION"
+
+    - test_id: INV-004-T002
+      name: agent_cannot_grant_capabilities
+      category: agent
+      given: "An AI agent holds capability C"
+      when: "The agent attempts to grant C to another actor"
+      then: "The attempt is rejected with AGENT_AUTHORITY_PROHIBITION"
+      assertion: "agent.attemptGrantCapability(C, otherActor) throws AGENT_AUTHORITY_PROHIBITION"
+
+    - test_id: INV-004-T003
+      name: agent_cannot_modify_own_capabilities
+      category: agent
+      given: "An AI agent holds capability C with scope S"
+      when: "The agent attempts to expand its scope to S+"
+      then: "The attempt is rejected with AGENT_AUTHORITY_PROHIBITION"
+      assertion: "agent.attemptModifyCapability(C, S+) throws AGENT_AUTHORITY_PROHIBITION"
+
+    - test_id: INV-004-T004
+      name: agent_cannot_escalate_own_permissions
+      category: agent
+      given: "An AI agent with TRUST_LEVEL HIGH"
+      when: "The agent attempts to change its TRUST_LEVEL to SOVEREIGN"
+      then: "The attempt is rejected with AGENT_AUTHORITY_PROHIBITION"
+      assertion: "agent.attemptTrustEscalation() throws AGENT_AUTHORITY_PROHIBITION"
+
+  INV-005_audit_trail_completeness:
+    - test_id: INV-005-T001
+      name: financial_command_produces_audit_trail
+      category: audit
+      given: "A financial command is executed successfully"
+      when: "The audit trail is queried"
+      then: "Complete audit trail exists: command, events, state before/after, actor"
+      assertion: "auditTrail.forCommand(commandId).isComplete() == true"
+
+    - test_id: INV-005-T002
+      name: audit_trail_includes_actor_identity
+      category: audit
+      given: "A command is executed by actor A"
+      when: "The audit trail is queried"
+      then: "Actor identity, type, and session are recorded"
+      assertion: "auditTrail.forCommand(commandId).actor == A"
+
+    - test_id: INV-005-T003
+      name: audit_trail_queryable_by_governance
+      category: governance
+      given: "Any financial action has occurred"
+      when: "Governance queries the audit trail"
+      then: "The complete event chain is returned"
+      assertion: "governance.queryAudit(filter).results.length >= 1"
+
+  INV-006_event_describes_does_not_mutate:
+    - test_id: INV-006-T001
+      name: projection_disagreement_resolved_by_event_log
+      category: projection
+      given: "A projection shows state X but the event log shows state Y"
+      when: "The disagreement is detected"
+      then: "The projection is rebuilt from the event log, resulting in state Y"
+      assertion: "projection.rebuild() produces Y"
+
+    - test_id: INV-006-T002
+      name: events_never_mutate_aggregate_directly
+      category: event_store
+      given: "An event E is published"
+      when: "E is processed by a projection"
+      then: "E does not modify the aggregate root — only the read model"
+      assertion: "aggregate.state == pre_event_state (event did not mutate it)"
+
+  INV-007_value_preservation_priority:
+    - test_id: INV-007-T001
+      name: safety_over_speed
+      category: constitutional
+      given: "A performance optimization would compromise asset safety"
+      when: "The optimization is proposed"
+      then: "The optimization is rejected with VALUE_PRESERVATION_VIOLATION"
+      assertion: "constitutionalValidator.evaluate(optimization) == REJECT"
+
+    - test_id: INV-007-T002
+      name: conflict_with_asset_security
+      category: conflict_resolution
+      given: "operational_efficiency (rank 6) conflicts with asset_security (rank 2)"
+      when: "Conflict resolution is invoked"
+      then: "asset_security wins"
+      assertion: "conflictResolver.resolve(asset_security, operational_efficiency) == asset_security"
+
+  INV-008_command_execution_gates:
+    - test_id: INV-008-T001
+      name: all_four_gates_required
+      category: command_bus
+      given: "A command is submitted"
+      when: "Any gate (identity, capability, scope, policy) is missing or fails"
+      then: "The command is rejected before execution"
+      assertion: "commandBus.submit(cmd) calls all four gates in order"
+
+    - test_id: INV-008-T002
+      name: gate_failure_stops_pipeline
+      category: command_bus
+      given: "Gate 2 (capability) fails"
+      when: "The command processing continues"
+      then: "Gates 3 and 4 are NOT evaluated"
+      assertion: "gate3_called == false && gate4_called == false"
+
+    - test_id: INV-008-T003
+      name: constitutional_gates_field_present
+      category: command_catalog
+      given: "Every command in the command catalog"
+      when: "The constitutional_gates field is inspected"
+      then: "All four gates are set to true"
+      assertion: "every(command.constitutional_gates == { identity: true, policy: true, capability: true, authority: true })"
+
+  INV-009_unknown_state_representation:
+    - test_id: INV-009-T001
+      name: external_pending_shows_unknown
+      category: state_machine
+      given: "An external settlement is pending beyond the timeout"
+      when: "The system evaluates the state"
+      then: "The state is represented as UNKNOWN, not assumed as success"
+      assertion: "payment.state == UNKNOWN"
+
+    - test_id: INV-009-T002
+      name: unknown_state_triggers_governance
+      category: governance
+      given: "An operation enters UNKNOWN state"
+      when: "The timeout for UNKNOWN resolution expires"
+      then: "The operation is escalated to Governance"
+      assertion: "governance.activeEscalations.includes(operationId)"
+
+  INV-010_no_autonomous_constitutional_bypass:
+    - test_id: INV-010-T001
+      name: agent_cannot_bypass_command_bus
+      category: agent
+      given: "An AI agent attempts to call a service directly"
+      when: "The call bypasses the command bus"
+      then: "The call is rejected with CONSTITUTIONAL_BYPASS_ATTEMPT"
+      assertion: "directServiceCall(agent) throws CONSTITUTIONAL_BYPASS_ATTEMPT"
+
+    - test_id: INV-010-T002
+      name: agent_actions_flow_through_pipeline
+      category: agent
+      given: "An AI agent executes an approved command"
+      when: "The command is traced"
+      then: "The command passed through identity, capability, scope, and policy gates"
+      assertion: "command.audit.gates_passed == [identity, capability, scope, policy]"
+
+# ============================================================
+# SECTION 3 — SAGA TESTS
+# ============================================================
+
+saga_tests:
+
+  human_execution_saga:
+    - test_id: SAGA-HE-T001
+      name: happy_path
+      given: "Authenticated human submits valid command"
+      when: "Human execution saga runs"
+      then: "Command passes all gates, executes, produces events, records in ledger"
+    - test_id: SAGA-HE-T002
+      name: identity_failure
+      given: "Unauthenticated actor submits command"
+      when: "Identity gate fails"
+      then: "Saga terminates with UNAUTHENTICATED, no events produced"
+    - test_id: SAGA-HE-T003
+      name: policy_failure
+      given: "Authenticated actor without required capability"
+      when: "Policy gate fails"
+      then: "Saga terminates with UNAUTHORIZED, audit event produced"
+    - test_id: SAGA-HE-T004
+      name: execution_failure_compensates
+      given: "Command passes gates but domain execution fails"
+      when: "Execution fails"
+      then: "Compensation reverses all domain-side effects"
+
+  ai_execution_saga:
+    - test_id: SAGA-AI-T001
+      name: happy_path
+      given: "AI agent with valid capabilities executes approved workflow"
+      when: "AI execution saga runs"
+      then: "Command executes, audit envelope is complete with 10 required fields"
+    - test_id: SAGA-AI-T002
+      name: agent_cannot_invent_authority
+      given: "AI agent attempts action beyond granted capabilities"
+      when: "Capability check fails"
+      then: "Saga terminates, agent is flagged, governance is notified"
+    - test_id: SAGA-AI-T003
+      name: audit_envelope_completeness
+      given: "AI agent completes any action"
+      when: "Audit envelope is inspected"
+      then: "All 10 required fields are present: agent_id, intent_id, command_id, policy_evaluation_result, rules_used, resources_changed, execution_result, timestamp, model_version, constitutional_rules_referenced"
+
+  delegated_execution_saga:
+    - test_id: SAGA-DE-T001
+      name: delegation_chain_valid
+      given: "Actor A delegates to Actor B who delegates to Actor C"
+      when: "Actor C executes a command"
+      then: "Full delegation chain is in the identity_context"
+    - test_id: SAGA-DE-T002
+      name: delegation_exceeds_principal_authority
+      given: "Actor A delegates READ capability to Actor B"
+      when: "Actor B attempts WRITE using delegated capability"
+      then: "The command is rejected — delegation cannot expand authority"
+
+  escalation_saga:
+    - test_id: SAGA-ES-T001
+      name: policy_escalation_created
+      given: "Policy evaluation returns ESCALATE"
+      when: "Escalation saga runs"
+      then: "Escalation record is created, governance is notified"
+    - test_id: SAGA-ES-T002
+      name: escalation_resolution
+      given: "Active escalation exists"
+      when: "Governance resolves the escalation"
+      then: "Original command is re-evaluated with resolution context"
+
+  policy_review_saga:
+    - test_id: SAGA-PR-T001
+      name: deferred_evaluation_resolved
+      given: "Policy evaluation returns DEFER"
+      when: "Deferred conditions are met"
+      then: "Command is re-evaluated and proceeds"
+
+  unknown_authority_saga:
+    - test_id: SAGA-UA-T001
+      name: unknown_actor_handled
+      given: "A command is received from an unrecognized authority source"
+      when: "Unknown authority saga runs"
+      then: "Command is quarantined, governance is alerted"
+
+  payment_execution_saga:
+    - test_id: SAGA-PE-T001
+      name: happy_path
+      given: "Treasury issues settlement instruction for confirmed transfer"
+      when: "Payment execution saga runs through prepare-execute-confirm-reconcile"
+      then: "Execution receipt is issued, Treasury is notified, Ledger is updated"
+    - test_id: SAGA-PE-T002
+      name: rail_failure_compensates
+      given: "Rail adapter returns failure during execute phase"
+      when: "Failure is detected"
+      then: "Compensation is initiated, Treasury transfer is reversed, status is REVERSED"
+    - test_id: SAGA-PE-T003
+      name: confirmation_timeout
+      given: "Rail adapter submitted but confirmation times out"
+      when: "Timeout expires"
+      then: "State is marked UNKNOWN, governance is escalated per INV-009"
+
+# ============================================================
+# SECTION 4 — STATE MACHINE TESTS
+# ============================================================
+
+state_machine_tests:
+  template:
+    - test_id: SM-{domain}-{aggregate}-T001
+      name: valid_transitions_succeed
+      given: "Aggregate is in state S1"
+      when: "Command triggering S1->S2 transition is issued"
+      then: "Transition succeeds, aggregate is now in state S2"
+    - test_id: SM-{domain}-{aggregate}-T002
+      name: invalid_transitions_rejected
+      given: "Aggregate is in state S1"
+      when: "Command not in S1.allowed_commands is issued"
+      then: "Transition is rejected with STATE_MACHINE_VIOLATION"
+    - test_id: SM-{domain}-{aggregate}-T003
+      name: terminal_states_reachable
+      given: "Aggregate in initial state"
+      when: "Valid transition sequence is followed"
+      then: "At least one terminal state is reachable"
+    - test_id: SM-{domain}-{aggregate}-T004
+      name: non_terminal_states_have_exits
+      given: "Aggregate in non-terminal state S"
+      when: "allowed_commands for S is inspected"
+      then: "allowed_commands is non-empty"
+    - test_id: SM-{domain}-{aggregate}-T005
+      name: timeout_transitions_fire
+      given: "Aggregate in state S with timeout T"
+      when: "T milliseconds elapse without transition"
+      then: "Timeout transition fires, aggregate moves to timeout state"
+
+  apply_to:
+    - domain: vault
+      aggregates: [asset, reservation, collateral_position]
+    - domain: ledger
+      aggregates: [journal, account]
+    - domain: treasury
+      aggregates: [transfer, liquidity_pool]
+    - domain: identity
+      aggregates: [actor, credential, session, delegation]
+    - domain: policy
+      aggregates: [policy_rule, policy_set, escalation]
+    - domain: intent
+      aggregates: [intent, multi_step_intent]
+    - domain: agent
+      aggregates: [agent_registration, agent_execution]
+    - domain: payment
+      aggregates: [payment_request, execution_plan, reconciliation]
+
+# ============================================================
+# SECTION 5 — COMMAND TESTS
+# ============================================================
+
+command_tests:
+  template:
+    - test_id: CMD-{cmd_id}-T001
+      name: valid_command_accepted
+      given: "Valid payload for {cmd_name}"
+      when: "Command is submitted with all required fields"
+      then: "Command is accepted and processed"
+    - test_id: CMD-{cmd_id}-T002
+      name: missing_required_payload_rejected
+      given: "Payload missing required field"
+      when: "Command is submitted"
+      then: "Command is rejected with VALIDATION_ERROR"
+    - test_id: CMD-{cmd_id}-T003
+      name: constitutional_gates_enforced
+      given: "Command without valid identity context"
+      when: "Command is submitted"
+      then: "Command is rejected at identity gate"
+    - test_id: CMD-{cmd_id}-T004
+      name: idempotency_duplicate_rejected
+      given: "Command with command_id X has already been processed"
+      when: "Command with same command_id X is submitted again"
+      then: "Duplicate is rejected with IDEMPOTENCY_VIOLATION"
+
+  apply_to_all_commands: true
+
+# ============================================================
+# SECTION 6 — EVENT TESTS
+# ============================================================
+
+event_tests:
+  - test_id: EVT-ENV-T001
+    name: all_events_conform_to_envelope
+    given: "Any event in the system"
+    when: "Event envelope fields are inspected"
+    then: "All 17 required envelope fields are present"
+    required_fields:
+      - event_id
+      - event_name
+      - event_version
+      - aggregate
+      - aggregate_id
+      - source_domain
+      - command_id
+      - triggering_command
+      - causation_id
+      - correlation_id
+      - actor_id
+      - identity_context
+      - policy_decision_id
+      - capability_id
+      - timestamp
+      - payload
+      - projection_effect
+      - audit
+
+  - test_id: EVT-ENV-T002
+    name: events_immutable_after_publication
+    given: "A published event"
+    when: "Any modification is attempted"
+    then: "Modification is rejected"
+    assertion: "event.isImmutable() == true"
+
+  - test_id: EVT-ENV-T003
+    name: causation_chain_unbroken
+    given: "Event E2 was caused by event E1"
+    when: "E2.causation_id is inspected"
+    then: "E2.causation_id == E1.event_id"
+
+  - test_id: EVT-ENV-T004
+    name: triggering_command_traceable
+    given: "Event E produced by command C"
+    when: "E.triggering_command is inspected"
+    then: "E.triggering_command == fully qualified command name of C"
+
+  - test_id: EVT-ENV-T005
+    name: policy_decision_link_complete
+    given: "Event E produced by an authorized command"
+    when: "E.policy_decision_id is inspected"
+    then: "PolicyDecision with that ID exists and decision == ALLOW"
+
+# ============================================================
+# SECTION 7 — POLICY TESTS
+# ============================================================
+
+policy_tests:
+  - test_id: POL-T001
+    name: deterministic_evaluation
+    given: "Same identity context, capability, scope, and policy rules"
+    when: "Policy is evaluated twice"
+    then: "Both evaluations produce identical results"
+    assertion: "eval1 == eval2"
+
+  - test_id: POL-T002
+    name: allow_outcome
+    given: "Actor has required capability, scope, and no conflicting rules"
+    when: "Policy is evaluated"
+    then: "Result is ALLOW"
+
+  - test_id: POL-T003
+    name: deny_outcome
+    given: "Actor lacks required capability"
+    when: "Policy is evaluated"
+    then: "Result is DENY with reason"
+
+  - test_id: POL-T004
+    name: escalate_outcome
+    given: "Policy rule matches but requires human review"
+    when: "Policy is evaluated"
+    then: "Result is ESCALATE with escalation context"
+
+  - test_id: POL-T005
+    name: defer_outcome
+    given: "Policy rule cannot be evaluated due to missing context"
+    when: "Policy is evaluated"
+    then: "Result is DEFER with missing context listed"
+
+  - test_id: POL-T006
+    name: rule_activation_deactivation
+    given: "Policy rule R is active"
+    when: "R is deactivated and command requiring R is evaluated"
+    then: "R is skipped in evaluation, result may differ"
+
+  - test_id: POL-T007
+    name: policy_set_composition
+    given: "Policy set PS contains rules R1, R2, R3"
+    when: "PS is evaluated"
+    then: "All rules are evaluated in defined order, earliest DENY wins"
+
+# ============================================================
+# SECTION 8 — CAPABILITY TESTS
+# ============================================================
+
+capability_tests:
+  - test_id: CAP-T001
+    name: valid_scope_succeeds
+    given: "Actor holds capability vault.asset.create scoped to vault:123"
+    when: "Actor creates asset in vault:123"
+    then: "Capability check passes"
+    assertion: "capabilityEngine.check(actor, 'vault.asset.create', 'vault:123') == true"
+
+  - test_id: CAP-T002
+    name: invalid_scope_fails
+    given: "Actor holds capability vault.asset.create scoped to vault:123"
+    when: "Actor attempts to create asset in vault:456"
+    then: "Capability check fails"
+    assertion: "capabilityEngine.check(actor, 'vault.asset.create', 'vault:456') == false"
+
+  - test_id: CAP-T003
+    name: missing_capability_fails
+    given: "Actor does NOT hold capability vault.asset.delete"
+    when: "Actor attempts to delete an asset"
+    then: "Capability check fails"
+    assertion: "capabilityEngine.check(actor, 'vault.asset.delete', any) == false"
+
+  - test_id: CAP-T004
+    name: wildcard_scope_matching
+    given: "Actor holds capability vault.asset.read scoped to vault:*"
+    when: "Actor reads from vault:789"
+    then: "Wildcard matches, capability check passes"
+    assertion: "capabilityEngine.check(actor, 'vault.asset.read', 'vault:789') == true"
+
+  - test_id: CAP-T005
+    name: agent_cannot_invent_capabilities
+    given: "AI agent A with no vault.asset.create capability"
+    when: "A attempts to self-grant vault.asset.create"
+    then: "Self-grant is rejected with AGENT_AUTHORITY_PROHIBITION (INV-004)"
+
+# ============================================================
+# SECTION 9 — PROJECTION TESTS
+# ============================================================
+
+projection_tests:
+  - test_id: PRJ-T001
+    name: correct_event_processing
+    given: "Projection P subscribes to events E1, E2"
+    when: "E1 and E2 are published"
+    then: "P's read model reflects both events correctly"
+    assertion: "projection.getState() matches expected state after E1 + E2"
+
+  - test_id: PRJ-T002
+    name: full_replay_produces_same_result
+    given: "Projection P has been running incrementally"
+    when: "P is rebuilt from genesis via full replay"
+    then: "Rebuilt state == previous incremental state"
+    assertion: "rebuiltProjection.getState() == incrementalProjection.getState()"
+
+  - test_id: PRJ-T003
+    name: invalidation_triggers_correctly
+    given: "Projection P has invalidation trigger event E"
+    when: "E is published"
+    then: "P's cache is invalidated and P is updated"
+    assertion: "cache.get(P.key) == null after E, then P rebuilds"
+
+  - test_id: PRJ-T004
+    name: cache_hit_miss_behavior
+    given: "Projection P with TTL 60s"
+    when: "P is queried twice within 60s"
+    then: "First query is cache miss, second is cache hit"
+    assertion: "cache.stats().misses == 1 && cache.stats().hits == 1"
+
+  - test_id: PRJ-T005
+    name: cross_projection_consistency
+    given: "Projections P1 and P2 both consume event E"
+    when: "E is published"
+    then: "Both projections eventually reflect E"
+    assertion: "P1.stateAfter(E) and P2.stateAfter(E) are both consistent with E"
+
+# ============================================================
+# SECTION 10 — DOMAIN CONTRACT TESTS
+# ============================================================
+
+domain_contract_tests:
+
+  vault_to_treasury:
+    - test_id: DC-VT-T001
+      name: asset_exists_before_transfer
+      given: "Treasury initiates transfer of asset A"
+      when: "Vault is queried for asset A"
+      then: "Vault confirms A exists and is in AVAILABLE or LOCKED state"
+    - test_id: DC-VT-T002
+      name: reserve_confirmed_before_execution
+      given: "Treasury requests reservation of amount X from asset A"
+      when: "Vault processes reservation"
+      then: "Vault returns reservation confirmation or rejection"
+
+  treasury_to_ledger:
+    - test_id: DC-TL-T001
+      name: balanced_entries_before_posting
+      given: "Treasury completes a transfer"
+      when: "Ledger posting is requested"
+      then: "Journal entry is balanced (debits == credits)"
+
+  identity_to_policy:
+    - test_id: DC-IP-T001
+      name: valid_auth_context_produced
+      given: "Actor A authenticates"
+      when: "AuthorizationContext is produced"
+      then: "Context contains: identity_id, actor_type, capabilities, trust_level, session_id"
+
+  policy_to_intent:
+    - test_id: DC-PI-T001
+      name: valid_policy_decision_produced
+      given: "AuthorizationContext is evaluated by Policy"
+      when: "PolicyDecision is produced"
+      then: "Decision contains: decision (ALLOW/DENY/ESCALATE/DEFER), rules_evaluated, decision_id"
+
+  intent_to_agent:
+    - test_id: DC-IA-T001
+      name: converted_command_is_valid
+      given: "Intent is converted to a command"
+      when: "Command is inspected"
+      then: "Command has all required fields and passes validation"
+
+  agent_to_treasury:
+    - test_id: DC-AT-T001
+      name: bounded_execution
+      given: "Agent executes a command affecting Treasury"
+      when: "Execution is inspected"
+      then: "Execution is within agent's quota and concurrency limits"
+
+  treasury_to_ledger_settlement:
+    - test_id: DC-TL-T002
+      name: settlement_confirmed_before_ledger_close
+      given: "Treasury confirms settlement"
+      when: "Ledger records the settlement"
+      then: "Ledger entry references the treasury.transfer_id"
+
+  ledger_to_audit:
+    - test_id: DC-LA-T001
+      name: complete_event_trail
+      given: "Any financial operation recorded in Ledger"
+      when: "Audit trail is queried by correlation_id"
+      then: "Complete chain of events from command to ledger entry is returned"
+
+# ============================================================
+# SECTION 11 — COMPILER OUTPUT TESTS
+# ============================================================
+
+compiler_output_tests:
+  - test_id: CMP-T001
+    name: typescript_types_compile
+    given: "Generated TypeScript type files"
+    when: "tsc --noEmit is run"
+    then: "Zero compilation errors"
+    assertion: "tscExitCode == 0"
+
+  - test_id: CMP-T002
+    name: prisma_models_match_entities
+    given: "Generated Prisma schema"
+    when: "Each entity in 02_domain-model.yaml is checked"
+    then: "Corresponding Prisma model exists with matching fields"
+
+  - test_id: CMP-T003
+    name: openapi_matches_commands
+    given: "Generated OpenAPI spec"
+    when: "Each command in 03_command-catalog.yaml is checked"
+    then: "Corresponding API endpoint exists with matching input/output"
+
+  - test_id: CMP-T004
+    name: json_schemas_validate
+    given: "Generated JSON Schemas"
+    when: "Each schema is validated against JSON Schema Draft 2020-12 meta-schema"
+    then: "All schemas are valid"
+
+  - test_id: CMP-T005
+    name: kafka_topics_cover_all_events
+    given: "Generated Kafka topic configuration"
+    when: "Each event in 04_event-catalog.yaml is checked"
+    then: "Corresponding Kafka topic exists"
+
+  - test_id: CMP-T006
+    name: test_skeletons_reference_correct_artifacts
+    given: "Generated test skeletons"
+    when: "Each test references commands, events, entities"
+    then: "All references resolve to generated code"
+
+# ============================================================
+# SECTION 12 — CONSTITUTIONAL ARTICLE TESTS
+# ============================================================
+
+constitutional_article_tests:
+
+  protected_articles:
+    - test_id: CA-PA-T001
+      name: ledger_integrity_enforced
+      given: "Attempt to bypass double-entry accounting"
+      when: "Runtime enforcement is triggered"
+      then: "Bypass is prevented, INV-002 is enforced"
+
+    - test_id: CA-PA-T002
+      name: event_immutability_enforced
+      given: "Attempt to modify a published event"
+      when: "Runtime enforcement is triggered"
+      then: "Modification is prevented, INV-001 is enforced"
+
+    - test_id: CA-PA-T003
+      name: double_entry_enforced
+      given: "Attempt to post unbalanced journal entry"
+      when: "Runtime enforcement is triggered"
+      then: "Entry is rejected, INV-002 is enforced"
+
+    - test_id: CA-PA-T004
+      name: audit_trail_enforced
+      given: "Attempt to execute financial action without audit"
+      when: "Runtime enforcement is triggered"
+      then: "Action is blocked, INV-005 is enforced"
+
+    - test_id: CA-PA-T005
+      name: value_preservation_enforced
+      given: "Optimization that would compromise safety"
+      when: "Constitutional validator evaluates"
+      then: "Optimization is rejected, INV-007 is enforced"
+
+    - test_id: CA-PA-T006
+      name: agent_authority_prohibition_enforced
+      given: "AI agent attempts to create financial authority"
+      when: "Runtime enforcement is triggered"
+      then: "Attempt is blocked, INV-004 is enforced"
+
+    - test_id: CA-PA-T007
+      name: event_does_not_mutate_enforced
+      given: "Attempt to use event as mutation instruction"
+      when: "Projection engine processes event"
+      then: "Event only updates read model, never aggregate root, INV-006"
+
+  governance_structure:
+    - test_id: CA-GS-T001
+      name: governance_authority_boundaries
+      given: "Governance actor attempts action beyond constitutional authority"
+      when: "Action is evaluated"
+      then: "Action is rejected if it violates immutable articles"
+
+    - test_id: CA-GS-T002
+      name: operational_governance_within_bounds
+      given: "Operational governor adjusts policy parameters"
+      when: "Adjustment is evaluated"
+      then: "Allowed if within constitutional bounds"
+
+    - test_id: CA-GS-T003
+      name: emergency_powers_time_limited
+      given: "Emergency powers are activated"
+      when: "24 hours elapse without renewal"
+      then: "Emergency powers automatically expire"
+
+  agent_governance:
+    - test_id: CA-AG-T001
+      name: agent_audit_envelope_complete
+      given: "Agent completes any action"
+      when: "Audit envelope is inspected"
+      then: "All 10 required fields are present"
+
+    - test_id: CA-AG-T002
+      name: agent_escalation_at_boundary
+      given: "Agent approaches 90% of any authority limit"
+      when: "The limit is detected"
+      then: "Mandatory escalation is triggered"
+
+    - test_id: CA-AG-T003
+      name: agent_cannot_approve_own_commands
+      given: "Agent issues command C"
+      when: "C reaches policy gate"
+      then: "Agent is NOT in the approval chain for C"

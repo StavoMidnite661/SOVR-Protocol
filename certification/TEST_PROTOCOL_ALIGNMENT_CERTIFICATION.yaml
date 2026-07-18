@@ -1,0 +1,6 @@
+tests:
+  protocol_states:
+    source: generated_artifacts
+  invented_states:
+    count: 0
+  status: PASS

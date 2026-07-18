@@ -1,0 +1,11 @@
+generation:
+  source_hash: sha256:computed-at-build-time
+  generated_at: '2026-07-17T01:30:00.000Z'
+  compiler_version: '1.0.0'
+  build_id: 'phase-xiii-build-001'
+
+artifacts:
+  - file: packages/runtime/generated/GeneratedStateMachine.ts
+    source: 05_state-machines.yaml
+    checksum: sha256:generated-at-build-time
+    authority: vault_funding_lifecycle state machine

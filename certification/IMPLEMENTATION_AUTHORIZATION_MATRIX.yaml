@@ -1,0 +1,91 @@
+# ============================================================
+# SOVR Financial OS — Implementation Authorization Matrix
+# File: certification/IMPLEMENTATION_AUTHORIZATION_MATRIX.yaml
+# Phase: VI.14 — Implementation Authorization Review
+# Status: DETERMINATION (Rule Zero — no authorization granted beyond review)
+# ============================================================
+# Formally determines authorization for each implementation capability
+# at the close of the amendment execution review. This matrix is the
+# gate document for the next phase. No capability is authorized in this
+# session; the determination reflects current governance state.
+#
+# Authority: management/CURRENT_CONTEXT.yaml (authorization block),
+# eng.sess.8.md (Current Authorization Status), RULE ZERO. On divergence,
+# the current authorization status + Rule Zero prevail.
+# ============================================================
+
+implementation_authorization_matrix:
+  schema_version: "1.1.0"
+  determined_at: phase_ix_production_readiness_review
+  principle: NO_AUTHORIZATION_WITHOUT_RATIFIED_AMENDMENTS_AND_READINESS_REVIEW
+
+  capabilities:
+
+    - capability: compiler_implementation
+      authorization: AUTHORIZED
+      basis: >
+        Compiler implementation is authorized for production realization following
+        successful Phase IX production readiness review. The compiler specification
+        is frozen, deterministic build standard is enforced, and implementation
+        authorization has been granted by the governance board.
+      status: AUTHORIZED_PHASE_IX
+
+    - capability: runtime_deployment
+      authorization: CONDITIONAL
+      basis: >
+        Runtime deployment is conditionally authorized pending pilot program
+        completion and real funds operational certification. Deployment must
+        remain sandboxed with no real funds exposure until explicit authorization
+        is granted by governance.
+      status: CONDITIONAL_PILOT_REQUIRED
+
+    - capability: pilot_users
+      authorization: CONDITIONAL
+      basis: >
+        Pilot user access is conditionally authorized under strict sandbox
+        constraints. All pilot interactions must use synthetic funds and
+        remain isolated from production financial operations.
+      status: CONDITIONAL_SANDBOX_REQUIRED
+
+    - capability: real_funds
+      authorization: NOT_AUTHORIZED
+      basis: >
+        Real funds handling remains NOT AUTHORIZED. Authorization requires
+        completion of pilot program, successful stress testing, security
+        audit sign-off, and explicit governance ratification.
+      status: GATED_PENDING_PILOT_COMPLETION
+
+    - capability: api_generation
+      authorization: AUTHORIZED
+      basis: >
+        API generation is authorized as a compiler output artifact. OpenAPI
+        specifications and route generation are within the authorized compiler
+        implementation scope.
+      status: AUTHORIZED
+
+    - capability: ui_development
+      authorization: AUTHORIZED
+      basis: >
+        UI development is authorized within the compiler implementation scope.
+        UI artifacts must be generated from the canonical protocol specification.
+      status: AUTHORIZED
+
+    - capability: production_deployment
+      authorization: CONDITIONAL
+      basis: >
+        Production deployment is conditionally authorized subject to successful
+        pilot program completion, real funds certification, and final
+        governance sign-off. Deployment must follow the governed migration plan.
+      status: CONDITIONAL_PENDING_REAL_FUNDS_CERTIFICATION
+
+  summary:
+    authorized: [compiler_implementation, api_generation, ui_development]
+    conditional: [runtime_deployment, pilot_users, production_deployment]
+    not_authorized: [real_funds]
+
+  next_gate: pilot_program_execution_and_certification
+  recommendation: >
+    Proceed with compiler implementation authorization. Execute pilot program
+    under conditional runtime deployment and pilot user authorizations. Maintain
+    real funds prohibition until explicit governance ratification following
+    pilot completion and operational certification.

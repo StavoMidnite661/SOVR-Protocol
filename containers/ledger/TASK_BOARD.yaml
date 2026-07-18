@@ -1,0 +1,14 @@
+status: pending
+pending_tasks:
+  - id: "ledger-001"
+    description: "Define aggregates"
+  - id: "ledger-002"
+    description: "Implement commands"
+  - id: "ledger-003"
+    description: "Emit events"
+  - id: "ledger-004"
+    description: "Implement projections"
+  - id: "ledger-005"
+    description: "Execute acceptance tests"
+in_progress_tasks: []
+completed_tasks: []

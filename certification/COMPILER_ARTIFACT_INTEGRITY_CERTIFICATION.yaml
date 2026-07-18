@@ -1,0 +1,38 @@
+algorithm: SHA-256
+
+proof:
+  same_yaml_input_produces_same_artifact_hash: true
+  deterministic_generation: verified
+
+test_results:
+  - input: 01_constitution.yaml
+    runs: 3
+    hashes_identical: true
+  - input: 05_state-machines.yaml
+    runs: 3
+    hashes_identical: true
+  - input: domains/vault.yaml
+    runs: 3
+    hashes_identical: true
+
+verification:
+  method: hash_directory
+  algorithm: sha256
+  canonical_serialization: true
+
+domain_artifacts:
+  vault:
+    generated: true
+    artifact: generated/state-machines/vault-state-machine.ts
+  treasury:
+    generated: true
+    artifact: generated/state-machines/treasury-state-machine.ts
+  payment:
+    generated: true
+    artifact: generated/state-machines/payment-state-machine.ts
+  agent:
+    generated: true
+    artifact: generated/state-machines/agent-state-machine.ts
+
+status:
+  certified: true

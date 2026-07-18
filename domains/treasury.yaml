@@ -1,0 +1,1045 @@
+# ============================================================
+# SOVR Financial OS — Treasury Domain Specification
+# File: domains/treasury.yaml
+# Status: FROZEN
+# Build Phase: C (Core Financial Domains)
+# Domain Priority: 2
+# ============================================================
+# Treasury is the Controlled Movement Authority of SOVR.
+# It does not create value (Vault owns value).
+# It does not record truth (Ledger owns truth).
+# It does not deliver to external systems (Payment owns delivery).
+#
+# Treasury answers: "Can value move, under what authorization,
+# through what liquidity constraints, and with what audit trail?"
+#
+# Treasury consumes:
+#   - Vault contracts (asset existence, reservation, lock)
+#   - Ledger contracts (posting authorization, journal reference)
+#   - Policy contracts (execution permission, risk evaluation)
+#   - Identity contracts (who is requesting the movement)
+#
+# Treasury produces:
+#   - Transfer lifecycle events
+#   - Settlement instructions for Payment
+#   - Liquidity state events
+#   - Audit lineage for every movement
+#
+# Constitutional references:
+#   INV-002: No ledger mutation without balanced journal entry
+#   INV-003: No actor may exceed granted authority
+#   INV-005: Every financial action must produce an auditable event trail
+#   INV-007: Value preservation outranks execution speed
+#   INV-008: No command executes without identity, capability, scope, and policy validation
+#   INV-009: Unknown financial states must be represented explicitly
+#   INV-010: No autonomous agent may bypass constitutional enforcement
+# ============================================================
+
+domain:
+  name: treasury
+  version: 1.0.0
+  description: >
+    The Controlled Movement Authority. Manages value movement
+    authorization, liquidity allocation, internal transfers,
+    external transfer preparation, settlement coordination,
+    and liquidity constraints. Treasury never creates value,
+    never alters ledger truth, and never bypasses vault controls.
+  constitutional_references:
+    invariants: [INV-002, INV-003, INV-005, INV-007, INV-008, INV-009, INV-010]
+    financial_integrity: [asset_existence, reserve_sufficiency, atomicity, uniqueness, finality]
+    conflict_resolution_rank: 5  # transaction_completion
+
+  # ============================================================
+  # PRODUCTION INVARIANTS — Treasury-Specific
+  # ============================================================
+  # These are derived from the constitution but restated here
+  # as domain-level enforcement rules.
+  # ============================================================
+
+  production_invariants:
+    - id: TI-001
+      rule: Treasury SHALL NOT create value
+      enforcement: every transfer must reference an existing Vault asset
+      violation: constitutional_violation
+
+    - id: TI-002
+      rule: Treasury SHALL NOT modify historical ledger state
+      enforcement: Treasury only requests new ledger postings, never modifications
+      violation: constitutional_violation
+
+    - id: TI-003
+      rule: Treasury SHALL NOT move unreserved assets
+      enforcement: every transfer must have an active Vault reservation before execution
+      violation: reject_and_audit
+
+    - id: TI-004
+      rule: Treasury SHALL NOT bypass policy evaluation
+      enforcement: every transfer command passes through policy engine
+      violation: reject_and_escalate_to_governance
+
+    - id: TI-005
+      rule: Every movement SHALL have complete audit lineage
+      enforcement: every transfer links to identity, command, event, vault reservation, and ledger entry
+      violation: halt_and_investigate
+
+    - id: TI-006
+      rule: Unknown settlement states SHALL be modeled explicitly
+      enforcement: external settlement uncertainty enters UNKNOWN_EXTERNAL_STATE, not FAILED
+      violation: constitutional_violation (INV-009)
+
+    - id: TI-007
+      rule: Compensation paths SHALL exist for every partial state
+      enforcement: every saga step defines compensating transactions
+      violation: reject_saga_definition
+
+# ============================================================
+# SECTION 1 — VALUE MOVEMENT MODEL
+# ============================================================
+# Treasury sits at the center of the value movement pipeline.
+# It does not own any layer — it coordinates between them.
+# ============================================================
+
+value_movement_model:
+
+  pipeline: >
+    VALUE EXISTS (Vault)
+    → VALUE IS RECORDED (Ledger)
+    → VALUE MAY MOVE (Treasury)
+    → VALUE IS DELIVERED (Payment)
+
+  treasury_position: >
+    Treasury is the decision point between "value is confirmed
+    to exist and be recorded" and "value is authorized to move."
+    Treasury validates that all preconditions are met, coordinates
+    the reservation, and produces an execution instruction.
+
+  transfer_intent:
+    description: The canonical representation of a desire to move value
+    required_fields:
+      - intent_id: uuid
+      - source_actor_id: uuid
+      - destination_actor_id: uuid
+      - asset_id: uuid
+      - amount: decimal
+      - purpose: string
+      - urgency: enum [STANDARD, URGENT, SCHEDULED]
+      - requested_settlement: enum [INTERNAL, EXTERNAL]
+    optional_fields:
+      - destination_external_details
+      - scheduled_execution_time
+      - max_fee_acceptable
+      - preferred_rail
+
+  source_account:
+    description: Where value is moving from
+    rules:
+      - must reference a valid Vault asset
+      - must have a corresponding Ledger account
+      - actor must have transfer authority (Vault control level)
+      - sufficient available balance required (Vault guarantee)
+
+  destination_account:
+    description: Where value is moving to
+    rules:
+      - must reference a valid Vault asset (existing or to-be-created for external)
+      - must have a corresponding Ledger account
+      - for internal: destination must be a SOVR participant
+      - for external: destination details provided by Payment domain
+
+  asset_reference:
+    description: Link to the Vault asset being moved
+    rules:
+      - must be in VERIFIED or AVAILABLE state
+      - must have current, trusted valuation
+      - must have non-expired custody attestation
+
+  reservation_reference:
+    description: Link to the Vault reservation that commits the value
+    rules:
+      - must be created BEFORE execution begins
+      - must be in ACTIVE or PENDING state
+      - must not be expired
+      - lock_id used for deduplication
+
+  settlement_requirement:
+    description: What constitutes "done" for this transfer
+    types:
+      internal:
+        description: SOVR-to-SOVR movement, settles on ledger posting
+        confirmation: ledger.entry.posted event
+      external:
+        description: SOVR-to-external movement, settles on external confirmation
+        confirmation: payment.settlement.confirmed or on_chain.settlement.confirmed
+        uncertainty_window: external systems may report unknown states
+
+# ============================================================
+# SECTION 2 — TREASURY ENTITIES
+# ============================================================
+
+entities:
+
+  treasury_account:
+    description: A Treasury-managed view of a participant's transferable position
+    attributes:
+      treasury_account_id: uuid
+      actor_id: uuid
+      asset_id: uuid
+      available_for_transfer: decimal
+      reserved_for_transfer: decimal
+      in_transit: decimal
+      total_position: decimal
+      liquidity_state: enum [NORMAL, WARNING, RESTRICTED, EMERGENCY_LOCK]
+      last_movement_at: timestamp
+    computed_from: vault.balance + treasury transfer state
+    not_a_source_of_truth: true
+    description: >
+      This is a derived view, not an authoritative balance.
+      Vault is authoritative on balance. Treasury accounts
+      are convenience projections for transfer planning.
+
+  transfer_request:
+    description: The initial request to move value
+    attributes:
+      request_id: uuid
+      intent_id: uuid
+      source_actor_id: uuid
+      destination_actor_id: uuid
+      asset_id: uuid
+      amount: decimal
+      purpose: string
+      urgency: enum [STANDARD, URGENT, SCHEDULED]
+      settlement_type: enum [INTERNAL, EXTERNAL]
+      requested_at: timestamp
+      requested_by:
+        actor_id: uuid
+        actor_type: enum
+        identity_id: uuid
+        agent_id: uuid
+      status: enum [PENDING, ACCEPTED, REJECTED, EXPIRED]
+      policy_evaluation:
+        result: enum
+        evaluated_at: timestamp
+        rules_applied: array
+      expiration: timestamp
+    lifecycle: part of transfer_order
+
+  transfer_order:
+    description: The authorized, executable transfer instruction
+    attributes:
+      order_id: uuid
+      request_id: uuid
+      correlation_id: uuid
+      source_actor_id: uuid
+      destination_actor_id: uuid
+      asset_id: uuid
+      amount: decimal
+      vault_reservation_id: uuid
+      vault_lock_id: uuid
+      ledger_journal_id: uuid
+      settlement_type: enum
+      state: enum
+      authorized_by: uuid
+      authorized_at: timestamp
+      executed_at: timestamp
+      settled_at: timestamp
+      failure_reason: string
+      compensation_status: enum
+      audit_lineage:
+        identity_verification: uuid
+        capability_check: uuid
+        policy_evaluation: uuid
+        vault_reservation: uuid
+        ledger_posting: uuid
+    lifecycle: managed by treasury_transfer_lifecycle state machine
+
+  liquidity_position:
+    description: System-wide liquidity state for an asset
+    attributes:
+      position_id: uuid
+      asset_id: uuid
+      total_verified_value: decimal
+      total_available: decimal
+      total_reserved: decimal
+      total_encumbered: decimal
+      total_in_transit: decimal
+      net_liquidity_ratio: decimal
+      state: enum [NORMAL, WARNING, RESTRICTED, EMERGENCY_LOCK]
+      thresholds:
+        warning_at: decimal
+        restricted_at: decimal
+        emergency_at: decimal
+      last_evaluated_at: timestamp
+
+  settlement_instruction:
+    description: The instruction sent to Payment domain for external settlement
+    attributes:
+      instruction_id: uuid
+      order_id: uuid
+      asset_id: uuid
+      amount: decimal
+      destination_details:
+        type: string
+        address: string
+        rail: string
+        reference: string
+      vault_lock_id: uuid
+      vault_reservation_id: uuid
+      max_attempts: integer
+      timeout: integer
+      state: enum [PENDING, SUBMITTED, CONFIRMING, CONFIRMED, FAILED, UNKNOWN]
+
+  settlement_confirmation:
+    description: Evidence that settlement occurred
+    attributes:
+      confirmation_id: uuid
+      instruction_id: uuid
+      order_id: uuid
+      source: enum [ledger, payment, on_chain]
+      confirmation_type: enum [INTERNAL, EXTERNAL, ATTESTATION]
+      reference_id: uuid
+      confirmed_at: timestamp
+      amount: decimal
+      asset_id: uuid
+      confidence: enum [DEFINITIVE, HIGH, LOW, UNKNOWN]
+
+  transfer_reservation:
+    description: Treasury's internal tracking of a Vault reservation for a transfer
+    attributes:
+      reservation_id: uuid
+      order_id: uuid
+      vault_reservation_id: uuid
+      vault_lock_id: uuid
+      asset_id: uuid
+      amount: decimal
+      state: enum [PENDING, ACTIVE, CONSUMED, RELEASED, EXPIRED]
+      created_at: timestamp
+      consumed_at: timestamp
+      released_at: timestamp
+    relationship: mirrors vault.reservation lifecycle
+
+  routing_decision:
+    description: The decision of how and where to settle a transfer
+    attributes:
+      decision_id: uuid
+      order_id: uuid
+      settlement_type: enum [INTERNAL, EXTERNAL]
+      rail: string
+      estimated_cost: decimal
+      estimated_duration: integer
+      risk_assessment: enum [LOW, MEDIUM, HIGH]
+      policy_constraints: array
+      decided_at: timestamp
+      decided_by: enum [system, policy_engine, governance]
+
+# ============================================================
+# SECTION 3 — TRANSFER LIFECYCLE STATE MACHINE
+# ============================================================
+# See 05_state-machines.yaml for the formal definition.
+# This section documents the state machine.
+# ============================================================
+
+transfer_lifecycle:
+
+  states:
+
+    REQUESTED:
+      description: Transfer has been requested but not yet validated
+      allowed_commands:
+        - treasury.transfer.authorize
+        - treasury.transfer.cancel
+      time_limit: 3600s  # 1 hour to authorize
+      on_timeout: EXPIRED
+
+    AUTHORIZED:
+      description: Transfer has passed identity, capability, and policy validation
+      allowed_commands:
+        - treasury.transfer.reserve
+        - treasury.transfer.cancel
+      preconditions_met:
+        - identity verified
+        - capability confirmed
+        - policy approved
+        - source balance sufficient
+      time_limit: 300s
+      on_timeout: REJECTED
+
+    RESERVED:
+      description: Vault reservation created and locked for this transfer
+      allowed_commands:
+        - treasury.transfer.execute
+        - treasury.transfer.cancel
+      preconditions_met:
+        - all AUTHORIZED preconditions
+        - vault_reservation exists and is ACTIVE
+        - vault_lock_id issued
+      time_limit: 86400s
+      on_timeout: EXPIRED
+
+    EXECUTING:
+      description: Transfer is being processed
+      allowed_commands: []  # system-driven
+      substates:
+        internal: ledger posting in progress
+        external: settlement instruction submitted to Payment
+      time_limit: 300s for internal, 86400s for external
+      on_timeout: UNKNOWN_EXTERNAL_STATE  # not FAILED
+
+    PENDING_SETTLEMENT:
+      description: Execution completed, awaiting settlement confirmation
+      allowed_commands: []  # system-driven
+      time_limit: 86400s
+      on_timeout: UNKNOWN_EXTERNAL_STATE
+
+    SETTLED:
+      description: Transfer is complete and confirmed
+      allowed_commands: []
+      entry_actions:
+        - confirm vault reservation consumed
+        - ledger entry marked as settled
+        - audit lineage completed
+
+    # Failure states
+    REJECTED:
+      description: Transfer failed validation and will not proceed
+      allowed_commands: []
+      entry_actions:
+        - release any held reservations
+        - emit rejection event with reason
+
+    EXPIRED:
+      description: Transfer timed out at any pre-execution stage
+      allowed_commands: []
+      entry_actions:
+        - release any held reservations
+        - emit expiration event
+
+    FAILED:
+      description: Transfer failed during or after execution
+      allowed_commands:
+        - treasury.transfer.compensate
+      entry_actions:
+        - trigger compensation saga
+        - notify governance if severity >= medium
+
+    COMPENSATION_REQUIRED:
+      description: Transfer is in a partial state requiring compensating transactions
+      allowed_commands:
+        - treasury.transfer.compensate
+      entry_actions:
+        - execute compensation saga
+        - notify governance
+
+    UNKNOWN_EXTERNAL_STATE:
+      description: External settlement state cannot be determined
+      allowed_commands:
+        - treasury.transfer.compensate  # if governance decides
+      entry_actions:
+        - do NOT assume success
+        - do NOT assume failure
+        - record as UNKNOWN
+        - notify governance
+        - begin investigation
+        - vault reservation remains locked
+      constitutional_reference: INV-009
+      resolution_paths:
+        - external_confirmation_received → SETTLED
+        - external_failure_confirmed → FAILED
+        - governance_orders_compensation → COMPENSATION_REQUIRED
+        - investigation_times_out → ESCALATED_TO_GOVERNANCE
+
+  invalid_transitions:
+    - { from: SETTLED, to: any }
+    - { from: REJECTED, to: any }
+    - { from: EXPIRED, to: any }
+    - { from: REQUESTED, to: EXECUTING }  # must authorize and reserve first
+    - { from: AUTHORIZED, to: EXECUTING }  # must reserve first
+    - { from: EXECUTING, to: REQUESTED }
+    - { from: PENDING_SETTLEMENT, to: AUTHORIZED }
+    - { from: FAILED, to: SETTLED }  # must compensate first, then new transfer
+    - { from: UNKNOWN_EXTERNAL_STATE, to: FAILED }  # must confirm failure first
+
+# ============================================================
+# SECTION 4 — TREASURY COMMANDS
+# ============================================================
+# See 03_command-catalog.yaml for full definitions.
+# ============================================================
+
+commands:
+
+  treasury.transfer.request:
+    description: Request a value transfer
+    issuer:
+      actor_types: [human, ai_agent]
+      minimum_capability: treasury.transfer.request
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.request
+      scope: source_asset_id
+      policy: transfer_request_policy
+    validation:
+      - source_actor exists and is verified
+      - destination_actor exists (internal) or destination provided (external)
+      - asset_id references a verified Vault asset
+      - amount positive and within single-transfer limits
+      - purpose provided
+    produces:
+      - treasury.transfer.requested
+    failure_produces:
+      - treasury.transfer.rejected
+
+  treasury.transfer.authorize:
+    description: Authorize a requested transfer (identity + capability + policy)
+    issuer:
+      actor_types: [human, ai_agent, governance, system]
+      minimum_capability: treasury.transfer.authorize
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.authorize
+      scope: source_asset_id
+      policy: transfer_execution_policy
+    preconditions:
+      - transfer_request exists in PENDING state
+      - identity verification passed
+      - capability check passed
+      - policy evaluation returned APPROVE
+      - Vault available balance confirmed
+    produces:
+      - treasury.transfer.authorized
+    failure_produces:
+      - treasury.transfer.rejected
+
+  treasury.transfer.reserve:
+    description: Create and lock a Vault reservation for an authorized transfer
+    issuer:
+      actor_types: [system]
+      minimum_capability: system.internal
+    authorization_requirements:
+      identity: exempt
+      capability: system.internal
+      scope: none
+      policy: none  # already evaluated in authorize step
+    preconditions:
+      - transfer_order exists in AUTHORIZED state
+      - Vault asset in AVAILABLE state
+      - available_balance >= transfer amount
+      - no conflicting reservation
+    produces:
+      - treasury.transfer.reserved
+      - vault.reserve.created
+      - vault.reserve.locked
+    failure_produces:
+      - treasury.transfer.failed
+
+  treasury.transfer.execute:
+    description: Execute a reserved transfer
+    issuer:
+      actor_types: [system]
+      minimum_capability: system.internal
+    authorization_requirements:
+      identity: exempt
+      capability: system.internal
+      scope: none
+      policy: none
+    preconditions:
+      - transfer_order in RESERVED state
+      - vault_reservation in ACTIVE state with valid lock
+      - for external: routing decision made
+    produces:
+      - treasury.transfer.executing
+      - ledger.entry.posted (for internal) or settlement_instruction (for external)
+    failure_produces:
+      - treasury.transfer.failed
+
+  treasury.transfer.cancel:
+    description: Cancel a transfer before execution
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: treasury.transfer.cancel
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.cancel
+      scope: order_id
+      policy: transfer_cancellation_policy
+    preconditions:
+      - transfer in REQUESTED, AUTHORIZED, or RESERVED state
+      - cancellation reason provided
+    produces:
+      - vault.reserve.released (if reservation exists)
+      - treasury.transfer.expired (recorded as user-cancelled)
+    failure_produces:
+      - none  # cancel cannot fail if preconditions met
+
+  treasury.transfer.compensate:
+    description: Execute compensating transactions for a failed transfer
+    issuer:
+      actor_types: [governance, system]
+      minimum_capability: treasury.transfer.compensate
+    authorization_requirements:
+      identity: required
+      capability: treasury.transfer.compensate
+      scope: order_id
+      policy: compensation_policy
+    preconditions:
+      - transfer in FAILED or COMPENSATION_REQUIRED state
+      - compensation saga defined for this failure type
+    produces:
+      - vault.reserve.released
+      - ledger.entry.reversed (if ledger entry was posted)
+      - treasury.transfer.compensation_required (status update)
+    failure_produces:
+      - treasury.transfer.compensation_failed
+
+  treasury.liquidity.check:
+    description: Evaluate system-wide liquidity state for an asset
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: treasury.liquidity.manage
+    authorization_requirements:
+      identity: required_for_governance
+      capability: treasury.liquidity.manage
+      scope: asset_id
+      policy: liquidity_policy
+    validation:
+      - asset_id references a valid Vault asset
+    produces:
+      - treasury.liquidity.warning (if threshold breached)
+    failure_produces:
+      - none
+
+  treasury.liquidity.allocate:
+    description: Allocate liquidity to a specific transfer or reserve
+    issuer:
+      actor_types: [governance]
+      minimum_capability: treasury.liquidity.manage
+    authorization_requirements:
+      identity: required
+      capability: treasury.liquidity.manage
+      scope: asset_id
+      policy: liquidity_policy
+    validation:
+      - allocation does not breach liquidity thresholds
+      - governance approval for restricted state
+    produces:
+      - treasury.liquidity.allocated
+    failure_produces:
+      - treasury.liquidity.allocation_failed
+
+  treasury.settlement.confirm:
+    description: Record settlement confirmation for a transfer
+    issuer:
+      actor_types: [system]
+      minimum_capability: system.internal
+    authorization_requirements:
+      identity: exempt
+      capability: system.internal
+      scope: none
+      policy: none
+    preconditions:
+      - transfer_order in EXECUTING or PENDING_SETTLEMENT state
+      - settlement confirmation received from authoritative source
+    produces:
+      - treasury.transfer.settled
+      - vault.reserve.consumed (implicit via consumption)
+    failure_produces:
+      - treasury.transfer.failed (if confirmation is a confirmed failure)
+      - none (if confirmation is UNKNOWN → enters UNKNOWN_EXTERNAL_STATE)
+
+# ============================================================
+# SECTION 5 — TREASURY EVENTS
+# ============================================================
+# See 04_event-catalog.yaml for full definitions.
+# ============================================================
+
+events:
+
+  treasury.transfer.requested:
+    aggregate: transfer_request
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - request_id, intent_id, source_actor_id, destination_actor_id
+      - asset_id, amount, purpose, urgency, settlement_type
+      - requested_by, requested_at, expiration
+
+  treasury.transfer.authorized:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - order_id, request_id, correlation_id
+      - source_actor_id, destination_actor_id, asset_id, amount
+      - authorized_by, authorized_at
+      - audit_lineage.identity_verification, audit_lineage.capability_check, audit_lineage.policy_evaluation
+
+  treasury.transfer.rejected:
+    aggregate: transfer_request
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - request_id, reason, rejected_at, rejection_stage
+      - policy_evaluation (if applicable), failed_validation_rules
+
+  treasury.transfer.reserved:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - order_id, vault_reservation_id, vault_lock_id
+      - asset_id, amount, reserved_at
+
+  treasury.transfer.executing:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - order_id, settlement_type, executing_at
+      - ledger_entry_id (if internal)
+      - settlement_instruction_id (if external)
+      - vault_lock_id
+
+  treasury.transfer.settled:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - order_id, settled_at, settlement_type
+      - ledger_entry_id, vault_reservation_id, vault_lock_id
+      - settlement_confirmation_id, confirmation_source
+      - total_debits, total_credits (ledger balance proof)
+      - source_actor_id, destination_actor_id, asset_id, amount
+
+  treasury.transfer.failed:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - order_id, failed_at, failure_stage, failure_reason
+      - error_code, retryable, severity
+      - vault_reservation_id (if exists, for compensation)
+      - ledger_entry_id (if exists, for reversal)
+
+  treasury.transfer.expired:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - order_id, expired_at, expiration_stage
+      - vault_reservation_id (if exists, for release)
+
+  treasury.transfer.compensation_required:
+    aggregate: transfer_order
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - order_id, compensation_required_at, failure_reason
+      - compensation_type, affected_resources
+      - vault_reservation_id, ledger_entry_id (if posted)
+      - escalation_required
+
+  treasury.liquidity.warning:
+    aggregate: liquidity_position
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - asset_id, previous_state, new_state
+      - total_available, total_reserved, total_in_transit
+      - net_liquidity_ratio, threshold_breached
+
+  treasury.settlement.confirmed:
+    aggregate: settlement_confirmation
+    source_domain: treasury
+    version: 1.0.0
+    data_fields:
+      - confirmation_id, order_id, instruction_id
+      - source, confirmation_type, reference_id
+      - confirmed_at, amount, asset_id, confidence
+
+# ============================================================
+# SECTION 6 — LIQUIDITY MANAGEMENT
+# ============================================================
+
+liquidity_management:
+
+  model: >
+    available_liquidity = total_verified_value
+                         - total_reserved
+                         - total_encumbered
+
+  computation:
+    sources:
+      - vault.total_balance (verified assets only)
+      - vault.reserved_balance (all active reservations)
+      - vault.encumbered_balance (collateral positions)
+      - treasury.in_transit (transfers in EXECUTING or PENDING_SETTLEMENT)
+    frequency: continuous for in_transit, periodic for vault data
+
+  thresholds:
+    description: >
+      Liquidity thresholds are per-asset and configurable by
+      governance. Default ratios shown.
+    default_thresholds:
+      NORMAL:
+        description: Normal operations
+        condition: available_liquidity >= 0.20 * total_verified
+        restrictions: none
+      WARNING:
+        description: Liquidity declining, proactive notification
+        condition: available_liquidity < 0.20 * total_verified
+        restrictions:
+          - notify governance
+          - restrict new large transfers
+          - emit treasury.liquidity.warning
+      RESTRICTED:
+        description: Liquidity critically low, defensive operations only
+        condition: available_liquidity < 0.10 * total_verified
+        restrictions:
+          - governance approval required for all new transfers
+          - no new external transfers
+          - notify all stakeholders
+        escalation: governance_mandatory
+      EMERGENCY_LOCK:
+        description: Liquidity exhausted, all transfers halted
+        condition: available_liquidity < 0.05 * total_verified
+        restrictions:
+          - all new transfers rejected
+          - existing in-transit transfers may complete or be compensated
+          - emergency governance session required
+        escalation: governance_emergency_powers
+
+  state_transitions:
+    NORMAL_to_WARNING: automatic on threshold breach
+    WARNING_to_NORMAL: automatic on liquidity recovery
+    WARNING_to_RESTRICTED: automatic on threshold breach
+    RESTRICTED_to_WARNING: governance approval required
+    RESTRICTED_to_EMERGENCY_LOCK: automatic on threshold breach
+    EMERGENCY_LOCK_to_RESTRICTED: governance emergency action
+    RESTRICTED_to_NORMAL: governance approval required
+
+  emergency_controls:
+    - governance can manually set liquidity state
+    - governance can override automated restrictions
+    - all manual overrides produce governance memorandum entries
+    - emergency state changes require two-governor concurrent approval
+
+# ============================================================
+# SECTION 7 — TREASURY AUTHORIZATION BOUNDARY
+# ============================================================
+
+authorization_boundary:
+
+  description: >
+    No single domain may authorize a transfer by itself.
+    Treasury coordinates authorization across multiple domains.
+    Each gate must pass before the next is attempted.
+
+  authorization_gates:
+
+    gate_1_identity:
+      domain: identity
+      action: verify actor identity
+      output: identity.verified
+      failure: transfer rejected
+
+    gate_2_capability:
+      domain: security (08_security-capabilities.yaml)
+      action: confirm actor has treasury.transfer capability
+      output: capability.confirmed
+      failure: transfer rejected
+
+    gate_3_policy:
+      domain: policy
+      action: evaluate transfer against active policies
+      output: policy.approved
+      failure: transfer rejected
+
+    gate_4_vault_reservation:
+      domain: vault
+      action: create and lock reservation
+      output: vault.reserve.locked
+      failure: transfer failed (compensation may not be needed)
+
+    gate_5_ledger_authorization:
+      domain: ledger
+      action: confirm journal entry template is valid
+      output: ledger.entry_authorized
+      failure: transfer rejected
+
+    gate_6_execution:
+      domain: treasury
+      action: execute the transfer
+      output: treasury.transfer.executing
+      failure: transfer failed, compensation required
+
+  anti_self_authorization:
+    rule: >
+      A domain cannot authorize its own gate. Identity verifies
+      identity; policy evaluates policy; vault confirms vault state;
+      treasury coordinates but does not self-authorize. This
+      prevents any single point of authority failure.
+
+# ============================================================
+# SECTION 8 — SAGA REQUIREMENTS
+# ============================================================
+
+saga_definitions:
+
+  internal_transfer_saga:
+    description: SOVR-to-SOVR value movement
+    steps:
+      - step: 1
+        name: reserve_funds
+        command: vault.reserve.create + vault.reserve.lock
+        domain: vault
+        produces: vault.reserve.locked
+        compensation: vault.reserve.release
+        timeout: 5000ms
+        retry: none
+
+      - step: 2
+        name: post_ledger_entry
+        command: ledger.entry.post
+        domain: ledger
+        produces: ledger.entry.posted
+        compensation: ledger.entry.reverse
+        timeout: 5000ms
+        retry: 1
+
+      - step: 3
+        name: consume_reservation
+        command: vault.reserve.release (with consumption flag)
+        domain: vault
+        produces: vault.reservation.consumed
+        compensation: vault.reserve.release (reverse consumption)
+        timeout: 3000ms
+        retry: none
+
+    compensation_order: reverse (step 3 → step 2 → step 1)
+    unknown_state_handling:
+      - if step 2 fails after step 1: release reservation (step 1 compensation)
+      - if step 3 fails: reverse ledger entry, then release reservation
+      - if any step times out: enter UNKNOWN state, escalate to governance
+
+  external_transfer_saga:
+    description: SOVR-to-external value movement
+    steps:
+      - step: 1
+        name: reserve_funds
+        command: vault.reserve.create + vault.reserve.lock
+        domain: vault
+        produces: vault.reserve.locked
+        compensation: vault.reserve.release
+        timeout: 5000ms
+        retry: none
+
+      - step: 2
+        name: create_ledger_intent
+        command: ledger.entry.post
+        domain: ledger
+        produces: ledger.entry.posted
+        compensation: ledger.entry.reverse
+        timeout: 5000ms
+        retry: 1
+
+      - step: 3
+        name: send_external_instruction
+        command: payment.initiate (produced by treasury as settlement_instruction)
+        domain: payment
+        produces: payment.initiated
+        compensation: payment.cancel
+        timeout: 10000ms
+        retry: 2
+
+      - step: 4
+        name: await_settlement
+        command: (external) — treasury waits for confirmation
+        domain: external
+        produces: treasury.settlement.confirmed or UNKNOWN_EXTERNAL_STATE
+        compensation: depends on confirmation
+        timeout: 86400s
+        retry: none
+
+      - step: 5
+        name: finalize
+        command: treasury.settlement.confirm
+        domain: treasury
+        produces: treasury.transfer.settled
+        compensation: full external compensation saga
+        timeout: 5000ms
+        retry: none
+
+    compensation_order: reverse (step 5 → step 4 → step 3 → step 2 → step 1)
+    unknown_state_handling:
+      - step 4 is the primary uncertainty point
+      - >
+        if step 4 times out: enter UNKNOWN_EXTERNAL_STATE
+        vault reservation remains locked
+        ledger entry remains in SETTLED (not RECONCILED)
+        governance notified immediately
+        investigation begins
+        resolution paths: confirmed → SETTLED, failed → FAILED, governance → COMPENSATION
+      - if step 3 fails after step 2: cancel payment, reverse ledger, release reservation
+      - if step 2 fails after step 1: release reservation
+    governance_escalation_triggers:
+      - any step fails after retry exhaustion
+      - UNKNOWN_EXTERNAL_STATE persists > 1 hour
+      - compensation saga itself fails
+      - settlement amount differs from instructed amount
+
+# ============================================================
+# SECTION 9 — INTEGRATION CONTRACTS
+# ============================================================
+
+integration_contracts:
+
+  # Consumed from Vault (defined in 12_domain-contracts.yaml as vault_to_treasury)
+  vault_to_treasury_consumed:
+    vault_guarantees:
+      - asset_exists_and_verified
+      - reservation_created_and_locked
+      - available_balance_confirmed
+      - ownership_authority_confirmed
+      - lock_id_provided_for_deduplication
+
+  # Provided to Ledger (defined in 12_domain-contracts.yaml as treasury_to_ledger)
+  treasury_to_ledger_provided:
+    treasury_provides:
+      - transfer_intent (transfer_id, purpose, amount, asset_id)
+      - source_account (account_id, owner_id)
+      - destination_account (account_id, owner_id)
+      - settlement_status (INITIATED, PROCESSING, SETTLED, FAILED)
+
+  # Provided to Payment
+  treasury_to_payment:
+    description: Treasury produces execution instructions for Payment
+    treasury_provides:
+      - instruction_id: uuid
+      - order_id: uuid
+      - asset_id: uuid
+      - amount: decimal
+      - vault_lock_id: uuid
+      - vault_reservation_id: uuid
+      - destination_details:
+          type: string
+          address: string
+          rail: string
+          reference: string
+      - max_attempts: integer
+      - timeout: integer
+    payment_requires:
+      - confirmation back to treasury (via treasury.settlement.confirm)
+      - failure notification (via treasury.transfer.failed)
+      - unknown state notification (via UNKNOWN_EXTERNAL_STATE)
+
+  # Requested from Policy
+  treasury_to_policy:
+    description: Treasury requests policy evaluation before execution
+    treasury_requests:
+      - execution_permission
+      - risk_evaluation
+      - liquidity_impact_assessment
+      - compliance_check
+    policy_returns:
+      - result: enum [APPROVE, DENY, REQUIRE_APPROVAL]
+      - rules_applied: array
+      - conditions: array
+      - evaluated_at: timestamp

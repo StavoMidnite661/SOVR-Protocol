@@ -1,0 +1,467 @@
+# ============================================================
+# SOVR Financial OS — Protocol Manifest
+# File: 00_protocol-manifest.yaml
+# Status: CONSTITUTIONAL_FREEZE
+# ============================================================
+# This file is the entry point for the SOVR Protocol Specification.
+# It defines the protocol identity, dependency graph, domain map,
+# layer structure, and validation pipeline.
+# All other files in this specification derive from this manifest.
+# ============================================================
+
+protocol:
+  name: SOVR Financial OS
+  version: 1.0.0
+  status: FROZEN
+  description: >
+    A programmable, reserve-backed, trust-governed financial
+    infrastructure layer combining vault-based custody, programmable
+    credit rails, tokenized value representation, real-time payment
+    orchestration, AI-driven financial agents, policy-controlled
+    execution, and auditable financial state machines.
+
+  runtime_enforcement:
+    method: compiled
+    source_format: yaml
+    output: validated_internal_representation
+    reload: on_governance_approval_only
+    validation_pipeline:
+      - schema_validation
+      - reference_integrity
+      - constitutional_compliance
+      - dependency_order_check
+
+# ============================================================
+# CONSTITUTIONAL LAYERS
+# ============================================================
+# Files are organized into four dependency layers.
+# A file in layer N may only reference files in layers 0..N.
+# No file may reference a file in a higher layer.
+# ============================================================
+
+layers:
+
+  - id: L0
+    name: Protocol Governance
+    purpose: Immutable principles, priority ordering, emergency procedures, protocol evolution
+    files:
+      - 00_protocol-manifest.yaml
+      - 01_constitution.yaml
+    depends_on: []
+
+  - id: L1
+    name: Shared Language
+    purpose: Entity definitions, action vocabulary, fact vocabulary, communication protocol
+    files:
+      - 02_domain-model.yaml
+      - 03_command-catalog.yaml
+      - 04_event-catalog.yaml
+    depends_on: [L0]
+
+  - id: L2
+    name: Execution Control
+    purpose: State transitions, failure behavior, timing guarantees, distributed coordination
+    files:
+      - 05_state-machines.yaml
+      - 09_saga-orchestration.yaml
+    depends_on: [L0, L1]
+
+  - id: L3
+    name: Authority
+    purpose: Who can act, on what resources, under what scope and conditions
+    files:
+      - 08_security-capabilities.yaml
+    depends_on: [L0, L1, L2]
+
+  - id: L4
+    name: Interpretation
+    purpose: Derived views, read models, reporting truth, conflict resolution
+    files:
+      - projection-engine.yaml
+    depends_on: [L0, L1, L2, L3]
+
+  - id: L5
+    name: Integration
+    purpose: Cross-domain coupling contracts and boundary contracts
+    files:
+      - 12_domain-contracts.yaml
+    depends_on: [L0, L1, L2, L3, L4]
+
+  - id: L6
+    name: Boundary
+    purpose: External system interfaces, blockchain, oracles, reorg handling
+    files:
+      - hybrid-boundary.yaml
+    depends_on: [L0, L1, L2, L3, L4, L5]
+
+  - id: L7
+    name: Production
+    purpose: Compiler specification and acceptance test suite
+    files:
+      - compiler.yaml
+      - acceptance-tests.yaml
+    depends_on: [L0, L1, L2, L3, L4, L5, L6]
+
+# ============================================================
+# DOMAINS
+# ============================================================
+# Nine first-class domains define the operational surface of SOVR.
+# Each domain has entities (defined in 02_domain-model.yaml),
+# commands (defined in 03_command-catalog.yaml),
+# events (defined in 04_event-catalog.yaml),
+# state machines (defined in 05_state-machines.yaml),
+# and coupling contracts (defined in 12_domain-contracts.yaml).
+# ============================================================
+
+domains:
+
+  vault:
+    name: Vault
+    description: >
+      Asset custody, reserve accounting, collateral tracking,
+      and asset-backed value representation.
+    layer: L1
+    entities_defined_in: 02_domain-model.yaml
+    contracts_with:
+      - treasury
+      - ledger
+      - identity
+    build_phase: B
+    priority: 1
+    answers_the_question: "Can value exist?"
+    defines_atomic_value: true
+
+  ledger:
+    name: Ledger
+    description: >
+      Immutable financial history, event-sourced truth,
+      double-entry accounting, and complete audit trail.
+    layer: L1
+    entities_defined_in: 02_domain-model.yaml
+    contracts_with:
+      - vault
+      - treasury
+      - payment
+      - governance
+    build_phase: C
+    priority: 3
+    answers_the_question: "How is truth recorded?"
+    defines_atomic_value: false
+
+  treasury:
+    name: Treasury
+    description: >
+      Value movement, transfers, reserves, settlements,
+      and liquidity management.
+    layer: L1
+    entities_defined_in: 02_domain-model.yaml
+    contracts_with:
+      - vault
+      - ledger
+      - payment
+      - policy
+    build_phase: C
+    priority: 2
+    answers_the_question: "Can value move?"
+    defines_atomic_value: false
+
+  payment:
+    name: Payment
+    description: >
+      Execution Boundary between constitutional runtime and external
+      financial systems. Settlement adapters, reconciliation, receipts.
+    layer: L6
+    entities_defined_in: domains/payment.yaml
+    contracts_with:
+      - treasury
+      - ledger
+      - vault
+      - policy
+      - identity
+    build_phase: E
+    priority: 6
+    answers_the_question: "Can execution leave the system?"
+    defines_atomic_value: false
+
+  identity:
+    name: Identity
+    description: >
+      Actor identification, authentication, credential management,
+      and trust establishment.
+    layer: L1
+    entities_defined_in: 02_domain-model.yaml
+    contracts_with:
+      - vault
+      - treasury
+      - policy
+      - agent
+      - governance
+    build_phase: C
+    priority: 4
+    answers_the_question: "Who is acting?"
+    defines_atomic_value: false
+
+  policy:
+    name: Policy
+    description: >
+      Rule evaluation, compliance checking, risk assessment,
+      authorization decisions, and constraint enforcement.
+    layer: L1
+    entities_defined_in: 02_domain-model.yaml
+    contracts_with:
+      - identity
+      - treasury
+      - agent
+      - intent
+      - vault
+    build_phase: C
+    priority: 5
+    answers_the_question: "Is this action permitted?"
+    defines_atomic_value: false
+
+  agent:
+    name: Agent
+    description: >
+      AI-driven financial operators with constrained permissions,
+      audit envelopes, escalation rules, and bounded autonomy.
+    layer: L1
+    entities_defined_in: 02_domain-model.yaml
+    contracts_with:
+      - identity
+      - policy
+      - intent
+      - vault
+      - governance
+    build_phase: E
+    priority: 7
+    answers_the_question: "Can intelligence request action?"
+    defines_atomic_value: false
+
+  governance:
+    name: Governance
+    description: >
+      Constitutional oversight, amendment management, escalation
+      handling, regulatory compliance tracking, and audit authority.
+    layer: L1
+    entities_defined_in: 02_domain-model.yaml
+    contracts_with:
+      - identity
+      - policy
+      - ledger
+      - agent
+    build_phase: E
+    priority: 8
+    answers_the_question: "Who oversees the system?"
+    defines_atomic_value: false
+
+  intent:
+    name: Intent
+    description: >
+      Human and agent intention translation, partial intent handling,
+      enrichment pipelines, ambiguity resolution, and conversion
+      from expressed intent to executable command.
+    layer: L1
+    entities_defined_in: 02_domain-model.yaml
+    contracts_with:
+      - identity
+      - policy
+      - agent
+      - treasury
+      - payment
+    build_phase: D
+    priority: 6
+    answers_the_question: "What does the actor want to do?"
+    defines_atomic_value: false
+
+# ============================================================
+# BOUNDARY SYSTEMS
+# ============================================================
+# External systems that SOVR interfaces with but does not own.
+# These are NOT domains. They have boundary contracts defined
+# in 12_domain-contracts.yaml.
+# ============================================================
+
+boundary_systems:
+
+  on_chain_settlement:
+    name: SOVR Hybrid Engine
+    description: >
+      Blockchain-based settlement layer including sFIAT, SOVR token,
+      reserve management, liquidity pools, and attestation network.
+    handoff_protocol: attestation_based
+    finality_assumption: probabilistic
+    divergence_resolution: off_chain_authoritative
+
+  external_payment_rails:
+    name: External Payment Providers
+    description: >
+      Banking rails, merchant payment systems, card networks,
+      stablecoin networks, and third-party payment providers.
+    handoff_protocol: adapter_based
+    finality_assumption: rail_specific
+    divergence_resolution: reconciliation_saga
+
+  regulatory_reporting:
+    name: Regulatory Interfaces
+    description: >
+      External regulatory reporting endpoints, audit export,
+      and compliance certification interfaces.
+    handoff_protocol: batch_export
+    finality_assumption: acknowledgment_based
+    divergence_resolution: manual_reconciliation
+
+# ============================================================
+# BUILD PHASES
+# ============================================================
+
+build_phases:
+
+  - phase: A
+    name: Protocol Foundation
+    description: Freeze constitutional invariants, conflict resolution priority, immutable principles, runtime enforcement model
+    files:
+      - 00_protocol-manifest.yaml
+      - 01_constitution.yaml
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: []
+
+  - phase: B
+    name: Vault Domain
+    description: Define atomic value representation, assets, reserves, custody, ownership, collateral, locks, reservations, release conditions
+    files:
+      - domains/vault.yaml
+      - 02_domain-model.yaml  (vault section)
+      - 03_command-catalog.yaml  (vault section)
+      - 04_event-catalog.yaml  (vault section)
+      - 05_state-machines.yaml  (vault section)
+      - 08_security-capabilities.yaml  (vault section)
+      - 09_saga-orchestration.yaml  (vault section)
+      - 12_domain-contracts.yaml  (vault contracts)
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [A]
+
+  - phase: C
+    name: Core Financial Domains
+    description: Generate Ledger, Treasury domain specifications
+    files:
+      - domains/ledger.yaml
+      - domains/treasury.yaml
+      - 02_domain-model.yaml  (ledger, treasury sections)
+      - 03_command-catalog.yaml  (corresponding sections)
+      - 04_event-catalog.yaml  (corresponding sections)
+      - 05_state-machines.yaml  (corresponding sections)
+      - 08_security-capabilities.yaml  (corresponding sections)
+      - 09_saga-orchestration.yaml  (corresponding sections)
+      - 12_domain-contracts.yaml  (corresponding contracts)
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [B]
+
+  - phase: D
+    name: Security and Intelligence Subsystem
+    description: Build Identity, Policy, Intent, Agent as integrated constitutional execution authority pipeline
+    files:
+      - domains/identity.yaml
+      - domains/policy.yaml
+      - domains/intent.yaml
+      - domains/agent.yaml
+      - 02_domain-model.yaml  (identity, policy, intent, agent sections)
+      - 03_command-catalog.yaml  (corresponding sections)
+      - 04_event-catalog.yaml  (corresponding sections)
+      - 05_state-machines.yaml  (corresponding sections)
+      - 08_security-capabilities.yaml  (corresponding sections)
+      - 09_saga-orchestration.yaml  (corresponding sections)
+      - 12_domain-contracts.yaml  (corresponding contracts)
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [C]
+
+  - phase: E
+    name: Payment Execution Domain
+    description: Define external payment rails, settlement adapters, reconciliation, execution boundary
+    files:
+      - domains/payment.yaml
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [D]
+
+  - phase: F
+    name: Hybrid Execution Layer
+    description: Blockchain boundaries, oracle integrations, reorg handling, fork detection
+    files:
+      - hybrid-boundary.yaml
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [E]
+
+  - phase: G
+    name: Projection Engine
+    description: All read models, replay protocol, caching architecture, consistency guarantees
+    files:
+      - projection-engine.yaml
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [F]
+
+  - phase: H
+    name: Compiler Specification
+    description: Protocol compiler that consumes YAML specs and produces runtime artifacts
+    files:
+      - compiler.yaml
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [G]
+
+  - phase: I
+    name: Acceptance Test Suite
+    description: Tests for every invariant, saga, state machine, command, event, policy, capability, projection, contract, and compiler output
+    files:
+      - acceptance-tests.yaml
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [H]
+
+  - phase: FIX
+    name: Constitutional Fix Pass
+    description: Global consistency pass — event envelope standardization, command gates retrofit, naming normalization, cross-reference validation
+    files:
+      - 04_event-catalog.yaml  (event envelope)
+      - 03_command-catalog.yaml  (constitutional_gates)
+      - 02_domain-model.yaml  (naming)
+      - domains/agent.yaml  (naming)
+      - 00_protocol-manifest.yaml  (manifest accuracy)
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [I]
+
+  - phase: J
+    name: Protocol Closure
+    description: Cross-cutting registration, global reference validation, dead artifact detection, dependency graph, compiler readiness, invariant verification, protocol freeze
+    files:
+      - 02_domain-model.yaml  (payment + governance entities registered)
+      - 03_command-catalog.yaml  (payment + governance commands registered)
+      - 04_event-catalog.yaml  (payment + governance events registered)
+      - 05_state-machines.yaml  (payment + governance state machines registered)
+      - 08_security-capabilities.yaml  (governance capabilities verified)
+      - 09_saga-orchestration.yaml  (governance event references resolved)
+      - 12_domain-contracts.yaml  (governance contracts added)
+      - 11_governance-amendments.yaml  (amendment process defined)
+      - domains/governance.yaml  (domain spec complete)
+      - 00_protocol-manifest.yaml  (status: FROZEN)
+    freeze_point: after_completion
+    status: COMPLETE
+    depends_on: [FIX]
+
+# ============================================================
+# VALIDATION CONFIGURATION
+# ============================================================
+
+validation:
+  schema_directory: /schemas/
+  enforce_reference_integrity: true
+  enforce_dependency_order: true
+  enforce_layer_containment: true
+  constitutional_compliance_check: true
+  ci_pipeline: constitution_validator

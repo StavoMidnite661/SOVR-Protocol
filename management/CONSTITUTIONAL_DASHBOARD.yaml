@@ -1,0 +1,119 @@
+# ============================================================
+# SOVR Financial OS — Constitutional Dashboard
+# File: management/CONSTITUTIONAL_DASHBOARD.yaml
+# Phase: 3.12 — Repository Constitutional Dashboard
+# Date: 2026-07-15
+# ============================================================
+# Machine-readable dashboard tracking repository health,
+# readiness, amendments, findings, versions, governance, and
+# certification. Updated at every finding closure (see
+# management/ENGINEERING_CHANGE_PROCESS.md step 7).
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  dashboard_id: "constitutional-dashboard"
+  generated: "2026-07-15"
+  owner: governance_secretary
+  source_of_truth:
+    findings: governance/CONSTITUTIONAL_FINDING_REGISTRY.yaml
+    amendments: governance/amendments/INDEX.yaml
+    phase2: certification/PHASE_2_COMPILER_READINESS_REPORT.md
+    phase3: certification/PHASE_3_CONSTITUTIONAL_AMENDMENT_REPORT.md
+
+repository_health:
+  score: 82
+  scale: 100
+  basis: PRODUCTION_READINESS_AUDIT.md (4 PASS + 6 PASS-WITH-FINDINGS)
+  trend: stable
+  projected_after_amendments: 97   # projected once AMD-0001..0007 ratified+applied
+
+compiler_readiness:
+  status: READY_WITH_CONDITIONS
+  specification: AUTHORIZED
+  design_review: PENDING            # next gate
+  implementation: NOT_AUTHORIZED
+  blocking_conditions:
+    critical: [G-01]
+    high: [G-02, G-03, G-05, G-06, G-09, G-10]
+  full_build_executable: false      # blocked by G-01
+
+runtime_readiness:
+  status: NOT_AUTHORIZED
+  reason: compiler not yet implemented; protocol conditions open
+
+protocol_version:
+  current: "1.0.0"
+  target: "1.0.1"
+  status: FROZEN
+  refreeze_required_after: [AMD-0001]
+
+engineering_phase:
+  current: compiler_specification
+  completed: [governance_control_plane, constitutional_validation, compiler_readiness, constitutional_amendment_program]
+  active: constitutional_amendment_program
+  next_gate: compiler_design_review
+
+governance_status:
+  amendment_program: ACTIVE
+  change_process: CODIFIED   # management/ENGINEERING_CHANGE_PROCESS.md
+  direct_edits_permitted: false
+
+findings:
+  total: 15
+  by_severity:
+    critical: 1
+    high: 6
+    medium: 6
+    low: 2
+  open: 15
+  closed: 0
+  amendment_required: 14
+  engineering_only: 1   # G-07
+
+amendments:
+  total: 12
+  proposed: 12
+  ratified: 0
+  effective: 0
+  by_vote:
+    unanimous: 7        # AMD-0001..0007
+    majority: 4         # AMD-0008..0011
+    single_governor: 1  # AMD-0012
+
+certification_status:
+  phase_1: COMPLETE
+  phase_2: COMPLETE (READY_WITH_CONDITIONS)
+  phase_3: COMPLETE (amendment program generated)
+  artifacts:
+    phase_3:
+      - governance/CONSTITUTIONAL_FINDING_REGISTRY.yaml
+      - governance/amendments/ (AMD-0001..AMD-0012 + INDEX.yaml)
+      - certification/YAML_REPAIR_DESIGN.md
+      - protocol/DOMAIN_REGISTRY.yaml
+      - protocol/AGGREGATE_REGISTRY.yaml
+      - protocol/METADATA_STANDARD.yaml
+      - protocol/ACCEPTANCE_STANDARD.yaml
+      - compiler/VALIDATION_LANGUAGE_SPEC.md
+      - compiler/SEMANTIC_COMPILER_CONTRACT.yaml
+      - compiler/COMPILER_SPECIFICATION.md
+      - management/ENGINEERING_CHANGE_PROCESS.md
+      - management/CONSTITUTIONAL_DASHBOARD.yaml
+      - certification/PHASE_3_CONSTITUTIONAL_AMENDMENT_REPORT.md
+
+measured_inventory:
+  entities: 47
+  commands: 88
+  events: 134
+  state_machines: 20
+  sagas: 16
+  capabilities_unique: 58
+  contracts: 23
+  invariants: 10
+  acceptance_tests: 105
+  aggregates_declared: 17
+
+next_actions:
+  - ratify AMD-0001 and apply YAML_REPAIR_DESIGN.md
+  - ratify AMD-0004, AMD-0010 (registries/standards)
+  - hold compiler_design_review on COMPILER_SPECIFICATION.md

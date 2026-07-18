@@ -1,0 +1,139 @@
+# SOVR Financial OS — Development Configuration
+# Phase: X.1 — Production Configuration System
+
+database:
+  host: localhost
+  port: 5432
+  name: sovr_protocol_dev
+  user: sovr
+  password: sovr_dev_password
+  pool:
+    min: 1
+    max: 5
+    idleTimeoutMs: 10000
+    connectionTimeoutMs: 2000
+  ssl:
+    enabled: false
+  migrations:
+    directory: migrations
+    statementTimeout: 10000
+  backup:
+    enabled: false
+
+eventStore:
+  type: memory
+  postgres:
+    schema: public
+  streaming:
+    enabled: false
+
+ledger:
+  currency: USD
+  precision: 2
+  autoPost: true
+  integrityCheckEnabled: true
+
+vault:
+  states:
+    - CREATED
+    - FUNDED
+    - LOCKED
+    - AUTHORIZED
+    - PENDING
+    - SETTLED
+    - REVERSED
+    - CLOSED
+    - FAILED
+    - CANCELLED
+    - EXPIRED
+  multiSigRequired: true
+  defaultApprovalCount: 2
+  timeoutMs: 86400000
+
+security:
+  jwt:
+    secret: dev_jwt_secret_change_in_production
+    algorithm: HS256
+    expirationMs: 3600000
+    refreshExpirationMs: 86400000
+    issuer: sovr-financial-os-dev
+    audience: sovr-api-dev
+  session:
+    enabled: true
+    maxConcurrent: 10
+    expirationMs: 1800000
+  encryption:
+    algorithm: aes-256-gcm
+    keyRotationIntervalDays: 30
+  rbac:
+    enabled: true
+    requireMfaForAdmin: false
+  apiKeys:
+    enabled: true
+
+api:
+  port: 3001
+  host: 0.0.0.0
+  cors:
+    enabled: true
+    origins:
+      - "*"
+  rateLimit:
+    enabled: false
+  timeout:
+    requestMs: 30000
+    keepAliveMs: 5000
+  bodyLimit: 1mb
+  requestId:
+    enabled: true
+  version:
+    enabled: true
+    supportedVersions:
+      - "1.0"
+      - "1.1"
+
+metrics:
+  enabled: true
+  port: 9090
+  path: /metrics
+  exporters:
+    prometheus:
+      enabled: true
+  intervalMs: 15000
+
+logging:
+  level: debug
+  format: json
+  outputs:
+    - console
+  file:
+    path: /var/log/sovr/app.log
+    maxSize: 100m
+    maxFiles: 10
+    compress: true
+  fields:
+    include:
+      - timestamp
+      - level
+      - service
+      - correlationId
+    redact:
+      - password
+      - secret
+      - token
+
+audit:
+  enabled: true
+  chain: true
+  retentionDays: 365
+  signing:
+    enabled: true
+    algorithm: HMAC-SHA256
+
+featureFlags:
+  experimentalFeatures: true
+  betaAPIs: true
+  streamingEnabled: false
+  projectionRebuild: false
+  externalIntegrations: false
+  webDashboard: false

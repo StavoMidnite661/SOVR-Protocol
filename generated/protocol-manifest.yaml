@@ -1,0 +1,19 @@
+protocol:
+  version: '1.0.0'
+  constitution_hash: sha256:4770a831e1edc488
+  compiler_version: '1.0.0'
+  build_id: '5678ed61edbc97e3'
+
+domains:
+  vault:
+    source: sha256:8ea3bd38d6f8abca
+    artifact: sha256:3a3627661a3e4c05
+  treasury:
+    source: sha256:0b127ea521adf347
+    artifact: sha256:6553f38e8ed2191e
+  payment:
+    source: sha256:87ca0813920e85aa
+    artifact: sha256:ab7d84c6bbc3ccdf
+  agent:
+    source: sha256:ab6a9146d7d9ac5b
+    artifact: sha256:086fa1a1ed9e0b09

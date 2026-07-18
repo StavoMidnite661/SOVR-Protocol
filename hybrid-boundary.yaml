@@ -1,0 +1,921 @@
+# ============================================================
+# SOVR Financial OS — Hybrid Execution Layer
+# File: hybrid-boundary.yaml
+# Status: FROZEN
+# Build Phase: F
+# ============================================================
+# Defines the boundary where Web2 and Web3 meet.
+# All blockchain interactions, oracle integrations, and
+# cross-chain operations are defined here as ABSTRACT
+# INTERFACES. No implementation details.
+#
+# Constitutional references:
+#   INV-001: Every state change requires an immutable event
+#   INV-005: Every financial action must produce an auditable event trail
+#   INV-007: Value preservation outranks execution speed
+#   INV-009: Unknown financial states must be represented explicitly
+#   INV-010: No autonomous agent may bypass constitutional enforcement
+# ============================================================
+
+meta:
+  schema_version: "1.0.0"
+  file_id: "hybrid-boundary"
+  status: CONSTITUTIONAL_FREEZE
+  build_phase: "F"
+  constitutional_references: [INV-001, INV-005, INV-007, INV-009, INV-010]
+
+enums:
+  chain_type:
+    - EVM
+    - EVM_L2
+    - SVM
+    - MOVE
+    - COSMOS
+    - SUBSTRATE
+    - EXTENSIBLE
+
+  finality_model:
+    - PROBABILISTIC
+    - INSTANT
+    - PROOF_OF_FINALITY
+    - HYBRID
+
+  oracle_provider:
+    - CHAINLINK
+    - BAND_PROTOCOL
+    - PYTH
+    - DIA
+    - CUSTOM
+
+  reorg_action:
+    - DETECT
+    - MARK_UNKNOWN
+    - REPLAY
+    - REVERT
+    - ESCALATE
+
+  fork_status:
+    - FORK_DETECTED
+    - CHAIN_SELECTED
+    - FORK_DISCARDED
+
+  on_chain_operation:
+    - TOKEN_TRANSFER
+    - CONTRACT_CALL
+    - ATTESTATION_VERIFY
+    - BRIDGE_LOCK
+    - BRIDGE_RELEASE
+
+  oracle_type:
+    - PRICE
+    - RESERVE_ATTESTATION
+    - IDENTITY_ATTESTATION
+    - SETTLEMENT_ATTESTATION
+
+# ============================================================
+# SECTION 2 — BLOCKCHAIN BOUNDARY
+# ============================================================
+
+blockchain_boundaries:
+
+  ethereum:
+    chain_id: 1
+    chain_type: EVM
+    consensus: PROOF_OF_STAKE
+    finality_model: PROBABILISTIC
+    confirmation_threshold:
+      safe: 12
+      final: 24
+    estimated_finality_ms: 192000
+    supported_operations: [TOKEN_TRANSFER, CONTRACT_CALL, ATTESTATION_VERIFY]
+    block_time_ms: 12000
+    interface:
+      prepare:
+        input:
+          operation: { type: enum, values_ref: on_chain_operation }
+          from_address: { type: string }
+          to_address: { type: string }
+          amount: { type: string }
+          gas_config: { type: object, fields: [gas_limit, max_fee_per_gas, max_priority_fee_per_gas] }
+          contract_abi: { type: string, required: false }
+          function_signature: { type: string, required: false }
+          function_args: { type: array, required: false }
+        output:
+          preparation_id: { type: string, format: uuid }
+          estimated_gas: { type: string }
+          nonce: { type: integer }
+          status: { type: enum, values: [PREPARED, FAILED] }
+      submit:
+        input:
+          preparation_id: { type: string, format: uuid }
+          signed_transaction: { type: string }
+        output:
+          tx_hash: { type: string }
+          block_number: { type: integer, required: false }
+          status: { type: enum, values: [SUBMITTED, REJECTED] }
+          submitted_at: { type: timestamp }
+      confirm:
+        input:
+          tx_hash: { type: string }
+          required_confirmations: { type: integer }
+        output:
+          confirmed: { type: boolean }
+          confirmation_block: { type: integer }
+          tx_receipt: { type: object, fields: [status, gas_used, contract_address, logs] }
+          finality_level: { type: enum, values: [SAFE, FINAL] }
+      rollback:
+        input:
+          tx_hash: { type: string }
+          rollback_reason: { type: string }
+          reorg_block: { type: integer, required: false }
+        output:
+          rollback_id: { type: string, format: uuid }
+          status: { type: enum, values: [ROLLBACK_INITIATED, ROLLBACK_COMPLETE, ROLLBACK_FAILED] }
+    prohibition: "No direct state mutation. All interactions produce events only."
+    event_emissions:
+      prepare: hybrid.chain.ethereum.prepared
+      submit: hybrid.chain.ethereum.submitted
+      confirm: hybrid.chain.ethereum.confirmed
+      rollback: hybrid.chain.ethereum.rollback
+
+  base:
+    chain_id: 8453
+    chain_type: EVM_L2
+    consensus: PROOF_OF_STAKE
+    finality_model: HYBRID
+    confirmation_threshold:
+      safe: 2
+      final: 6
+    estimated_finality_ms: 12000
+    supported_operations: [TOKEN_TRANSFER, CONTRACT_CALL, ATTESTATION_VERIFY, BRIDGE_LOCK, BRIDGE_RELEASE]
+    block_time_ms: 2000
+    l1_finality_dependency: ethereum
+    interface:
+      prepare:
+        input: { operation, from_address, to_address, amount, gas_config, contract_abi, function_signature, function_args }
+        output: { preparation_id, estimated_gas, nonce, status }
+      submit:
+        input: { preparation_id, signed_transaction }
+        output: { tx_hash, block_number, status, submitted_at }
+      confirm:
+        input: { tx_hash, required_confirmations }
+        output: { confirmed, confirmation_block, tx_receipt, finality_level, l1_inclusion_block }
+      rollback:
+        input: { tx_hash, rollback_reason, reorg_block }
+        output: { rollback_id, status }
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+    event_emissions:
+      prepare: hybrid.chain.base.prepared
+      submit: hybrid.chain.base.submitted
+      confirm: hybrid.chain.base.confirmed
+      rollback: hybrid.chain.base.rollback
+
+  polygon:
+    chain_id: 137
+    chain_type: EVM_L2
+    consensus: PROOF_OF_STAKE
+    finality_model: PROBABILISTIC
+    confirmation_threshold:
+      safe: 128
+      final: 256
+    estimated_finality_ms: 512000
+    supported_operations: [TOKEN_TRANSFER, CONTRACT_CALL, ATTESTATION_VERIFY]
+    block_time_ms: 2000
+    interface:
+      prepare:
+        input: { operation, from_address, to_address, amount, gas_config, contract_abi, function_signature, function_args }
+        output: { preparation_id, estimated_gas, nonce, status }
+      submit:
+        input: { preparation_id, signed_transaction }
+        output: { tx_hash, block_number, status, submitted_at }
+      confirm:
+        input: { tx_hash, required_confirmations }
+        output: { confirmed, confirmation_block, tx_receipt, finality_level }
+      rollback:
+        input: { tx_hash, rollback_reason, reorg_block }
+        output: { rollback_id, status }
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+    event_emissions:
+      prepare: hybrid.chain.polygon.prepared
+      submit: hybrid.chain.polygon.submitted
+      confirm: hybrid.chain.polygon.confirmed
+      rollback: hybrid.chain.polygon.rollback
+
+  future_chain:
+    chain_type: EXTENSIBLE
+    template: true
+    description: Template for registering new blockchain boundaries
+    registration_requires: governance_approval
+    interface:
+      prepare:
+        input: { chain_config, operation, params }
+        output: { preparation_id, chain_metadata, status }
+      submit:
+        input: { preparation_id, signed_transaction }
+        output: { tx_hash, chain_metadata, status, submitted_at }
+      confirm:
+        input: { tx_hash, required_confirmations }
+        output: { confirmed, confirmation_data, finality_level }
+      rollback:
+        input: { tx_hash, rollback_reason }
+        output: { rollback_id, status }
+    event_emissions:
+      prepare: hybrid.chain.{chain_id}.prepared
+      submit: hybrid.chain.{chain_id}.submitted
+      confirm: hybrid.chain.{chain_id}.confirmed
+      rollback: hybrid.chain.{chain_id}.rollback
+
+# ============================================================
+# SECTION 3 — ORACLE BOUNDARY
+# ============================================================
+
+oracle_boundaries:
+
+  price_oracle:
+    oracle_type: PRICE
+    description: External price feeds for asset valuation
+    constitutional_constraint: "Oracle prices are advisory. Vault valuations are authoritative. Oracle data never directly mutates financial state."
+    providers:
+      - provider_id: CHAINLINK
+        feed_endpoint_pattern: "chainlink:{asset_pair}"
+        staleness_threshold_ms: 300000
+        deviation_alert_pct: 2.0
+      - provider_id: BAND_PROTOCOL
+        feed_endpoint_pattern: "band:{asset_pair}"
+        staleness_threshold_ms: 300000
+        deviation_alert_pct: 2.5
+      - provider_id: PYTH
+        feed_endpoint_pattern: "pyth:{asset_pair}"
+        staleness_threshold_ms: 100000
+        deviation_alert_pct: 1.5
+      - provider_id: DIA
+        feed_endpoint_pattern: "dia:{asset_pair}"
+        staleness_threshold_ms: 600000
+        deviation_alert_pct: 3.0
+      - provider_id: CUSTOM
+        feed_endpoint_pattern: "custom:{asset_pair}"
+        staleness_threshold_ms: 60000
+        deviation_alert_pct: 1.0
+        requires_governance_approval: true
+    interface:
+      fetch:
+        input:
+          asset_pair: { type: string, description: "e.g. USD/USDC, ETH/USD" }
+          provider_ids: { type: array, items: { type: enum, values_ref: oracle_provider } }
+        output:
+          price_response_id: { type: string, format: uuid }
+          price: { type: decimal, precision: 18 }
+          source_provider: { type: enum, values_ref: oracle_provider }
+          fetched_at: { type: timestamp }
+          staleness_ms: { type: integer }
+          confidence: { type: decimal, precision: 4 }
+      verify:
+        input:
+          price_response_id: { type: string, format: uuid }
+          expected_range: { type: object, fields: [min, max] }
+        output:
+          verified: { type: boolean }
+          deviation_pct: { type: decimal, precision: 4 }
+          within_tolerance: { type: boolean }
+          verification_id: { type: string, format: uuid }
+    event_emissions:
+      fetch: hybrid.oracle.price.fetched
+      stale: hybrid.oracle.price.stale
+      verify: hybrid.oracle.price.verified
+
+  reserve_attestation:
+    oracle_type: RESERVE_ATTESTATION
+    description: On-chain proof of reserve holdings
+    constitutional_constraint: "Reserve attestations are evidence, not authority. Vault state is authoritative."
+    sources:
+      - source_id: SOVR_BRIDGE_CONTRACT
+        type: on_chain
+        verification_method: MERKLE_PROOF
+      - source_id: THIRD_PARTY_AUDITOR
+        type: off_chain
+        verification_method: DIGITAL_SIGNATURE
+        requires_governance_approval: true
+      - source_id: GOVERNANCE_MANUAL
+        type: governance
+        verification_method: MULTI_SIG
+        quorum: majority
+    interface:
+      request:
+        input:
+          vault_id: { type: string, format: uuid }
+          asset_id: { type: string, format: uuid, required: false }
+          source_ids: { type: array, items: { type: string } }
+        output:
+          attestation_request_id: { type: string, format: uuid }
+          status: { type: enum, values: [REQUESTED, IN_PROGRESS] }
+      verify:
+        input:
+          attestation_request_id: { type: string, format: uuid }
+          attestation_proof: { type: object }
+          proof_type: { type: string }
+        output:
+          verified: { type: boolean }
+          verification_result: { type: enum, values: [MATCHED, MISMATCHED, INCONCLUSIVE] }
+          attested_value: { type: decimal, precision: 18, required: false }
+          verification_id: { type: string, format: uuid }
+    event_emissions:
+      request: hybrid.oracle.attestation.requested
+      verify: hybrid.oracle.attestation.verified
+      fail: hybrid.oracle.attestation.failed
+
+  identity_attestation:
+    oracle_type: IDENTITY_ATTESTATION
+    description: Cross-chain or cross-system identity verification
+    constitutional_constraint: "Identity attestations supplement but never replace SOVR Identity domain."
+    sources:
+      - source_id: CROSS_CHAIN_ID
+        type: on_chain
+        verification_method: SMART_CONTRACT
+      - source_id: EXTERNAL_KYC
+        type: off_chain
+        verification_method: API_INTEGRATION
+        requires_governance_approval: true
+      - source_id: DECENTRALIZED_ID
+        type: on_chain
+        verification_method: DID_DOCUMENT
+    interface:
+      request:
+        input:
+          identity_id: { type: string, format: uuid }
+          source_ids: { type: array, items: { type: string } }
+          claim_type: { type: string }
+        output:
+          attestation_request_id: { type: string, format: uuid }
+          status: { type: enum, values: [REQUESTED, IN_PROGRESS] }
+      verify:
+        input:
+          attestation_request_id: { type: string, format: uuid }
+          attestation_proof: { type: object }
+        output:
+          verified: { type: boolean }
+          claims_verified: { type: array, items: { type: string } }
+          verification_id: { type: string, format: uuid }
+    event_emissions:
+      request: hybrid.oracle.identity.requested
+      verify: hybrid.oracle.identity.verified
+      fail: hybrid.oracle.identity.failed
+
+  settlement_attestation:
+    oracle_type: SETTLEMENT_ATTESTATION
+    description: Proof that on-chain settlement occurred
+    constitutional_constraint: "Settlement attestations are confirmed by the Payment domain before updating Treasury state."
+    sources:
+      - source_id: ON_CHAIN_TX_RECEIPT
+        type: on_chain
+        verification_method: TX_RECEIPT_VERIFICATION
+      - source_id: BLOCK_EXPLORER
+        type: off_chain
+        verification_method: API_VERIFICATION
+      - source_id: RELAYER_ATTESTATION
+        type: on_chain
+        verification_method: MERKLE_PROOF
+    interface:
+      request:
+        input:
+          transfer_id: { type: string, format: uuid }
+          tx_hash: { type: string, required: false }
+          chain_id: { type: integer, required: false }
+          source_ids: { type: array, items: { type: string } }
+        output:
+          attestation_request_id: { type: string, format: uuid }
+          status: { type: enum, values: [REQUESTED, IN_PROGRESS] }
+      verify:
+        input:
+          attestation_request_id: { type: string, format: uuid }
+          tx_hash: { type: string }
+          tx_receipt: { type: object }
+        output:
+          verified: { type: boolean }
+          settlement_amount: { type: decimal, precision: 18, required: false }
+          settlement_block: { type: integer, required: false }
+          verification_id: { type: string, format: uuid }
+    event_emissions:
+      request: hybrid.oracle.settlement.requested
+      verify: hybrid.oracle.settlement.verified
+      fail: hybrid.oracle.settlement.failed
+
+# ============================================================
+# SECTION 4 — REORG HANDLING
+# ============================================================
+
+reorg_handling:
+
+  unknown_state:
+    description: When chain state cannot be determined (reorg in progress)
+    representation:
+      state: UNKNOWN
+      applies_to: [payment_request, on_chain_operation, settlement_attestation]
+    protocol:
+      - step: 1
+        action: Mark all affected operations as UNKNOWN
+        constitutional_reference: INV-009
+      - step: 2
+        action: Emit hybrid.reorg.detected event
+      - step: 3
+        action: Pause all operations on the affected chain
+      - step: 4
+        action: Wait for chain stabilization
+      - step: 5
+        action: Re-evaluate state after stabilization
+    max_duration_before_escalation_ms: 300000
+    escalation_target: governance
+    escalation_capability: hybrid.reorg.resolve
+
+  rollback:
+    description: Chain reorganization detected after presumed finality
+    protocol:
+      - step: 1
+        action: Identify all events produced since the rollback point
+        source: event_log
+      - step: 2
+        action: Emit hybrid.reorg.detected event
+        consumer: [all_projections, payment_service, treasury_service]
+      - step: 3
+        action: Mark affected operations as ROLLBACK_PENDING
+        constitutional_reference: INV-006
+      - step: 4
+        action: Replay from authoritative event log
+        mechanism: "Re-emit corrected events with same correlation_id, new causation_id"
+      - step: 5
+        action: Re-emit corrected events
+        constraint: "Original events remain immutable. Corrected events are NEW events."
+    constitutional_reference: INV-006
+
+  confirmation_thresholds:
+    ethereum:
+      safe: 12
+      final: 24
+      safe_estimated_ms: 144000
+      final_estimated_ms: 288000
+    base:
+      safe: 2
+      final: 6
+      safe_estimated_ms: 4000
+      final_estimated_ms: 12000
+    polygon:
+      safe: 128
+      final: 256
+      safe_estimated_ms: 256000
+      final_estimated_ms: 512000
+
+  fork_handling:
+    description: Protocol when chain forks are detected
+    protocol:
+      - step: 1
+        action: Detect fork by observing multiple chain heads
+        detection_method: "Block number + parent_hash conflict"
+      - step: 2
+        action: Emit hybrid.fork.detected event
+      - step: 3
+        action: Select canonical chain by highest cumulative difficulty
+      - step: 4
+        action: Mark all events from non-canonical chain as FORK_DISCARDED
+      - step: 5
+        action: Emit hybrid.fork.resolved event
+      - step: 6
+        action: Rebuild affected projections from canonical chain events
+    canonical_selection: HIGHEST_CUMULATIVE_DIFFICULTY
+
+  replay_detection:
+    mechanism: "Every on-chain operation includes a monotonically increasing nonce per address."
+    nonce_storage: event_log
+    on_replay_detected: EMIT_WARNING_AND_SKIP
+    event: hybrid.chain.nonce_replay_detected
+
+  duplicate_detection:
+    uniqueness_key: [tx_hash, chain_id, block_number]
+    on_duplicate: EMIT_WARNING_AND_SKIP
+    storage: event_log
+    event: hybrid.chain.duplicate_detected
+
+# ============================================================
+# SECTION 5 — COMMANDS
+# ============================================================
+
+commands:
+  hybrid.chain.register:
+    aggregate: blockchain_boundary
+    source_domain: hybrid
+    version: 1.0.0
+    description: Register a new blockchain boundary (governance only)
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+    authorization_requirements:
+      identity: required
+      capability: hybrid.chain.manage
+      scope: chain_id
+      policy: hybrid_registration_policy
+    issuer:
+      actor_types: [governance]
+    validation_rules:
+      - rule: chain_id_must_be_unique
+        check: no existing blockchain_boundary with this chain_id
+        on_failure: REJECT
+      - rule: chain_type_must_be_recognized
+        check: chain_type in [EVM, EVM_L2, SVM, MOVE, COSMOS, SUBSTRATE]
+        on_failure: REJECT
+      - rule: interface_must_be_complete
+        check: prepare, submit, confirm, rollback all defined
+        on_failure: REJECT
+    required_payload: [chain_id, chain_type, consensus, finality_model, confirmation_threshold, interface]
+    resulting_events:
+      success: [hybrid.chain.registered]
+      failure: [hybrid.chain.registration_failed]
+
+  hybrid.chain.deregister:
+    aggregate: blockchain_boundary
+    source_domain: hybrid
+    version: 1.0.0
+    description: Deregister a blockchain boundary (governance only)
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+    authorization_requirements:
+      identity: required
+      capability: hybrid.chain.manage
+      scope: chain_id
+      policy: hybrid_deregistration_policy
+    issuer:
+      actor_types: [governance]
+    validation_rules:
+      - rule: chain_must_exist
+        check: blockchain_boundary with chain_id exists
+        on_failure: REJECT
+      - rule: no_active_operations
+        check: zero pending operations on this chain
+        on_failure: REJECT
+    required_payload: [chain_id, reason]
+    resulting_events:
+      success: [hybrid.chain.deregistered]
+      failure: [hybrid.chain.deregistration_failed]
+
+  hybrid.oracle.price.fetch:
+    aggregate: oracle_price
+    source_domain: hybrid
+    version: 1.0.0
+    description: Fetch price from oracle providers
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+    authorization_requirements:
+      identity: required
+      capability: hybrid.oracle.fetch
+      scope: asset_pair
+      policy: oracle_access_policy
+    issuer:
+      actor_types: [system, ai_agent]
+    validation_rules:
+      - rule: asset_pair_must_be_valid
+        check: asset_pair matches recognized pattern
+        on_failure: REJECT
+    required_payload: [asset_pair, provider_ids]
+    resulting_events:
+      success: [hybrid.oracle.price.fetched]
+      failure: [hybrid.oracle.price.fetch_failed]
+
+  hybrid.oracle.attestation.request:
+    aggregate: oracle_attestation
+    source_domain: hybrid
+    version: 1.0.0
+    description: Request an attestation from an oracle source
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+    authorization_requirements:
+      identity: required
+      capability: hybrid.oracle.attest
+      scope: attestation_type
+      policy: oracle_attestation_policy
+    issuer:
+      actor_types: [system, governance]
+    validation_rules:
+      - rule: attestation_type_must_be_recognized
+        check: attestation_type in [RESERVE, IDENTITY, SETTLEMENT]
+        on_failure: REJECT
+      - rule: source_must_be_registered
+        check: source_id exists in registered oracle sources
+        on_failure: REJECT
+    required_payload: [attestation_type, target_id, source_ids]
+    resulting_events:
+      success: [hybrid.oracle.attestation.requested]
+      failure: [hybrid.oracle.attestation.request_failed]
+
+  hybrid.oracle.attestation.verify:
+    aggregate: oracle_attestation
+    source_domain: hybrid
+    version: 1.0.0
+    description: Verify an attestation proof
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+    authorization_requirements:
+      identity: required
+      capability: hybrid.oracle.verify
+      scope: attestation_request_id
+      policy: oracle_verification_policy
+    issuer:
+      actor_types: [system]
+    validation_rules:
+      - rule: request_must_exist
+        check: attestation_request with attestation_request_id exists
+        on_failure: REJECT
+      - rule: proof_required
+        check: attestation_proof is non-empty
+        on_failure: REJECT
+    required_payload: [attestation_request_id, attestation_proof, proof_type]
+    resulting_events:
+      success: [hybrid.oracle.attestation.verified]
+      failure: [hybrid.oracle.attestation.failed]
+
+  hybrid.settlement.verify:
+    aggregate: on_chain_settlement
+    source_domain: hybrid
+    version: 1.0.0
+    description: Verify an on-chain settlement through attestation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+    authorization_requirements:
+      identity: required
+      capability: hybrid.settlement.verify
+      scope: transfer_id
+      policy: settlement_verification_policy
+    issuer:
+      actor_types: [system]
+    validation_rules:
+      - rule: transfer_must_exist
+        check: treasury.transfer with transfer_id exists
+        on_failure: REJECT
+      - rule: tx_hash_required
+        check: tx_hash is non-empty
+        on_failure: REJECT
+    required_payload: [transfer_id, tx_hash, chain_id, tx_receipt]
+    resulting_events:
+      success: [hybrid.settlement.on_chain.confirmed]
+      failure: [hybrid.settlement.on_chain.failed]
+
+  hybrid.reorg.resolve:
+    aggregate: reorg_event
+    source_domain: hybrid
+    version: 1.0.0
+    description: Resolve a chain reorganization event
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+    authorization_requirements:
+      identity: required
+      capability: hybrid.reorg.manage
+      scope: chain_id
+      policy: reorg_resolution_policy
+    issuer:
+      actor_types: [system, governance]
+    validation_rules:
+      - rule: reorg_must_be_detected
+        check: reorg event exists for this chain_id
+        on_failure: REJECT
+    required_payload: [chain_id, rollback_point, resolution_action]
+    resulting_events:
+      success: [hybrid.reorg.resolved]
+      failure: [hybrid.reorg.resolution_failed]
+
+# ============================================================
+# SECTION 6 — EVENTS
+# ============================================================
+
+events:
+  hybrid.chain.registered:
+    aggregate: blockchain_boundary
+    source_domain: hybrid
+    version: 1.0.0
+    producer: hybrid_service
+    consumers: [hybrid_projection, audit_projection, governance_projection]
+    data_fields:
+      chain_id: { type: integer }
+      chain_type: { type: enum, values_ref: chain_type }
+      confirmation_threshold: { type: object }
+    projection_effect:
+      target: hybrid_chain_view
+      operation: insert
+
+  hybrid.chain.deregistered:
+    aggregate: blockchain_boundary
+    source_domain: hybrid
+    version: 1.0.0
+    producer: hybrid_service
+    consumers: [hybrid_projection, audit_projection]
+    data_fields:
+      chain_id: { type: integer }
+      reason: { type: string }
+    projection_effect:
+      target: hybrid_chain_view
+      operation: delete
+
+  hybrid.chain.block.confirmed:
+    aggregate: chain_block
+    source_domain: hybrid
+    version: 1.0.0
+    producer: chain_watcher
+    consumers: [hybrid_projection, payment_service]
+    data_fields:
+      chain_id: { type: integer }
+      block_number: { type: integer }
+      block_hash: { type: string }
+      parent_hash: { type: string }
+      timestamp: { type: timestamp }
+      tx_count: { type: integer }
+    projection_effect:
+      target: hybrid_chain_view
+      operation: update
+
+  hybrid.reorg.detected:
+    aggregate: reorg_event
+    source_domain: hybrid
+    version: 1.0.0
+    producer: chain_watcher
+    consumers: [hybrid_projection, audit_projection, payment_service, treasury_service, governance_projection, escalation_service]
+    data_fields:
+      chain_id: { type: integer }
+      detected_at_block: { type: integer }
+      rollback_to_block: { type: integer }
+      affected_transactions: { type: array, items: { type: string } }
+      severity: { type: enum, values: [LOW, MEDIUM, HIGH, CRITICAL] }
+    projection_effect:
+      target: hybrid_reorg_view
+      operation: insert
+    audit:
+      constitutional_rules_referenced: [INV-006, INV-009]
+      retention_class: permanent
+
+  hybrid.reorg.rollback_initiated:
+    aggregate: reorg_event
+    source_domain: hybrid
+    version: 1.0.0
+    producer: hybrid_service
+    consumers: [hybrid_projection, audit_projection, payment_service]
+    data_fields:
+      reorg_id: { type: string, format: uuid }
+      chain_id: { type: integer }
+      rollback_point: { type: integer }
+      affected_event_count: { type: integer }
+    projection_effect:
+      target: hybrid_reorg_view
+      operation: update
+
+  hybrid.reorg.resolved:
+    aggregate: reorg_event
+    source_domain: hybrid
+    version: 1.0.0
+    producer: hybrid_service
+    consumers: [hybrid_projection, audit_projection, payment_service, treasury_service, governance_projection]
+    data_fields:
+      reorg_id: { type: string, format: uuid }
+      chain_id: { type: integer }
+      resolution_action: { type: enum, values_ref: reorg_action }
+      corrected_event_count: { type: integer }
+      resolved_by: { type: string, format: uuid }
+    projection_effect:
+      target: hybrid_reorg_view
+      operation: update
+
+  hybrid.oracle.price.fetched:
+    aggregate: oracle_price
+    source_domain: hybrid
+    version: 1.0.0
+    producer: oracle_service
+    consumers: [hybrid_projection, vault_service, audit_projection]
+    data_fields:
+      price_response_id: { type: string, format: uuid }
+      asset_pair: { type: string }
+      price: { type: decimal, precision: 18 }
+      source_provider: { type: enum, values_ref: oracle_provider }
+      staleness_ms: { type: integer }
+      confidence: { type: decimal, precision: 4 }
+    projection_effect:
+      target: price_feed_view
+      operation: append
+
+  hybrid.oracle.price.stale:
+    aggregate: oracle_price
+    source_domain: hybrid
+    version: 1.0.0
+    producer: oracle_service
+    consumers: [hybrid_projection, vault_service, escalation_service]
+    data_fields:
+      price_response_id: { type: string, format: uuid }
+      asset_pair: { type: string }
+      staleness_ms: { type: integer }
+      threshold_ms: { type: integer }
+    projection_effect:
+      target: price_feed_view
+      operation: update
+
+  hybrid.oracle.attestation.verified:
+    aggregate: oracle_attestation
+    source_domain: hybrid
+    version: 1.0.0
+    producer: oracle_service
+    consumers: [hybrid_projection, audit_projection, vault_service]
+    data_fields:
+      verification_id: { type: string, format: uuid }
+      attestation_type: { type: enum, values_ref: oracle_type }
+      verified: { type: boolean }
+      verification_result: { type: enum, values: [MATCHED, MISMATCHED, INCONCLUSIVE] }
+    projection_effect:
+      target: attestation_view
+      operation: append
+
+  hybrid.oracle.attestation.failed:
+    aggregate: oracle_attestation
+    source_domain: hybrid
+    version: 1.0.0
+    producer: oracle_service
+    consumers: [hybrid_projection, audit_projection, escalation_service]
+    data_fields:
+      attestation_request_id: { type: string, format: uuid }
+      attestation_type: { type: enum, values_ref: oracle_type }
+      failure_reason: { type: string }
+    projection_effect:
+      target: attestation_view
+      operation: update
+
+  hybrid.settlement.on_chain.confirmed:
+    aggregate: on_chain_settlement
+    source_domain: hybrid
+    version: 1.0.0
+    producer: settlement_verifier
+    consumers: [hybrid_projection, payment_service, treasury_service, audit_projection]
+    data_fields:
+      transfer_id: { type: string, format: uuid }
+      tx_hash: { type: string }
+      chain_id: { type: integer }
+      block_number: { type: integer }
+      settlement_amount: { type: decimal, precision: 18 }
+      gas_used: { type: string, required: false }
+    projection_effect:
+      target: settlement_view
+      operation: update
+
+  hybrid.settlement.on_chain.failed:
+    aggregate: on_chain_settlement
+    source_domain: hybrid
+    version: 1.0.0
+    producer: settlement_verifier
+    consumers: [hybrid_projection, payment_service, escalation_service, audit_projection]
+    data_fields:
+      transfer_id: { type: string, format: uuid }
+      tx_hash: { type: string }
+      chain_id: { type: integer }
+      failure_reason: { type: string }
+    projection_effect:
+      target: settlement_view
+      operation: update
+
+  hybrid.fork.detected:
+    aggregate: fork_event
+    source_domain: hybrid
+    version: 1.0.0
+    producer: chain_watcher
+    consumers: [hybrid_projection, audit_projection, governance_projection, escalation_service]
+    data_fields:
+      chain_id: { type: integer }
+      fork_block: { type: integer }
+      canonical_head: { type: string }
+      competing_head: { type: string }
+    projection_effect:
+      target: hybrid_fork_view
+      operation: insert
+
+  hybrid.fork.resolved:
+    aggregate: fork_event
+    source_domain: hybrid
+    version: 1.0.0
+    producer: hybrid_service
+    consumers: [hybrid_projection, audit_projection, governance_projection]
+    data_fields:
+      chain_id: { type: integer }
+      selected_head: { type: string }
+      discarded_head: { type: string }
+      resolution_method: { type: string }
+    projection_effect:
+      target: hybrid_fork_view
+      operation: update

@@ -1,0 +1,7 @@
+depends_on:
+  - kernel
+  - governance
+forbidden:
+  - [list domain-specific forbidden dependencies from DEPENDENCY_GRAPH.yaml]
+
+Note: See DEPENDENCY_GRAPH.yaml for authoritative dependency rules.

@@ -1,0 +1,34 @@
+future_phases:
+  - id: 1
+    name: Constitutional Validation
+  - id: 2
+    name: Kernel Foundation
+  - id: 3
+    name: Domain Implementations
+  - id: 4
+    name: Compiler Realization
+  - id: 5
+    name: Certification Engine
+
+future_tasks:
+  - id: KERN-001
+    description: Implement event envelope in kernel
+    domain: kernel
+  - id: LEDGER-001
+    description: Implement ledger aggregates
+    domain: ledger
+  - id: TREASURY-001
+    description: Implement treasury projections
+    domain: treasury
+  - id: PAYMENT-001
+    description: Implement payment sagas
+    domain: payment
+  - id: COMPILER-001
+    description: Build compiler YAML parser
+    domain: compiler
+  - id: CERT-001
+    description: Build certification evidence generator
+    domain: certification
+  - id: RUNTIME-001
+    description: Build integration runtime
+    domain: runtime

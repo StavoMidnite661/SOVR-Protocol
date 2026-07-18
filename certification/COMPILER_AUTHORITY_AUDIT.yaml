@@ -1,0 +1,50 @@
+search_patterns:
+  - pattern: switch\(command\.type\)
+    found_in_production_runtime: false
+    found_in_compiler: false
+    found_in_tests: false
+    status: CLEAN
+  - pattern: switch\(state\)
+    found_in_production_runtime: false
+    found_in_compiler: false
+    found_in_tests: false
+    status: CLEAN
+  - pattern: STATE_MACHINE
+    found_in_production_runtime: false
+    found_in_generated: true
+    found_in_compiler: true
+    found_in_tests: true
+    status: ALLOWED
+  - pattern: transition\(
+    found_in_production_runtime: true
+    context: vault/src/index.ts uses GeneratedStateMachine.transition()
+    status: ALLOWED
+  - pattern: allowedCommands
+    found_in_production_runtime: false
+    found_in_generated: true
+    found_in_compiler: true
+    found_in_tests: true
+    status: ALLOWED
+  - pattern: allowedStates
+    found_in_production_runtime: false
+    found_in_generated: false
+    found_in_compiler: false
+    found_in_tests: false
+    status: CLEAN
+
+violations:
+  count: 0
+  resolved: 0
+  remaining: 0
+
+allowed_locations:
+  - generated/
+  - compiler/
+  - tests/
+
+not_allowed_locations:
+  - production domain runtime
+
+status:
+  audit_passed: true
+  certified: true

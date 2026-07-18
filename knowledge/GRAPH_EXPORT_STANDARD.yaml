@@ -1,0 +1,81 @@
+# ============================================================
+# SOVR Financial OS — Repository Graph Export Standard
+# File: knowledge/GRAPH_EXPORT_STANDARD.yaml
+# Phase: 5.12 — Repository Graph Export Standard
+# Status: CONSTITUTIONAL_MODELING (Rule Zero — no implementation)
+# ============================================================
+# Defines how the constitutional knowledge graph is exported for
+# consumption by external tools and future AI agents. All exports are
+# deterministic transforms of KNOWLEDGE_GRAPH.yaml + SEMANTIC_GRAPH.yaml.
+#
+# Authority: knowledge/ONTOLOGY.yaml, knowledge/KNOWLEDGE_GRAPH.yaml,
+# compiler/BUILD_MANIFEST.yaml (canonical serialization). On divergence,
+# frozen specs prevail.
+# ============================================================
+
+graph_export_standard:
+  schema_version: "1.0.0"
+  invariant: EXPORTS_ARE_DETERMINISTIC_TRANSFORMS_OF_THE_GRAPH
+  source_of_truth: knowledge/KNOWLEDGE_GRAPH.yaml
+
+  formats:
+    - format: JSON-LD
+      mime: application/ld+json
+      purpose: semantic web / RDF tooling
+      context: "https://sovr.fin/ontology#"
+      node_shape: { "@id": id, "@type": type, "name": name }
+      edge_shape: { "@id": edge_id, "source": source, "target": target, "rel": relationship }
+      determinism: keys sorted, UTF-8 NFC
+
+    - format: RDF
+      mime: application/n-triples
+      purpose: triple stores / SPARQL
+      triple: "<source> <rel> <target> ."
+      determinism: sorted triples, canonical IRIs
+
+    - format: Neo4j
+      mime: application/json
+      purpose: graph database import
+      shape: { nodes:[...], relationships:[...] }
+      determinism: sorted by id
+
+    - format: Mermaid
+      mime: text/plain
+      purpose: human-readable diagrams
+      shape: "graph LR\n  A[label] -->|rel| B[label]"
+      determinism: nodes/edges sorted by id
+
+    - format: PlantUML
+      mime: text/plain
+      purpose: UML/architecture diagrams
+      shape: "@startuml\n  A --> B : rel\n@enduml"
+      determinism: sorted
+
+    - format: DOT
+      mime: text/vnd.graphviz
+      purpose: Graphviz layout
+      shape: "digraph G { A -> B [label=rel]; }"
+      determinism: sorted
+
+    - format: YAML
+      mime: application/x-yaml
+      purpose: native SOVR consumption (this file's source shape)
+      determinism: canonical YAML (sorted keys)
+
+  canonicalization:
+    - node ids are global constitutional identifiers (SOVR-*)
+    - edge ids are EDGE-*
+    - all collections sorted by id before serialization
+    - no wall-clock or random in output (DETERMINISTIC_BUILD_STANDARD)
+    - identical graph => byte-identical export per format
+
+  consumers:
+    - future_ai_agents: ingest YAML/JSON-LD to reconstruct project state
+    - auditors: import RDF/Neo4j for formal traceability queries
+    - docs: render Mermaid/PlantUML/DOT diagrams in human docs
+    - compiler: read YAML native form during passes
+
+  export_command_contract: >
+    The compiler exposes `export --format <fmt>` (post-implementation).
+    Each format is a pure function of the graph; repeated exports are
+    byte-identical. No export may invent nodes or edges absent from the graph.

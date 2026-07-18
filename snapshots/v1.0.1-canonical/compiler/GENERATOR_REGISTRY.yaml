@@ -1,0 +1,126 @@
+# ============================================================
+# SOVR Financial OS — Generator Registry
+# File: compiler/GENERATOR_REGISTRY.yaml
+# Phase: 4.7 — Generator Registry
+# Status: ARCHITECTURE_ONLY (Rule Zero — no implementation)
+# ============================================================
+# Every output generator the compiler may dispatch (PASS-015). No
+# output is produced by any generator absent from this registry.
+# Each generator declares what it consumes, produces, its
+# deterministic hash, dependencies, and version.
+#
+# Authority: compiler.yaml (outputs), COMPILER_MANIFEST.yaml
+# (generators). On divergence, frozen specs prevail.
+# ============================================================
+
+registry:
+  schema_version: "1.0.0"
+  protocol_version: "1.0.0"
+  compiler_version: "0.1.0-arch"
+  invariant: NO_GENERATOR_RUNS_OUTSIDE_THIS_REGISTRY
+
+generators:
+
+  - generator:
+      id: typescript
+      name: TypeScript Types
+      consumes: [ENTITY, COMMAND, EVENT, AGGREGATE, PROJECTION]
+      produces: [src/types/**, src/commands/**, src/events/**, src/aggregates/**, src/projections/**]
+      deterministic_hash: sha256(canonical_ir_slice + generator_version)
+      dependencies: [IR_GENERATION]
+      version: "1.0.0"
+      readiness: READY
+
+  - generator:
+      id: openapi
+      name: OpenAPI Specification
+      consumes: [COMMAND, ENTITY, EVENT]
+      produces: [openapi.yaml]
+      deterministic_hash: sha256(canonical_ir_slice + generator_version)
+      dependencies: [IR_GENERATION]
+      version: "1.0.0"
+      readiness: READY
+
+  - generator:
+      id: json_schema
+      name: JSON Schema
+      consumes: [ENTITY, COMMAND, EVENT]
+      produces: [schemas/**/*.schema.json]
+      deterministic_hash: sha256(canonical_ir_slice + generator_version)
+      dependencies: [IR_GENERATION]
+      version: "1.0.0"
+      readiness: READY
+
+  - generator:
+      id: documentation
+      name: Documentation (Markdown)
+      consumes: [ALL]
+      produces: [docs/**/*.md]
+      deterministic_hash: sha256(canonical_ir_slice + generator_version)
+      dependencies: [IR_GENERATION]
+      version: "1.0.0"
+      readiness: BLOCKED   # depends on all files parsing (G-01)
+
+  - generator:
+      id: acceptance_tests
+      name: Acceptance Tests
+      consumes: [ACCEPTANCE_TEST, COMMAND, EVENT, AGGREGATE]
+      produces: [tests/**/*.test.ts, tests/fixtures/**, tests/mocks/**]
+      deterministic_hash: sha256(canonical_ir_slice + generator_version)
+      dependencies: [IR_GENERATION]
+      version: "1.0.0"
+      readiness: READY
+
+  - generator:
+      id: graph_export
+      name: Graph Export
+      consumes: [ALL]
+      produces: [graph/** (canonical graph, dependency graph)]
+      deterministic_hash: sha256(canonical_ir_slice + generator_version)
+      dependencies: [IR_GENERATION, DEPENDENCY_ANALYSIS]
+      version: "1.0.0"
+      readiness: READY
+
+  - generator:
+      id: audit_reports
+      name: Audit Reports
+      consumes: [ALL]
+      produces: [audit/** (invariant coverage, authority model trace)]
+      deterministic_hash: sha256(canonical_ir_slice + generator_version)
+      dependencies: [IR_GENERATION, INVARIANT_VERIFICATION]
+      version: "1.0.0"
+      readiness: READY
+
+  - generator:
+      id: certification
+      name: Certification Artifacts
+      consumes: [ALL]
+      produces: [certification/** (edge manifest, coverage, traceability, build hash)]
+      deterministic_hash: sha256(canonical_ir_slice + generator_version)
+      dependencies: [IR_GENERATION, CERTIFICATION_GENERATION]
+      version: "1.0.0"
+      readiness: READY
+
+  - generator:
+      id: sdk
+      name: SDK (TypeScript client)
+      consumes: [COMMAND, EVENT, openapi]
+      produces: [sdk/** (typescript_types, json_schemas, client)]
+      deterministic_hash: sha256(canonical_ir_slice + generator_version)
+      dependencies: [IR_GENERATION, typescript, json_schema, openapi]
+      version: "1.0.0"
+      readiness: READY
+
+# ------------------------------------------------------------
+# DISPATCH ORDER (generation_order in BUILD_MANIFEST)
+# ------------------------------------------------------------
+dispatch_order: [typescript, json_schema, openapi, graph_export, documentation,
+  acceptance_tests, audit_reports, sdk, certification]
+
+# ------------------------------------------------------------
+# READINESS LEGEND
+# ------------------------------------------------------------
+# READY    : generator contract is fully specified and executable once
+#            G-01..G-10 clear.
+# BLOCKED  : generator cannot run until a named finding clears.
+# ------------------------------------------------------------

@@ -1,0 +1,230 @@
+openapi: 3.0.3
+info:
+  title: SOVR Financial OS API
+  version: 1.1.0
+  description: Trust Vault event-sourced API for the SOVR Financial Operating System.
+servers:
+  - url: http://localhost:3001
+paths:
+  /health:
+    get:
+      summary: Liveness and readiness probe
+      tags: [observability]
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+  /metrics:
+    get:
+      summary: Runtime metrics
+      tags: [observability]
+      responses:
+        '200':
+          description: Metrics snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+  /version:
+    get:
+      summary: Protocol version
+      tags: [observability]
+      responses:
+        '200':
+          description: Version info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionResponse'
+  /build:
+    get:
+      summary: Build metadata
+      tags: [observability]
+      responses:
+        '200':
+          description: Build info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BuildResponse'
+  /vault:
+    post:
+      summary: Create a vault
+      tags: [vault]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateVaultRequest'
+      responses:
+        '201':
+          description: Vault created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiResponse'
+        '400': { description: Invalid request }
+        '401': { description: Unauthorized }
+        '403': { description: Forbidden }
+        '500': { description: Internal error }
+  /vault/{id}/deposit:
+    post:
+      summary: Deposit assets into a vault
+      tags: [vault]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositRequest'
+      responses:
+        '200': { description: Deposited }
+        '400': { description: Invalid request }
+        '404': { description: Vault not found }
+  /vault/{id}/approve:
+    post:
+      summary: Approve vault release
+      tags: [vault]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApproveReleaseRequest'
+      responses:
+        '200': { description: Approved }
+        '403': { description: Forbidden }
+        '404': { description: Vault not found }
+  /vault/{id}/release:
+    post:
+      summary: Execute vault release
+      tags: [vault]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteReleaseRequest'
+      responses:
+        '200': { description: Released }
+        '403': { description: Insufficient approvals }
+        '404': { description: Vault not found }
+  /vault/{id}:
+    get:
+      summary: Get vault details
+      tags: [vault]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Vault details }
+        '403': { description: Forbidden }
+        '404': { description: Vault not found }
+  /audit/{id}:
+    get:
+      summary: Get vault audit trail
+      tags: [audit]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Audit events }
+        '404': { description: Vault not found }
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      properties:
+        status: { type: string }
+        uptimeSeconds: { type: integer }
+        vaults: { type: integer }
+        eventStore: { type: string }
+        timestamp: { type: string }
+    MetricsResponse:
+      type: object
+      properties:
+        service: { type: string }
+        protocolVersion: { type: string }
+        uptimeSeconds: { type: integer }
+        requestsTotal: { type: integer }
+        errorsTotal: { type: integer }
+        vaultsLoaded: { type: integer }
+        eventStoreEvents: { type: integer }
+        timestamp: { type: string }
+    VersionResponse:
+      type: object
+      properties:
+        protocolVersion: { type: string }
+        node: { type: string }
+    BuildResponse:
+      type: object
+      properties:
+        service: { type: string }
+        protocolVersion: { type: string }
+        build: { type: string }
+        buildTime: { type: string }
+        node: { type: string }
+    CreateVaultRequest:
+      type: object
+      required: [owner, assetType, amount, currency, releaseConditions, approvers]
+      properties:
+        owner: { type: string }
+        assetType: { type: string }
+        amount: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+        releaseConditions: { type: array, items: { type: string } }
+        approvers: { type: array, items: { type: string }, minItems: 1 }
+    DepositRequest:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+    ApproveReleaseRequest:
+      type: object
+      required: [approver]
+      properties:
+        approver: { type: string }
+    ExecuteReleaseRequest:
+      type: object
+      required: [recipient, amount, currency]
+      properties:
+        recipient: { type: string }
+        amount: { type: number, minimum: 0 }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+    ApiResponse:
+      type: object
+      required: [success, metadata]
+      properties:
+        success: { type: boolean }
+        data: { type: object }
+        error: { type: string }
+        metadata:
+          type: object
+          properties:
+            timestamp: { type: string }
+            protocolVersion: { type: string }
+            correlationId: { type: string }
