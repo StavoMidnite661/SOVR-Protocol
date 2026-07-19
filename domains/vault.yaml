@@ -125,18 +125,17 @@ value_model:
       Value is stored in the native unit of its asset type.
       Cross-asset comparisons use the valuation layer.
       The Vault never silently converts between asset types.
-    example:
-      asset: USD
-      native_unit: dollars
-      amount: 1000.00
-      precision: 2
-      valuation_reference: 1.00 USD per USD
-    example:
-      asset: sFIAT_USD
-      native_unit: wei  # 1e-18
-      amount: 1000000000000000000000  # 1000 sFIAT
-      precision: 18
-      valuation_reference: 1.00 USD per sFIAT
+    examples:
+      - asset: USD
+        native_unit: dollars
+        amount: 1000.00
+        precision: 2
+        valuation_reference: 1.00 USD per USD
+      - asset: sFIAT_USD
+        native_unit: wei  # 1e-18
+        amount: 1000000000000000000000  # 1000 sFIAT
+        precision: 18
+        valuation_reference: 1.00 USD per sFIAT
 
 # ============================================================
 # SECTION 2 — ASSET REGISTRY

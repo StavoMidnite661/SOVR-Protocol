@@ -1,0 +1,27 @@
+{
+  "name": "@sovr/compiler",
+  "version": "0.2.0-kernel-working",
+  "description": "SOVR Protocol Compiler — deterministic, unfakeable, machine-readable kernel compiler",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "sovr": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "compile": "node dist/cli.js compile",
+    "verify": "node dist/cli.js verify",
+    "test": "node dist/cli.js test"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/js-yaml": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

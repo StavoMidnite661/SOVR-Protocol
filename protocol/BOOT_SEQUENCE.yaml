@@ -1,0 +1,226 @@
+# ============================================================
+# SOVR Financial OS — Boot Sequence Specification
+# File: protocol/BOOT_SEQUENCE.yaml
+# Phase: Kernel Boot — Linux of Finance Bootloader
+# Version: 0.3.0-boot-sequence
+# Owner: kernel_engineer
+# ============================================================
+# Like Linux: BIOS → Bootloader → Kernel → Init → Userland
+# But financial: every stage emits immutable events, verified by build_hash,
+# attested, replayable. Frontend only loads after Level 7 HEALTHY.
+# This is the missing piece that makes SOVR feel like an OS, not a library.
+# ============================================================
+
+meta:
+  id: boot-sequence
+  name: SOVR Kernel Boot Sequence
+  version: "0.3.0"
+  domain: protocol
+  owner: kernel_engineer
+  status: PROPOSED
+  introduced: "2026-07-18"
+  modified: "2026-07-18"
+  constitutional_reference: [INV-001, INV-005, INV-007, INV-009]
+  dependencies: [protocol/CANONICAL_AUTHORITY_MODEL.yaml, compiler/BUILD_MANIFEST.yaml, protocol/DOMAIN_REGISTRY.yaml]
+
+boot_sequence:
+  principle: SAME_YAML_SAME_COMPILER_SAME_BOOT_HASH_SAME_EVENT_LOG_CANNOT_BE_FUDGED
+  reproducibility: R1_to_R10_plus_boot_determinism
+
+  runlevels:
+    - level: 0
+      name: FIRMWARE_POST
+      description: Power-On Self Test — cryptographic primitives, env isolation, memory
+      icon: "🔌"
+      timeout_ms: 500
+      failure_action: HALT_AND_EMIT_system_health_halted
+      checks:
+        - sha256_self_test: known vector "SOVR" -> hash verified
+        - env_isolation: no HOSTNAME/USER/PATH leakage into hashes (R10)
+        - memory_available: node heap > 64MB
+        - node_version: ">=20.0.0"
+      produces_events:
+        - system.health.degraded  # if warning
+        - saga.started # boot_saga
+      boot_log_line: "[0.000] SOVR POST: crypto OK, env isolated, node %s"
+
+    - level: 1
+      name: BOOTLOADER
+      description: Secure bootloader — verifies build_hash, tamper detection, constitutional freeze check
+      icon: "🔐"
+      timeout_ms: 2000
+      depends_on: [0]
+      checks:
+        - compiler_manifest_exists: generated/compiler-manifest.yaml present
+        - build_hash_matches_disk: recompute input_hashes from disk and compare to manifest build_hash
+        - protocol_version_frozen: 00_protocol-manifest.yaml status FROZEN
+        - constitution_hash_chain: 01_constitution.yaml sha256 matches manifest protocol_target
+        - registry_versions_pinned: DOMAIN_REGISTRY, AGGREGATE_REGISTRY pinned in manifest
+      tamper_detection:
+        method: content_hash_compare
+        on_mismatch: ABORT_WITH_FIRMWARE_TAMPER_EVENT
+        emits: system.health.halted
+      produces_events:
+        - saga.started # bootloader verification saga
+        - system.health.degraded # if registry draft not ratified (warning)
+      boot_log_line: "[%03.3fs] Bootloader: verified build_hash %s... (unfakeable provenance)"
+
+    - level: 2
+      name: KERNEL_INIT
+      description: Load constitution, initialize event envelope, create system_health aggregate, INV-001..010
+      icon: "🧠"
+      timeout_ms: 1000
+      depends_on: [1]
+      initializes:
+        - constitution: INV-001..010 constants loaded, conflict_resolution priority order
+        - event_envelope: 21 mandatory fields from 04_event-catalog.yaml
+        - system_health: aggregate system_health lifecycle HEALTHY initial
+        - authority_model: human/ai_agent/governance/system ceilings
+      produces_events:
+        - system.health.restored # if prior degraded
+        - saga.started # kernel_init_saga
+      boot_log_line: "[%03.3fs] Kernel: constitution loaded (10 invariants), envelope 21 fields, authority 4 actors"
+
+    - level: 3
+      name: CORE_DOMAINS
+      description: Value Authority + Truth — vault, ledger, treasury — in dependency order per DEPENDENCY_GRAPH.yaml
+      icon: "🏦"
+      timeout_ms: 3000
+      depends_on: [2]
+      order: topological # per DEPENDENCY_GRAPH
+      subsystems:
+        - vault: { question: "Can value exist?", priority: 1, aggregates: [asset, reservation, collateral], events: [vault.asset.registered, vault.reserve.created] }
+        - ledger: { question: "How is truth recorded?", priority: 3, guarantees: [event_immutability, double_entry_balance], events: [ledger.journal.created, ledger.entry.posted] }
+        - treasury: { question: "Can value move?", priority: 2, depends: [vault, ledger], events: [treasury.transfer.requested, treasury.transfer.settled] }
+      verification:
+        - vault_value_conservation: sum available = total - reserved - locked - encumbered
+        - ledger_double_entry: sum debits == credits for all journal entries in event log replay
+        - treasury_atomicity: every multi-step transfer has compensation saga defined
+      produces_events:
+        - vault.asset.registered # genesis zero asset for test
+        - ledger.journal.created # genesis journal
+        - saga.started # core_domain_init_saga
+      boot_log_line: "[%03.3fs] Core: vault ✓ (value), ledger ✓ (truth), treasury ✓ (movement) — atomicity verified"
+
+    - level: 4
+      name: SECURITY_SUBSYSTEM
+      description: Identity, Policy, Intent, Agent — establishes who can act, is it permitted, what wants to act, bounded autonomy
+      icon: "🛡️"
+      timeout_ms: 2500
+      depends_on: [3]
+      subsystems:
+        - identity: { question: "Who is acting?", aggregates: [actor, credential, session, delegation], must_have: [trust_anchor, actor] }
+        - policy: { question: "Is this permitted?", evaluation: "pure function, deterministic_hash, PURE_FUNCTION", outputs: [ALLOW,DENY,ESCALATE,DEFER] }
+        - intent: { question: "What does actor want to do?", enrichment: [FIELD_RESOLUTION, ENTITY_LOOKUP, AMOUNT_NORMALIZATION] }
+        - agent: { question: "Can intelligence request action?", bounded: true, forbidden: [mint_assets, grant_capabilities], requires_audit_envelope: true }
+      security_guarantee: INV-003, INV-004, INV-008 gates 1-4
+      produces_events:
+        - identity.actor.registered # bootstrap governance actor
+        - policy.rule.created # genesis policy
+        - agent.registration.submitted # optional
+      boot_log_line: "[%03.3fs] Security: identity ✓ trust anchors, policy ✓ pure function, intent ✓ enrichment, agent ✓ bounded"
+
+    - level: 5
+      name: EXECUTION_BOUNDARY
+      description: Payment rails and hybrid chain settlement — bridging constitutional runtime to external financial systems
+      icon: "🌐"
+      timeout_ms: 2000
+      depends_on: [4]
+      subsystems:
+        - payment: { question: "Can execution leave system?", rails: [ACH,FEDNOW,WIRE,RTP,CARD,BLOCKCHAIN,STABLECOIN,SWIFT,SEPA,FUTURE_ADAPTER], states: [RECEIVED,PLANNING,ROUTING,PREPARING,EXECUTING,CONFIRMING,RECONCILING,SETTLED], prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE }
+        - hybrid: { chains: [ethereum:1, base:8453, polygon:137, future_chain: extensible], finality: [PROBABILISTIC, HYBRID], oracles: [CHAINLINK, PYTH, BAND, DIA, CUSTOM], reorg: [DETECT,MARK_UNKNOWN,REPLAY,REVERT,ESCALATE] }
+      external_connectivity: every digitalizable infra via adapter_based / attestation_based / batch_export
+      produces_events:
+        - payment.rail.prepared # dummy
+        - saga.started # boundary_init_saga
+      boot_log_line: "[%03.3fs] Boundary: payment %d rails, hybrid %d chains, oracle %d providers — adapters isolated"
+
+    - level: 6
+      name: INTERPRETATION
+      description: Projection engine — events describe reality, projections interpret reality (INV-006)
+      icon: "👁️"
+      timeout_ms: 3000
+      depends_on: [5]
+      subsystems:
+        - projection_engine: { projections: 15, ordering: event_timestamp_asc, rebuild_strategy: FULL_REPLAY_FROM_BEGINNING, caching: [ttl_seconds, invalidation_keys] }
+        - kafka: { topics: "sovr.{domain}.{aggregate}.{event_type}", retention: {financial: PERMANENT, audit: PERMANENT}, replication: 3 }
+        - redis: { streams: "sovr:stream:{domain}:{aggregate}", consumer_group: "sovr-{service}", max_length: 100000 }
+      verification:
+        - replay_determinism: rebuild all 15 projections from genesis event log → hashes must match checkpoint
+        - event_log_authoritative: if projection disagrees with log, log wins (INV-006)
+      produces_events:
+        - saga.completed # boot_saga completed
+      boot_log_line: "[%03.3fs] Projections: 15 read models rebuilt from genesis — replay determinism verified"
+
+    - level: 7
+      name: USERLAND
+      description: Runtime SDK, OpenAPI, frontend adapters — Linux userspace equivalent. Frontend should only load after HEALTHY.
+      icon: "🚀"
+      timeout_ms: 1000
+      depends_on: [6]
+      delivers:
+        - sdk: "@sovr/runtime SOVRClient typed"
+        - types: "generated/src/types/{domain}/* — IAsset, ITransfer, etc"
+        - commands: "generated/src/commands/* — VaultAssetRegisterCommand + Zod schemas"
+        - events: "generated/src/events/* — Event classes with envelope composition"
+        - openapi: "generated/openapi.yaml — 88 commands → POST /api/v1/{domain}/{aggregate} with bearerAuth + x-constitutional-gates"
+        - execution_context: "src/execution/execution-context.ts — single object handler receives per ADR-009"
+        - adapters: "ChainAdapter, PaymentRailAdapter, AdapterRegistry"
+        - manifest: "compiler-manifest.yaml build_hash for frontend verification"
+      health_gate:
+        required_state: HEALTHY
+        check: system_health_lifecycle must be HEALTHY before accepting financial commands
+        on_not_healthy: reject_all_commands_with_SYSTEM_NOT_READY
+      boot_complete:
+        produces_events:
+          - system.health.restored # final
+          - saga.completed # boot_saga completed
+        boot_splash:
+          - "  ____   _____  __      __  ____    ___   ____    _   _ "
+          - " / ___| |  _  | \\ \\    / / |  _ \\  / _ \\ / ___|  | | | |"
+          - " \\___ \\ | | | |  \\ \\  / /  | |_) || |_| \\___ \\  | |_| |"
+          - "  ___) || |_| |   \\ \\/ /   |  _ < |  _  | ___) | |  _  |"
+          - " |____/ |_____|    \\__/    |_| \\_\\|_| |_||____/  |_| |_|"
+          - " Financial OS Kernel v%s Booted — build_hash %s"
+          - " Frontend can now load — SDK: @sovr/runtime, Types: generated/src/types/*"
+      boot_log_line: "[%03.3fs] Userland: runtime SDK ready, OpenAPI 88 endpoints, frontend verified — SYSTEM HEALTHY"
+
+  boot_attestation:
+    description: Unique addition — my skill fingerprint. Proves boot is unfakeable and traceable.
+    method: boot_hash = sha256(build_hash + boot_log_hash + boot_timings_hash + system_health_final_state)
+    produces: generated/boot-attestation.json
+    contains:
+      - build_hash: from compiler-manifest (unfakeable provenance)
+      - boot_log_hash: sha256 of full boot log lines in order (deterministic)
+      - boot_timings_hash: sha256 of stage durations (performance fingerprint, no wall-clock leakage — uses relative timings)
+      - final_health: HEALTHY or HALTED
+      - boot_events: 10+ immutable events from boot saga (saga.started, system.health.*)
+      - signature: HMAC-like deterministic signature (for now sha256 chain, in production would be ed25519 from trust_anchor)
+      - verification: frontend can verify boot_attestation.boot_hash === manifest.build_hash and boot_log replays identically
+    guarantee: Same YAML + same compiler + same hardware POST → same boot_attestation → cannot be fudged
+
+  boot_failure_protocol:
+    - condition: any stage timeout
+      action: emit system.health.degraded, retry with backoff, then HALT
+      event: system.health.halted
+      escalation: governance if level >=3
+    - condition: tamper detected in bootloader
+      action: immediate HALT, emit emergency_halt, no userland
+    - condition: projection replay mismatch
+      action: rebuild projection, if still mismatch → HALT (INV-006 violation)
+
+  boot_visualization:
+    ascii_boot_screen: true
+    boot_log_verbosity: INFO
+    boot_splash_delay_ms: 100 # for dramatic effect like Linux kernel boot
+    frontend_boot_gate: frontend must wait for Level 7 HEALTHY event before calling treasury.transfer.request
+
+  boot_levels_linux_analogy:
+    0_FIRMWARE_POST: BIOS POST / secure boot
+    1_BOOTLOADER: GRUB verifying kernel signature
+    2_KERNEL_INIT: kernel decompress, load invariants, init memory (event_store)
+    3_CORE_DOMAINS: mount root fs (vault/ledger/treasury = /bin, /sbin, /lib)
+    4_SECURITY: load LSM, SELinux, capabilities (identity/policy)
+    5_BOUNDARY: load drivers (payment rails, chain adapters = /dev/*)
+    6_INTERPRETATION: mount /proc, /sys (projections = read models)
+    7_USERLAND: systemd → graphical target, user login (frontend SDK)

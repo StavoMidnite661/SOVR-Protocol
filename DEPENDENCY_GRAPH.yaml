@@ -1,61 +1,65 @@
-# Dependency Graph
+# ============================================================
+# SOVR Financial OS — Dependency Graph
+# File: DEPENDENCY_GRAPH.yaml
+# ============================================================
 
-## Kernel
-depends_on: []
-forbidden: [business logic, domain rules]
+dependencies:
+  kernel:
+    depends_on: []
+    forbidden: [business logic, domain rules]
 
-## Governance
-depends_on: [kernel]
-forbidden: [domain business logic]
+  governance:
+    depends_on: [kernel]
+    forbidden: [domain business logic]
 
-## Vault
-depends_on: [kernel, governance]
-forbidden: [treasury, payment, UI]
+  vault:
+    depends_on: [kernel, governance]
+    forbidden: [treasury, payment, UI]
 
-## Ledger
-depends_on: [kernel, governance]
-forbidden: [treasury, payment, UI]
+  ledger:
+    depends_on: [kernel, governance]
+    forbidden: [treasury, payment, UI]
 
-## Treasury
-depends_on: [kernel, governance]
-forbidden: [payment, UI]
+  treasury:
+    depends_on: [kernel, governance]
+    forbidden: [payment, UI]
 
-## Payment
-depends_on: [kernel, governance]
-forbidden: [treasury, UI]
+  payment:
+    depends_on: [kernel, governance]
+    forbidden: [treasury, UI]
 
-## Identity
-depends_on: [kernel, governance]
-forbidden: [payment, UI]
+  identity:
+    depends_on: [kernel, governance]
+    forbidden: [payment, UI]
 
-## Policy
-depends_on: [kernel, governance]
-forbidden: [UI]
+  policy:
+    depends_on: [kernel, governance]
+    forbidden: [UI]
 
-## Intent
-depends_on: [kernel, governance]
-forbidden: [UI]
+  intent:
+    depends_on: [kernel, governance]
+    forbidden: [UI]
 
-## Runtime
-depends_on: [kernel]
-forbidden: [UI]
+  runtime:
+    depends_on: [kernel]
+    forbidden: [UI]
 
-## Compiler
-depends_on: [kernel]
-forbidden: [domain business logic]
+  compiler:
+    depends_on: [kernel]
+    forbidden: [domain business logic]
 
-## Projection
-depends_on: [kernel]
-forbidden: [UI]
+  projection:
+    depends_on: [kernel]
+    forbidden: [UI]
 
-## Certification
-depends_on: [all domains]
-forbidden: [UI]
+  certification:
+    depends_on: [all domains]
+    forbidden: [UI]
 
-## Settlement
-depends_on: [kernel, payment, treasury]
-forbidden: [UI]
+  settlement:
+    depends_on: [kernel, payment, treasury]
+    forbidden: [UI]
 
-## Infrastructure
-depends_on: [all domains]
-forbidden: [domain business logic]
+  infrastructure:
+    depends_on: [all domains]
+    forbidden: [domain business logic]

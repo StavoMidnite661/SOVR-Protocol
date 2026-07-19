@@ -1,0 +1,13 @@
+{
+  "name": "sovr-example-frontend",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Example frontend built on SOVR kernel — demonstrates Linux of finance working yaml protocol",
+  "scripts": {
+    "dev": "echo 'Frontend uses generated types from ../generated and SDK from @sovr/runtime'"
+  },
+  "dependencies": {
+    "@sovr/runtime": "file:../packages/runtime",
+    "@sovr/compiler": "file:../packages/compiler"
+  }
+}

@@ -1,0 +1,870 @@
+// SOVR GENERATED FILE — DO NOT EDIT
+// compiler 0.2.0-kernel-working protocol 1.0.0 hash c6ffdbc3a28a84731ae2d09f53ce7772055450109969890f68187f80f0b99762
+// SOVR GENERATED — Prisma schema
+// Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+// DO NOT EDIT — generated from 02_domain-model.yaml
+
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+model AgentAgentAuditEnvelope {
+  execution_id String @id @default(uuid())
+  agent_id String
+  identity_id String
+  intent_id String
+  command_id String
+  policy_decision_id String
+  capability_id String
+  authorization_context_id String
+  resources_used Json
+  execution_result String
+  execution_time_ms Int
+  constitutional_rules Json
+  model_version String
+  input_summary String
+  output_summary String
+  state_changes Json
+  error_detail String?
+  executed_at DateTime
+  completed_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AgentAgentInstance {
+  agent_id String @id @default(uuid())
+  agent_name String
+  agent_type String
+  model_type String
+  model_version String
+  owner_id String
+  operator_id String
+  state String
+  registration_id String
+  trust_level String
+  governance_approved Boolean
+  governance_approval_id String?
+  created_at DateTime
+  activated_at DateTime?
+  last_execution_at DateTime?
+  terminated_at DateTime?
+  termination_reason String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AgentAgentRegistration {
+  registration_id String @id @default(uuid())
+  agent_name String
+  agent_type String
+  model_type String
+  model_version String
+  proposed_by String
+  proposed_capabilities Json
+  governance_review_status String
+  governance_reviewer_id String?
+  state String
+  submitted_at DateTime
+  reviewed_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AgentCapabilityBinding {
+  binding_id String @id @default(uuid())
+  agent_id String
+  capability_id String
+  scope_pattern String
+  granted_by String
+  granted_at DateTime
+  expires_at DateTime?
+  conditions Json?
+  revocable Boolean
+  state String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model AgentExecutionQuota {
+  quota_id String @id @default(uuid())
+  agent_id String
+  period String
+  max_commands Int
+  max_financial_value Decimal
+  max_distinct_actors_affected Int
+  max_asset_types Int
+  commands_executed Int
+  financial_value_moved Decimal
+  reset_at DateTime
+  enforced Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GovernanceAuditRecord {
+  audit_id String @id @default(uuid())
+  audit_type String
+  initiated_by String
+  target_domains Json
+  start_date DateTime
+  end_date DateTime?
+  state String
+  created_at DateTime
+  completed_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GovernanceEmergencyHalt {
+  halt_id String @id @default(uuid())
+  triggered_by String
+  trigger_reason String
+  affected_domains Json
+  state String
+  initiated_at DateTime
+  expires_at DateTime
+  lifted_at DateTime?
+  post_action_review_required Boolean
+  post_action_review_completed Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GovernanceEscalation {
+  escalation_id String @id @default(uuid())
+  source_domain String
+  source_event_id String
+  reason String
+  submitted_by String
+  state String
+  resolution Json?
+  resolved_by String?
+  resolved_at DateTime?
+  created_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GovernanceGovernanceAmendment {
+  amendment_id String @id @default(uuid())
+  amendment_number String @id @default(uuid())
+  section String
+  proposed_by String
+  state String
+  voting_ends_at DateTime
+  ratified_at DateTime?
+  created_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GovernanceGovernanceOverride {
+  override_id String @id @default(uuid())
+  override_type String
+  target_type String
+  target_id String
+  issued_by String
+  effective_from DateTime
+  expires_at DateTime?
+  state String
+  created_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model GovernanceGovernanceProposal {
+  proposal_id String @id @default(uuid())
+  proposal_type String
+  proposed_by String
+  target_domain String
+  state String
+  required_approvals Int
+  current_approvals Int
+  approval_threshold String
+  expires_at DateTime
+  implemented_at DateTime?
+  created_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IdentityActor {
+  identity_id String @id @default(uuid())
+  actor_type String
+  state String
+  display_name String
+  legal_identifier String?
+  primary_contact String?
+  trust_level String
+  governance_approved_by String?
+  registered_at DateTime
+  verified_at DateTime?
+  suspended_at DateTime?
+  revoked_at DateTime?
+  revoked_reason String?
+  metadata Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IdentityAuthenticationContext {
+  identity_id String
+  actor_type String
+  authentication_method String
+  credential_id String
+  trust_level String
+  binding_strength String
+  authenticated_at DateTime
+  session_id String
+  expires_at DateTime
+  delegation_chain Json
+  ip_address String?
+  device_fingerprint String?
+  geo_location String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IdentityCredential {
+  credential_id String @id @default(uuid())
+  identity_id String
+  credential_type String
+  state String
+  trust_level String
+  authentication_factor String
+  binding_strength String
+  expires_at DateTime
+  revocable Boolean
+  scope_restrictions Json?
+  max_delegation_depth Int
+  issued_at DateTime
+  issued_by String
+  last_used_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IdentityDelegation {
+  delegation_id String @id @default(uuid())
+  delegator_id String
+  delegate_id String
+  delegated_capabilities Json
+  max_delegation_depth Int
+  conditions Json?
+  state String
+  revocable_by_delegator Boolean
+  audit_requirement String
+  created_at DateTime
+  accepted_at DateTime?
+  revoked_at DateTime?
+  revoked_by String?
+  current_depth Int
+  parent_delegation_id String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IdentitySession {
+  session_id String @id @default(uuid())
+  identity_id String
+  credential_id String
+  authentication_method String
+  trust_level String
+  binding_strength String
+  state String
+  created_at DateTime
+  last_activity_at DateTime
+  expires_at DateTime
+  max_session_duration Int
+  idle_timeout Int
+  capabilities_granted Json?
+  delegation_chain Json?
+  concurrent_session_limit Int
+  source_ip String?
+  device_fingerprint String?
+  geo_location String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IdentityTrustAnchor {
+  trust_anchor_id String @id @default(uuid())
+  anchor_type String
+  anchor_label String
+  public_key_material String
+  key_algorithm String
+  key_usage String
+  trust_level_issued String
+  scope_of_trust Json
+  issued_by String
+  valid_from DateTime
+  valid_until DateTime
+  revocation_check_url String?
+  status String
+  governance_approval_id String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IntentCommandConversion {
+  conversion_id String @id @default(uuid())
+  intent_id String
+  command_id String
+  command_name String
+  command_payload Json
+  conversion_confidence String
+  assumptions_made Json
+  human_confirmation_required Boolean
+  confirmed_by String?
+  converted_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IntentEnrichmentStep {
+  step_id String @id @default(uuid())
+  intent_id String
+  step_type String
+  input_fields Json
+  output_fields Json
+  data_source String
+  required Boolean
+  retryable Boolean
+  timeout_ms Int
+  state String
+  result Json?
+  error String?
+  executed_at DateTime?
+  duration_ms Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IntentIntent {
+  intent_id String @id @default(uuid())
+  intent_type String
+  actor_id String
+  authorization_context_id String
+  policy_decision_id String
+  objective String
+  domain_target String
+  payload Json
+  confidence String
+  state String
+  priority String
+  conditions Json?
+  schedule Json?
+  steps Json?
+  delegation_id String?
+  original_actor_id String?
+  converted_command_id String?
+  error_detail String?
+  created_at DateTime
+  enriched_at DateTime?
+  validated_at DateTime?
+  converted_at DateTime?
+  archived_at DateTime?
+  expires_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model IntentIntentValidation {
+  validation_id String @id @default(uuid())
+  intent_id String
+  overall_result String
+  blocking_failures Int
+  warnings Int
+  validated_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerAccount {
+  account_id String @id @default(uuid())
+  account_code String
+  account_name String
+  account_type String
+  normal_balance String
+  owner_id String
+  domain_ownership String
+  parent_account_id String?
+  status String
+  debit_allowed Boolean
+  credit_allowed Boolean
+  max_balance Decimal?
+  min_balance Decimal?
+  requires_approval Boolean
+  created_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerAccountingPeriod {
+  period_id String @id @default(uuid())
+  ledger_id String
+  name String
+  start_date DateTime
+  end_date DateTime
+  status String
+  opening_balances_recorded Boolean
+  closing_entries_recorded Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerJournal {
+  journal_id String @id @default(uuid())
+  ledger_id String
+  name String
+  domain String
+  description String?
+  status String
+  period_start DateTime
+  period_end DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerJournalEntry {
+  entry_id String @id @default(uuid())
+  journal_id String
+  transaction_id String
+  event_reference String
+  correlation_id String
+  causation_id String
+  description String
+  entry_type String
+  status String
+  posting_count Int
+  total_debits Decimal
+  total_credits Decimal
+  balanced Boolean
+  created_at DateTime
+  posted_at DateTime?
+  settled_at DateTime?
+  reconciled_at DateTime?
+  original_entry_id String?
+  reversal_reason String?
+  correction_description String?
+  approved_by String?
+  actor_context Json
+  authorization_context Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerLedger {
+  ledger_id String @id @default(uuid())
+  name String
+  entity_id String
+  base_currency String
+  status String
+  created_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerLedgerReconciliation {
+  reconciliation_id String @id @default(uuid())
+  type String
+  state String
+  severity String?
+  source_ledger_values Json?
+  external_values Json?
+  discrepancy_amount Decimal?
+  resolution_method String?
+  initiated_by String
+  started_at DateTime
+  resolved_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LedgerPosting {
+  posting_id String @id @default(uuid())
+  entry_id String
+  account_id String
+  amount Decimal
+  direction String
+  asset_id String
+  currency String
+  precision Int
+  description String?
+  reference_type String?
+  reference_id String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentExecutionPlan {
+  execution_plan_id String @id @default(uuid())
+  payment_request_id String
+  selected_rail String
+  routing_decision Json
+  step_sequence Json
+  estimated_settlement_time_ms Int
+  compensation_strategy String
+  state String
+  created_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PaymentPaymentRequest {
+  payment_request_id String @id @default(uuid())
+  source_transfer_id String
+  execution_plan_id String?
+  rail_type String?
+  amount Json
+  sender Json
+  recipient Json
+  urgency String
+  retry_policy Json
+  state String
+  constitutional_gates_passed Json
+  created_at DateTime
+  updated_at DateTime
+  completed_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PolicyPolicyEscalation {
+  escalation_id String @id @default(uuid())
+  evaluation_id String
+  escalation_reason String
+  escalation_target String
+  required_resolution String
+  deadline DateTime
+  auto_deny_after_deadline Boolean
+  state String
+  created_at DateTime
+  resolved_at DateTime?
+  resolved_by String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PolicyPolicyEvaluation {
+  evaluation_id String @id @default(uuid())
+  policy_set_id String
+  authorization_context_id String
+  command_id String
+  decision String
+  confidence String
+  rules_evaluated Int
+  rules_passed Int
+  rules_failed Int
+  risk_assessment_id String?
+  deterministic_hash String
+  state String
+  evaluation_duration_ms Int
+  evaluated_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PolicyPolicyRule {
+  rule_id String @id @default(uuid())
+  rule_name String
+  description String
+  category String
+  priority Int
+  evaluation_order Int
+  condition_type String
+  condition_field String?
+  condition_operator String?
+  condition_value String?
+  composite_operator String?
+  action String
+  escalation_target String
+  compliance_mapping Json?
+  constitutional_reference String?
+  active Boolean
+  effective_from DateTime
+  effective_until DateTime?
+  version String
+  last_modified_by String
+  last_modified_at DateTime
+  state String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PolicyPolicySet {
+  set_id String @id @default(uuid())
+  name String
+  description String
+  domain_scope String
+  rule_ids Json
+  evaluation_strategy String
+  conflict_resolution String
+  active Boolean
+  governance_approved Boolean
+  version String
+  created_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TreasuryLiquidityPosition {
+  position_id String @id @default(uuid())
+  asset_id String
+  total_verified_value Decimal
+  total_available Decimal
+  total_reserved Decimal
+  total_encumbered Decimal
+  total_in_transit Decimal
+  net_liquidity_ratio Decimal
+  state String
+  warning_threshold Decimal
+  restricted_threshold Decimal
+  emergency_threshold Decimal
+  last_evaluated_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TreasuryRoutingDecision {
+  decision_id String @id @default(uuid())
+  order_id String
+  settlement_type String
+  rail String?
+  estimated_cost Decimal?
+  estimated_duration Int?
+  risk_assessment String
+  policy_constraints Json
+  decided_at DateTime
+  decided_by String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TreasurySettlementConfirmation {
+  confirmation_id String @id @default(uuid())
+  instruction_id String
+  order_id String
+  source String
+  confirmation_type String
+  reference_id String
+  confirmed_at DateTime
+  amount Decimal
+  asset_id String
+  confidence String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TreasurySettlementInstruction {
+  instruction_id String @id @default(uuid())
+  order_id String
+  asset_id String
+  amount Decimal
+  destination_type String
+  destination_address String
+  rail String
+  reference String?
+  vault_lock_id String
+  vault_reservation_id String
+  max_attempts Int
+  timeout Int
+  state String
+  created_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TreasuryTransferOrder {
+  order_id String @id @default(uuid())
+  request_id String
+  correlation_id String
+  source_actor_id String
+  destination_actor_id String
+  asset_id String
+  amount Decimal
+  vault_reservation_id String?
+  vault_lock_id String?
+  ledger_entry_id String?
+  settlement_type String
+  state String
+  authorized_by String?
+  authorized_at DateTime?
+  executed_at DateTime?
+  settled_at DateTime?
+  failure_reason String?
+  audit_lineage Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TreasuryTransferRequest {
+  request_id String @id @default(uuid())
+  intent_id String
+  source_actor_id String
+  destination_actor_id String
+  asset_id String
+  amount Decimal
+  purpose String
+  urgency String
+  settlement_type String
+  requested_at DateTime
+  requested_by_actor_id String
+  requested_by_actor_type String
+  requested_by_identity_id String
+  requested_by_agent_id String?
+  status String
+  policy_result String?
+  policy_evaluated_at DateTime?
+  expiration DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VaultAsset {
+  asset_id String @id @default(uuid())
+  asset_type String
+  issuer_id String
+  ownership_id String
+  beneficial_owner_id String?
+  custody_provider String
+  custody_location String
+  quantity Decimal?
+  face_value Decimal?
+  native_unit String
+  precision Int
+  risk_classification String
+  valuation_source String
+  current_valuation Decimal?
+  valuation_updated_at DateTime?
+  reserve_ratio Decimal
+  state String
+  registered_at DateTime
+  verified_at DateTime?
+  last_reconciled_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VaultBalance {
+  balance_id String @id @default(uuid())
+  actor_id String
+  asset_id String
+  total_balance Decimal
+  available_balance Decimal
+  reserved_balance Decimal
+  locked_balance Decimal
+  encumbered_balance Decimal
+  computed_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VaultCollateralPosition {
+  collateral_id String @id @default(uuid())
+  asset_id String
+  owner_id String
+  obligation_id String
+  gross_value Decimal
+  effective_value Decimal
+  haircut_rate Decimal
+  quality_score Decimal
+  state String
+  margin_ratio Decimal?
+  created_at DateTime
+  last_valued_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VaultCustodyAttestation {
+  attestation_id String @id @default(uuid())
+  asset_id String
+  custody_provider String
+  proof_type String
+  proof_hash String
+  attester_id String
+  attested_at DateTime
+  valid_until DateTime
+  block_height Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VaultReconciliationRecord {
+  reconciliation_id String @id @default(uuid())
+  asset_id String
+  initiated_by String
+  scope String
+  state String
+  expected_value Decimal?
+  actual_value Decimal?
+  discrepancy_amount Decimal?
+  severity String?
+  started_at DateTime
+  completed_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VaultReservation {
+  reservation_id String @id @default(uuid())
+  asset_id String
+  actor_id String
+  amount Decimal
+  state String
+  expiration DateTime
+  purpose String
+  initiating_command_id String
+  consuming_transaction_id String?
+  lock_id String?
+  created_at DateTime
+  locked_at DateTime?
+  consumed_at DateTime?
+  released_at DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VaultValuation {
+  valuation_id String @id @default(uuid())
+  asset_id String
+  source_type String
+  source_id String
+  price Decimal
+  reference_currency String
+  confidence String?
+  is_stale Boolean
+  governance_approved Boolean?
+  valued_at DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model event_store {
+  event_id String @id
+  event_name String
+  aggregate String
+  aggregate_id String
+  source_domain String
+  command_id String
+  correlation_id String
+  causation_id String
+  actor_id String
+  payload Json
+  timestamp DateTime
+  @@index([aggregate_id])
+  @@index([source_domain])
+  @@index([correlation_id])
+  @@index([actor_id])
+}
+
+model journal_entry {
+  entry_id String @id
+  journal_id String
+  transaction_id String
+  total_debits Decimal
+  total_credits Decimal
+  balanced Boolean
+  @@index([journal_id])
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@sovr/runtime",
+  "version": "0.2.0-kernel-working",
+  "description": "SOVR Financial OS Runtime — Linux kernel of finance, machine-readable, unfakeable",
+  "type": "module",
+  "main": "./dist/index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "node dist/index.js"
+  },
+  "dependencies": {
+    "ioredis": "^5.0.0",
+    "zod": "^3.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
