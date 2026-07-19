@@ -1,0 +1,300 @@
+# SOVR GENERATED — Redis Streams
+# hash 003dd39e905ff09e75cf5db14f38259d0d867db017c65e73ecb40aca624c8832
+{
+  "streams": [
+    {
+      "stream": "sovr:stream:agent:capability_binding",
+      "consumer_group": "sovr-agent-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "agent.capability.bound"
+    },
+    {
+      "stream": "sovr:stream:agent:governance_override",
+      "consumer_group": "sovr-agent-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "agent.governance.override.issued"
+    },
+    {
+      "stream": "sovr:stream:agent:instance",
+      "consumer_group": "sovr-agent-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "agent.activated"
+    },
+    {
+      "stream": "sovr:stream:agent:registration",
+      "consumer_group": "sovr-agent-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "agent.registration.approved"
+    },
+    {
+      "stream": "sovr:stream:governance:audit_record",
+      "consumer_group": "sovr-governance-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "governance.audit.queried"
+    },
+    {
+      "stream": "sovr:stream:governance:capability_grant",
+      "consumer_group": "sovr-governance-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "governance.capability.granted"
+    },
+    {
+      "stream": "sovr:stream:governance:emergency_halt",
+      "consumer_group": "sovr-governance-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "governance.emergency_halt.issued"
+    },
+    {
+      "stream": "sovr:stream:governance:escalation",
+      "consumer_group": "sovr-governance-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "governance.escalation.expired"
+    },
+    {
+      "stream": "sovr:stream:governance:governance_amendment",
+      "consumer_group": "sovr-governance-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "governance.amendment.proposed"
+    },
+    {
+      "stream": "sovr:stream:governance:governance_proposal",
+      "consumer_group": "sovr-governance-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "governance.proposal.approved"
+    },
+    {
+      "stream": "sovr:stream:governance:policy_rule",
+      "consumer_group": "sovr-governance-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "governance.policy_rule.activated.notification.sent"
+    },
+    {
+      "stream": "sovr:stream:identity:actor",
+      "consumer_group": "sovr-identity-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "identity.actor.registered"
+    },
+    {
+      "stream": "sovr:stream:identity:credential",
+      "consumer_group": "sovr-identity-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "identity.credential.expired"
+    },
+    {
+      "stream": "sovr:stream:identity:delegation",
+      "consumer_group": "sovr-identity-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "identity.delegation.created"
+    },
+    {
+      "stream": "sovr:stream:identity:session",
+      "consumer_group": "sovr-identity-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "identity.authentication.failed"
+    },
+    {
+      "stream": "sovr:stream:identity:trust_anchor",
+      "consumer_group": "sovr-identity-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "identity.trust_anchor.registered"
+    },
+    {
+      "stream": "sovr:stream:intent:intent",
+      "consumer_group": "sovr-intent-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "intent.archived"
+    },
+    {
+      "stream": "sovr:stream:kernel:saga_instance",
+      "consumer_group": "sovr-kernel-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "saga.compensated"
+    },
+    {
+      "stream": "sovr:stream:kernel:system_health",
+      "consumer_group": "sovr-kernel-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "system.health.degraded"
+    },
+    {
+      "stream": "sovr:stream:ledger:account",
+      "consumer_group": "sovr-ledger-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "ledger.account.closed"
+    },
+    {
+      "stream": "sovr:stream:ledger:accounting_period",
+      "consumer_group": "sovr-ledger-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "ledger.period.close_failed"
+    },
+    {
+      "stream": "sovr:stream:ledger:journal",
+      "consumer_group": "sovr-ledger-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "ledger.journal.created"
+    },
+    {
+      "stream": "sovr:stream:ledger:journal_entry",
+      "consumer_group": "sovr-ledger-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "ledger.entry.corrected"
+    },
+    {
+      "stream": "sovr:stream:ledger:reconciliation",
+      "consumer_group": "sovr-ledger-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "ledger.reconciliation.completed"
+    },
+    {
+      "stream": "sovr:stream:payment:execution_plan",
+      "consumer_group": "sovr-payment-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "payment.execution.planned"
+    },
+    {
+      "stream": "sovr:stream:payment:execution_receipt",
+      "consumer_group": "sovr-payment-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "payment.receipt.issuance_failed"
+    },
+    {
+      "stream": "sovr:stream:payment:payment_request",
+      "consumer_group": "sovr-payment-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "payment.compensation.completed"
+    },
+    {
+      "stream": "sovr:stream:payment:reconciliation",
+      "consumer_group": "sovr-payment-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "payment.reconciliation.completed"
+    },
+    {
+      "stream": "sovr:stream:payment:transfer_order",
+      "consumer_group": "sovr-payment-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "payment.settlement.completed"
+    },
+    {
+      "stream": "sovr:stream:policy:compliance_requirement",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.compliance.requirement.registered"
+    },
+    {
+      "stream": "sovr:stream:policy:escalation",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.escalation.created"
+    },
+    {
+      "stream": "sovr:stream:policy:evaluation",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.compliance.violation.detected"
+    },
+    {
+      "stream": "sovr:stream:policy:rule",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.rule.activated"
+    },
+    {
+      "stream": "sovr:stream:treasury:liquidity_position",
+      "consumer_group": "sovr-treasury-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "treasury.liquidity.warning"
+    },
+    {
+      "stream": "sovr:stream:treasury:transfer_order",
+      "consumer_group": "sovr-treasury-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "treasury.settlement.confirmed"
+    },
+    {
+      "stream": "sovr:stream:vault:asset",
+      "consumer_group": "sovr-vault-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "vault.asset.impaired"
+    },
+    {
+      "stream": "sovr:stream:vault:collateral",
+      "consumer_group": "sovr-vault-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "vault.collateral.added"
+    },
+    {
+      "stream": "sovr:stream:vault:custody",
+      "consumer_group": "sovr-vault-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "vault.custody.attested"
+    },
+    {
+      "stream": "sovr:stream:vault:ownership",
+      "consumer_group": "sovr-vault-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "vault.ownership.transferred"
+    },
+    {
+      "stream": "sovr:stream:vault:reconciliation",
+      "consumer_group": "sovr-vault-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "vault.reconciliation.completed"
+    },
+    {
+      "stream": "sovr:stream:vault:reservation",
+      "consumer_group": "sovr-vault-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "vault.reserve.created"
+    },
+    {
+      "stream": "sovr:stream:vault:valuation",
+      "consumer_group": "sovr-vault-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "vault.valuation.updated"
+    }
+  ]
+}

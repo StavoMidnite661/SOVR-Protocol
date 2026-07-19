@@ -1,0 +1,151 @@
+{
+  "boot_hash": "0d413f5676d71cf7b5c738d648bebcb394f13f92aa4ca8a99baffe609a3a45f7",
+  "boot_log_hash": "cedd68632df6cacd7a55ff8d55d718fd484305b0eb855b457b07115d6b1bf96b",
+  "boot_timings_hash": "556422867821e342829defd128d29565bba6b43d203388036bdd38e4a5d3938a",
+  "build_hash": "30f7880d5d665fbcb34ac847ab650bece84a92faa094a3a1b3f770e6732ec3c3",
+  "events": [
+    {
+      "eventName": "saga.started",
+      "level": 2,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "system.health.restored",
+      "level": 2,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "vault.asset.registered",
+      "level": 3,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "ledger.journal.created",
+      "level": 3,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "saga.started",
+      "level": 3,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "identity.actor.registered",
+      "level": 4,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "policy.rule.created",
+      "level": 4,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "payment.rail.prepared",
+      "level": 5,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "saga.started",
+      "level": 5,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "saga.completed",
+      "level": 6,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "system.health.restored",
+      "level": 7,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "saga.completed",
+      "level": 7,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    }
+  ],
+  "final_health": "HEALTHY",
+  "stages": [
+    {
+      "bootLog": "[0.000s] Kernel: constitution loaded (10 invariants), envelope 21 fields, authority 4 actors — runlevel 2 KERNEL_INIT",
+      "diagnostics": [],
+      "durationMs": 0.17949699999996938,
+      "eventsEmitted": [
+        "saga.started",
+        "system.health.restored"
+      ],
+      "icon": "🧠",
+      "level": 2,
+      "name": "KERNEL_INIT",
+      "passed": true
+    },
+    {
+      "bootLog": "[0.000s] Core: vault ✓ (58 entities, value conservation), ledger ✓ (52 entities, double_entry), treasury ✓ (9 cmds, atomicity) — runlevel 3 CORE_DOMAINS",
+      "diagnostics": [],
+      "durationMs": 0.10815500000001066,
+      "eventsEmitted": [
+        "vault.asset.registered",
+        "ledger.journal.created",
+        "saga.started"
+      ],
+      "icon": "🏦",
+      "level": 3,
+      "name": "CORE_DOMAINS",
+      "passed": true
+    },
+    {
+      "bootLog": "[0.000s] Security: identity ✓ (49 nodes, trust anchors), policy ✓ (107 caps pure function), intent ✓ enrichment, agent ✓ bounded — runlevel 4 SECURITY_SUBSYSTEM",
+      "diagnostics": [],
+      "durationMs": 0.05071700000002011,
+      "eventsEmitted": [
+        "identity.actor.registered",
+        "policy.rule.created"
+      ],
+      "icon": "🛡️",
+      "level": 4,
+      "name": "SECURITY_SUBSYSTEM",
+      "passed": true
+    },
+    {
+      "bootLog": "[0.000s] Boundary: payment 12 rails, hybrid 4 chains, oracle 5 providers — adapters isolated (ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE) — runlevel 5 EXECUTION_BOUNDARY",
+      "diagnostics": [],
+      "durationMs": 0.005442000000016378,
+      "eventsEmitted": [
+        "payment.rail.prepared",
+        "saga.started"
+      ],
+      "icon": "🌐",
+      "level": 5,
+      "name": "EXECUTION_BOUNDARY",
+      "passed": true
+    },
+    {
+      "bootLog": "[0.000s] Projections: 15 read models rebuilt from genesis — replay determinism verified (INV-006 event log authoritative) — runlevel 6 INTERPRETATION",
+      "diagnostics": [],
+      "durationMs": 0.007981999999969958,
+      "eventsEmitted": [
+        "saga.completed"
+      ],
+      "icon": "👁️",
+      "level": 6,
+      "name": "INTERPRETATION",
+      "passed": true
+    },
+    {
+      "bootLog": "[0.000s] Userland: runtime SDK ready, OpenAPI 88 endpoints, frontend verified — SYSTEM HEALTHY — runlevel 7 USERLAND",
+      "diagnostics": [],
+      "durationMs": 0.005167999999969197,
+      "eventsEmitted": [
+        "system.health.restored",
+        "saga.completed"
+      ],
+      "icon": "🚀",
+      "level": 7,
+      "name": "USERLAND",
+      "passed": true
+    }
+  ],
+  "total_duration_ms": 1.055386999999996,
+  "verification": "same YAML + same compiler + same POST = same boot_hash = cannot be fudged"
+}

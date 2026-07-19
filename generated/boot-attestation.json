@@ -1,0 +1,122 @@
+{
+  "boot_hash": "0d413f5676d71cf7b5c738d648bebcb394f13f92aa4ca8a99baffe609a3a45f7",
+  "boot_log_hash": "cedd68632df6cacd7a55ff8d55d718fd484305b0eb855b457b07115d6b1bf96b",
+  "boot_splash": [
+    "  ____   _____  __      __  ____    ___   ____    _   _ ",
+    " / ___| |  _  | \\ \\    / / |  _ \\  / _ \\ / ___|  | | | |",
+    " \\___ \\ | | | |  \\ \\  / /  | |_) || |_| \\___ \\  | |_| |",
+    "  ___) || |_| |   \\ \\/ /   |  _ < |  _  | ___) | |  _  |",
+    " |____/ |_____|    \\__/    |_| \\_\\|_| |_||____/  |_| |_|",
+    " Financial OS Kernel v30f7880d Booted — build_hash 30f7880d5d665fbc...",
+    " Frontend can now load — SDK: @sovr/runtime, Types: generated/src/types/*"
+  ],
+  "boot_timings_hash": "556422867821e342829defd128d29565bba6b43d203388036bdd38e4a5d3938a",
+  "build_hash": "30f7880d5d665fbcb34ac847ab650bece84a92faa094a3a1b3f770e6732ec3c3",
+  "events": [
+    {
+      "eventName": "saga.started",
+      "level": 2,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "system.health.restored",
+      "level": 2,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "vault.asset.registered",
+      "level": 3,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "ledger.journal.created",
+      "level": 3,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "saga.started",
+      "level": 3,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "identity.actor.registered",
+      "level": 4,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "policy.rule.created",
+      "level": 4,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "payment.rail.prepared",
+      "level": 5,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "saga.started",
+      "level": 5,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "saga.completed",
+      "level": 6,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "system.health.restored",
+      "level": 7,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    },
+    {
+      "eventName": "saga.completed",
+      "level": 7,
+      "timestamp": "2026-07-19T02:25:01.806Z"
+    }
+  ],
+  "final_health": "HEALTHY",
+  "schema_version": "1.0.0",
+  "stages": [
+    {
+      "durationMs": 0.17949699999996938,
+      "level": 2,
+      "name": "KERNEL_INIT",
+      "passed": true
+    },
+    {
+      "durationMs": 0.10815500000001066,
+      "level": 3,
+      "name": "CORE_DOMAINS",
+      "passed": true
+    },
+    {
+      "durationMs": 0.05071700000002011,
+      "level": 4,
+      "name": "SECURITY_SUBSYSTEM",
+      "passed": true
+    },
+    {
+      "durationMs": 0.005442000000016378,
+      "level": 5,
+      "name": "EXECUTION_BOUNDARY",
+      "passed": true
+    },
+    {
+      "durationMs": 0.007981999999969958,
+      "level": 6,
+      "name": "INTERPRETATION",
+      "passed": true
+    },
+    {
+      "durationMs": 0.005167999999969197,
+      "level": 7,
+      "name": "USERLAND",
+      "passed": true
+    }
+  ],
+  "verification": {
+    "frontend_check": "verify boot_attestation.build_hash === manifest.build_hash && replay boot_log deterministically",
+    "method": "same YAML + same compiler + same POST = same boot_attestation",
+    "unfakeable": true
+  }
+}

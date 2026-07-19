@@ -1160,15 +1160,6 @@ domains:
         reference: domains/treasury.yaml
 
   # ========================================================
-  # PAYMENT DOMAIN ENTITIES — Pending Phase F
-  # ========================================================
-  payment:
-    name: Payment
-    description: External Payment Rail Domain
-    entities: []
-    reference: TBD
-
-  # ========================================================
   # IDENTITY DOMAIN ENTITIES
   # ========================================================
   identity:
