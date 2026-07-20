@@ -46,143 +46,143 @@ pattern_explanation:
 
 valid_examples:
 
-  - vault.asset.registered
+  - name: vault.asset.registered
     domain: vault
     aggregate: asset
     action: registered
 
-  - vault.reserve.locked
+  - name: vault.reserve.locked
     domain: vault
     aggregate: reserve
     action: locked
 
-  - vault.collateral.margin_call
+  - name: vault.collateral.margin_call
     domain: vault
     aggregate: collateral
     action: margin_call
 
-  - ledger.entry.posted
+  - name: ledger.entry.posted
     domain: ledger
     aggregate: entry
     action: posted
 
-  - ledger.account.frozen
+  - name: ledger.account.frozen
     domain: ledger
     aggregate: account
     action: frozen
 
-  - treasury.transfer.settled
+  - name: treasury.transfer.settled
     domain: treasury
     aggregate: transfer
     action: settled
 
-  - treasury.liquidity.warning
+  - name: treasury.liquidity.warning
     domain: treasury
     aggregate: liquidity
     action: warning
 
-  - identity.actor.verified
+  - name: identity.actor.verified
     domain: identity
     aggregate: actor
     action: verified
 
-  - identity.session.created
+  - name: identity.session.created
     domain: identity
     aggregate: session
     action: created
 
-  - identity.delegation.expired
+  - name: identity.delegation.expired
     domain: identity
     aggregate: delegation
     action: expired
 
-  - policy.rule.activated
+  - name: policy.rule.activated
     domain: policy
     aggregate: rule
     action: activated
 
-  - policy.evaluation.escalated
+  - name: policy.evaluation.escalated
     domain: policy
     aggregate: evaluation
     action: escalated
 
-  - policy.escalation.resolved
+  - name: policy.escalation.resolved
     domain: policy
     aggregate: escalation
     action: resolved
 
-  - intent.enriching.completed
+  - name: intent.enriching.completed
     domain: intent
     aggregate: enriching
     action: completed
 
-  - intent.converted_to_command
+  - name: intent.converted_to_command
     domain: intent
     aggregate: converted_to_command
-    action: (none - aggregate includes action context)
+    action: "compound_aggregate"
     note: This is a compound aggregate name. Valid because the action context is inherent in the aggregate state.
 
-  - agent.execution.started
+  - name: agent.execution.started
     domain: agent
     aggregate: execution
     action: started
 
-  - agent.capability.bound
+  - name: agent.capability.bound
     domain: agent
     aggregate: capability
     action: bound
 
-  - agent.quota.exceeded
+  - name: agent.quota.exceeded
     domain: agent
     aggregate: quota
     action: exceeded
 
-  - payment.request.cancelled
+  - name: payment.request.cancelled
     domain: payment
     aggregate: request
     action: cancelled
 
-  - payment.execution.completed
+  - name: payment.execution.completed
     domain: payment
     aggregate: execution
     action: completed
 
-  - payment.rail.confirmed
+  - name: payment.rail.confirmed
     domain: payment
     aggregate: rail
     action: confirmed
 
-  - payment.reconciliation.discrepancy
+  - name: payment.reconciliation.discrepancy
     domain: payment
     aggregate: reconciliation
     action: discrepancy
 
-  - governance.proposal.approved
+  - name: governance.proposal.approved
     domain: governance
     aggregate: proposal
     action: approved
 
-  - governance.emergency_halt.issued
+  - name: governance.emergency_halt.issued
     domain: governance
     aggregate: emergency_halt
     action: issued
 
-  - hybrid.oracle.price.fetched
+  - name: hybrid.oracle.price.fetched
     domain: hybrid
     aggregate: oracle_price
     action: fetched
 
-  - hybrid.reorg.detected
+  - name: hybrid.reorg.detected
     domain: hybrid
     aggregate: reorg
     action: detected
 
-  - saga.compensated
-    domain: kernel (saga)
+  - name: saga.compensated
+    domain: kernel
     aggregate: saga
     action: compensated
 
-  - system.health.halted
+  - name: system.health.halted
     domain: kernel
     aggregate: health
     action: halted

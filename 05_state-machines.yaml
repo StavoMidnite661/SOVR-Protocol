@@ -8,6 +8,17 @@
 # Current domains: Vault, Ledger, Identity, Policy, Intent, Agent, Payment
 # ============================================================
 
+meta:
+  schema_version: "1.0.0"
+  file_id: "05_state-machines"
+  status: "FROZEN"
+  version: "1.0.0"
+  domain: "system"
+  owner: "governance"
+  introduced: "2025-07-07"
+  modified: "2026-07-18"
+  constitutional_reference: "L2"
+  dependencies: ["03_command-catalog.yaml", "04_event-catalog.yaml"]
 state_machines:
 
   # ========================================================

@@ -11,8 +11,8 @@
 
 meta:
   schema_version: "1.0.0"
-  generated_at: "2026-07-18"
-  status: DRAFT
+  generated_at: "2026-07-20"
+  status: RESOLVED
   phase: "XIV-E.1"
   source_files:
     - 04_event-catalog.yaml
@@ -32,133 +32,133 @@ meta:
 missing_from_catalog:
 
   vault_domain:
-    - vault.reserve.creation_failed
+    - event: vault.reserve.creation_failed
       referenced_by:
         - state_machine: vault_reservation_lifecycle
         - command: vault.reserve.create
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
-    - vault.collateral.addition_failed
+    - event: vault.collateral.addition_failed
       referenced_by:
         - state_machine: vault_collateral_lifecycle
         - command: vault.collateral.add
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
-    - vault.collateral.revaluation_failed
+    - event: vault.collateral.revaluation_failed
       referenced_by:
         - command: vault.collateral.revalue
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
-    - vault.valuation.update_failed
+    - event: vault.valuation.update_failed
       referenced_by:
         - command: vault.valuation.update
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
-    - vault.reconciliation.failed
+    - event: vault.reconciliation.failed
       referenced_by:
         - command: vault.asset.reconcile
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
   ledger_domain:
-    - ledger.journal.creation_failed
+    - event: ledger.journal.creation_failed
       referenced_by:
         - command: ledger.journal.create
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
-    - ledger.entry.reversal_failed
+    - event: ledger.entry.reversal_failed
       referenced_by:
         - command: ledger.entry.reverse
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
-    - ledger.account.creation_failed
+    - event: ledger.account.creation_failed
       referenced_by:
         - command: ledger.account.create
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
   identity_domain:
-    - identity.delegation.verified
+    - event: identity.delegation.verified
       referenced_by:
         - saga: delegated_execution_saga
       severity: high
       recommendation: Add to 04_event-catalog.yaml or update saga to use existing identity.actor.verified
 
-    - identity.authority.unknown
+    - event: identity.authority.unknown
       referenced_by:
         - saga: unknown_authority_saga
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
-    - identity.authority.flagged_unknown
+    - event: identity.authority.flagged_unknown
       referenced_by:
         - saga: unknown_authority_saga
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
-    - identity.authority.allowed
+    - event: identity.authority.allowed
       referenced_by:
         - saga: unknown_authority_saga
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
-    - identity.authority.denied
+    - event: identity.authority.denied
       referenced_by:
         - saga: unknown_authority_saga
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
-    - identity.authority.marked_unknown
+    - event: identity.authority.marked_unknown
       referenced_by:
         - saga: unknown_authority_saga
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
-    - identity.authority.determination.notification.sent
+    - event: identity.authority.determination.notification.sent
       referenced_by:
         - saga: unknown_authority_saga
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
   agent_domain:
-    - agent.quota.checked
+    - event: agent.quota.checked
       referenced_by:
         - saga: ai_execution_saga
       severity: high
       recommendation: Add to 04_event-catalog.yaml
 
   policy_domain:
-    - policy.rule.creation_failed
+    - event: policy.rule.creation_failed
       referenced_by:
         - saga: policy_review_saga
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
-    - policy.rule.activation_failed
+    - event: policy.rule.activation_failed
       referenced_by:
         - saga: policy_review_saga
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
-    - policy.escalation.cancel
+    - event: policy.escalation.cancel
       referenced_by:
         - saga: escalation_saga
       severity: high
       recommendation: Add to 04_event-catalog.yaml or update saga compensation_command
 
-    - policy.evaluation.active_operation_blocked
+    - event: policy.evaluation.active_operation_blocked
       referenced_by:
         - saga: policy_review_saga
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
-    - policy.escalation.expired
+    - event: policy.escalation.expired
       referenced_by:
         - saga: escalation_saga
         - saga: unknown_authority_saga
@@ -166,33 +166,33 @@ missing_from_catalog:
       recommendation: Add to 04_event-catalog.yaml
 
   governance_domain:
-    - governance.escalation.submission_failed
+    - event: governance.escalation.submission_failed
       referenced_by:
         - saga: unknown_authority_saga
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
   saga_domain:
-    - escalation.notification.sent
+    - event: escalation.notification.sent
       referenced_by:
         - saga: escalation_saga
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
-    - escalation.notification.failed
+    - event: escalation.notification.failed
       referenced_by:
         - saga: escalation_saga
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
-    - escalation.resolution.notification.sent
+    - event: escalation.resolution.notification.sent
       referenced_by:
         - saga: escalation_saga
       severity: medium
       recommendation: Add to 04_event-catalog.yaml
 
   intent_domain:
-    - intent.rejected
+    - event: intent.rejected
       referenced_by:
         - saga: human_execution_saga
         - saga: ai_execution_saga
@@ -200,7 +200,7 @@ missing_from_catalog:
       severity: high
       recommendation: Add to 04_event-catalog.yaml or update sagas to use existing intent.failed
 
-    - intent.validation_failed
+    - event: intent.validation_failed
       referenced_by:
         - saga: human_execution_saga
         - saga: ai_execution_saga
@@ -208,7 +208,7 @@ missing_from_catalog:
       severity: high
       recommendation: Add to 04_event-catalog.yaml or update sagas to use existing intent.enriching.failed
 
-    - intent.submitted
+    - event: intent.submitted
       referenced_by:
         - saga: human_execution_saga
         - saga: ai_execution_saga
@@ -216,7 +216,7 @@ missing_from_catalog:
       severity: high
       recommendation: Add to 04_event-catalog.yaml or update sagas to use existing intent.received
 
-    - intent.resumed
+    - event: intent.resumed
       referenced_by:
         - saga: escalation_saga
       severity: medium
@@ -231,111 +231,111 @@ missing_from_catalog:
 declared_but_unused:
 
   payment_domain:
-    - payment.execution.settled
-      declared_at: 04_event-catalog.yaml:4468
+    - event: payment.execution.settled
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: medium
       recommendation: Remove from catalog or add state machine/saga reference
 
-    - payment.rail.validating
-      declared_at: 04_event-catalog.yaml:4561
+    - event: payment.rail.validating
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: medium
       recommendation: Remove from catalog or add state machine transition reference
 
-    - payment.rail.validated
-      declared_at: 04_event-catalog.yaml:4580
+    - event: payment.rail.validated
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: medium
       recommendation: Remove from catalog or add state machine transition reference
 
-    - payment.rail.confirmation_timed_out
-      declared_at: 04_event-catalog.yaml:4637
+    - event: payment.rail.confirmation_timed_out
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add state machine transition reference
 
-    - payment.rail.validation_timed_out
-      declared_at: 04_event-catalog.yaml:4656
+    - event: payment.rail.validation_timed_out
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add state machine transition reference
 
-    - payment.reconciliation.start_failed
-      declared_at: 04_event-catalog.yaml:4675
+    - event: payment.reconciliation.start_failed
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add state machine/saga reference
 
-    - payment.reconciliation.timed_out
-      declared_at: 04_event-catalog.yaml:4692
+    - event: payment.reconciliation.timed_out
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add state machine transition reference
 
-    - payment.reconciliation.completion_failed
-      declared_at: 04_event-catalog.yaml:4710
+    - event: payment.reconciliation.completion_failed
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add state machine transition reference
 
-    - payment.compensation.start_failed
-      declared_at: 04_event-catalog.yaml:4728
+    - event: payment.compensation.start_failed
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add state machine transition reference
 
-    - payment.compensation.timed_out
-      declared_at: 04_event-catalog.yaml:4746
+    - event: payment.compensation.timed_out
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add state machine transition reference
 
-    - payment.receipt.issuance_failed
-      declared_at: 04_event-catalog.yaml:4764
+    - event: payment.receipt.issuance_failed
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add state machine transition reference
 
-    - payment.settlement.confirmed
-      declared_at: 04_event-catalog.yaml:4781
+    - event: payment.settlement.confirmed
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or merge with treasury.settlement.confirmed
 
-    - payment.settlement.completed
-      declared_at: 04_event-catalog.yaml:4800
+    - event: payment.settlement.completed
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or merge with treasury.transfer.settled
 
-    - payment.settlement.failed
-      declared_at: 04_event-catalog.yaml:4818
+    - event: payment.settlement.failed
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or merge with treasury.transfer.failed
 
-    - payment.request.creation_failed
-      declared_at: 04_event-catalog.yaml:4837
+    - event: payment.request.creation_failed
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add command failure reference
 
-    - payment.request.cancellation_failed
-      declared_at: 04_event-catalog.yaml:4853
+    - event: payment.request.cancellation_failed
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add command failure reference
 
   hybrid_domain:
-    - hybrid.reorg.rollback_initiated
-      declared_at: 04_event-catalog.yaml:769
+    - event: hybrid.reorg.rollback_initiated
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add saga/state machine reference
 
-    - hybrid.oracle.price.stale
-      declared_at: 04_event-catalog.yaml:817
+    - event: hybrid.oracle.price.stale
+      declared_at: "04_event-catalog.yaml"
       referenced_by: []
       severity: low
       recommendation: Remove from catalog or add projection/saga reference

@@ -1,68 +1,68 @@
 {
-  "boot_hash": "0d413f5676d71cf7b5c738d648bebcb394f13f92aa4ca8a99baffe609a3a45f7",
-  "boot_log_hash": "cedd68632df6cacd7a55ff8d55d718fd484305b0eb855b457b07115d6b1bf96b",
+  "boot_hash": "667a97a688f70654b421557256af09a963bf9128de89c689f30eb9414500f89a",
+  "boot_log_hash": "7d2180f4195faf5fc75a4793223916cc985375dc4eaef07f7e5e67ca175d775b",
   "boot_timings_hash": "556422867821e342829defd128d29565bba6b43d203388036bdd38e4a5d3938a",
-  "build_hash": "30f7880d5d665fbcb34ac847ab650bece84a92faa094a3a1b3f770e6732ec3c3",
+  "build_hash": "727adee2a29231c5935f0cb865fbdd5928ea03bd99618b908723f8578d0d8d44",
   "events": [
     {
       "eventName": "saga.started",
       "level": 2,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "system.health.restored",
       "level": 2,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "vault.asset.registered",
       "level": 3,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "ledger.journal.created",
       "level": 3,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "saga.started",
       "level": 3,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "identity.actor.registered",
       "level": 4,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "policy.rule.created",
       "level": 4,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "payment.rail.prepared",
       "level": 5,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "saga.started",
       "level": 5,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "saga.completed",
       "level": 6,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "system.health.restored",
       "level": 7,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     },
     {
       "eventName": "saga.completed",
       "level": 7,
-      "timestamp": "2026-07-19T02:25:01.806Z"
+      "timestamp": "2026-07-20T09:52:10.599Z"
     }
   ],
   "final_health": "HEALTHY",
@@ -70,7 +70,7 @@
     {
       "bootLog": "[0.000s] Kernel: constitution loaded (10 invariants), envelope 21 fields, authority 4 actors — runlevel 2 KERNEL_INIT",
       "diagnostics": [],
-      "durationMs": 0.17949699999996938,
+      "durationMs": 0.2164070000000038,
       "eventsEmitted": [
         "saga.started",
         "system.health.restored"
@@ -81,9 +81,9 @@
       "passed": true
     },
     {
-      "bootLog": "[0.000s] Core: vault ✓ (58 entities, value conservation), ledger ✓ (52 entities, double_entry), treasury ✓ (9 cmds, atomicity) — runlevel 3 CORE_DOMAINS",
+      "bootLog": "[0.000s] Core: vault ✓ (85 entities, value conservation), ledger ✓ (55 entities, double_entry), treasury ✓ (9 cmds, atomicity) — runlevel 3 CORE_DOMAINS",
       "diagnostics": [],
-      "durationMs": 0.10815500000001066,
+      "durationMs": 0.12421000000000504,
       "eventsEmitted": [
         "vault.asset.registered",
         "ledger.journal.created",
@@ -95,9 +95,9 @@
       "passed": true
     },
     {
-      "bootLog": "[0.000s] Security: identity ✓ (49 nodes, trust anchors), policy ✓ (107 caps pure function), intent ✓ enrichment, agent ✓ bounded — runlevel 4 SECURITY_SUBSYSTEM",
+      "bootLog": "[0.000s] Security: identity ✓ (68 nodes, trust anchors), policy ✓ (107 caps pure function), intent ✓ enrichment, agent ✓ bounded — runlevel 4 SECURITY_SUBSYSTEM",
       "diagnostics": [],
-      "durationMs": 0.05071700000002011,
+      "durationMs": 0.09207699999996066,
       "eventsEmitted": [
         "identity.actor.registered",
         "policy.rule.created"
@@ -110,7 +110,7 @@
     {
       "bootLog": "[0.000s] Boundary: payment 12 rails, hybrid 4 chains, oracle 5 providers — adapters isolated (ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE) — runlevel 5 EXECUTION_BOUNDARY",
       "diagnostics": [],
-      "durationMs": 0.005442000000016378,
+      "durationMs": 0.005705000000034488,
       "eventsEmitted": [
         "payment.rail.prepared",
         "saga.started"
@@ -123,7 +123,7 @@
     {
       "bootLog": "[0.000s] Projections: 15 read models rebuilt from genesis — replay determinism verified (INV-006 event log authoritative) — runlevel 6 INTERPRETATION",
       "diagnostics": [],
-      "durationMs": 0.007981999999969958,
+      "durationMs": 0.008223999999984244,
       "eventsEmitted": [
         "saga.completed"
       ],
@@ -135,7 +135,7 @@
     {
       "bootLog": "[0.000s] Userland: runtime SDK ready, OpenAPI 88 endpoints, frontend verified — SYSTEM HEALTHY — runlevel 7 USERLAND",
       "diagnostics": [],
-      "durationMs": 0.005167999999969197,
+      "durationMs": 0.00527199999999084,
       "eventsEmitted": [
         "system.health.restored",
         "saga.completed"
@@ -146,6 +146,6 @@
       "passed": true
     }
   ],
-  "total_duration_ms": 1.055386999999996,
+  "total_duration_ms": 1.1639519999999948,
   "verification": "same YAML + same compiler + same POST = same boot_hash = cannot be fudged"
 }

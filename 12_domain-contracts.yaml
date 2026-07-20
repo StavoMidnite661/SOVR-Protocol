@@ -13,6 +13,17 @@
 # INTER-DOMAIN COUPLING CONTRACTS
 # ============================================================
 
+meta:
+  schema_version: "1.0.0"
+  file_id: "12_domain-contracts"
+  status: "FROZEN"
+  version: "1.0.0"
+  domain: "system"
+  owner: "governance"
+  introduced: "2025-07-07"
+  modified: "2026-07-18"
+  constitutional_reference: "L5"
+  dependencies: ["02_domain-model.yaml", "03_command-catalog.yaml", "04_event-catalog.yaml"]
 domain_contracts:
 
   # ========================================================

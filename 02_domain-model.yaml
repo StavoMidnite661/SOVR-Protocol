@@ -8,6 +8,17 @@
 # Current domains: Vault, Ledger, Treasury, Identity, Policy, Intent, Agent, Payment
 # ============================================================
 
+meta:
+  schema_version: "1.0.0"
+  file_id: "02_domain-model"
+  status: "FROZEN"
+  version: "1.0.0"
+  domain: "system"
+  owner: "governance"
+  introduced: "2025-07-07"
+  modified: "2026-07-18"
+  constitutional_reference: "L1"
+  dependencies: ["00_protocol-manifest.yaml", "01_constitution.yaml"]
 domains:
 
   # ========================================================

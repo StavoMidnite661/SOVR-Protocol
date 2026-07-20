@@ -1,10 +1,32 @@
 # SOVR GENERATED — Kafka Topics
-# hash 895f9a0e49f0c313c4394d4f955b2a7841c550b7e5b2608afa4d57df78beb581
+# hash 51fed837e3110eda90c0ceed739d6077c5150ba7c58feb70af8dbe7bc7212f5e
 # Kafka topics — SOVR generated
 # compiler 0.2.0-kernel-working protocol 1.0.0
 # INV-001 event immutability -> retention PERMANENT for financial/audit
 {
   "topics": [
+    {
+      "name": "sovr.agent.agent_instance.",
+      "domain": "agent",
+      "aggregate": "agent_instance",
+      "event": "agent.termination_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.agent.agent_instance.checked",
+      "domain": "agent",
+      "aggregate": "agent_instance",
+      "event": "agent.quota.checked",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
     {
       "name": "sovr.agent.capability_binding.bound",
       "domain": "agent",
@@ -182,10 +204,43 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.governance.audit_record.query_failed",
+      "domain": "governance",
+      "aggregate": "audit_record",
+      "event": "governance.audit.query_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.governance.audit_record.review_failed",
+      "domain": "governance",
+      "aggregate": "audit_record",
+      "event": "governance.oversight.review_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.governance.audit_record.reviewed",
       "domain": "governance",
       "aggregate": "audit_record",
       "event": "governance.oversight.reviewed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.governance.capability_grant.grant_failed",
+      "domain": "governance",
+      "aggregate": "capability_grant",
+      "event": "governance.capability.grant_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -204,6 +259,17 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.governance.capability_grant.revoke_failed",
+      "domain": "governance",
+      "aggregate": "capability_grant",
+      "event": "governance.capability.revoke_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.governance.capability_grant.revoked",
       "domain": "governance",
       "aggregate": "capability_grant",
@@ -215,10 +281,32 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.governance.emergency_halt.failed",
+      "domain": "governance",
+      "aggregate": "emergency_halt",
+      "event": "governance.emergency_halt.failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.governance.emergency_halt.issued",
       "domain": "governance",
       "aggregate": "emergency_halt",
       "event": "governance.emergency_halt.issued",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.governance.emergency_halt.lift_failed",
+      "domain": "governance",
+      "aggregate": "emergency_halt",
+      "event": "governance.emergency_halt.lift_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -248,10 +336,65 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.governance.escalation.failed",
+      "domain": "governance",
+      "aggregate": "escalation",
+      "event": "escalation.notification.failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.governance.escalation.notification_sent",
+      "domain": "governance",
+      "aggregate": "escalation",
+      "event": "escalation.resolution.notification.sent",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.governance.escalation.resolution_failed",
+      "domain": "governance",
+      "aggregate": "escalation",
+      "event": "governance.escalation.resolution_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.governance.escalation.resolved",
       "domain": "governance",
       "aggregate": "escalation",
       "event": "governance.escalation.resolved",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.governance.escalation.sent",
+      "domain": "governance",
+      "aggregate": "escalation",
+      "event": "escalation.notification.sent",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.governance.escalation.submission_failed",
+      "domain": "governance",
+      "aggregate": "escalation",
+      "event": "governance.escalation.submission_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -270,6 +413,17 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.governance.governance_amendment.proposal_failed",
+      "domain": "governance",
+      "aggregate": "governance_amendment",
+      "event": "governance.amendment.proposal_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.governance.governance_amendment.proposed",
       "domain": "governance",
       "aggregate": "governance_amendment",
@@ -281,10 +435,32 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.governance.governance_amendment.ratification_failed",
+      "domain": "governance",
+      "aggregate": "governance_amendment",
+      "event": "governance.amendment.ratification_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.governance.governance_amendment.ratified",
       "domain": "governance",
       "aggregate": "governance_amendment",
       "event": "governance.amendment.ratified",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.governance.governance_proposal.approval_failed",
+      "domain": "governance",
+      "aggregate": "governance_proposal",
+      "event": "governance.proposal.approval_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -347,6 +523,28 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.governance.governance_proposal.rejection_failed",
+      "domain": "governance",
+      "aggregate": "governance_proposal",
+      "event": "governance.proposal.rejection_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.governance.governance_proposal.submission_failed",
+      "domain": "governance",
+      "aggregate": "governance_proposal",
+      "event": "governance.proposal.submission_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.governance.governance_proposal.submitted",
       "domain": "governance",
       "aggregate": "governance_proposal",
@@ -369,6 +567,17 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.governance.policy_rule.review_failed",
+      "domain": "governance",
+      "aggregate": "policy_rule",
+      "event": "governance.policy_rule.review_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.governance.policy_rule.review_requested",
       "domain": "governance",
       "aggregate": "policy_rule",
@@ -380,10 +589,98 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.identity.actor.allowed",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.authority.allowed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.actor.archived",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.actor.archived",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.actor.denied",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.authority.denied",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.actor.determination_notification_sent",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.authority.determination.notification.sent",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.actor.flagged_unknown",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.authority.flagged_unknown",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.actor.marked_unknown",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.authority.marked_unknown",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.identity.actor.registered",
       "domain": "identity",
       "aggregate": "actor",
       "event": "identity.actor.registered",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.actor.registration_failed",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.actor.registration_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.actor.revocation_failed",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.actor.revocation_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -413,6 +710,39 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.identity.actor.suspension_failed",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.actor.suspension_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.actor.unknown",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.authority.unknown",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.actor.verification_failed",
+      "domain": "identity",
+      "aggregate": "actor",
+      "event": "identity.actor.verification_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.identity.actor.verified",
       "domain": "identity",
       "aggregate": "actor",
@@ -435,10 +765,32 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.identity.credential.issuance_failed",
+      "domain": "identity",
+      "aggregate": "credential",
+      "event": "identity.credential.issuance_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.identity.credential.issued",
       "domain": "identity",
       "aggregate": "credential",
       "event": "identity.credential.issued",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.credential.revocation_failed",
+      "domain": "identity",
+      "aggregate": "credential",
+      "event": "identity.credential.revocation_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -468,6 +820,17 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.identity.delegation.creation_failed",
+      "domain": "identity",
+      "aggregate": "delegation",
+      "event": "identity.delegation.creation_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.identity.delegation.expired",
       "domain": "identity",
       "aggregate": "delegation",
@@ -490,10 +853,32 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.identity.delegation.revocation_failed",
+      "domain": "identity",
+      "aggregate": "delegation",
+      "event": "identity.delegation.revocation_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.identity.delegation.revoked",
       "domain": "identity",
       "aggregate": "delegation",
       "event": "identity.delegation.revoked",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.delegation.verified",
+      "domain": "identity",
+      "aggregate": "delegation",
+      "event": "identity.delegation.verified",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -516,6 +901,17 @@
       "domain": "identity",
       "aggregate": "session",
       "event": "identity.session.created",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.session.creation_failed",
+      "domain": "identity",
+      "aggregate": "session",
+      "event": "identity.session.creation_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -567,10 +963,32 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.identity.session.termination_failed",
+      "domain": "identity",
+      "aggregate": "session",
+      "event": "identity.session.termination_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.identity.trust_anchor.registered",
       "domain": "identity",
       "aggregate": "trust_anchor",
       "event": "identity.trust_anchor.registered",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.identity.trust_anchor.registration_failed",
+      "domain": "identity",
+      "aggregate": "trust_anchor",
+      "event": "identity.trust_anchor.registration_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -647,7 +1065,51 @@
       "name": "sovr.intent.intent.",
       "domain": "intent",
       "aggregate": "intent",
+      "event": "intent.rejected",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.intent.intent.",
+      "domain": "intent",
+      "aggregate": "intent",
+      "event": "intent.resumed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.intent.intent.",
+      "domain": "intent",
+      "aggregate": "intent",
+      "event": "intent.submitted",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.intent.intent.",
+      "domain": "intent",
+      "aggregate": "intent",
       "event": "intent.validated",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.intent.intent.",
+      "domain": "intent",
+      "aggregate": "intent",
+      "event": "intent.validation_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -853,6 +1315,17 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.ledger.account.creation_failed",
+      "domain": "ledger",
+      "aggregate": "account",
+      "event": "ledger.account.creation_failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.ledger.account.freeze_failed",
       "domain": "ledger",
       "aggregate": "account",
@@ -963,6 +1436,17 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.ledger.journal_entry.reversal_failed",
+      "domain": "ledger",
+      "aggregate": "journal_entry",
+      "event": "ledger.entry.reversal_failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.ledger.journal_entry.reversed",
       "domain": "ledger",
       "aggregate": "journal_entry",
@@ -978,6 +1462,17 @@
       "domain": "ledger",
       "aggregate": "journal",
       "event": "ledger.journal.created",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.ledger.journal.creation_failed",
+      "domain": "ledger",
+      "aggregate": "journal",
+      "event": "ledger.journal.creation_failed",
       "partition_key": "aggregate_id",
       "retention": "PERMANENT",
       "compaction": true,
@@ -1077,6 +1572,28 @@
       "domain": "payment",
       "aggregate": "execution_receipt",
       "event": "payment.receipt.issued",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.payment.execution.compensated",
+      "domain": "payment",
+      "aggregate": "execution",
+      "event": "payment.execution.compensated",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.payment.execution.compensation_failed",
+      "domain": "payment",
+      "aggregate": "execution",
+      "event": "payment.execution.compensation_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -1568,6 +2085,61 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.policy.policy_escalation.cancel",
+      "domain": "policy",
+      "aggregate": "policy_escalation",
+      "event": "policy.escalation.cancel",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.policy.policy_escalation.expired",
+      "domain": "policy",
+      "aggregate": "policy_escalation",
+      "event": "policy.escalation.expired",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.policy.policy_evaluation.active_operation_blocked",
+      "domain": "policy",
+      "aggregate": "policy_evaluation",
+      "event": "policy.evaluation.active_operation_blocked",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.policy.policy_rule.activation_failed",
+      "domain": "policy",
+      "aggregate": "policy_rule",
+      "event": "policy.rule.activation_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.policy.policy_rule.creation_failed",
+      "domain": "policy",
+      "aggregate": "policy_rule",
+      "event": "policy.rule.creation_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.policy.rule.activated",
       "domain": "policy",
       "aggregate": "rule",
@@ -1755,10 +2327,43 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.vault.asset.registration_failed",
+      "domain": "vault",
+      "aggregate": "asset",
+      "event": "vault.asset.registration_failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.vault.asset.rejected",
       "domain": "vault",
       "aggregate": "asset",
       "event": "vault.asset.rejected",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.asset.rejection_failed",
+      "domain": "vault",
+      "aggregate": "asset",
+      "event": "vault.asset.rejection_failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.asset.verification_failed",
+      "domain": "vault",
+      "aggregate": "asset",
+      "event": "vault.asset.verification_failed",
       "partition_key": "aggregate_id",
       "retention": "PERMANENT",
       "compaction": true,
@@ -1799,6 +2404,17 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.vault.collateral.addition_failed",
+      "domain": "vault",
+      "aggregate": "collateral",
+      "event": "vault.collateral.addition_failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.vault.collateral.liquidation_initiated",
       "domain": "vault",
       "aggregate": "collateral",
@@ -1821,10 +2437,32 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.vault.collateral.release_failed",
+      "domain": "vault",
+      "aggregate": "collateral",
+      "event": "vault.collateral.release_failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.vault.collateral.released",
       "domain": "vault",
       "aggregate": "collateral",
       "event": "vault.collateral.released",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.collateral.revaluation_failed",
+      "domain": "vault",
+      "aggregate": "collateral",
+      "event": "vault.collateral.revaluation_failed",
       "partition_key": "aggregate_id",
       "retention": "PERMANENT",
       "compaction": true,
@@ -1909,6 +2547,17 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.vault.reconciliation.failed",
+      "domain": "vault",
+      "aggregate": "reconciliation",
+      "event": "vault.reconciliation.failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.vault.reconciliation.started",
       "domain": "vault",
       "aggregate": "reconciliation",
@@ -1931,10 +2580,32 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.vault.reservation.creation_failed",
+      "domain": "vault",
+      "aggregate": "reservation",
+      "event": "vault.reserve.creation_failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.vault.reservation.expired",
       "domain": "vault",
       "aggregate": "reservation",
       "event": "vault.reserve.expired",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.reservation.lock_failed",
+      "domain": "vault",
+      "aggregate": "reservation",
+      "event": "vault.reserve.lock_failed",
       "partition_key": "aggregate_id",
       "retention": "PERMANENT",
       "compaction": true,
@@ -1953,10 +2624,131 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.vault.reservation.release_failed",
+      "domain": "vault",
+      "aggregate": "reservation",
+      "event": "vault.reserve.release_failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.vault.reservation.released",
       "domain": "vault",
       "aggregate": "reservation",
       "event": "vault.reserve.released",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.transaction.closed",
+      "domain": "vault",
+      "aggregate": "transaction",
+      "event": "vault.transaction.closed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.transaction.created",
+      "domain": "vault",
+      "aggregate": "transaction",
+      "event": "vault.transaction.created",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.transaction.disbursed",
+      "domain": "vault",
+      "aggregate": "transaction",
+      "event": "vault.transaction.disbursed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.transaction.failed",
+      "domain": "vault",
+      "aggregate": "transaction",
+      "event": "vault.transaction.failed",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.transaction.funded",
+      "domain": "vault",
+      "aggregate": "transaction",
+      "event": "vault.transaction.funded",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.transaction.funding_pending",
+      "domain": "vault",
+      "aggregate": "transaction",
+      "event": "vault.transaction.funding_pending",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.transaction.funding_requested",
+      "domain": "vault",
+      "aggregate": "transaction",
+      "event": "vault.transaction.funding_requested",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.transaction.release_authorized",
+      "domain": "vault",
+      "aggregate": "transaction",
+      "event": "vault.transaction.release_authorized",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.transaction.release_pending",
+      "domain": "vault",
+      "aggregate": "transaction",
+      "event": "vault.transaction.release_pending",
+      "partition_key": "aggregate_id",
+      "retention": "PERMANENT",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.vault.valuation.update_failed",
+      "domain": "vault",
+      "aggregate": "valuation",
+      "event": "vault.valuation.update_failed",
       "partition_key": "aggregate_id",
       "retention": "PERMANENT",
       "compaction": true,

@@ -1,7 +1,14 @@
 # SOVR GENERATED — Redis Streams
-# hash 003dd39e905ff09e75cf5db14f38259d0d867db017c65e73ecb40aca624c8832
+# hash da612466f59f3831cb932842174efa79281b85f32a22cecd22f3ae61b8750383
 {
   "streams": [
+    {
+      "stream": "sovr:stream:agent:agent_instance",
+      "consumer_group": "sovr-agent-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "agent.quota.checked"
+    },
     {
       "stream": "sovr:stream:agent:capability_binding",
       "consumer_group": "sovr-agent-service",
@@ -42,35 +49,35 @@
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.capability.granted"
+      "event": "governance.capability.grant_failed"
     },
     {
       "stream": "sovr:stream:governance:emergency_halt",
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.emergency_halt.issued"
+      "event": "governance.emergency_halt.failed"
     },
     {
       "stream": "sovr:stream:governance:escalation",
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.escalation.expired"
+      "event": "escalation.notification.failed"
     },
     {
       "stream": "sovr:stream:governance:governance_amendment",
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.amendment.proposed"
+      "event": "governance.amendment.proposal_failed"
     },
     {
       "stream": "sovr:stream:governance:governance_proposal",
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.proposal.approved"
+      "event": "governance.proposal.approval_failed"
     },
     {
       "stream": "sovr:stream:governance:policy_rule",
@@ -84,7 +91,7 @@
       "consumer_group": "sovr-identity-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "identity.actor.registered"
+      "event": "identity.actor.archived"
     },
     {
       "stream": "sovr:stream:identity:credential",
@@ -171,6 +178,13 @@
       "event": "ledger.reconciliation.completed"
     },
     {
+      "stream": "sovr:stream:payment:execution",
+      "consumer_group": "sovr-payment-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "payment.execution.compensated"
+    },
+    {
       "stream": "sovr:stream:payment:execution_plan",
       "consumer_group": "sovr-payment-service",
       "max_length": 100000,
@@ -225,6 +239,27 @@
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
       "event": "policy.compliance.violation.detected"
+    },
+    {
+      "stream": "sovr:stream:policy:policy_escalation",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.escalation.cancel"
+    },
+    {
+      "stream": "sovr:stream:policy:policy_evaluation",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.evaluation.active_operation_blocked"
+    },
+    {
+      "stream": "sovr:stream:policy:policy_rule",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.rule.activation_failed"
     },
     {
       "stream": "sovr:stream:policy:rule",
@@ -290,11 +325,18 @@
       "event": "vault.reserve.created"
     },
     {
+      "stream": "sovr:stream:vault:transaction",
+      "consumer_group": "sovr-vault-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "vault.transaction.closed"
+    },
+    {
       "stream": "sovr:stream:vault:valuation",
       "consumer_group": "sovr-vault-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "vault.valuation.updated"
+      "event": "vault.valuation.update_failed"
     }
   ]
 }

@@ -1,21 +1,18 @@
-# ============================================================
-# SOVR Financial OS — Event Catalog
-# File: 04_event-catalog.yaml
-# Status: FROZEN — Phase J (Protocol Closure) complete
-# ============================================================
-# Defines the universe of events (facts about what happened)
-# in SOVR. Events are immutable observations. They describe
-# reality — they do not mutate it. Projections interpret them.
-#
-# This file is populated domain-by-domain.
-# Current domains: Vault, Ledger, Treasury, Identity, Policy, Intent, Agent, Payment
-# ============================================================
-
+meta:
+  schema_version: "1.0.0"
+  file_id: "04_event-catalog"
+  status: "FROZEN"
+  version: "1.0.0"
+  domain: "system"
+  owner: "governance"
+  introduced: "2025-07-07"
+  modified: "2026-07-18"
+  constitutional_reference: "L1"
+  dependencies: ["02_domain-model.yaml", "03_command-catalog.yaml"]
 event_envelope:
   description: >
-    Every event in SOVR must include these envelope fields.
-    No event may be published without a complete envelope.
-    This is the authoritative event contract for the protocol compiler.
+    Every event in SOVR must include these envelope fields. No event may be published without a complete envelope. This
+    is the authoritative event contract for the protocol compiler.
   compile_target: true
   fields:
     event_id:
@@ -43,7 +40,16 @@ event_envelope:
       description: The specific instance of the aggregate
     source_domain:
       type: enum
-      values: [vault, ledger, treasury, identity, policy, intent, agent, payment, governance]
+      values:
+        - vault
+        - ledger
+        - treasury
+        - identity
+        - policy
+        - intent
+        - agent
+        - payment
+        - governance
       required: true
       description: The domain that produced this event
     command_id:
@@ -81,7 +87,14 @@ event_envelope:
           required: true
         actor_type:
           type: enum
-          values: [human, organization, ai_agent, service_account, governance, external_system, system]
+          values:
+            - human
+            - organization
+            - ai_agent
+            - service_account
+            - governance
+            - external_system
+            - system
           required: true
         session_id:
           type: string
@@ -131,7 +144,12 @@ event_envelope:
           description: Target read model / projection name
         operation:
           type: enum
-          values: [insert, update, delete, append, no_op]
+          values:
+            - insert
+            - update
+            - delete
+            - append
+            - no_op
           required: true
         invalidation_keys:
           type: array
@@ -158,15 +176,13 @@ event_envelope:
           description: Any enforcement actions taken during this event lifecycle
         retention_class:
           type: enum
-          values: [permanent, regulatory_7y, operational_90d, session]
+          values:
+            - permanent
+            - regulatory_7y
+            - operational_90d
+            - session
           required: true
-
 events:
-
-  # ========================================================
-  # VAULT DOMAIN EVENTS
-  # ========================================================
-
   vault.asset.registered:
     aggregate: asset
     aggregate_id_field: asset_id
@@ -191,7 +207,13 @@ events:
         format: uuid
       asset_type:
         type: enum
-        values: [cash, stablecoin, tokenized_asset, collateral_position, liquidity_position, external_claim]
+        values:
+          - cash
+          - stablecoin
+          - tokenized_asset
+          - collateral_position
+          - liquidity_position
+          - external_claim
       issuer_id:
         type: string
         format: uuid
@@ -204,7 +226,11 @@ events:
         required: false
       custody_provider:
         type: enum
-        values: [sovr_internal, on_chain, external_bank, third_party]
+        values:
+          - sovr_internal
+          - on_chain
+          - external_bank
+          - third_party
       custody_location:
         type: string
       quantity:
@@ -221,7 +247,12 @@ events:
         type: integer
       risk_classification:
         type: enum
-        values: [minimal, low, medium, medium_to_high, high]
+        values:
+          - minimal
+          - low
+          - medium
+          - medium_to_high
+          - high
       valuation_source:
         type: string
       reserve_ratio:
@@ -229,7 +260,6 @@ events:
         precision: 4
       registered_at:
         type: timestamp
-
   vault.asset.verified:
     aggregate: asset
     aggregate_id_field: asset_id
@@ -265,8 +295,10 @@ events:
         type: timestamp
       verification_method:
         type: enum
-        values: [on_chain_balance_proof, off_chain_custodian_statement, internal_ledger_confirmation]
-
+        values:
+          - on_chain_balance_proof
+          - off_chain_custodian_statement
+          - internal_ledger_confirmation
   vault.asset.rejected:
     aggregate: asset
     aggregate_id_field: asset_id
@@ -297,7 +329,6 @@ events:
         type: string
       rejected_at:
         type: timestamp
-
   vault.asset.impaired:
     aggregate: asset
     aggregate_id_field: asset_id
@@ -334,7 +365,6 @@ events:
         type: string
       detected_at:
         type: timestamp
-
   vault.asset.write_down:
     aggregate: asset
     aggregate_id_field: asset_id
@@ -374,7 +404,6 @@ events:
         format: uuid
       written_down_at:
         type: timestamp
-
   vault.reserve.created:
     aggregate: reservation
     aggregate_id_field: reservation_id
@@ -416,7 +445,6 @@ events:
         type: string
       created_at:
         type: timestamp
-
   vault.reserve.locked:
     aggregate: reservation
     aggregate_id_field: reservation_id
@@ -457,7 +485,6 @@ events:
         format: uuid
       locked_at:
         type: timestamp
-
   vault.reserve.released:
     aggregate: reservation
     aggregate_id_field: reservation_id
@@ -477,8 +504,8 @@ events:
       operation: update
       updates:
         available_balance: available_balance + amount
-        reserved_balance: reserved_balance - amount  # if was PENDING
-        locked_balance: locked_balance - amount       # if was ACTIVE
+        reserved_balance: reserved_balance - amount
+        locked_balance: locked_balance - amount
     data_fields:
       reservation_id:
         type: string
@@ -493,7 +520,6 @@ events:
         type: string
       released_at:
         type: timestamp
-
   vault.reserve.expired:
     aggregate: reservation
     aggregate_id_field: reservation_id
@@ -528,7 +554,6 @@ events:
         precision: 18
       expired_at:
         type: timestamp
-
   vault.collateral.added:
     aggregate: collateral
     aggregate_id_field: collateral_id
@@ -576,7 +601,6 @@ events:
         precision: 4
       added_at:
         type: timestamp
-
   vault.collateral.valued:
     aggregate: collateral
     aggregate_id_field: collateral_id
@@ -613,7 +637,6 @@ events:
         type: string
       valued_at:
         type: timestamp
-
   vault.collateral.revalued:
     aggregate: collateral
     aggregate_id_field: collateral_id
@@ -656,7 +679,6 @@ events:
         type: string
       revalued_at:
         type: timestamp
-
   vault.collateral.released:
     aggregate: collateral
     aggregate_id_field: collateral_id
@@ -687,7 +709,6 @@ events:
         type: string
       released_at:
         type: timestamp
-
   vault.collateral.margin_call:
     aggregate: collateral
     aggregate_id_field: collateral_id
@@ -729,7 +750,6 @@ events:
         type: timestamp
       called_at:
         type: timestamp
-
   vault.collateral.liquidation_initiated:
     aggregate: collateral
     aggregate_id_field: collateral_id
@@ -765,7 +785,6 @@ events:
       expected_proceeds:
         type: decimal
         precision: 18
-
   vault.custody.attested:
     aggregate: custody
     aggregate_id_field: attestation_id
@@ -798,7 +817,6 @@ events:
         type: timestamp
       attestation_valid_until:
         type: timestamp
-
   vault.custody.proof_expired:
     aggregate: custody
     aggregate_id_field: attestation_id
@@ -828,7 +846,6 @@ events:
         type: string
       expired_at:
         type: timestamp
-
   vault.valuation.updated:
     aggregate: valuation
     aggregate_id_field: valuation_id
@@ -866,10 +883,13 @@ events:
         type: string
       source_type:
         type: enum
-        values: [oracle, internal_pricing, market_feed, manual]
+        values:
+          - oracle
+          - internal_pricing
+          - market_feed
+          - manual
       updated_at:
         type: timestamp
-
   vault.reconciliation.started:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -899,10 +919,12 @@ events:
         format: uuid
       scope:
         type: enum
-        values: [single_asset, actor_holdings, full_vault]
+        values:
+          - single_asset
+          - actor_holdings
+          - full_vault
       started_at:
         type: timestamp
-
   vault.reconciliation.completed:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -933,7 +955,6 @@ events:
         type: integer
       completed_at:
         type: timestamp
-
   vault.reconciliation.discrepancy_found:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -972,10 +993,13 @@ events:
         precision: 18
       severity:
         type: enum
-        values: [low, medium, high, critical]
+        values:
+          - low
+          - medium
+          - high
+          - critical
       detected_at:
         type: timestamp
-
   vault.ownership.transferred:
     aggregate: ownership
     aggregate_id_field: asset_id
@@ -1013,11 +1037,6 @@ events:
         format: uuid
       transferred_at:
         type: timestamp
-
-  # ========================================================
-  # LEDGER DOMAIN EVENTS
-  # ========================================================
-
   ledger.journal.created:
     aggregate: journal
     aggregate_id_field: journal_id
@@ -1050,7 +1069,6 @@ events:
         type: string
       created_at:
         type: timestamp
-
   ledger.entry.posted:
     aggregate: journal_entry
     aggregate_id_field: entry_id
@@ -1093,7 +1111,12 @@ events:
         format: uuid
       entry_type:
         type: enum
-        values: [STANDARD, REVERSAL, CORRECTION, CLOSING, ADJUSTMENT]
+        values:
+          - STANDARD
+          - REVERSAL
+          - CORRECTION
+          - CLOSING
+          - ADJUSTMENT
       description:
         type: string
       posting_count:
@@ -1112,7 +1135,14 @@ events:
           format: uuid
         actor_type:
           type: enum
-        values: [human, organization, ai_agent, service_account, governance, external_system, system]
+        values:
+          - human
+          - organization
+          - ai_agent
+          - service_account
+          - governance
+          - external_system
+          - system
         identity_id:
           type: string
           format: uuid
@@ -1123,7 +1153,10 @@ events:
           type: string
         policy_result:
           type: enum
-          values: [APPROVE, DENY, REQUIRE_APPROVAL]
+          values:
+            - APPROVE
+            - DENY
+            - REQUIRE_APPROVAL
       postings:
         posting_id:
           type: string
@@ -1138,7 +1171,9 @@ events:
           precision: 18
         direction:
           type: enum
-          values: [DEBIT, CREDIT]
+          values:
+            - DEBIT
+            - CREDIT
         asset_id:
           type: string
           format: uuid
@@ -1151,7 +1186,6 @@ events:
         new_balance:
           type: decimal
           precision: 18
-
   ledger.entry.rejected:
     aggregate: journal_entry
     aggregate_id_field: entry_id
@@ -1189,7 +1223,6 @@ events:
       actor_id:
         type: string
         format: uuid
-
   ledger.entry.reversed:
     aggregate: journal_entry
     aggregate_id_field: entry_id
@@ -1237,7 +1270,9 @@ events:
           precision: 18
         direction:
           type: enum
-          values: [DEBIT, CREDIT]
+          values:
+            - DEBIT
+            - CREDIT
       balance_after:
         account_id:
           type: string
@@ -1245,7 +1280,6 @@ events:
         new_balance:
           type: decimal
           precision: 18
-
   ledger.entry.corrected:
     aggregate: journal_entry
     aggregate_id_field: entry_id
@@ -1296,8 +1330,9 @@ events:
           precision: 18
         direction:
           type: enum
-          values: [DEBIT, CREDIT]
-
+          values:
+            - DEBIT
+            - CREDIT
   ledger.account.created:
     aggregate: account
     aggregate_id_field: account_id
@@ -1325,10 +1360,21 @@ events:
         type: string
       account_type:
         type: enum
-        values: [ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE, MEMORANDUM, RESERVE, COLLATERAL]
+        values:
+          - ASSET
+          - LIABILITY
+          - EQUITY
+          - REVENUE
+          - EXPENSE
+          - MEMORANDUM
+          - RESERVE
+          - COLLATERAL
       normal_balance:
         type: enum
-        values: [DEBIT, CREDIT, NONE]
+        values:
+          - DEBIT
+          - CREDIT
+          - NONE
       domain_ownership:
         type: string
       owner_id:
@@ -1336,7 +1382,6 @@ events:
         format: uuid
       created_at:
         type: timestamp
-
   ledger.account.frozen:
     aggregate: account
     aggregate_id_field: account_id
@@ -1368,7 +1413,6 @@ events:
       frozen_by:
         type: string
         format: uuid
-
   ledger.reconciliation.started:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -1393,7 +1437,11 @@ events:
         format: uuid
       type:
         type: enum
-        values: [internal, vault_reconciliation, treasury_reconciliation, external_reconciliation]
+        values:
+          - internal
+          - vault_reconciliation
+          - treasury_reconciliation
+          - external_reconciliation
       scope:
         type: string
       initiated_by:
@@ -1401,7 +1449,6 @@ events:
         format: uuid
       started_at:
         type: timestamp
-
   ledger.reconciliation.mismatch_detected:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -1439,7 +1486,12 @@ events:
         precision: 18
       severity:
         type: enum
-        values: [none, low, medium, high, critical]
+        values:
+          - none
+          - low
+          - medium
+          - high
+          - critical
       affected_accounts:
         type: array
         items:
@@ -1447,7 +1499,6 @@ events:
           format: uuid
       detected_at:
         type: timestamp
-
   ledger.reconciliation.completed:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -1474,14 +1525,17 @@ events:
         format: uuid
       resolution_method:
         type: enum
-        values: [auto_tolerance, adjustment, escalation, no_action_needed]
+        values:
+          - auto_tolerance
+          - adjustment
+          - escalation
+          - no_action_needed
       adjustment_entry_id:
         type: string
         format: uuid
         required: false
       resolved_at:
         type: timestamp
-
   ledger.period.closing:
     aggregate: accounting_period
     aggregate_id_field: period_id
@@ -1514,7 +1568,6 @@ events:
           format: uuid
       started_at:
         type: timestamp
-
   ledger.period.closed:
     aggregate: accounting_period
     aggregate_id_field: period_id
@@ -1547,11 +1600,6 @@ events:
           format: uuid
       closed_at:
         type: timestamp
-
-  # ========================================================
-  # TREASURY DOMAIN EVENTS
-  # ========================================================
-
   treasury.transfer.requested:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1588,7 +1636,6 @@ events:
         type: string
       requested_at:
         type: timestamp
-
   treasury.transfer.authorized:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1622,7 +1669,6 @@ events:
         type: array
       authorized_at:
         type: timestamp
-
   treasury.transfer.rejected:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1656,7 +1702,6 @@ events:
         type: string
       rejected_at:
         type: timestamp
-
   treasury.transfer.reserved:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1694,7 +1739,6 @@ events:
         precision: 18
       reserved_at:
         type: timestamp
-
   treasury.transfer.executing:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1731,7 +1775,6 @@ events:
         type: integer
       executing_at:
         type: timestamp
-
   treasury.transfer.settled:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1765,7 +1808,6 @@ events:
         precision: 18
       settled_at:
         type: timestamp
-
   treasury.transfer.failed:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1802,7 +1844,6 @@ events:
         type: boolean
       failed_at:
         type: timestamp
-
   treasury.transfer.expired:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1834,7 +1875,6 @@ events:
         type: string
       expired_at:
         type: timestamp
-
   treasury.transfer.compensation_required:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1872,7 +1912,6 @@ events:
         type: boolean
       initiated_at:
         type: timestamp
-
   treasury.liquidity.warning:
     aggregate: liquidity_position
     aggregate_id_field: actor_id
@@ -1912,7 +1951,6 @@ events:
         type: string
       warned_at:
         type: timestamp
-
   treasury.settlement.confirmed:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -1948,11 +1986,6 @@ events:
         type: string
       confirmed_at:
         type: timestamp
-
-  # ========================================================
-  # IDENTITY DOMAIN EVENTS
-  # ========================================================
-
   identity.actor.registered:
     aggregate: actor
     aggregate_id_field: identity_id
@@ -1982,7 +2015,6 @@ events:
         format: uuid
       trust_level:
         type: enum
-
   identity.actor.verified:
     aggregate: actor
     aggregate_id_field: identity_id
@@ -2011,7 +2043,6 @@ events:
         format: uuid
       trust_level_assigned:
         type: enum
-
   identity.actor.suspended:
     aggregate: actor
     aggregate_id_field: identity_id
@@ -2039,7 +2070,6 @@ events:
         format: uuid
       reason:
         type: string
-
   identity.actor.revoked:
     aggregate: actor
     aggregate_id_field: identity_id
@@ -2069,7 +2099,6 @@ events:
         type: string
       revocation_type:
         type: enum
-
   identity.credential.issued:
     aggregate: credential
     aggregate_id_field: credential_id
@@ -2104,7 +2133,6 @@ events:
       issued_by:
         type: string
         format: uuid
-
   identity.credential.expired:
     aggregate: credential
     aggregate_id_field: credential_id
@@ -2131,7 +2159,6 @@ events:
         format: uuid
       expired_at:
         type: timestamp
-
   identity.credential.revoked:
     aggregate: credential
     aggregate_id_field: credential_id
@@ -2162,7 +2189,6 @@ events:
         format: uuid
       reason:
         type: string
-
   identity.session.created:
     aggregate: session
     aggregate_id_field: session_id
@@ -2196,7 +2222,6 @@ events:
         type: enum
       expires_at:
         type: timestamp
-
   identity.session.expired:
     aggregate: session
     aggregate_id_field: session_id
@@ -2223,7 +2248,6 @@ events:
         format: uuid
       expired_at:
         type: timestamp
-
   identity.session.terminated:
     aggregate: session
     aggregate_id_field: session_id
@@ -2253,7 +2277,6 @@ events:
         format: uuid
       reason:
         type: string
-
   identity.delegation.created:
     aggregate: delegation
     aggregate_id_field: delegation_id
@@ -2286,7 +2309,6 @@ events:
         type: integer
       audit_requirement:
         type: enum
-
   identity.delegation.revoked:
     aggregate: delegation
     aggregate_id_field: delegation_id
@@ -2314,7 +2336,6 @@ events:
         format: uuid
       reason:
         type: string
-
   identity.delegation.expired:
     aggregate: delegation
     aggregate_id_field: delegation_id
@@ -2338,7 +2359,6 @@ events:
         format: uuid
       expired_at:
         type: timestamp
-
   identity.trust_anchor.registered:
     aggregate: trust_anchor
     aggregate_id_field: trust_anchor_id
@@ -2368,7 +2388,6 @@ events:
       registered_by:
         type: string
         format: uuid
-
   identity.authentication.succeeded:
     aggregate: session
     aggregate_id_field: session_id
@@ -2404,7 +2423,6 @@ events:
       credential_id:
         type: string
         format: uuid
-
   identity.authentication.failed:
     aggregate: session
     aggregate_id_field: session_id
@@ -2439,11 +2457,6 @@ events:
         type: string
         format: uuid
         required: false
-
-  # ========================================================
-  # POLICY DOMAIN EVENTS
-  # ========================================================
-
   policy.rule.created:
     aggregate: rule
     aggregate_id_field: rule_id
@@ -2473,7 +2486,6 @@ events:
       constitutional_reference:
         type: string
         required: false
-
   policy.rule.updated:
     aggregate: rule
     aggregate_id_field: rule_id
@@ -2505,7 +2517,6 @@ events:
         format: uuid
       changes:
         type: array
-
   policy.rule.activated:
     aggregate: rule
     aggregate_id_field: rule_id
@@ -2533,7 +2544,6 @@ events:
         format: uuid
       effective_from:
         type: timestamp
-
   policy.rule.deactivated:
     aggregate: rule
     aggregate_id_field: rule_id
@@ -2560,7 +2570,6 @@ events:
         format: uuid
       reason:
         type: string
-
   policy.evaluation.completed:
     aggregate: evaluation
     aggregate_id_field: evaluation_id
@@ -2608,7 +2617,6 @@ events:
         type: string
       constitutional_rules_referenced:
         type: array
-
   policy.evaluation.denied:
     aggregate: evaluation
     aggregate_id_field: evaluation_id
@@ -2638,7 +2646,6 @@ events:
         type: array
       risk_level:
         type: enum
-
   policy.evaluation.escalated:
     aggregate: evaluation
     aggregate_id_field: evaluation_id
@@ -2667,7 +2674,6 @@ events:
         type: enum
       escalation_target:
         type: enum
-
   policy.evaluation.deferred:
     aggregate: evaluation
     aggregate_id_field: evaluation_id
@@ -2693,7 +2699,6 @@ events:
         type: timestamp
       reason:
         type: string
-
   policy.escalation.created:
     aggregate: escalation
     aggregate_id_field: escalation_id
@@ -2722,7 +2727,6 @@ events:
         type: enum
       deadline:
         type: timestamp
-
   policy.escalation.resolved:
     aggregate: escalation
     aggregate_id_field: escalation_id
@@ -2751,7 +2755,6 @@ events:
         type: enum
       resolved_at:
         type: timestamp
-
   policy.compliance.requirement.registered:
     aggregate: compliance_requirement
     aggregate_id_field: requirement_id
@@ -2778,7 +2781,6 @@ events:
       registered_by:
         type: string
         format: uuid
-
   policy.compliance.violation.detected:
     aggregate: evaluation
     aggregate_id_field: evaluation_id
@@ -2809,11 +2811,6 @@ events:
         type: string
       severity:
         type: enum
-
-  # ========================================================
-  # INTENT DOMAIN EVENTS
-  # ========================================================
-
   intent.received:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -2846,7 +2843,6 @@ events:
         type: enum
       confidence:
         type: enum
-
   intent.enriching.started:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -2870,7 +2866,6 @@ events:
         format: uuid
       enrichment_steps_count:
         type: integer
-
   intent.enriching.completed:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -2902,7 +2897,6 @@ events:
         type: integer
       updated_confidence:
         type: enum
-
   intent.enriching.failed:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -2928,7 +2922,6 @@ events:
         type: enum
       error_detail:
         type: string
-
   intent.validation.completed:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -2960,7 +2953,6 @@ events:
         type: integer
       warnings:
         type: integer
-
   intent.validated:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -2988,7 +2980,6 @@ events:
       converted_to:
         type: enum
         required: false
-
   intent.failed:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -3014,7 +3005,6 @@ events:
         type: enum
       error_detail:
         type: string
-
   intent.cancelled:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -3041,7 +3031,6 @@ events:
         format: uuid
       reason:
         type: string
-
   intent.converted_to_command:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -3077,7 +3066,6 @@ events:
         type: array
       human_confirmation_required:
         type: boolean
-
   intent.archived:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -3103,7 +3091,6 @@ events:
         type: enum
       archived_at:
         type: timestamp
-
   intent.expired:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -3127,7 +3114,6 @@ events:
         format: uuid
       expired_at:
         type: timestamp
-
   intent.multi_step.step_completed:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -3156,7 +3142,6 @@ events:
         format: uuid
       steps_remaining:
         type: integer
-
   intent.multi_step.completed:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -3184,7 +3169,6 @@ events:
         type: integer
       failed_steps:
         type: integer
-
   intent.multi_step.failed:
     aggregate: intent
     aggregate_id_field: intent_id
@@ -3213,11 +3197,6 @@ events:
         type: string
       compensation_initiated:
         type: boolean
-
-  # ========================================================
-  # AGENT DOMAIN EVENTS
-  # ========================================================
-
   agent.registration.submitted:
     aggregate: registration
     aggregate_id_field: registration_id
@@ -3249,7 +3228,6 @@ events:
         type: string
       model_version:
         type: string
-
   agent.registration.approved:
     aggregate: registration
     aggregate_id_field: registration_id
@@ -3280,7 +3258,6 @@ events:
         required: false
       approved_at:
         type: timestamp
-
   agent.registration.rejected:
     aggregate: registration
     aggregate_id_field: registration_id
@@ -3308,7 +3285,6 @@ events:
         format: uuid
       reason:
         type: string
-
   agent.activated:
     aggregate: instance
     aggregate_id_field: agent_id
@@ -3337,7 +3313,6 @@ events:
         format: uuid
       trust_level:
         type: enum
-
   agent.execution.started:
     aggregate: instance
     aggregate_id_field: agent_id
@@ -3388,7 +3363,6 @@ events:
         type: timestamp
       includes_audit_envelope:
         type: boolean
-
   agent.execution.completed:
     aggregate: instance
     aggregate_id_field: agent_id
@@ -3434,7 +3408,6 @@ events:
         type: timestamp
       includes_audit_envelope:
         type: boolean
-
   agent.execution.failed:
     aggregate: instance
     aggregate_id_field: agent_id
@@ -3464,7 +3437,6 @@ events:
         type: string
       failed_at_stage:
         type: enum
-
   agent.execution.escalated:
     aggregate: instance
     aggregate_id_field: agent_id
@@ -3494,7 +3466,6 @@ events:
         format: uuid
       escalation_reason:
         type: string
-
   agent.capability.bound:
     aggregate: capability_binding
     aggregate_id_field: binding_id
@@ -3525,7 +3496,6 @@ events:
       granted_by:
         type: string
         format: uuid
-
   agent.capability.revoked:
     aggregate: capability_binding
     aggregate_id_field: binding_id
@@ -3556,7 +3526,6 @@ events:
         format: uuid
       reason:
         type: string
-
   agent.suspended:
     aggregate: instance
     aggregate_id_field: agent_id
@@ -3586,7 +3555,6 @@ events:
         format: uuid
       reason:
         type: string
-
   agent.terminated:
     aggregate: instance
     aggregate_id_field: agent_id
@@ -3618,7 +3586,6 @@ events:
         type: string
       terminated_at:
         type: timestamp
-
   agent.governance.override.issued:
     aggregate: governance_override
     aggregate_id_field: override_id
@@ -3653,7 +3620,6 @@ events:
         type: string
       constitutional_reference:
         type: string
-
   agent.quota.exceeded:
     aggregate: instance
     aggregate_id_field: agent_id
@@ -3686,7 +3652,6 @@ events:
         precision: 18
       period:
         type: enum
-
   agent.concurrency.limit_reached:
     aggregate: instance
     aggregate_id_field: agent_id
@@ -3715,18 +3680,16 @@ events:
         type: integer
       queued_count:
         type: integer
-
-  # ========================================================
-  # PAYMENT DOMAIN EVENTS (Phase E — Mechanical Registration)
-  # ========================================================
-
   payment.request.created:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: payment_service
-    consumers: [payment_projection, audit_projection, treasury_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - treasury_projection
     guarantees:
       - payment_request_id is globally unique
       - source_transfer_id references existing treasury.transfer
@@ -3735,20 +3698,31 @@ events:
       target: payment_status_view
       operation: insert
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      source_transfer_id: { type: string, format: uuid }
-      rail_type: { type: enum, required: false }
-      amount: { type: object }
-      urgency: { type: enum }
-      state: { type: enum }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      source_transfer_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+        required: false
+      amount:
+        type: object
+      urgency:
+        type: enum
+      state:
+        type: enum
   payment.request.cancelled:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: payment_service
-    consumers: [payment_projection, audit_projection, treasury_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - treasury_projection
     guarantees:
       - payment_request.state was in a cancellable state
       - No adapter execution was in progress
@@ -3756,18 +3730,27 @@ events:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      reason: { type: string }
-      cancelled_by: { type: string, format: uuid }
-      state: { type: enum, values: [CANCELLED] }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      cancelled_by:
+        type: string
+        format: uuid
+      state:
+        type: enum
+        values:
+          - CANCELLED
   payment.execution.planned:
     aggregate: execution_plan
     aggregate_id_field: execution_plan_id
     source_domain: payment
     version: 1.0.0
     producer: routing_engine
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     guarantees:
       - Routing was deterministic
       - Selected rail is compatible with asset type
@@ -3776,20 +3759,30 @@ events:
       target: payment_status_view
       operation: update
     data_fields:
-      execution_plan_id: { type: string, format: uuid }
-      payment_request_id: { type: string, format: uuid }
-      selected_rail: { type: enum }
-      confidence_score: { type: decimal, precision: 4 }
-      estimated_settlement_time_ms: { type: integer }
-      compensation_strategy: { type: string }
-
+      execution_plan_id:
+        type: string
+        format: uuid
+      payment_request_id:
+        type: string
+        format: uuid
+      selected_rail:
+        type: enum
+      confidence_score:
+        type: decimal
+        precision: 4
+      estimated_settlement_time_ms:
+        type: integer
+      compensation_strategy:
+        type: string
   payment.execution.started:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     guarantees:
       - Execution plan was approved
       - Adapter was registered
@@ -3797,17 +3790,26 @@ events:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      adapter_phase: { type: enum, values: [EXECUTE] }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      adapter_phase:
+        type: enum
+        values:
+          - EXECUTE
   payment.execution.completed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection, treasury_projection, receipt_service]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - treasury_projection
+      - receipt_service
     guarantees:
       - Rail adapter returned confirmed: true
       - Rail reference ID was captured
@@ -3815,20 +3817,33 @@ events:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_reference_id: { type: string }
-      actual_amount: { type: decimal, precision: 18 }
-      fees: { type: decimal, precision: 18 }
-      state: { type: enum, values: [RECONCILING] }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_reference_id:
+        type: string
+      actual_amount:
+        type: decimal
+        precision: 18
+      fees:
+        type: decimal
+        precision: 18
+      state:
+        type: enum
+        values:
+          - RECONCILING
   payment.execution.failed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection, escalation_service]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - escalation_service
     guarantees:
       - Failure reason was captured
       - Compensation may be required
@@ -3836,38 +3851,55 @@ events:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      failure_reason: { type: string }
-      failure_phase: { type: enum }
-      retryable: { type: boolean }
-      state: { type: enum, values: [FAILED] }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      failure_reason:
+        type: string
+      failure_phase:
+        type: enum
+      retryable:
+        type: boolean
+      state:
+        type: enum
+        values:
+          - FAILED
   payment.rail.prepared:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     guarantees:
       - Adapter did not mutate constitutional state
     projection_effect:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_preparation_id: { type: string }
-      rail_metadata: { type: object, required: false }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_preparation_id:
+        type: string
+      rail_metadata:
+        type: object
+        required: false
   payment.rail.executed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     guarantees:
       - Adapter did not mutate constitutional state
       - Rail execution ID was captured
@@ -3875,19 +3907,28 @@ events:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_execution_id: { type: string }
-      rail_reference_id: { type: string, required: false }
-      submitted_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_execution_id:
+        type: string
+      rail_reference_id:
+        type: string
+        required: false
+      submitted_at:
+        type: timestamp
   payment.rail.confirmed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection, treasury_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - treasury_projection
     guarantees:
       - External system confirmed the transaction
       - Actual amount matches or discrepancy was flagged
@@ -3895,92 +3936,155 @@ events:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_reference_id: { type: string }
-      confirmed_amount: { type: decimal, precision: 18 }
-      fees: { type: decimal, precision: 18 }
-      fx_rate: { type: decimal, precision: 8, required: false }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_reference_id:
+        type: string
+      confirmed_amount:
+        type: decimal
+        precision: 18
+      fees:
+        type: decimal
+        precision: 18
+      fx_rate:
+        type: decimal
+        precision: 8
+        required: false
   payment.rail.failed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection, escalation_service]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - escalation_service
     guarantees:
       - Failure was captured without data loss
     projection_effect:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_execution_id: { type: string }
-      error_code: { type: string }
-      error_message: { type: string }
-      retryable: { type: boolean }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_execution_id:
+        type: string
+      error_code:
+        type: string
+      error_message:
+        type: string
+      retryable:
+        type: boolean
   payment.reconciliation.started:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
     source_domain: payment
     version: 1.0.0
     producer: reconciliation_service
-    consumers: [payment_projection, audit_projection, governance_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - governance_projection
     projection_effect:
       target: reconciliation_view
       operation: insert
     data_fields:
-      reconciliation_id: { type: string, format: uuid }
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      trigger_type: { type: enum }
-
+      reconciliation_id:
+        type: string
+        format: uuid
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      trigger_type:
+        type: enum
   payment.reconciliation.completed:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
     source_domain: payment
     version: 1.0.0
     producer: reconciliation_service
-    consumers: [payment_projection, audit_projection, governance_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - governance_projection
     projection_effect:
       target: reconciliation_view
       operation: update
     data_fields:
-      reconciliation_id: { type: string, format: uuid }
-      payment_request_id: { type: string, format: uuid }
-      status: { type: enum }
-      matched: { type: boolean }
-      discrepancy_amount: { type: decimal, precision: 18, required: false }
-      resolved_by: { type: string, format: uuid, required: false }
-
+      reconciliation_id:
+        type: string
+        format: uuid
+      payment_request_id:
+        type: string
+        format: uuid
+      status:
+        type: enum
+      matched:
+        type: boolean
+      discrepancy_amount:
+        type: decimal
+        precision: 18
+        required: false
+      resolved_by:
+        type: string
+        format: uuid
+        required: false
   payment.reconciliation.discrepancy:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
     source_domain: payment
     version: 1.0.0
     producer: reconciliation_service
-    consumers: [payment_projection, audit_projection, escalation_service, governance_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - escalation_service
+      - governance_projection
     projection_effect:
       target: reconciliation_view
       operation: update
     data_fields:
-      reconciliation_id: { type: string, format: uuid }
-      payment_request_id: { type: string, format: uuid }
-      expected_amount: { type: decimal, precision: 18 }
-      actual_amount: { type: decimal, precision: 18 }
-      discrepancy_amount: { type: decimal, precision: 18 }
-      severity: { type: enum, values: [LOW, MEDIUM, HIGH, CRITICAL] }
-
+      reconciliation_id:
+        type: string
+        format: uuid
+      payment_request_id:
+        type: string
+        format: uuid
+      expected_amount:
+        type: decimal
+        precision: 18
+      actual_amount:
+        type: decimal
+        precision: 18
+      discrepancy_amount:
+        type: decimal
+        precision: 18
+      severity:
+        type: enum
+        values:
+          - LOW
+          - MEDIUM
+          - HIGH
+          - CRITICAL
   payment.receipt.issued:
     aggregate: execution_receipt
     aggregate_id_field: receipt_id
     source_domain: payment
     version: 1.0.0
     producer: receipt_service
-    consumers: [payment_projection, audit_projection, compliance_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - compliance_projection
     guarantees:
       - Payment was in SETTLED state
       - All constitutional gates were passed
@@ -3988,49 +4092,72 @@ events:
       target: receipt_view
       operation: insert
     data_fields:
-      receipt_id: { type: string, format: uuid }
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_reference_id: { type: string }
-      amount_executed: { type: object }
-      fees: { type: decimal, precision: 18 }
-      constitutional_compliance_attestation: { type: enum }
-
+      receipt_id:
+        type: string
+        format: uuid
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_reference_id:
+        type: string
+      amount_executed:
+        type: object
+      fees:
+        type: decimal
+        precision: 18
+      constitutional_compliance_attestation:
+        type: enum
   payment.compensation.started:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection, treasury_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - treasury_projection
     projection_effect:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      reason: { type: string }
-      compensation_strategy: { type: string }
-      state: { type: enum, values: [COMPENSATING] }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      compensation_strategy:
+        type: string
+      state:
+        type: enum
+        values:
+          - COMPENSATING
   payment.compensation.completed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
     source_domain: payment
     version: 1.0.0
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection, treasury_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - treasury_projection
     projection_effect:
       target: payment_status_view
       operation: update
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      reversal_rail_reference_id: { type: string, required: false }
-      state: { type: enum, values: [REVERSED] }
-
-  # ========================================================
-  # GOVERNANCE DOMAIN EVENTS
-  # ========================================================
-
+      payment_request_id:
+        type: string
+        format: uuid
+      reversal_rail_reference_id:
+        type: string
+        required: false
+      state:
+        type: enum
+        values:
+          - REVERSED
   governance.proposal.submitted:
     aggregate: governance_proposal
     aggregate_id_field: proposal_id
@@ -4038,18 +4165,49 @@ events:
     version: 1.0.0
     description: A new governance proposal has been submitted
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_proposal_view
       operation: insert
     data_fields:
-      proposal_id: { type: string, format: uuid }
-      proposal_type: { type: enum, values: [CONSTITUTIONAL_AMENDMENT, POLICY_RULE_CREATE, POLICY_RULE_MODIFY, CAPABILITY_GRANT, CAPABILITY_REVOKE, AGENT_APPROVAL, AGENT_OVERRIDE, BOUNDARY_SYSTEM_APPROVAL, EMERGENCY_HALT, AUDIT_INVESTIGATION] }
-      proposed_by: { type: string, format: uuid }
-      target_domain: { type: enum, values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, GOVERNANCE, SYSTEM] }
-      required_approvals: { type: integer }
-      expires_at: { type: timestamp }
-
+      proposal_id:
+        type: string
+        format: uuid
+      proposal_type:
+        type: enum
+        values:
+          - CONSTITUTIONAL_AMENDMENT
+          - POLICY_RULE_CREATE
+          - POLICY_RULE_MODIFY
+          - CAPABILITY_GRANT
+          - CAPABILITY_REVOKE
+          - AGENT_APPROVAL
+          - AGENT_OVERRIDE
+          - BOUNDARY_SYSTEM_APPROVAL
+          - EMERGENCY_HALT
+          - AUDIT_INVESTIGATION
+      proposed_by:
+        type: string
+        format: uuid
+      target_domain:
+        type: enum
+        values:
+          - VAULT
+          - LEDGER
+          - TREASURY
+          - IDENTITY
+          - POLICY
+          - INTENT
+          - AGENT
+          - PAYMENT
+          - GOVERNANCE
+          - SYSTEM
+      required_approvals:
+        type: integer
+      expires_at:
+        type: timestamp
   governance.proposal.approved:
     aggregate: governance_proposal
     aggregate_id_field: proposal_id
@@ -4057,7 +4215,9 @@ events:
     version: 1.0.0
     description: A governance proposal has been approved
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_proposal_view
       operation: update
@@ -4065,11 +4225,16 @@ events:
         state: APPROVED
         current_approvals: event.current_approvals
     data_fields:
-      proposal_id: { type: string, format: uuid }
-      approver_id: { type: string, format: uuid }
-      current_approvals: { type: integer }
-      required_approvals: { type: integer }
-
+      proposal_id:
+        type: string
+        format: uuid
+      approver_id:
+        type: string
+        format: uuid
+      current_approvals:
+        type: integer
+      required_approvals:
+        type: integer
   governance.proposal.rejected:
     aggregate: governance_proposal
     aggregate_id_field: proposal_id
@@ -4077,17 +4242,23 @@ events:
     version: 1.0.0
     description: A governance proposal has been rejected
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_proposal_view
       operation: update
       updates:
         state: REJECTED
     data_fields:
-      proposal_id: { type: string, format: uuid }
-      rejector_id: { type: string, format: uuid }
-      reason: { type: string }
-
+      proposal_id:
+        type: string
+        format: uuid
+      rejector_id:
+        type: string
+        format: uuid
+      reason:
+        type: string
   governance.amendment.proposed:
     aggregate: governance_amendment
     aggregate_id_field: amendment_id
@@ -4095,17 +4266,34 @@ events:
     version: 1.0.0
     description: A constitutional amendment has been proposed
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_amendment_view
       operation: insert
     data_fields:
-      amendment_id: { type: string, format: uuid }
-      amendment_number: { type: string }
-      section: { type: enum, values: [INVARIANTS, CONFLICT_RESOLUTION, AUTHORITY_MODEL, FINANCIAL_INTEGRITY, AGENT_GOVERNANCE, GOVERNANCE_STRUCTURE, RUNTIME_ENFORCEMENT, PROTECTED_ARTICLES] }
-      proposed_by: { type: string, format: uuid }
-      voting_ends_at: { type: timestamp }
-
+      amendment_id:
+        type: string
+        format: uuid
+      amendment_number:
+        type: string
+      section:
+        type: enum
+        values:
+          - INVARIANTS
+          - CONFLICT_RESOLUTION
+          - AUTHORITY_MODEL
+          - FINANCIAL_INTEGRITY
+          - AGENT_GOVERNANCE
+          - GOVERNANCE_STRUCTURE
+          - RUNTIME_ENFORCEMENT
+          - PROTECTED_ARTICLES
+      proposed_by:
+        type: string
+        format: uuid
+      voting_ends_at:
+        type: timestamp
   governance.amendment.ratified:
     aggregate: governance_amendment
     aggregate_id_field: amendment_id
@@ -4113,7 +4301,9 @@ events:
     version: 1.0.0
     description: A constitutional amendment has been ratified
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_amendment_view
       operation: update
@@ -4121,12 +4311,17 @@ events:
         state: RATIFIED
         ratified_at: event.timestamp
     data_fields:
-      amendment_id: { type: string, format: uuid }
-      amendment_number: { type: string }
-      section: { type: string }
-      ratified_at: { type: timestamp }
-      new_text: { type: string }
-
+      amendment_id:
+        type: string
+        format: uuid
+      amendment_number:
+        type: string
+      section:
+        type: string
+      ratified_at:
+        type: timestamp
+      new_text:
+        type: string
   governance.emergency_halt.issued:
     aggregate: emergency_halt
     aggregate_id_field: halt_id
@@ -4134,18 +4329,49 @@ events:
     version: 1.0.0
     description: An emergency system halt has been issued
     producer: governance_service
-    consumers: [governance_projection, audit_projection, vault_projection, treasury_projection, ledger_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
+      - vault_projection
+      - treasury_projection
+      - ledger_projection
     projection_effect:
       target: emergency_halt_view
       operation: insert
     data_fields:
-      halt_id: { type: string, format: uuid }
-      triggered_by: { type: string, format: uuid }
-      co_triggered_by: { type: string, format: uuid, required: false }
-      trigger_reason: { type: enum, values: [ACTIVE_BREACH, ASSET_INTEGRITY_COMPROMISED, REGULATORY_MANDATE, SYSTEMIC_FAILURE] }
-      affected_domains: { type: array, items: { type: enum, values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, ALL] } }
-      expires_at: { type: timestamp }
-
+      halt_id:
+        type: string
+        format: uuid
+      triggered_by:
+        type: string
+        format: uuid
+      co_triggered_by:
+        type: string
+        format: uuid
+        required: false
+      trigger_reason:
+        type: enum
+        values:
+          - ACTIVE_BREACH
+          - ASSET_INTEGRITY_COMPROMISED
+          - REGULATORY_MANDATE
+          - SYSTEMIC_FAILURE
+      affected_domains:
+        type: array
+        items:
+          type: enum
+          values:
+            - VAULT
+            - LEDGER
+            - TREASURY
+            - IDENTITY
+            - POLICY
+            - INTENT
+            - AGENT
+            - PAYMENT
+            - ALL
+      expires_at:
+        type: timestamp
   governance.emergency_halt.lifted:
     aggregate: emergency_halt
     aggregate_id_field: halt_id
@@ -4153,7 +4379,12 @@ events:
     version: 1.0.0
     description: An emergency system halt has been lifted
     producer: governance_service
-    consumers: [governance_projection, audit_projection, vault_projection, treasury_projection, ledger_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
+      - vault_projection
+      - treasury_projection
+      - ledger_projection
     projection_effect:
       target: emergency_halt_view
       operation: update
@@ -4161,10 +4392,14 @@ events:
         state: LIFTED
         lifted_at: event.timestamp
     data_fields:
-      halt_id: { type: string, format: uuid }
-      lifted_by: { type: string, format: uuid }
-      lifted_at: { type: timestamp }
-
+      halt_id:
+        type: string
+        format: uuid
+      lifted_by:
+        type: string
+        format: uuid
+      lifted_at:
+        type: timestamp
   governance.audit.queried:
     aggregate: audit_record
     aggregate_id_field: audit_id
@@ -4172,17 +4407,43 @@ events:
     version: 1.0.0
     description: An audit query has been executed
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: audit_record_view
       operation: insert
     data_fields:
-      audit_id: { type: string, format: uuid }
-      audit_type: { type: enum, values: [ROUTINE, INVESTIGATIVE, COMPLIANCE, EMERGENCY, CONSTITUTIONAL] }
-      target_domains: { type: array, items: { type: enum, values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, ALL] } }
-      start_date: { type: timestamp }
-      end_date: { type: timestamp, required: false }
-
+      audit_id:
+        type: string
+        format: uuid
+      audit_type:
+        type: enum
+        values:
+          - ROUTINE
+          - INVESTIGATIVE
+          - COMPLIANCE
+          - EMERGENCY
+          - CONSTITUTIONAL
+      target_domains:
+        type: array
+        items:
+          type: enum
+          values:
+            - VAULT
+            - LEDGER
+            - TREASURY
+            - IDENTITY
+            - POLICY
+            - INTENT
+            - AGENT
+            - PAYMENT
+            - ALL
+      start_date:
+        type: timestamp
+      end_date:
+        type: timestamp
+        required: false
   governance.oversight.reviewed:
     aggregate: audit_record
     aggregate_id_field: audit_id
@@ -4190,7 +4451,9 @@ events:
     version: 1.0.0
     description: An oversight review has been completed
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: audit_record_view
       operation: update
@@ -4198,10 +4461,15 @@ events:
         state: COMPLETED
         completed_at: event.timestamp
     data_fields:
-      audit_id: { type: string, format: uuid }
-      findings_summary: { type: string }
-      actions_required: { type: array, items: { type: string } }
-
+      audit_id:
+        type: string
+        format: uuid
+      findings_summary:
+        type: string
+      actions_required:
+        type: array
+        items:
+          type: string
   governance.capability.granted:
     aggregate: capability_grant
     aggregate_id_field: grant_id
@@ -4209,18 +4477,30 @@ events:
     version: 1.0.0
     description: A capability has been granted to an actor
     producer: governance_service
-    consumers: [governance_projection, audit_projection, capability_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
+      - capability_projection
     projection_effect:
       target: capability_grant_view
       operation: insert
     data_fields:
-      grant_id: { type: string, format: uuid }
-      capability_id: { type: string }
-      actor_id: { type: string, format: uuid }
-      scope_pattern: { type: string }
-      granted_by: { type: string, format: uuid }
-      expires_at: { type: timestamp, required: false }
-
+      grant_id:
+        type: string
+        format: uuid
+      capability_id:
+        type: string
+      actor_id:
+        type: string
+        format: uuid
+      scope_pattern:
+        type: string
+      granted_by:
+        type: string
+        format: uuid
+      expires_at:
+        type: timestamp
+        required: false
   governance.capability.revoked:
     aggregate: capability_grant
     aggregate_id_field: grant_id
@@ -4228,7 +4508,10 @@ events:
     version: 1.0.0
     description: A capability has been revoked from an actor
     producer: governance_service
-    consumers: [governance_projection, audit_projection, capability_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
+      - capability_projection
     projection_effect:
       target: capability_grant_view
       operation: update
@@ -4236,12 +4519,19 @@ events:
         state: REVOKED
         revoked_at: event.timestamp
     data_fields:
-      grant_id: { type: string, format: uuid }
-      capability_id: { type: string }
-      actor_id: { type: string, format: uuid }
-      revoked_by: { type: string, format: uuid }
-      reason: { type: string }
-
+      grant_id:
+        type: string
+        format: uuid
+      capability_id:
+        type: string
+      actor_id:
+        type: string
+        format: uuid
+      revoked_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
   governance.escalation.submitted:
     aggregate: escalation
     aggregate_id_field: escalation_id
@@ -4249,17 +4539,36 @@ events:
     version: 1.0.0
     description: A governance escalation has been submitted
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_escalation_view
       operation: insert
     data_fields:
-      escalation_id: { type: string, format: uuid }
-      source_domain: { type: enum, values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, GOVERNANCE] }
-      source_event_id: { type: string, format: uuid }
-      reason: { type: string }
-      submitted_by: { type: string, format: uuid }
-
+      escalation_id:
+        type: string
+        format: uuid
+      source_domain:
+        type: enum
+        values:
+          - VAULT
+          - LEDGER
+          - TREASURY
+          - IDENTITY
+          - POLICY
+          - INTENT
+          - AGENT
+          - PAYMENT
+          - GOVERNANCE
+      source_event_id:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      submitted_by:
+        type: string
+        format: uuid
   governance.escalation.resolved:
     aggregate: escalation
     aggregate_id_field: escalation_id
@@ -4267,7 +4576,9 @@ events:
     version: 1.0.0
     description: A governance escalation has been resolved
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_escalation_view
       operation: update
@@ -4275,11 +4586,16 @@ events:
         state: RESOLVED
         resolved_at: event.timestamp
     data_fields:
-      escalation_id: { type: string, format: uuid }
-      resolution: { type: object }
-      resolved_by: { type: string, format: uuid }
-      resolved_at: { type: timestamp }
-
+      escalation_id:
+        type: string
+        format: uuid
+      resolution:
+        type: object
+      resolved_by:
+        type: string
+        format: uuid
+      resolved_at:
+        type: timestamp
   governance.escalation.expired:
     aggregate: escalation
     aggregate_id_field: escalation_id
@@ -4287,17 +4603,22 @@ events:
     version: 1.0.0
     description: A governance escalation has expired without resolution
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_escalation_view
       operation: update
       updates:
         state: EXPIRED
     data_fields:
-      escalation_id: { type: string, format: uuid }
-      expired_at: { type: timestamp }
-      compensation_action: { type: string }
-
+      escalation_id:
+        type: string
+        format: uuid
+      expired_at:
+        type: timestamp
+      compensation_action:
+        type: string
   governance.policy_rule.review_requested:
     aggregate: policy_rule
     aggregate_id_field: rule_id
@@ -4305,16 +4626,24 @@ events:
     version: 1.0.0
     description: Governance review has been requested for a policy rule
     producer: governance_service
-    consumers: [governance_projection, audit_projection, policy_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
+      - policy_projection
     projection_effect:
       target: policy_rule_review_view
       operation: insert
     data_fields:
-      rule_id: { type: string, format: uuid }
-      rule_name: { type: string }
-      requested_by: { type: string, format: uuid }
-      review_reason: { type: string }
-
+      rule_id:
+        type: string
+        format: uuid
+      rule_name:
+        type: string
+      requested_by:
+        type: string
+        format: uuid
+      review_reason:
+        type: string
   governance.policy_rule.activated.notification.sent:
     aggregate: policy_rule
     aggregate_id_field: rule_id
@@ -4322,15 +4651,26 @@ events:
     version: 1.0.0
     description: Notification sent to affected domains after policy rule activation
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: policy_rule_notification_view
       operation: insert
     data_fields:
-      rule_id: { type: string, format: uuid }
-      notified_domains: { type: array, items: { type: string } }
-      notification_status: { type: enum, values: [SENT, FAILED, PARTIAL] }
-
+      rule_id:
+        type: string
+        format: uuid
+      notified_domains:
+        type: array
+        items:
+          type: string
+      notification_status:
+        type: enum
+        values:
+          - SENT
+          - FAILED
+          - PARTIAL
   governance.proposal.cancelled:
     aggregate: governance_proposal
     aggregate_id_field: proposal_id
@@ -4338,18 +4678,25 @@ events:
     version: 1.0.0
     description: A governance proposal has been cancelled
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_proposal_view
       operation: update
       updates:
         state: CANCELLED
     data_fields:
-      proposal_id: { type: string, format: uuid }
-      cancelled_by: { type: string, format: uuid }
-      reason: { type: string }
-      cancelled_at: { type: timestamp }
-
+      proposal_id:
+        type: string
+        format: uuid
+      cancelled_by:
+        type: string
+        format: uuid
+      reason:
+        type: string
+      cancelled_at:
+        type: timestamp
   governance.proposal.expired:
     aggregate: governance_proposal
     aggregate_id_field: proposal_id
@@ -4357,16 +4704,20 @@ events:
     version: 1.0.0
     description: A governance proposal has expired without action
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_proposal_view
       operation: update
       updates:
         state: EXPIRED
     data_fields:
-      proposal_id: { type: string, format: uuid }
-      expired_at: { type: timestamp }
-
+      proposal_id:
+        type: string
+        format: uuid
+      expired_at:
+        type: timestamp
   governance.proposal.implemented:
     aggregate: governance_proposal
     aggregate_id_field: proposal_id
@@ -4374,18 +4725,25 @@ events:
     version: 1.0.0
     description: A governance proposal has been implemented
     producer: governance_service
-    consumers: [governance_projection, audit_projection]
+    consumers:
+      - governance_projection
+      - audit_projection
     projection_effect:
       target: governance_proposal_view
       operation: update
       updates:
         state: IMPLEMENTED
     data_fields:
-      proposal_id: { type: string, format: uuid }
-      implemented_by: { type: string, format: uuid }
-      implemented_at: { type: timestamp }
-      implementation_summary: { type: string }
-
+      proposal_id:
+        type: string
+        format: uuid
+      implemented_by:
+        type: string
+        format: uuid
+      implemented_at:
+        type: timestamp
+      implementation_summary:
+        type: string
   identity.session.authentication_failed:
     aggregate: session
     aggregate_id_field: session_id
@@ -4393,19 +4751,30 @@ events:
     version: 1.0.0
     description: An identity session authentication attempt failed
     producer: identity_service
-    consumers: [identity_projection, audit_projection]
+    consumers:
+      - identity_projection
+      - audit_projection
     projection_effect:
       target: identity_session_view
       operation: update
       updates:
         authentication_status: FAILED
     data_fields:
-      session_id: { type: string, format: uuid }
-      identity_id: { type: string, format: uuid, required: false }
-      actor_type: { type: enum, required: false }
-      failure_reason: { type: string }
-      authentication_method: { type: enum, required: false }
-
+      session_id:
+        type: string
+        format: uuid
+      identity_id:
+        type: string
+        format: uuid
+        required: false
+      actor_type:
+        type: enum
+        required: false
+      failure_reason:
+        type: string
+      authentication_method:
+        type: enum
+        required: false
   identity.delegation.limit_exceeded:
     aggregate: delegation
     aggregate_id_field: delegation_id
@@ -4413,21 +4782,32 @@ events:
     version: 1.0.0
     description: A delegation chain depth limit has been exceeded
     producer: identity_service
-    consumers: [identity_projection, audit_projection]
+    consumers:
+      - identity_projection
+      - audit_projection
     projection_effect:
       target: identity_delegation_view
       operation: update
       updates:
         status: LIMIT_EXCEEDED
     data_fields:
-      delegation_id: { type: string, format: uuid }
-      delegator_id: { type: string, format: uuid }
-      delegate_id: { type: string, format: uuid }
-      limit_type: { type: string }
-      current_depth: { type: integer }
-      max_depth: { type: integer }
-      exceeded_at: { type: timestamp }
-
+      delegation_id:
+        type: string
+        format: uuid
+      delegator_id:
+        type: string
+        format: uuid
+      delegate_id:
+        type: string
+        format: uuid
+      limit_type:
+        type: string
+      current_depth:
+        type: integer
+      max_depth:
+        type: integer
+      exceeded_at:
+        type: timestamp
   payment.execution.planning_failed:
     aggregate: execution_plan
     aggregate_id_field: execution_plan_id
@@ -4435,18 +4815,25 @@ events:
     version: 1.0.0
     description: Payment execution plan generation failed
     producer: routing_engine
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: PLANNING_FAILED
     data_fields:
-      execution_plan_id: { type: string, format: uuid }
-      payment_request_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      execution_plan_id:
+        type: string
+        format: uuid
+      payment_request_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   payment.execution.start_failed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4454,17 +4841,22 @@ events:
     version: 1.0.0
     description: Payment execution start failed
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: START_FAILED
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   payment.execution.settled:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4472,18 +4864,26 @@ events:
     version: 1.0.0
     description: A payment execution has been settled
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection, treasury_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - treasury_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: SETTLED
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      settlement_reference: { type: string }
-      settled_at: { type: timestamp }
-      settlement_amount: { type: decimal, precision: 18 }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      settlement_reference:
+        type: string
+      settled_at:
+        type: timestamp
+      settlement_amount:
+        type: decimal
+        precision: 18
   payment.execution.confirmation_failed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4491,17 +4891,22 @@ events:
     version: 1.0.0
     description: Payment execution confirmation failed
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: CONFIRMATION_FAILED
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   payment.rail.preparing:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4509,18 +4914,24 @@ events:
     version: 1.0.0
     description: A payment request is being prepared on a rail
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: PREPARING
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_preparation_id: { type: string }
-      preparing_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_preparation_id:
+        type: string
+      preparing_at:
+        type: timestamp
   payment.rail.executing:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4528,18 +4939,24 @@ events:
     version: 1.0.0
     description: A payment request is executing on a rail
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: EXECUTING
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_execution_id: { type: string }
-      executing_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_execution_id:
+        type: string
+      executing_at:
+        type: timestamp
   payment.rail.confirming:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4547,17 +4964,22 @@ events:
     version: 1.0.0
     description: A payment request is being confirmed on a rail
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: CONFIRMING
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      confirming_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      confirming_at:
+        type: timestamp
   payment.rail.validating:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4565,18 +4987,24 @@ events:
     version: 1.0.0
     description: A payment request is being validated on a rail
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: VALIDATING
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_validation_id: { type: string }
-      validating_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_validation_id:
+        type: string
+      validating_at:
+        type: timestamp
   payment.rail.validated:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4584,18 +5012,24 @@ events:
     version: 1.0.0
     description: A payment request has been validated on a rail
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: VALIDATED
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      rail_validation_id: { type: string }
-      validated_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      rail_validation_id:
+        type: string
+      validated_at:
+        type: timestamp
   payment.rail.prepare_timed_out:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4603,18 +5037,24 @@ events:
     version: 1.0.0
     description: Rail preparation phase timed out for a payment request
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: PREPARE_TIMEOUT
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      timeout_ms: { type: integer }
-      timed_out_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      timeout_ms:
+        type: integer
+      timed_out_at:
+        type: timestamp
   payment.rail.execution_timed_out:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4622,18 +5062,24 @@ events:
     version: 1.0.0
     description: Rail execution phase timed out for a payment request
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: EXECUTION_TIMEOUT
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      timeout_ms: { type: integer }
-      timed_out_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      timeout_ms:
+        type: integer
+      timed_out_at:
+        type: timestamp
   payment.rail.confirmation_timed_out:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4641,18 +5087,24 @@ events:
     version: 1.0.0
     description: Rail confirmation phase timed out for a payment request
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: CONFIRMATION_TIMEOUT
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      timeout_ms: { type: integer }
-      timed_out_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      timeout_ms:
+        type: integer
+      timed_out_at:
+        type: timestamp
   payment.rail.validation_timed_out:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4660,18 +5112,24 @@ events:
     version: 1.0.0
     description: Rail validation phase timed out for a payment request
     producer: rail_adapter
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: VALIDATION_TIMEOUT
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      rail_type: { type: enum }
-      timeout_ms: { type: integer }
-      timed_out_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      rail_type:
+        type: enum
+      timeout_ms:
+        type: integer
+      timed_out_at:
+        type: timestamp
   payment.reconciliation.start_failed:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -4679,16 +5137,23 @@ events:
     version: 1.0.0
     description: Payment reconciliation start failed
     producer: reconciliation_service
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: reconciliation_view
       operation: insert
     data_fields:
-      reconciliation_id: { type: string, format: uuid }
-      payment_request_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      reconciliation_id:
+        type: string
+        format: uuid
+      payment_request_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   payment.reconciliation.timed_out:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -4696,17 +5161,22 @@ events:
     version: 1.0.0
     description: Payment reconciliation timed out
     producer: reconciliation_service
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: reconciliation_view
       operation: update
       updates:
         state: TIMED_OUT
     data_fields:
-      reconciliation_id: { type: string, format: uuid }
-      timeout_ms: { type: integer }
-      timed_out_at: { type: timestamp }
-
+      reconciliation_id:
+        type: string
+        format: uuid
+      timeout_ms:
+        type: integer
+      timed_out_at:
+        type: timestamp
   payment.reconciliation.completion_failed:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -4714,17 +5184,23 @@ events:
     version: 1.0.0
     description: Payment reconciliation completion failed
     producer: reconciliation_service
-    consumers: [payment_projection, audit_projection, governance_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - governance_projection
     projection_effect:
       target: reconciliation_view
       operation: update
       updates:
         state: COMPLETION_FAILED
     data_fields:
-      reconciliation_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      reconciliation_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   payment.compensation.start_failed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4732,17 +5208,23 @@ events:
     version: 1.0.0
     description: Payment compensation start failed
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection, treasury_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - treasury_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: COMPENSATION_START_FAILED
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   payment.compensation.timed_out:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4750,17 +5232,23 @@ events:
     version: 1.0.0
     description: Payment compensation timed out
     producer: settlement_coordinator
-    consumers: [payment_projection, audit_projection, treasury_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
+      - treasury_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: COMPENSATION_TIMEOUT
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      timeout_ms: { type: integer }
-      timed_out_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      timeout_ms:
+        type: integer
+      timed_out_at:
+        type: timestamp
   payment.receipt.issuance_failed:
     aggregate: execution_receipt
     aggregate_id_field: receipt_id
@@ -4768,16 +5256,23 @@ events:
     version: 1.0.0
     description: Payment receipt issuance failed
     producer: receipt_service
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: receipt_view
       operation: insert
     data_fields:
-      receipt_id: { type: string, format: uuid }
-      payment_request_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      receipt_id:
+        type: string
+        format: uuid
+      payment_request_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   payment.settlement.confirmed:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -4785,18 +5280,26 @@ events:
     version: 1.0.0
     description: A payment settlement has been confirmed
     producer: treasury_service
-    consumers: [payment_projection, treasury_projection, ledger_projection]
+    consumers:
+      - payment_projection
+      - treasury_projection
+      - ledger_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         settlement_status: CONFIRMED
     data_fields:
-      order_id: { type: string, format: uuid }
-      settlement_reference: { type: string }
-      settlement_amount: { type: decimal, precision: 18 }
-      confirmed_at: { type: timestamp }
-
+      order_id:
+        type: string
+        format: uuid
+      settlement_reference:
+        type: string
+      settlement_amount:
+        type: decimal
+        precision: 18
+      confirmed_at:
+        type: timestamp
   payment.settlement.completed:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -4804,17 +5307,23 @@ events:
     version: 1.0.0
     description: A payment settlement has completed
     producer: treasury_service
-    consumers: [payment_projection, treasury_projection, ledger_projection]
+    consumers:
+      - payment_projection
+      - treasury_projection
+      - ledger_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         settlement_status: COMPLETED
     data_fields:
-      order_id: { type: string, format: uuid }
-      settlement_reference: { type: string }
-      completed_at: { type: timestamp }
-
+      order_id:
+        type: string
+        format: uuid
+      settlement_reference:
+        type: string
+      completed_at:
+        type: timestamp
   payment.settlement.failed:
     aggregate: transfer_order
     aggregate_id_field: order_id
@@ -4822,18 +5331,25 @@ events:
     version: 1.0.0
     description: A payment settlement failed
     producer: treasury_service
-    consumers: [payment_projection, treasury_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - treasury_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: SETTLEMENT_FAILED
     data_fields:
-      order_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-      retryable: { type: boolean }
-
+      order_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
+      retryable:
+        type: boolean
   payment.request.creation_failed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4841,15 +5357,20 @@ events:
     version: 1.0.0
     description: Payment request creation failed
     producer: payment_service
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: insert
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   payment.request.cancellation_failed:
     aggregate: payment_request
     aggregate_id_field: payment_request_id
@@ -4857,17 +5378,22 @@ events:
     version: 1.0.0
     description: Payment request cancellation failed
     producer: payment_service
-    consumers: [payment_projection, audit_projection]
+    consumers:
+      - payment_projection
+      - audit_projection
     projection_effect:
       target: payment_status_view
       operation: update
       updates:
         state: CANCELLATION_FAILED
     data_fields:
-      payment_request_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      payment_request_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   ledger.account.closed:
     aggregate: account
     aggregate_id_field: account_id
@@ -4875,17 +5401,23 @@ events:
     version: 1.0.0
     description: A ledger account has been closed
     producer: ledger_service
-    consumers: [ledger_projection, audit_projection]
+    consumers:
+      - ledger_projection
+      - audit_projection
     projection_effect:
       target: chart_of_accounts_view
       operation: update
       updates:
         status: CLOSED
     data_fields:
-      account_id: { type: string, format: uuid }
-      closed_at: { type: timestamp }
-      closed_by: { type: string, format: uuid }
-
+      account_id:
+        type: string
+        format: uuid
+      closed_at:
+        type: timestamp
+      closed_by:
+        type: string
+        format: uuid
   ledger.account.freeze_failed:
     aggregate: account
     aggregate_id_field: account_id
@@ -4893,15 +5425,20 @@ events:
     version: 1.0.0
     description: Ledger account freeze failed
     producer: ledger_service
-    consumers: [ledger_projection, audit_projection]
+    consumers:
+      - ledger_projection
+      - audit_projection
     projection_effect:
       target: chart_of_accounts_view
       operation: update
     data_fields:
-      account_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      account_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   ledger.entry.correction_failed:
     aggregate: journal_entry
     aggregate_id_field: entry_id
@@ -4909,16 +5446,23 @@ events:
     version: 1.0.0
     description: Journal entry correction failed
     producer: ledger_service
-    consumers: [ledger_projection, audit_projection]
+    consumers:
+      - ledger_projection
+      - audit_projection
     projection_effect:
       target: none
       operation: none
     data_fields:
-      entry_id: { type: string, format: uuid }
-      journal_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      entry_id:
+        type: string
+        format: uuid
+      journal_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   ledger.entry.rejection_failed:
     aggregate: journal_entry
     aggregate_id_field: entry_id
@@ -4926,16 +5470,22 @@ events:
     version: 1.0.0
     description: Journal entry rejection failed
     producer: ledger_service
-    consumers: [audit_projection]
+    consumers:
+      - audit_projection
     projection_effect:
       target: none
       operation: none
     data_fields:
-      entry_id: { type: string, format: uuid }
-      journal_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      entry_id:
+        type: string
+        format: uuid
+      journal_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   ledger.period.close_failed:
     aggregate: accounting_period
     aggregate_id_field: period_id
@@ -4943,15 +5493,21 @@ events:
     version: 1.0.0
     description: Accounting period close failed
     producer: ledger_service
-    consumers: [ledger_projection, audit_projection, governance_projection]
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
     projection_effect:
       target: accounting_period_view
       operation: update
     data_fields:
-      period_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      period_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   ledger.reconciliation.resolution_failed:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -4959,15 +5515,21 @@ events:
     version: 1.0.0
     description: Ledger reconciliation resolution failed
     producer: ledger_service
-    consumers: [ledger_projection, audit_projection, governance_projection]
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
     projection_effect:
       target: reconciliation_dashboard_view
       operation: update
     data_fields:
-      reconciliation_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      reconciliation_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   ledger.reconciliation.start_failed:
     aggregate: reconciliation
     aggregate_id_field: reconciliation_id
@@ -4975,15 +5537,21 @@ events:
     version: 1.0.0
     description: Ledger reconciliation start failed
     producer: ledger_service
-    consumers: [ledger_projection, audit_projection, governance_projection]
+    consumers:
+      - ledger_projection
+      - audit_projection
+      - governance_projection
     projection_effect:
       target: reconciliation_dashboard_view
       operation: update
     data_fields:
-      reconciliation_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      reconciliation_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   saga.started:
     aggregate: saga_instance
     aggregate_id_field: saga_id
@@ -4991,15 +5559,19 @@ events:
     version: 1.0.0
     description: A saga instance has started
     producer: saga_orchestrator
-    consumers: [audit_projection]
+    consumers:
+      - audit_projection
     projection_effect:
       target: saga_instance_view
       operation: insert
     data_fields:
-      saga_id: { type: string, format: uuid }
-      saga_type: { type: string }
-      started_at: { type: timestamp }
-
+      saga_id:
+        type: string
+        format: uuid
+      saga_type:
+        type: string
+      started_at:
+        type: timestamp
   saga.completed:
     aggregate: saga_instance
     aggregate_id_field: saga_id
@@ -5007,16 +5579,19 @@ events:
     version: 1.0.0
     description: A saga instance has completed successfully
     producer: saga_orchestrator
-    consumers: [audit_projection]
+    consumers:
+      - audit_projection
     projection_effect:
       target: saga_instance_view
       operation: update
       updates:
         state: COMPLETED
     data_fields:
-      saga_id: { type: string, format: uuid }
-      completed_at: { type: timestamp }
-
+      saga_id:
+        type: string
+        format: uuid
+      completed_at:
+        type: timestamp
   saga.failed:
     aggregate: saga_instance
     aggregate_id_field: saga_id
@@ -5024,17 +5599,21 @@ events:
     version: 1.0.0
     description: A saga instance has failed
     producer: saga_orchestrator
-    consumers: [audit_projection]
+    consumers:
+      - audit_projection
     projection_effect:
       target: saga_instance_view
       operation: update
       updates:
         state: FAILED
     data_fields:
-      saga_id: { type: string, format: uuid }
-      failure_reason: { type: string }
-      failed_at: { type: timestamp }
-
+      saga_id:
+        type: string
+        format: uuid
+      failure_reason:
+        type: string
+      failed_at:
+        type: timestamp
   saga.compensating:
     aggregate: saga_instance
     aggregate_id_field: saga_id
@@ -5042,17 +5621,21 @@ events:
     version: 1.0.0
     description: A saga instance is in the compensating phase
     producer: saga_orchestrator
-    consumers: [audit_projection]
+    consumers:
+      - audit_projection
     projection_effect:
       target: saga_instance_view
       operation: update
       updates:
         state: COMPENSATING
     data_fields:
-      saga_id: { type: string, format: uuid }
-      compensating_at: { type: timestamp }
-      current_step: { type: string }
-
+      saga_id:
+        type: string
+        format: uuid
+      compensating_at:
+        type: timestamp
+      current_step:
+        type: string
   saga.compensated:
     aggregate: saga_instance
     aggregate_id_field: saga_id
@@ -5060,17 +5643,21 @@ events:
     version: 1.0.0
     description: A saga instance has been fully compensated
     producer: saga_orchestrator
-    consumers: [audit_projection]
+    consumers:
+      - audit_projection
     projection_effect:
       target: saga_instance_view
       operation: update
       updates:
         state: COMPENSATED
     data_fields:
-      saga_id: { type: string, format: uuid }
-      compensated_at: { type: timestamp }
-      compensation_strategy: { type: string }
-
+      saga_id:
+        type: string
+        format: uuid
+      compensated_at:
+        type: timestamp
+      compensation_strategy:
+        type: string
   system.health.degraded:
     aggregate: system_health
     aggregate_id_field: health_id
@@ -5078,18 +5665,26 @@ events:
     version: 1.0.0
     description: System health has degraded
     producer: health_monitor
-    consumers: [audit_projection, governance_projection]
+    consumers:
+      - audit_projection
+      - governance_projection
     projection_effect:
       target: system_health_view
       operation: update
       updates:
         state: DEGRADED
     data_fields:
-      health_id: { type: string, format: uuid }
-      degradation_reason: { type: string }
-      degraded_at: { type: timestamp }
-      affected_services: { type: array, items: { type: string } }
-
+      health_id:
+        type: string
+        format: uuid
+      degradation_reason:
+        type: string
+      degraded_at:
+        type: timestamp
+      affected_services:
+        type: array
+        items:
+          type: string
   system.health.restored:
     aggregate: system_health
     aggregate_id_field: health_id
@@ -5097,17 +5692,22 @@ events:
     version: 1.0.0
     description: System health has been restored
     producer: health_monitor
-    consumers: [audit_projection, governance_projection]
+    consumers:
+      - audit_projection
+      - governance_projection
     projection_effect:
       target: system_health_view
       operation: update
       updates:
         state: HEALTHY
     data_fields:
-      health_id: { type: string, format: uuid }
-      restored_at: { type: timestamp }
-      restoration_action: { type: string }
-
+      health_id:
+        type: string
+        format: uuid
+      restored_at:
+        type: timestamp
+      restoration_action:
+        type: string
   system.health.unknown:
     aggregate: system_health
     aggregate_id_field: health_id
@@ -5115,17 +5715,22 @@ events:
     version: 1.0.0
     description: System health state is unknown
     producer: health_monitor
-    consumers: [audit_projection, governance_projection]
+    consumers:
+      - audit_projection
+      - governance_projection
     projection_effect:
       target: system_health_view
       operation: update
       updates:
         state: UNKNOWN
     data_fields:
-      health_id: { type: string, format: uuid }
-      unknown_since: { type: timestamp }
-      last_known_state: { type: string }
-
+      health_id:
+        type: string
+        format: uuid
+      unknown_since:
+        type: timestamp
+      last_known_state:
+        type: string
   system.health.halted:
     aggregate: system_health
     aggregate_id_field: health_id
@@ -5133,15 +5738,1456 @@ events:
     version: 1.0.0
     description: System health has halted
     producer: health_monitor
-    consumers: [audit_projection, governance_projection, vault_projection, treasury_projection, ledger_projection]
+    consumers:
+      - audit_projection
+      - governance_projection
+      - vault_projection
+      - treasury_projection
+      - ledger_projection
     projection_effect:
       target: system_health_view
       operation: update
       updates:
         state: HALTED
     data_fields:
-      health_id: { type: string, format: uuid }
-      halted_at: { type: timestamp }
-      halt_reason: { type: enum }
-      triggered_by: { type: string, format: uuid }
-      affected_domains: { type: array, items: { type: string } }
+      health_id:
+        type: string
+        format: uuid
+      halted_at:
+        type: timestamp
+      halt_reason:
+        type: enum
+      triggered_by:
+        type: string
+        format: uuid
+      affected_domains:
+        type: array
+        items:
+          type: string
+  vault.asset.registration_failed:
+    aggregate: asset
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: Asset registration failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  vault.asset.rejection_failed:
+    aggregate: asset
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: Asset rejection failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  vault.reserve.creation_failed:
+    aggregate: reservation
+    aggregate_id_field: reservation_id
+    source_domain: vault
+    version: 1.0.0
+    description: Reservation creation failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  vault.reserve.lock_failed:
+    aggregate: reservation
+    aggregate_id_field: reservation_id
+    source_domain: vault
+    version: 1.0.0
+    description: Reservation lock failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  vault.reserve.release_failed:
+    aggregate: reservation
+    aggregate_id_field: reservation_id
+    source_domain: vault
+    version: 1.0.0
+    description: Reservation release failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  vault.collateral.addition_failed:
+    aggregate: collateral
+    aggregate_id_field: collateral_id
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral addition failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  vault.collateral.release_failed:
+    aggregate: collateral
+    aggregate_id_field: collateral_id
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral release failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  vault.collateral.revaluation_failed:
+    aggregate: collateral
+    aggregate_id_field: collateral_id
+    source_domain: vault
+    version: 1.0.0
+    description: Collateral revaluation failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  vault.reconciliation.failed:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: vault
+    version: 1.0.0
+    description: Vault reconciliation failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  vault.valuation.update_failed:
+    aggregate: valuation
+    aggregate_id_field: valuation_id
+    source_domain: vault
+    version: 1.0.0
+    description: Valuation update failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  ledger.journal.creation_failed:
+    aggregate: journal
+    aggregate_id_field: journal_id
+    source_domain: ledger
+    version: 1.0.0
+    description: Journal creation failed
+    producer: ledger_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  ledger.entry.reversal_failed:
+    aggregate: journal_entry
+    aggregate_id_field: journal_entry_id
+    source_domain: ledger
+    version: 1.0.0
+    description: Journal entry reversal failed
+    producer: ledger_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  ledger.account.creation_failed:
+    aggregate: account
+    aggregate_id_field: account_id
+    source_domain: ledger
+    version: 1.0.0
+    description: Account creation failed
+    producer: ledger_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.actor.registration_failed:
+    aggregate: actor
+    aggregate_id_field: actor_id
+    source_domain: identity
+    version: 1.0.0
+    description: Actor registration failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.actor.verification_failed:
+    aggregate: actor
+    aggregate_id_field: actor_id
+    source_domain: identity
+    version: 1.0.0
+    description: Actor verification failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.actor.suspension_failed:
+    aggregate: actor
+    aggregate_id_field: actor_id
+    source_domain: identity
+    version: 1.0.0
+    description: Actor suspension failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.actor.revocation_failed:
+    aggregate: actor
+    aggregate_id_field: actor_id
+    source_domain: identity
+    version: 1.0.0
+    description: Actor revocation failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.actor.archived:
+    aggregate: actor
+    aggregate_id_field: actor_id
+    source_domain: identity
+    version: 1.0.0
+    description: Actor has been archived
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.credential.issuance_failed:
+    aggregate: credential
+    aggregate_id_field: credential_id
+    source_domain: identity
+    version: 1.0.0
+    description: Credential issuance failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.credential.revocation_failed:
+    aggregate: credential
+    aggregate_id_field: credential_id
+    source_domain: identity
+    version: 1.0.0
+    description: Credential revocation failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.session.creation_failed:
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: Session creation failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.session.termination_failed:
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: Session termination failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.delegation.creation_failed:
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: Delegation creation failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.delegation.revocation_failed:
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: Delegation revocation failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  identity.trust_anchor.registration_failed:
+    aggregate: trust_anchor
+    aggregate_id_field: trust_anchor_id
+    source_domain: identity
+    version: 1.0.0
+    description: Trust anchor registration failed
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.proposal.submission_failed:
+    aggregate: governance_proposal
+    aggregate_id_field: governance_proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: Governance proposal submission failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.proposal.approval_failed:
+    aggregate: governance_proposal
+    aggregate_id_field: governance_proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: Governance proposal approval failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.proposal.rejection_failed:
+    aggregate: governance_proposal
+    aggregate_id_field: governance_proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: Governance proposal rejection failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.amendment.proposal_failed:
+    aggregate: governance_amendment
+    aggregate_id_field: governance_amendment_id
+    source_domain: governance
+    version: 1.0.0
+    description: Amendment proposal failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.amendment.ratification_failed:
+    aggregate: governance_amendment
+    aggregate_id_field: governance_amendment_id
+    source_domain: governance
+    version: 1.0.0
+    description: Amendment ratification failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.emergency_halt.failed:
+    aggregate: emergency_halt
+    aggregate_id_field: emergency_halt_id
+    source_domain: governance
+    version: 1.0.0
+    description: Emergency halt failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.emergency_halt.lift_failed:
+    aggregate: emergency_halt
+    aggregate_id_field: emergency_halt_id
+    source_domain: governance
+    version: 1.0.0
+    description: Emergency halt lift failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.audit.query_failed:
+    aggregate: audit_record
+    aggregate_id_field: audit_record_id
+    source_domain: governance
+    version: 1.0.0
+    description: Audit query failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.oversight.review_failed:
+    aggregate: audit_record
+    aggregate_id_field: audit_record_id
+    source_domain: governance
+    version: 1.0.0
+    description: Oversight review failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.capability.grant_failed:
+    aggregate: capability_grant
+    aggregate_id_field: capability_grant_id
+    source_domain: governance
+    version: 1.0.0
+    description: Capability grant failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.capability.revoke_failed:
+    aggregate: capability_grant
+    aggregate_id_field: capability_grant_id
+    source_domain: governance
+    version: 1.0.0
+    description: Capability revoke failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.escalation.resolution_failed:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: Escalation resolution failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  governance.policy_rule.review_failed:
+    aggregate: policy_rule
+    aggregate_id_field: policy_rule_id
+    source_domain: governance
+    version: 1.0.0
+    description: Policy rule review failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - 'INV-005: audit trail maintained'
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  vault.transaction.created:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction created in vault
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      created_at:
+        type: timestamp
+  vault.transaction.funding_requested:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction funding requested
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      requested_at:
+        type: timestamp
+  vault.transaction.funding_pending:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction funding pending reservation
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      pending_at:
+        type: timestamp
+  vault.transaction.funded:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction funded via reservation lock
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      funded_at:
+        type: timestamp
+  vault.transaction.release_pending:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction release authorization pending
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      pending_at:
+        type: timestamp
+  vault.transaction.release_authorized:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction release authorized
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      authorized_at:
+        type: timestamp
+  vault.transaction.disbursed:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction funds disbursed to target
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      disbursed_at:
+        type: timestamp
+  vault.transaction.closed:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction lifecycle closed and settled
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      closed_at:
+        type: timestamp
+  vault.transaction.failed:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction cancelled or failed during lifecycle
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      failed_at:
+        type: timestamp
+
+  vault.asset.verification_failed:
+    aggregate: asset
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: Vault asset verification or ownership transfer failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      asset_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  agent.termination_failed:
+    aggregate: agent_instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: Agent termination or suspension failed
+    producer: agent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      agent_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  payment.execution.compensated:
+    aggregate: execution
+    aggregate_id_field: execution_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment execution compensated after saga failure
+    producer: payment_service
+    consumers:
+      - treasury_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      execution_id:
+        type: string
+      compensated_at:
+        type: timestamp
+  payment.execution.compensation_failed:
+    aggregate: execution
+    aggregate_id_field: execution_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment execution compensation failed
+    producer: payment_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      execution_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  identity.delegation.verified:
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: Identity delegation verified during check
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      delegation_id:
+        type: string
+      verified_at:
+        type: timestamp
+
+  identity.authority.unknown:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority level unknown for actor
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      flagged_at:
+        type: timestamp
+
+  identity.authority.flagged_unknown:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority flagged as unknown for escalation
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      flagged_at:
+        type: timestamp
+
+  identity.authority.allowed:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority level allowed after evaluation
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      allowed_at:
+        type: timestamp
+
+  identity.authority.denied:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority level denied during evaluation
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      denied_at:
+        type: timestamp
+
+  identity.authority.marked_unknown:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority explicitly marked unknown
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      marked_at:
+        type: timestamp
+
+  identity.authority.determination.notification.sent:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Notification sent regarding authority determination
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      sent_at:
+        type: timestamp
+
+  agent.quota.checked:
+    aggregate: agent_instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: Agent quota usage and concurrency limits checked
+    producer: agent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      agent_id:
+        type: string
+      checked_at:
+        type: timestamp
+
+  policy.rule.creation_failed:
+    aggregate: policy_rule
+    aggregate_id_field: policy_rule_id
+    source_domain: policy
+    version: 1.0.0
+    description: Policy rule creation failed validation
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      policy_rule_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  policy.rule.activation_failed:
+    aggregate: policy_rule
+    aggregate_id_field: policy_rule_id
+    source_domain: policy
+    version: 1.0.0
+    description: Policy rule activation failed verification
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      policy_rule_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  policy.escalation.cancel:
+    aggregate: policy_escalation
+    aggregate_id_field: escalation_id
+    source_domain: policy
+    version: 1.0.0
+    description: Policy escalation cancelled
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      cancelled_at:
+        type: timestamp
+
+  policy.evaluation.active_operation_blocked:
+    aggregate: policy_evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    description: Operation blocked by active policy evaluation rule
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      evaluation_id:
+        type: string
+      blocked_at:
+        type: timestamp
+
+  policy.escalation.expired:
+    aggregate: policy_escalation
+    aggregate_id_field: escalation_id
+    source_domain: policy
+    version: 1.0.0
+    description: Policy escalation window expired without resolution
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      expired_at:
+        type: timestamp
+
+  governance.escalation.submission_failed:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: Escalation submission failed governance intake
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  escalation.notification.sent:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: Escalation notification dispatched
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      sent_at:
+        type: timestamp
+
+  escalation.notification.failed:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: Escalation notification delivery failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      failed_at:
+        type: timestamp
+
+  escalation.resolution.notification.sent:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: Escalation resolution notification dispatched
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      sent_at:
+        type: timestamp
+
+  intent.rejected:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent rejected during intake or enrichment
+    producer: intent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      intent_id:
+        type: string
+      reason:
+        type: string
+      rejected_at:
+        type: timestamp
+
+  intent.validation_failed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent validation failed policy rules
+    producer: intent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      intent_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  intent.submitted:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent submitted by external client or agent
+    producer: intent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      intent_id:
+        type: string
+      submitted_at:
+        type: timestamp
+
+  intent.resumed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent evaluation resumed after escalation resolution
+    producer: intent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      intent_id:
+        type: string
+      resumed_at:
+        type: timestamp

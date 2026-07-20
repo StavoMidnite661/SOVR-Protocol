@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:ledger
-// Hash: 3f42e14daa262f81ef1449c2f1a15efb0ac56045dc15fc34f7fb8b17ecd069a4
+// Hash: 3a7f8e160b77a13dd8ea5b4d69abb3cb2cbc0eb3f4a843194fe36c2957456508
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -27,6 +27,14 @@ export class LedgerAccountClosedEvent {
 
 export class LedgerAccountCreatedEvent {
   static readonly eventName = 'ledger.account.created' as const;
+  static readonly aggregate = 'account' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class LedgerAccountCreationFailedEvent {
+  static readonly eventName = 'ledger.account.creation_failed' as const;
   static readonly aggregate = 'account' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
@@ -89,6 +97,14 @@ export class LedgerEntryRejectionFailedEvent {
   }
 }
 
+export class LedgerEntryReversalFailedEvent {
+  static readonly eventName = 'ledger.entry.reversal_failed' as const;
+  static readonly aggregate = 'journal_entry' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class LedgerEntryReversedEvent {
   static readonly eventName = 'ledger.entry.reversed' as const;
   static readonly aggregate = 'journal_entry' as const;
@@ -99,6 +115,14 @@ export class LedgerEntryReversedEvent {
 
 export class LedgerJournalCreatedEvent {
   static readonly eventName = 'ledger.journal.created' as const;
+  static readonly aggregate = 'journal' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class LedgerJournalCreationFailedEvent {
+  static readonly eventName = 'ledger.journal.creation_failed' as const;
   static readonly aggregate = 'journal' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };

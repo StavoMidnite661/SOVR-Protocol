@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 03_command-catalog.yaml:payment
-// Hash: e8ab4a43272a1d14348df74d4ba719d9cd772b0a9bc56d62a25984e9fb7ea6b7
+// Hash: 09c94416f92fc8c64ded5b614260dec54b50cb792bfdfa697dc22812a7cb67ee
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -16,6 +16,22 @@
 
 // Domain: payment — Commands
 import { z } from 'zod';
+
+export class PaymentAdapterDisableCommand {
+  static readonly commandName = 'payment.adapter.disable' as const;
+  static readonly capability = 'payment.execution.compensate' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    adapterId: unknown;
+    disableReason: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const PaymentAdapterDisableCommandSchema = z.object({
+  adapterId: z.unknown(),
+  disableReason: z.unknown(),
+});
 
 export class PaymentExecutionCompensateCommand {
   static readonly commandName = 'payment.execution.compensate' as const;
@@ -87,6 +103,24 @@ export const PaymentExecutionPlanCommandSchema = z.object({
   treasuryState: z.unknown(),
   vaultState: z.unknown(),
   policyConstraints: z.unknown(),
+});
+
+export class PaymentExecutionPrepareCommand {
+  static readonly commandName = 'payment.execution.prepare' as const;
+  static readonly capability = 'payment.execution.plan' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    executionId: unknown;
+    railId: unknown;
+    amount: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const PaymentExecutionPrepareCommandSchema = z.object({
+  executionId: z.unknown(),
+  railId: z.unknown(),
+  amount: z.unknown(),
 });
 
 export class PaymentReceiptIssueCommand {

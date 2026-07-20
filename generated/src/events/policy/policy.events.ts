@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:policy
-// Hash: 7c1539ae0b7825926a4c2fcaac626be8fe7b6ec1974fe26a3292e34633edce0e
+// Hash: 992ee2f69cd7f6ab35491a4c5f71911b90b65c96d1531542db30e5d1a611eb33
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -33,6 +33,14 @@ export class PolicyComplianceViolationDetectedEvent {
   }
 }
 
+export class PolicyEscalationCancelEvent {
+  static readonly eventName = 'policy.escalation.cancel' as const;
+  static readonly aggregate = 'policy_escalation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class PolicyEscalationCreatedEvent {
   static readonly eventName = 'policy.escalation.created' as const;
   static readonly aggregate = 'escalation' as const;
@@ -41,9 +49,25 @@ export class PolicyEscalationCreatedEvent {
   }
 }
 
+export class PolicyEscalationExpiredEvent {
+  static readonly eventName = 'policy.escalation.expired' as const;
+  static readonly aggregate = 'policy_escalation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class PolicyEscalationResolvedEvent {
   static readonly eventName = 'policy.escalation.resolved' as const;
   static readonly aggregate = 'escalation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class PolicyEvaluationActiveOperationBlockedEvent {
+  static readonly eventName = 'policy.evaluation.active_operation_blocked' as const;
+  static readonly aggregate = 'policy_evaluation' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
   }
@@ -89,9 +113,25 @@ export class PolicyRuleActivatedEvent {
   }
 }
 
+export class PolicyRuleActivationFailedEvent {
+  static readonly eventName = 'policy.rule.activation_failed' as const;
+  static readonly aggregate = 'policy_rule' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class PolicyRuleCreatedEvent {
   static readonly eventName = 'policy.rule.created' as const;
   static readonly aggregate = 'rule' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class PolicyRuleCreationFailedEvent {
+  static readonly eventName = 'policy.rule.creation_failed' as const;
+  static readonly aggregate = 'policy_rule' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
   }

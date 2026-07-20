@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 03_command-catalog.yaml:governance
-// Hash: f6d33416802d50d36554e8ecc79f660313bcf73a40e17328c5d4c23f1cf10f8c
+// Hash: 1973bfe8a0ae2c4944204737025e9f62a76218d1c6640e1da7e01102a56b430a
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -227,6 +227,38 @@ export const GovernanceProposalApproveCommandSchema = z.object({
   proposalId: z.unknown(),
   approvalDecision: z.unknown(),
   comments: z.unknown(),
+});
+
+export class GovernanceProposalCancelCommand {
+  static readonly commandName = 'governance.proposal.cancel' as const;
+  static readonly capability = 'governance.proposal.reject' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    proposalId: unknown;
+    cancellationReason: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const GovernanceProposalCancelCommandSchema = z.object({
+  proposalId: z.unknown(),
+  cancellationReason: z.unknown(),
+});
+
+export class GovernanceProposalImplementCommand {
+  static readonly commandName = 'governance.proposal.implement' as const;
+  static readonly capability = 'governance.proposal.approve' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    proposalId: unknown;
+    implementationHash: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const GovernanceProposalImplementCommandSchema = z.object({
+  proposalId: z.unknown(),
+  implementationHash: z.unknown(),
 });
 
 export class GovernanceProposalRejectCommand {

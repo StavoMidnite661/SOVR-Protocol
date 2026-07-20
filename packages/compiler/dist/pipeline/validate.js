@@ -131,20 +131,33 @@ export function validateReferences(parsed) {
                 const allowed = sDef.allowed_commands || [];
                 for (const cmd of allowed) {
                     if (typeof cmd === 'string' && !commands.has(cmd) && !cmd.startsWith('system ') && !cmd.includes(' ')) {
-                        // Allow some internal
-                        if (!['vault.transaction.fund', 'vault.transaction.cancel', 'vault.transaction.authorize_release', 'vault.transaction.disburse', 'vault.transfer.request', 'vault.ownership.transfer', 'vault.asset.write_down', 'governance.proposal.implement', 'governance.proposal.cancel', 'agent.suspend', 'payment.execution.prepare', 'payment.adapter.disable', 'saga.compensate'].includes(cmd)) {
-                            diagnostics.push({
-                                code: 'REF-002',
-                                category: 'REFERENCE',
-                                severity: 'WARNING',
-                                stage: 'PASS-006',
-                                file: '05_state-machines.yaml',
-                                message: `State machine ${smName} state ${sName} references unknown command ${cmd}`,
-                                action: 'REPORT_WARNINGS',
-                                findingRef: 'AMD-0003',
-                            });
-                        }
+                        diagnostics.push({
+                            code: 'REF-002',
+                            category: 'REFERENCE',
+                            severity: 'WARNING',
+                            stage: 'PASS-006',
+                            file: '05_state-machines.yaml',
+                            message: `State machine ${smName} state ${sName} references unknown command ${cmd}`,
+                            action: 'REPORT_WARNINGS',
+                            findingRef: 'AMD-0003',
+                        });
                     }
+                }
+            }
+            const transitions = smDef.transitions || {};
+            for (const [tName, tDef] of Object.entries(transitions)) {
+                const cmd = tDef.command;
+                if (typeof cmd === 'string' && !commands.has(cmd) && !cmd.startsWith('system ') && !cmd.includes(' ')) {
+                    diagnostics.push({
+                        code: 'REF-002',
+                        category: 'REFERENCE',
+                        severity: 'WARNING',
+                        stage: 'PASS-006',
+                        file: '05_state-machines.yaml',
+                        message: `State machine ${smName} transition ${tName} references unknown command ${cmd}`,
+                        action: 'REPORT_WARNINGS',
+                        findingRef: 'AMD-0003',
+                    });
                 }
             }
         }

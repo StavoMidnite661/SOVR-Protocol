@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:vault
-// Hash: 1d29961cfeabdb26b75d3df73715c15fccfb9ba6d5b0a10e7b4474d27092e82b
+// Hash: 7b4466ae5b8ceeeae92260e0b0abd27da8ada9594b40b8c92ead4ab5fccad50a
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -33,8 +33,32 @@ export class VaultAssetRegisteredEvent {
   }
 }
 
+export class VaultAssetRegistrationFailedEvent {
+  static readonly eventName = 'vault.asset.registration_failed' as const;
+  static readonly aggregate = 'asset' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class VaultAssetRejectedEvent {
   static readonly eventName = 'vault.asset.rejected' as const;
+  static readonly aggregate = 'asset' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultAssetRejectionFailedEvent {
+  static readonly eventName = 'vault.asset.rejection_failed' as const;
+  static readonly aggregate = 'asset' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultAssetVerificationFailedEvent {
+  static readonly eventName = 'vault.asset.verification_failed' as const;
   static readonly aggregate = 'asset' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
@@ -65,6 +89,14 @@ export class VaultCollateralAddedEvent {
   }
 }
 
+export class VaultCollateralAdditionFailedEvent {
+  static readonly eventName = 'vault.collateral.addition_failed' as const;
+  static readonly aggregate = 'collateral' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class VaultCollateralLiquidationInitiatedEvent {
   static readonly eventName = 'vault.collateral.liquidation_initiated' as const;
   static readonly aggregate = 'collateral' as const;
@@ -81,8 +113,24 @@ export class VaultCollateralMarginCallEvent {
   }
 }
 
+export class VaultCollateralReleaseFailedEvent {
+  static readonly eventName = 'vault.collateral.release_failed' as const;
+  static readonly aggregate = 'collateral' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class VaultCollateralReleasedEvent {
   static readonly eventName = 'vault.collateral.released' as const;
+  static readonly aggregate = 'collateral' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultCollateralRevaluationFailedEvent {
+  static readonly eventName = 'vault.collateral.revaluation_failed' as const;
   static readonly aggregate = 'collateral' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
@@ -145,6 +193,14 @@ export class VaultReconciliationDiscrepancyFoundEvent {
   }
 }
 
+export class VaultReconciliationFailedEvent {
+  static readonly eventName = 'vault.reconciliation.failed' as const;
+  static readonly aggregate = 'reconciliation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class VaultReconciliationStartedEvent {
   static readonly eventName = 'vault.reconciliation.started' as const;
   static readonly aggregate = 'reconciliation' as const;
@@ -161,8 +217,24 @@ export class VaultReserveCreatedEvent {
   }
 }
 
+export class VaultReserveCreationFailedEvent {
+  static readonly eventName = 'vault.reserve.creation_failed' as const;
+  static readonly aggregate = 'reservation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class VaultReserveExpiredEvent {
   static readonly eventName = 'vault.reserve.expired' as const;
+  static readonly aggregate = 'reservation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultReserveLockFailedEvent {
+  static readonly eventName = 'vault.reserve.lock_failed' as const;
   static readonly aggregate = 'reservation' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
@@ -177,9 +249,97 @@ export class VaultReserveLockedEvent {
   }
 }
 
+export class VaultReserveReleaseFailedEvent {
+  static readonly eventName = 'vault.reserve.release_failed' as const;
+  static readonly aggregate = 'reservation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class VaultReserveReleasedEvent {
   static readonly eventName = 'vault.reserve.released' as const;
   static readonly aggregate = 'reservation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultTransactionClosedEvent {
+  static readonly eventName = 'vault.transaction.closed' as const;
+  static readonly aggregate = 'transaction' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultTransactionCreatedEvent {
+  static readonly eventName = 'vault.transaction.created' as const;
+  static readonly aggregate = 'transaction' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultTransactionDisbursedEvent {
+  static readonly eventName = 'vault.transaction.disbursed' as const;
+  static readonly aggregate = 'transaction' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultTransactionFailedEvent {
+  static readonly eventName = 'vault.transaction.failed' as const;
+  static readonly aggregate = 'transaction' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultTransactionFundedEvent {
+  static readonly eventName = 'vault.transaction.funded' as const;
+  static readonly aggregate = 'transaction' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultTransactionFundingPendingEvent {
+  static readonly eventName = 'vault.transaction.funding_pending' as const;
+  static readonly aggregate = 'transaction' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultTransactionFundingRequestedEvent {
+  static readonly eventName = 'vault.transaction.funding_requested' as const;
+  static readonly aggregate = 'transaction' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultTransactionReleaseAuthorizedEvent {
+  static readonly eventName = 'vault.transaction.release_authorized' as const;
+  static readonly aggregate = 'transaction' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultTransactionReleasePendingEvent {
+  static readonly eventName = 'vault.transaction.release_pending' as const;
+  static readonly aggregate = 'transaction' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class VaultValuationUpdateFailedEvent {
+  static readonly eventName = 'vault.valuation.update_failed' as const;
+  static readonly aggregate = 'valuation' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
   }
