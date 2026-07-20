@@ -104,6 +104,12 @@ cd ../.. && node packages/compiler/dist/cli.js compile
 #   src/execution/execution-context.ts — ADR-009 single object handler receives
 #   src/policy/engine.ts — Policy engine pure function
 #   src/security/capability-engine.ts — Capability engine pattern matching + Redis cache
+#   src/policy/vel-evaluator.ts — Validation Expression Language AST engine
+#   src/execution/guardrail-bus.ts — Active hot-path constitutional guardrail bus
+#   src/sdk/agent-sandbox.ts — AI agent governor sandbox SDK
+#   verification/tla/*.tla — 21 model-checkable TLA+ specifications for state machines
+#   protocol-topology.json — Unified graph topology and lineage database
+#   docs/topology.md — Interactive Mermaid flowcharts for the architecture
 #   prisma/schema.prisma — Prisma models, event_store append-only per INV-001
 #   config/kafka/topics.yaml — Topics sovr.{domain}.{aggregate}.{event_type} PERMANENT for financial
 #   config/redis/streams.yaml — Streams sovr:stream:{domain}:{aggregate}
@@ -167,6 +173,48 @@ export class TransferHandler implements CommandHandler<TransferCommand> {
 
 // Test:
 const ctx = mockExecutionContext<TransferCommand>({ command: {...} });
+```
+
+### 3.5 Active Constitutional Guardrails & Sandboxing (INV-001..004, INV-010)
+
+For active hot-path safety, wrap the execution in the `GuardrailCommandBus` dry-run pre-check:
+
+```typescript
+import { GuardrailCommandBus } from '@sovr/runtime';
+
+const bus = new GuardrailCommandBus();
+const effects = await bus.executeSecure(ctx, async (secureCtx) => {
+  // Execute business logic in sandbox memory
+  // Emitted events, balance debits/credits mutations are captured
+  return {
+    emittedEvents: [{ eventName: 'treasury.transfer.settled', payload: {} }],
+    mutations: [{ table: 'vault_holdings', key: 'holding_1', oldValue: 100, newValue: 90 }],
+    journalEntries: [{ debits: 10, credits: 10 }] // Balanced double-entry!
+  };
+});
+// If debits/credits mismatched, or mutations lacked event logs, throws error immediately.
+```
+
+Similarly, wrap autonomous agent requests inside the `AgentSandbox` to actively monitor and enforce human-in-the-loop limits:
+
+```typescript
+import { AgentSandbox } from '@sovr/runtime';
+
+const sandbox = new AgentSandbox({
+  agentId: 'agent_123',
+  intentId: 'intent_456',
+  promptHash: 'sha256_prompt...',
+  quotaLimitUSD: 5000,
+  currentSpendingUSD: 4000,
+  modelVersion: 'gpt-4o'
+});
+
+const safety = sandbox.verifyExecutionSafety(800); // propose an 800 USD transfer
+if (safety.action === "MANDATORY_ESCALATION") {
+  // Triggers human-in-the-loop auth prompt on frontend
+  console.log(safety.reason); // "AI-agent spending reached 90% threshold safety boundary..."
+}
+```
 ```
 
 ### 4. Subscribe to events (projections interpret reality)

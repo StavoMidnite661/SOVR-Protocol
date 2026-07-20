@@ -18,6 +18,11 @@ import { generatePrisma } from './generators/prisma.js';
 import { generateKafka, generateRedis } from './generators/kafka.js';
 import { generateCapabilityEngine, generatePolicyEngine } from './generators/capability.js';
 import { generateExecutionContext } from './generators/execution.js';
+import { generateTLA } from './generators/tla.js';
+import { generateVEL } from './generators/vel.js';
+import { generateTopology } from './generators/topology.js';
+import { generateGuardrails } from './generators/guardrails.js';
+import { generateAgentSandbox } from './generators/agents.js';
 import { sha256, canonicalJson, buildHashFromParts } from './utils/hash.js';
 import { SOVR_IR, Diagnostic } from './ir/types.js';
 import { fileURLToPath } from 'url';
@@ -89,7 +94,26 @@ export class CompilerRuntime {
     const capFiles = generateCapabilityEngine(ir);
     const policyFiles = generatePolicyEngine(ir);
     const execFiles = generateExecutionContext(ir);
-    const allGenerated = [...tsFiles, ...openapiFiles, ...prismaFiles, ...kafkaFiles, ...redisFiles, ...capFiles, ...policyFiles, ...execFiles];
+    const tlaFiles = generateTLA(ir);
+    const velFiles = generateVEL(ir);
+    const topologyFiles = generateTopology(ir);
+    const guardrailFiles = generateGuardrails(ir);
+    const agentSandboxFiles = generateAgentSandbox(ir);
+    const allGenerated = [
+      ...tsFiles,
+      ...openapiFiles,
+      ...prismaFiles,
+      ...kafkaFiles,
+      ...redisFiles,
+      ...capFiles,
+      ...policyFiles,
+      ...execFiles,
+      ...tlaFiles,
+      ...velFiles,
+      ...topologyFiles,
+      ...guardrailFiles,
+      ...agentSandboxFiles
+    ];
 
     // Input hashes sorted lexicographically for determinism (R2)
     const inputHashes: Record<string, string> = {};

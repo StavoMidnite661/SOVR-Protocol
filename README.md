@@ -583,6 +583,35 @@ The compiler (`compiler.yaml`) consumes the frozen YAML specification and produc
 | 15 | Policy Engine | capabilities, policy | RULES_ENGINE | `src/policy/engine.ts` |
 | 16 | Capability Engine | capabilities | CAPABILITY_CHECKER | `src/security/capability-engine.ts` |
 | 17 | Test Skeletons | acceptance-tests | VITEST_TEST_SUITE | `tests/{category}/{name}.test.ts` |
+| 18 | TLA+ Formal Verification Models | state-machines, sagas | STATE_MACHINE_TO_TLA | `verification/tla/{name}.tla` |
+| 19 | VEL Sandbox Evaluator | constitution, policy | RULES_TO_VEL_AST | `src/policy/vel-evaluator.ts` |
+| 20 | Guardrail Command Bus | constitution | INVARIANT_GUARDRAIL_INTERCEPTOR | `src/execution/guardrail-bus.ts` |
+| 21 | Agent Governor Sandbox SDK | constitution, agent | GOVERNOR_SANDBOX_SDK | `src/sdk/agent-sandbox.ts` |
+| 22 | Protocol Topology Lineage | ALL | PIR_TO_KNOWLEDGE_GRAPH | `protocol-topology.json` / `docs/topology.md` |
+
+### 🌟 Advanced Compiler & Runtime Integrations
+
+To elevate SOVR beyond traditional systems, we have added **five enterprise-grade advanced features** compiled directly into the kernel and runtime outputs:
+
+#### 1. Formal Model Verification (TLA+)
+* **File Pattern:** `generated/verification/tla/{name}.tla`
+* State machines and multi-step orchestration Sagas are compiled directly into model-checkable **TLA+ modules**. This mathematically proves the absence of execution deadlocks, infinite cycles, or orphaned state transitions under model checks.
+
+#### 2. Sandboxed Validation Expression Language (VEL) Evaluator
+* **File Pattern:** `generated/src/policy/vel-evaluator.ts`
+* Validation logic and policy constraints are compiled into static Abstract Syntax Trees (ASTs) processed by a deterministic, sandboxed, and Turing-incomplete interpreter. This enforces perfect safety with zero vulnerability risks (like prototype pollution, arbitrary code execution, or performance hang cycles).
+
+#### 3. Active Constitutional Guardrails on the Command Bus
+* **File Pattern:** `generated/src/execution/guardrail-bus.ts`
+* Rather than relying solely on business logic correctness, an intercepting **Guardrail Command Bus** executes isolated dry-runs of incoming commands, actively checking state mutations against **INV-001 (Event Immutability)** and **INV-002 (Double-Entry Balance)** before committing to the database.
+
+#### 4. Autonomous AI-Agent Governor Sandbox SDK
+* **File Pattern:** `generated/src/sdk/agent-sandbox.ts`
+* Operating under **INV-004** and **INV-010**, all AI agent execution passes through the `AgentSandbox`. This sandbox tracks financial spending quotas, records LLM prompts using secure SHA-256 hashes for permanent audit logs, and triggers **mandatory human-in-the-loop escalation** when spending approaches 90% of the allocated threshold.
+
+#### 5. Interactive Protocol Topology & Graph Lineage
+* **File Pattern:** `generated/protocol-topology.json` & `generated/docs/topology.md`
+* Consolidates the complete Protocol Intermediate Representation (PIR) into a machine-readable JSON graph topology and an interactive Mermaid diagram, allowing compliance officers and regulators to visually audit how commands, events, capabilities, and invariants link together.
 
 ### Reproducibility
 

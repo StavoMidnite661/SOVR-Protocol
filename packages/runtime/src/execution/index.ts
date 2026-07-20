@@ -26,6 +26,59 @@ export interface CommandHandler<T> {
   handle(ctx: ExecutionContext<T>): Promise<any[]>;
 }
 
+export interface TransactionEffects {
+  emittedEvents: Array<{ eventName: string; payload: any; }>;
+  mutations: Array<{ table: string; key: string; oldValue: any; newValue: any; }>;
+  journalEntries?: Array<{ debits: number; credits: number; }>;
+}
+
+export class GuardrailCommandBus {
+  async executeSecure<T>(
+    ctx: ExecutionContext<T>, 
+    businessLogic: (context: ExecutionContext<T>) => Promise<TransactionEffects>
+  ): Promise<TransactionEffects> {
+    console.log(`🛡️ Intercepting command ${ctx.commandId} for active guardrail verification...`);
+    
+    const effects = await businessLogic(ctx);
+
+    // INV-001 Verification
+    if (effects.mutations.length > 0 && effects.emittedEvents.length === 0) {
+      throw new Error("🚨 CONSTITUTIONAL VIOLATION: INV-001 — Cannot mutate state without emitting an event.");
+    }
+
+    // INV-002 Verification
+    if (effects.journalEntries && effects.journalEntries.length > 0) {
+      for (const entry of effects.journalEntries) {
+        if (entry.debits !== entry.credits) {
+          throw new Error(`🚨 CONSTITUTIONAL VIOLATION: INV-002 — Double-entry mismatch! Debits (${entry.debits}) != Credits (${entry.credits}).`);
+        }
+      }
+    }
+
+    // INV-003 Verification
+    const requiredCap = (ctx as any).command?.constructor?.capability;
+    if (requiredCap) {
+      const hasCap = ctx.capabilities.some(c => c.capabilityId === requiredCap);
+      if (!hasCap) {
+        throw new Error(`🚨 CONSTITUTIONAL VIOLATION: INV-003 — Actor lacks capability ${requiredCap} within scope boundary.`);
+      }
+    }
+
+    // INV-004 Verification
+    if (ctx.identity.actorType === "ai_agent") {
+      const grantsAuthority = effects.emittedEvents.some(e => 
+        e.eventName.includes("capability.granted") || e.eventName.includes("delegation.created")
+      );
+      if (grantsAuthority) {
+        throw new Error("🚨 CONSTITUTIONAL VIOLATION: INV-004 — Autonomous agents are prohibited from creating or granting financial authority.");
+      }
+    }
+
+    console.log("🛡️ Guardrail checks PASSED. Transacting secure effects.");
+    return effects;
+  }
+}
+
 // Mock for tests — deterministic, no randomness
 export function mockExecutionContext<T>(overrides: Partial<ExecutionContext<T>> & { command: T }): ExecutionContext<T> {
   return {
