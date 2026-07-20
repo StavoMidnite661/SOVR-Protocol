@@ -15,6 +15,17 @@
 #   INV-008: No command executes without identity, capability, scope, and policy validation
 # ============================================================
 
+meta:
+  schema_version: "1.0.0"
+  file_id: "11_governance-amendments"
+  status: "FROZEN"
+  version: "1.0.0"
+  domain: "governance"
+  owner: "governance"
+  introduced: "2025-07-07"
+  modified: "2026-07-18"
+  constitutional_reference: "L0"
+  dependencies: ["01_constitution.yaml"]
 amendment_process:
 
   # ========================================================

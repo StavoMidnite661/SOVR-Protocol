@@ -1,5 +1,5 @@
 # SOVR GENERATED — Redis Streams
-# hash 003dd39e905ff09e75cf5db14f38259d0d867db017c65e73ecb40aca624c8832
+# hash a2dcff60d78509ae5285caba833f1a07e1301760293eb97cbbc429504f74e809
 {
   "streams": [
     {
@@ -42,14 +42,14 @@
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.capability.granted"
+      "event": "governance.capability.grant_failed"
     },
     {
       "stream": "sovr:stream:governance:emergency_halt",
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.emergency_halt.issued"
+      "event": "governance.emergency_halt.failed"
     },
     {
       "stream": "sovr:stream:governance:escalation",
@@ -63,14 +63,14 @@
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.amendment.proposed"
+      "event": "governance.amendment.proposal_failed"
     },
     {
       "stream": "sovr:stream:governance:governance_proposal",
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.proposal.approved"
+      "event": "governance.proposal.approval_failed"
     },
     {
       "stream": "sovr:stream:governance:policy_rule",
@@ -84,7 +84,7 @@
       "consumer_group": "sovr-identity-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "identity.actor.registered"
+      "event": "identity.actor.archived"
     },
     {
       "stream": "sovr:stream:identity:credential",
@@ -294,7 +294,7 @@
       "consumer_group": "sovr-vault-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "vault.valuation.updated"
+      "event": "vault.valuation.update_failed"
     }
   ]
 }

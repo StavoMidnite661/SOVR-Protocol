@@ -8,6 +8,17 @@
 # Current domains: Vault, Ledger, Treasury, Identity, Policy, Intent, Agent, Payment | Fix: constitutional_gates retrofitted, Payment registered
 # ============================================================
 
+meta:
+  schema_version: "1.0.0"
+  file_id: "03_command-catalog"
+  status: "FROZEN"
+  version: "1.0.0"
+  domain: "system"
+  owner: "governance"
+  introduced: "2025-07-07"
+  modified: "2026-07-18"
+  constitutional_reference: "L1"
+  dependencies: ["02_domain-model.yaml"]
 commands:
 
   # ========================================================

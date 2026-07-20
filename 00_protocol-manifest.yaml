@@ -9,6 +9,17 @@
 # All other files in this specification derive from this manifest.
 # ============================================================
 
+meta:
+  schema_version: "1.0.0"
+  file_id: "00_protocol-manifest"
+  status: "FROZEN"
+  version: "1.0.0"
+  domain: "system"
+  owner: "governance"
+  introduced: "2025-07-07"
+  modified: "2026-07-18"
+  constitutional_reference: "L0"
+  dependencies: []
 protocol:
   name: SOVR Financial OS
   version: 1.0.0

@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:governance
-// Hash: 7a31c9eb2288231b3b22d97776bad7156143d42c0eb47735c8748ff3767ecbe9
+// Hash: 99094f4e0c91d6e627079ffd76a0f460ec1cb4698155ff6f4f380e3cd57f3480
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -17,8 +17,24 @@
 // Domain: governance — Events
 import { EventEnvelope } from '../../events/event-envelope.js';
 
+export class GovernanceAmendmentProposalFailedEvent {
+  static readonly eventName = 'governance.amendment.proposal_failed' as const;
+  static readonly aggregate = 'governance_amendment' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class GovernanceAmendmentProposedEvent {
   static readonly eventName = 'governance.amendment.proposed' as const;
+  static readonly aggregate = 'governance_amendment' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceAmendmentRatificationFailedEvent {
+  static readonly eventName = 'governance.amendment.ratification_failed' as const;
   static readonly aggregate = 'governance_amendment' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
@@ -41,8 +57,32 @@ export class GovernanceAuditQueriedEvent {
   }
 }
 
+export class GovernanceAuditQueryFailedEvent {
+  static readonly eventName = 'governance.audit.query_failed' as const;
+  static readonly aggregate = 'audit_record' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceCapabilityGrantFailedEvent {
+  static readonly eventName = 'governance.capability.grant_failed' as const;
+  static readonly aggregate = 'capability_grant' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class GovernanceCapabilityGrantedEvent {
   static readonly eventName = 'governance.capability.granted' as const;
+  static readonly aggregate = 'capability_grant' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceCapabilityRevokeFailedEvent {
+  static readonly eventName = 'governance.capability.revoke_failed' as const;
   static readonly aggregate = 'capability_grant' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
@@ -57,8 +97,24 @@ export class GovernanceCapabilityRevokedEvent {
   }
 }
 
+export class GovernanceEmergencyHaltFailedEvent {
+  static readonly eventName = 'governance.emergency_halt.failed' as const;
+  static readonly aggregate = 'emergency_halt' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class GovernanceEmergencyHaltIssuedEvent {
   static readonly eventName = 'governance.emergency_halt.issued' as const;
+  static readonly aggregate = 'emergency_halt' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceEmergencyHaltLiftFailedEvent {
+  static readonly eventName = 'governance.emergency_halt.lift_failed' as const;
   static readonly aggregate = 'emergency_halt' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
@@ -81,6 +137,14 @@ export class GovernanceEscalationExpiredEvent {
   }
 }
 
+export class GovernanceEscalationResolutionFailedEvent {
+  static readonly eventName = 'governance.escalation.resolution_failed' as const;
+  static readonly aggregate = 'escalation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class GovernanceEscalationResolvedEvent {
   static readonly eventName = 'governance.escalation.resolved' as const;
   static readonly aggregate = 'escalation' as const;
@@ -92,6 +156,14 @@ export class GovernanceEscalationResolvedEvent {
 export class GovernanceEscalationSubmittedEvent {
   static readonly eventName = 'governance.escalation.submitted' as const;
   static readonly aggregate = 'escalation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceOversightReviewFailedEvent {
+  static readonly eventName = 'governance.oversight.review_failed' as const;
+  static readonly aggregate = 'audit_record' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
   }
@@ -113,9 +185,25 @@ export class GovernancePolicyRuleActivatedNotificationSentEvent {
   }
 }
 
+export class GovernancePolicyRuleReviewFailedEvent {
+  static readonly eventName = 'governance.policy_rule.review_failed' as const;
+  static readonly aggregate = 'policy_rule' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class GovernancePolicyRuleReviewRequestedEvent {
   static readonly eventName = 'governance.policy_rule.review_requested' as const;
   static readonly aggregate = 'policy_rule' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceProposalApprovalFailedEvent {
+  static readonly eventName = 'governance.proposal.approval_failed' as const;
+  static readonly aggregate = 'governance_proposal' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
   }
@@ -155,6 +243,22 @@ export class GovernanceProposalImplementedEvent {
 
 export class GovernanceProposalRejectedEvent {
   static readonly eventName = 'governance.proposal.rejected' as const;
+  static readonly aggregate = 'governance_proposal' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceProposalRejectionFailedEvent {
+  static readonly eventName = 'governance.proposal.rejection_failed' as const;
+  static readonly aggregate = 'governance_proposal' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceProposalSubmissionFailedEvent {
+  static readonly eventName = 'governance.proposal.submission_failed' as const;
   static readonly aggregate = 'governance_proposal' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
