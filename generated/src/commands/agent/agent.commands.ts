@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 03_command-catalog.yaml:agent
-// Hash: d19e74689e79d4abe772deb7737c85e78587e31309891bd140709d1146bc276a
+// Hash: 5fe1550c4f831df437abd18c3049ef96ee07a47edc6e0940a93d65531f6b15ec
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -99,6 +99,22 @@ export class AgentRegisterCommand {
 }
 
 export const AgentRegisterCommandSchema = z.object({
+});
+
+export class AgentSuspendCommand {
+  static readonly commandName = 'agent.suspend' as const;
+  static readonly capability = 'agent.governance.override' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    agentId: unknown;
+    suspensionReason: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const AgentSuspendCommandSchema = z.object({
+  agentId: z.unknown(),
+  suspensionReason: z.unknown(),
 });
 
 export class AgentTerminateCommand {

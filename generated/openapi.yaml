@@ -1,5 +1,5 @@
 # SOVR GENERATED FILE — DO NOT EDIT
-# Compiler: 0.2.0-kernel-working Protocol: 1.0.0 Hash: dc661576e40d4563a36249e4e895f0691a514d3d749f5ab2b5d40bd0c4a48a02
+# Compiler: 0.2.0-kernel-working Protocol: 1.0.0 Hash: a3b552c4495f83e3ee0b5d210080a930154732f494efb63fcc09640a59105ba9
 {
   "openapi": "3.1.0",
   "info": {
@@ -272,6 +272,58 @@
           "invariants": []
         },
         "x-capability-required": "agent.register"
+      }
+    },
+    "/api/v1/agent/agent_instance": {
+      "post": {
+        "operationId": "agent_agent_instance_suspend",
+        "summary": "agent.suspend",
+        "description": "Command agent.suspend requiring capability agent.governance.override",
+        "tags": [
+          "agent"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": []
+        },
+        "x-capability-required": "agent.governance.override"
       }
     },
     "/api/v1/governance/governance_amendment": {
@@ -636,6 +688,58 @@
           "invariants": []
         },
         "x-capability-required": "governance.proposal.create"
+      }
+    },
+    "/api/v1/governance/proposal": {
+      "post": {
+        "operationId": "governance_proposal_implement",
+        "summary": "governance.proposal.implement",
+        "description": "Command governance.proposal.implement requiring capability governance.proposal.approve",
+        "tags": [
+          "governance"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": []
+        },
+        "x-capability-required": "governance.proposal.approve"
       }
     },
     "/api/v1/identity/actor": {
@@ -1210,6 +1314,58 @@
         "x-capability-required": "ledger.reconcile"
       }
     },
+    "/api/v1/payment/execution": {
+      "post": {
+        "operationId": "payment_execution_prepare",
+        "summary": "payment.execution.prepare",
+        "description": "Command payment.execution.prepare requiring capability payment.execution.plan",
+        "tags": [
+          "payment"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": []
+        },
+        "x-capability-required": "payment.execution.plan"
+      }
+    },
     "/api/v1/payment/payment_request": {
       "post": {
         "operationId": "payment_payment_request_create",
@@ -1678,6 +1834,58 @@
         "x-capability-required": "policy.set.evaluate"
       }
     },
+    "/api/v1/saga/saga_execution": {
+      "post": {
+        "operationId": "saga_saga_execution_compensate",
+        "summary": "saga.compensate",
+        "description": "Command saga.compensate requiring capability system.internal",
+        "tags": [
+          "saga"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": []
+        },
+        "x-capability-required": "system.internal"
+      }
+    },
     "/api/v1/treasury/liquidity_position": {
       "post": {
         "operationId": "treasury_liquidity_position_check",
@@ -1836,9 +2044,9 @@
     },
     "/api/v1/vault/asset": {
       "post": {
-        "operationId": "vault_asset_verify",
-        "summary": "vault.asset.verify",
-        "description": "Command vault.asset.verify requiring capability vault.asset.verify",
+        "operationId": "vault_asset_request",
+        "summary": "vault.transfer.request",
+        "description": "Command vault.transfer.request requiring capability vault.reserve.create",
         "tags": [
           "vault"
         ],
@@ -1883,7 +2091,7 @@
           "capability_required": true,
           "invariants": []
         },
-        "x-capability-required": "vault.asset.verify"
+        "x-capability-required": "vault.reserve.create"
       }
     },
     "/api/v1/vault/collateral": {
@@ -1990,6 +2198,58 @@
         "x-capability-required": "vault.reserve.release"
       }
     },
+    "/api/v1/vault/transaction": {
+      "post": {
+        "operationId": "vault_transaction_fund",
+        "summary": "vault.transaction.fund",
+        "description": "Command vault.transaction.fund requiring capability vault.reserve.create",
+        "tags": [
+          "vault"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": []
+        },
+        "x-capability-required": "vault.reserve.create"
+      }
+    },
     "/api/v1/vault/valuation": {
       "post": {
         "operationId": "vault_valuation_update",
@@ -2054,6 +2314,6 @@
     "schemas": {}
   },
   "x-compiler-version": "0.2.0-kernel-working",
-  "x-ir-hash": "8afe8f350045a1aa2d04cce92e88032eda404f490ac3cf35feec197f76e886cd",
+  "x-ir-hash": "6e689fa100324678142f63601f72a1808662b894a9d89fab0859e80ceaecbad1",
   "x-generated": "SOVR generated file — do not edit"
 }

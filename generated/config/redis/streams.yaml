@@ -1,7 +1,14 @@
 # SOVR GENERATED — Redis Streams
-# hash a2dcff60d78509ae5285caba833f1a07e1301760293eb97cbbc429504f74e809
+# hash da612466f59f3831cb932842174efa79281b85f32a22cecd22f3ae61b8750383
 {
   "streams": [
+    {
+      "stream": "sovr:stream:agent:agent_instance",
+      "consumer_group": "sovr-agent-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "agent.quota.checked"
+    },
     {
       "stream": "sovr:stream:agent:capability_binding",
       "consumer_group": "sovr-agent-service",
@@ -56,7 +63,7 @@
       "consumer_group": "sovr-governance-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "governance.escalation.expired"
+      "event": "escalation.notification.failed"
     },
     {
       "stream": "sovr:stream:governance:governance_amendment",
@@ -171,6 +178,13 @@
       "event": "ledger.reconciliation.completed"
     },
     {
+      "stream": "sovr:stream:payment:execution",
+      "consumer_group": "sovr-payment-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "payment.execution.compensated"
+    },
+    {
       "stream": "sovr:stream:payment:execution_plan",
       "consumer_group": "sovr-payment-service",
       "max_length": 100000,
@@ -225,6 +239,27 @@
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
       "event": "policy.compliance.violation.detected"
+    },
+    {
+      "stream": "sovr:stream:policy:policy_escalation",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.escalation.cancel"
+    },
+    {
+      "stream": "sovr:stream:policy:policy_evaluation",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.evaluation.active_operation_blocked"
+    },
+    {
+      "stream": "sovr:stream:policy:policy_rule",
+      "consumer_group": "sovr-policy-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "policy.rule.activation_failed"
     },
     {
       "stream": "sovr:stream:policy:rule",
@@ -288,6 +323,13 @@
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
       "event": "vault.reserve.created"
+    },
+    {
+      "stream": "sovr:stream:vault:transaction",
+      "consumer_group": "sovr-vault-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "vault.transaction.closed"
     },
     {
       "stream": "sovr:stream:vault:valuation",

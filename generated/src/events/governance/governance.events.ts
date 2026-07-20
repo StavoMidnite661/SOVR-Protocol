@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:governance
-// Hash: 99094f4e0c91d6e627079ffd76a0f460ec1cb4698155ff6f4f380e3cd57f3480
+// Hash: e75ede70b21b23d8b7bd510107e40c7d0181a3f401f648a5762ee1969c411361
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -16,6 +16,30 @@
 
 // Domain: governance — Events
 import { EventEnvelope } from '../../events/event-envelope.js';
+
+export class EscalationNotificationFailedEvent {
+  static readonly eventName = 'escalation.notification.failed' as const;
+  static readonly aggregate = 'escalation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class EscalationNotificationSentEvent {
+  static readonly eventName = 'escalation.notification.sent' as const;
+  static readonly aggregate = 'escalation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class EscalationResolutionNotificationSentEvent {
+  static readonly eventName = 'escalation.resolution.notification.sent' as const;
+  static readonly aggregate = 'escalation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
 
 export class GovernanceAmendmentProposalFailedEvent {
   static readonly eventName = 'governance.amendment.proposal_failed' as const;
@@ -147,6 +171,14 @@ export class GovernanceEscalationResolutionFailedEvent {
 
 export class GovernanceEscalationResolvedEvent {
   static readonly eventName = 'governance.escalation.resolved' as const;
+  static readonly aggregate = 'escalation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceEscalationSubmissionFailedEvent {
+  static readonly eventName = 'governance.escalation.submission_failed' as const;
   static readonly aggregate = 'escalation' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };

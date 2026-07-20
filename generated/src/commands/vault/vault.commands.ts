@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 03_command-catalog.yaml:vault
-// Hash: a02aecf7ec12d15bdff1ca53114510c037cb95ff62b09a1d4c5596298090530a
+// Hash: cb2f27f10a0acdc94f51197ff56c2eeb6f30dd612f5494ce39fdcde39cefe54e
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -105,6 +105,24 @@ export const VaultAssetVerifyCommandSchema = z.object({
   verificationMethod: z.unknown(),
 });
 
+export class VaultAssetWriteDownCommand {
+  static readonly commandName = 'vault.asset.write_down' as const;
+  static readonly capability = 'vault.asset.impair' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    assetId: unknown;
+    writeDownAmount: unknown;
+    reason: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const VaultAssetWriteDownCommandSchema = z.object({
+  assetId: z.unknown(),
+  writeDownAmount: z.unknown(),
+  reason: z.unknown(),
+});
+
 export class VaultCollateralAddCommand {
   static readonly commandName = 'vault.collateral.add' as const;
   static readonly capability = 'vault.collateral.create' as const;
@@ -157,6 +175,24 @@ export const VaultCollateralRevalueCommandSchema = z.object({
   newValuation: z.unknown(),
   valuationSource: z.unknown(),
   valuationSourceType: z.unknown(),
+});
+
+export class VaultOwnershipTransferCommand {
+  static readonly commandName = 'vault.ownership.transfer' as const;
+  static readonly capability = 'vault.asset.verify' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    assetId: unknown;
+    currentOwnerId: unknown;
+    newOwnerId: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const VaultOwnershipTransferCommandSchema = z.object({
+  assetId: z.unknown(),
+  currentOwnerId: z.unknown(),
+  newOwnerId: z.unknown(),
 });
 
 export class VaultReserveCreateCommand {
@@ -223,6 +259,92 @@ export class VaultReserveReleaseCommand {
 export const VaultReserveReleaseCommandSchema = z.object({
   reservationId: z.unknown(),
   reason: z.unknown(),
+});
+
+export class VaultTransactionAuthorizeReleaseCommand {
+  static readonly commandName = 'vault.transaction.authorize_release' as const;
+  static readonly capability = 'vault.reserve.lock' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    transactionId: unknown;
+    authorizationCode: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const VaultTransactionAuthorizeReleaseCommandSchema = z.object({
+  transactionId: z.unknown(),
+  authorizationCode: z.unknown(),
+});
+
+export class VaultTransactionCancelCommand {
+  static readonly commandName = 'vault.transaction.cancel' as const;
+  static readonly capability = 'vault.reserve.release' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    transactionId: unknown;
+    reason: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const VaultTransactionCancelCommandSchema = z.object({
+  transactionId: z.unknown(),
+  reason: z.unknown(),
+});
+
+export class VaultTransactionDisburseCommand {
+  static readonly commandName = 'vault.transaction.disburse' as const;
+  static readonly capability = 'vault.reserve.consume' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    transactionId: unknown;
+    destinationAccountId: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const VaultTransactionDisburseCommandSchema = z.object({
+  transactionId: z.unknown(),
+  destinationAccountId: z.unknown(),
+});
+
+export class VaultTransactionFundCommand {
+  static readonly commandName = 'vault.transaction.fund' as const;
+  static readonly capability = 'vault.reserve.create' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    transactionId: unknown;
+    amount: unknown;
+    assetId: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const VaultTransactionFundCommandSchema = z.object({
+  transactionId: z.unknown(),
+  amount: z.unknown(),
+  assetId: z.unknown(),
+});
+
+export class VaultTransferRequestCommand {
+  static readonly commandName = 'vault.transfer.request' as const;
+  static readonly capability = 'vault.reserve.create' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    sourceAccountId: unknown;
+    targetAccountId: unknown;
+    amount: unknown;
+    assetId: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const VaultTransferRequestCommandSchema = z.object({
+  sourceAccountId: z.unknown(),
+  targetAccountId: z.unknown(),
+  amount: z.unknown(),
+  assetId: z.unknown(),
 });
 
 export class VaultValuationUpdateCommand {

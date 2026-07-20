@@ -441,7 +441,7 @@ SOVR interfaces with external systems it does not own:
 
 ## 📋 Command Catalog
 
-**88 commands** across 9 domains, each with:
+**101 commands** across 9 domains, each with:
 
 - **Aggregate** — The entity being operated on
 - **Issuer** — Who can execute (actor types + minimum capability)
@@ -461,7 +461,7 @@ Identity Verification → Capability Check → Scope Validation → Policy Evalu
 
 ## 📡 Event Catalog
 
-**179 events** across 9 domains + kernel events. Every event includes the **mandatory event envelope** (21 fields):
+**251 events** across 9 domains + kernel events. Every event includes the **mandatory event envelope** (21 fields):
 
 ```
 event_id, event_name, event_version, aggregate, aggregate_id, source_domain,
@@ -644,7 +644,7 @@ SOVR implements an **8-runlevel boot sequence** modeled after Linux:
 | **4** | Load LSM/SELinux | `SECURITY_SUBSYSTEM` | Identity, Policy, Intent, Agent |
 | **5** | Load drivers | `EXECUTION_BOUNDARY` | Payment 12 rails, Hybrid 4 chains, 5 oracles |
 | **6** | Mount /proc | `INTERPRETATION` | Projection engine, 15 read models rebuilt from genesis |
-| **7** | systemd → graphical | `USERLAND` | Runtime SDK, OpenAPI 88 endpoints, boot attestation |
+| **7** | systemd → graphical | `USERLAND` | Runtime SDK, OpenAPI 101 endpoints, boot attestation |
 
 ### Boot Attestation
 
@@ -769,8 +769,8 @@ SOVR-Protocol/
 │   ├── 00_protocol-manifest.yaml      ← Entry point: layers, domains, build phases
 │   ├── 01_constitution.yaml           ← Supreme law: invariants, authority, enforcement
 │   ├── 02_domain-model.yaml           ← 50+ entities across 9 domains
-│   ├── 03_command-catalog.yaml         ← 88 commands with validation rules
-│   ├── 04_event-catalog.yaml           ← 179 events with full envelope
+│   ├── 03_command-catalog.yaml         ← 101 commands with validation rules
+│   ├── 04_event-catalog.yaml           ← 251 events with full envelope
 │   ├── 05_state-machines.yaml          ← 21 state machines
 │   ├── 08_security-capabilities.yaml   ← 107 capabilities + scope language
 │   ├── 09_saga-orchestration.yaml      ← Saga definitions + compensation
@@ -991,8 +991,8 @@ const transfer = await client.execute('treasury.transfer.request', {
 | Invariant Tests | INV-001 through INV-010 |
 | Saga Tests | All saga orchestration flows |
 | State Machine Tests | All 21 state machines |
-| Command Tests | All 88 commands |
-| Event Tests | All 179 events |
+| Command Tests | All 101 commands |
+| Event Tests | All 251 events |
 | Policy Tests | Policy evaluation engine |
 | Capability Tests | 107 capabilities |
 | Projection Tests | 15 read models |
@@ -1034,9 +1034,11 @@ All critical findings from the audit have been resolved:
 |:------|:-------|:-----------|
 | YAML parse failures (2 files) | ✅ FIXED | Fixed indentation in `EVENT_NAMING_STANDARD.yaml` and `EVENT_ORPHAN_REPORT.yaml` — **212/212 files parse OK** |
 | Missing meta blocks (9 files) | ✅ FIXED | Added `meta:` blocks to all 9 root YAML files per METADATA_STANDARD |
-| Missing failure events (27+) | ✅ FIXED | Added 38 failure events to event catalog — **217 total events, 0 reference gaps** |
-| Compiler not reading YAML | ✅ FIXED | ProtocolParser now reads all 38 YAML files, builds IR with 489 nodes/351 edges |
-| Placeholder build hash | ✅ FIXED | Real SHA256 build hash: `79e35b4b...` with R1-R10 reproducibility |
+| Missing failure events (27+) | ✅ FIXED | Added all missing failure and transaction events — **251 total events, 0 reference gaps** |
+| State machine missing commands (13) | ✅ FIXED | Defined all 13 referenced commands (`vault.transaction.fund`, etc.) — **101 total commands** |
+| Compiler validation exceptions | ✅ FIXED | Removed hardcoded whitelist bypasses from `validate.ts` — 100% strict verification |
+| Compiler not reading YAML | ✅ FIXED | ProtocolParser now reads all 38 YAML files, builds IR with 536 nodes/404 edges |
+| Placeholder build hash | ✅ FIXED | Real SHA256 build hash: `727adee2...` with R1-R10 reproducibility |
 | CI referencing nonexistent scripts | ✅ FIXED | Both workflows updated to use actual compiler commands |
 | Boot attestation chain | ✅ FIXED | Full 8-runlevel boot with cryptographic attestation |
 
@@ -1045,11 +1047,13 @@ All critical findings from the audit have been resolved:
 | Metric | Value |
 |:-------|:------|
 | YAML files parsing | **212/212** (100%) |
+| Command catalog completeness | **101 commands** (100% gated & validated) |
+| Event catalog completeness | **251 events** (100% referenced & resolved) |
 | Compiler diagnostics | **0 errors, 0 warnings** |
-| IR nodes | **489** |
-| IR edges | **351** |
-| Generated artifacts | **42 files** |
-| Byte-identical reproducibility | ✅ **Verified** |
+| IR nodes | **536** |
+| IR edges | **404** |
+| Generated artifacts | **36 outputs + 6 config/boot files = 42 files** |
+| Byte-identical reproducibility | ✅ **Verified** (`727adee2a29231c5935f0cb865fbdd5928ea03bd99618b908723f8578d0d8d44`) |
 | Boot sequence | **8/8 runlevels HEALTHY** |
 | Boot attestation | ✅ **build_hash matches compiler-manifest** |
 
@@ -1107,8 +1111,8 @@ Proprietary — All rights reserved.
   <img src="https://img.shields.io/badge/Constitution-v1.0.0-blue?style=flat-square" alt="Constitution v1.0.0" />
   <img src="https://img.shields.io/badge/Build_Phase-J_COMPLETE-green?style=flat-square" alt="Phase J Complete" />
   <img src="https://img.shields.io/badge/Domains-9-purple?style=flat-square" alt="9 Domains" />
-  <img src="https://img.shields.io/badge/Commands-88-orange?style=flat-square" alt="88 Commands" />
-  <img src="https://img.shields.io/badge/Events-179-yellow?style=flat-square" alt="179 Events" />
+  <img src="https://img.shields.io/badge/Commands-101-orange?style=flat-square" alt="101 Commands" />
+  <img src="https://img.shields.io/badge/Events-251-yellow?style=flat-square" alt="251 Events" />
   <img src="https://img.shields.io/badge/Invariants-10-critical?style=flat-square" alt="10 Invariants" />
   <img src="https://img.shields.io/badge/State_Machines-21-informational?style=flat-square" alt="21 State Machines" />
 </p>

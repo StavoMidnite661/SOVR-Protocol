@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:agent
-// Hash: 57211e25a7efea31784f4b572f0510c42faa27609ec95e3610b4da1c8cf8b087
+// Hash: 3c6604b2bd5e687a6ab0af30450e9bd6b8437baf3133592b681912dce9896c64
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -89,6 +89,14 @@ export class AgentGovernanceOverrideIssuedEvent {
   }
 }
 
+export class AgentQuotaCheckedEvent {
+  static readonly eventName = 'agent.quota.checked' as const;
+  static readonly aggregate = 'agent_instance' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class AgentQuotaExceededEvent {
   static readonly eventName = 'agent.quota.exceeded' as const;
   static readonly aggregate = 'instance' as const;
@@ -132,6 +140,14 @@ export class AgentSuspendedEvent {
 export class AgentTerminatedEvent {
   static readonly eventName = 'agent.terminated' as const;
   static readonly aggregate = 'instance' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class AgentTerminationFailedEvent {
+  static readonly eventName = 'agent.termination_failed' as const;
+  static readonly aggregate = 'agent_instance' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
   }

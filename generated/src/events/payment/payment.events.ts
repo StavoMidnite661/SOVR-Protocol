@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:payment
-// Hash: 13523d32373d9aafb91e6cc1ac380df5d3820dba4cf6352f733e039fb6cc2c0e
+// Hash: 86a4ad7701e072c6e95fb5f581a364394fc3b2e0075b17dc1de6beac60cb9963
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -44,6 +44,22 @@ export class PaymentCompensationStartedEvent {
 export class PaymentCompensationTimedOutEvent {
   static readonly eventName = 'payment.compensation.timed_out' as const;
   static readonly aggregate = 'payment_request' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class PaymentExecutionCompensatedEvent {
+  static readonly eventName = 'payment.execution.compensated' as const;
+  static readonly aggregate = 'execution' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class PaymentExecutionCompensationFailedEvent {
+  static readonly eventName = 'payment.execution.compensation_failed' as const;
+  static readonly aggregate = 'execution' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
   }

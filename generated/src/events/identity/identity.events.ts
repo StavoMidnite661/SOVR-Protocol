@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:identity
-// Hash: ecb70fc82afc86b4dc4d865bea50a8ee7bea0e960318ab3deefd23bcd35bf1af
+// Hash: d44671881f76def984a60bf158fa31860147b8b791bffa39d302dd5baa4de1ba
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -105,6 +105,54 @@ export class IdentityAuthenticationSucceededEvent {
   }
 }
 
+export class IdentityAuthorityAllowedEvent {
+  static readonly eventName = 'identity.authority.allowed' as const;
+  static readonly aggregate = 'actor' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class IdentityAuthorityDeniedEvent {
+  static readonly eventName = 'identity.authority.denied' as const;
+  static readonly aggregate = 'actor' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class IdentityAuthorityDeterminationNotificationSentEvent {
+  static readonly eventName = 'identity.authority.determination.notification.sent' as const;
+  static readonly aggregate = 'actor' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class IdentityAuthorityFlaggedUnknownEvent {
+  static readonly eventName = 'identity.authority.flagged_unknown' as const;
+  static readonly aggregate = 'actor' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class IdentityAuthorityMarkedUnknownEvent {
+  static readonly eventName = 'identity.authority.marked_unknown' as const;
+  static readonly aggregate = 'actor' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class IdentityAuthorityUnknownEvent {
+  static readonly eventName = 'identity.authority.unknown' as const;
+  static readonly aggregate = 'actor' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class IdentityCredentialExpiredEvent {
   static readonly eventName = 'identity.credential.expired' as const;
   static readonly aggregate = 'credential' as const;
@@ -187,6 +235,14 @@ export class IdentityDelegationRevocationFailedEvent {
 
 export class IdentityDelegationRevokedEvent {
   static readonly eventName = 'identity.delegation.revoked' as const;
+  static readonly aggregate = 'delegation' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class IdentityDelegationVerifiedEvent {
+  static readonly eventName = 'identity.delegation.verified' as const;
   static readonly aggregate = 'delegation' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };

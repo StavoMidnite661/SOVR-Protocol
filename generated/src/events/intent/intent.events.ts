@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.2.0-kernel-working
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:intent
-// Hash: 2e8c7d77485d3cdd3526758b768c5d62726c4e5755ebad6fb7caa5439b6a9edf
+// Hash: c84961f3eb8a911955b2cea3426d4fa26b28a74de14811e8d51c87164aed52ac
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -113,8 +113,40 @@ export class IntentReceivedEvent {
   }
 }
 
+export class IntentRejectedEvent {
+  static readonly eventName = 'intent.rejected' as const;
+  static readonly aggregate = 'intent' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class IntentResumedEvent {
+  static readonly eventName = 'intent.resumed' as const;
+  static readonly aggregate = 'intent' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class IntentSubmittedEvent {
+  static readonly eventName = 'intent.submitted' as const;
+  static readonly aggregate = 'intent' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class IntentValidatedEvent {
   static readonly eventName = 'intent.validated' as const;
+  static readonly aggregate = 'intent' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class IntentValidationFailedEvent {
+  static readonly eventName = 'intent.validation_failed' as const;
   static readonly aggregate = 'intent' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };

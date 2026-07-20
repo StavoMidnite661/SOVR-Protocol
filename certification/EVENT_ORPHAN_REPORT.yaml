@@ -11,8 +11,8 @@
 
 meta:
   schema_version: "1.0.0"
-  generated_at: "2026-07-18"
-  status: DRAFT
+  generated_at: "2026-07-20"
+  status: RESOLVED
   phase: "XIV-E.1"
   source_files:
     - 04_event-catalog.yaml

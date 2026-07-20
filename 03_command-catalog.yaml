@@ -3574,3 +3574,360 @@ commands:
       policy_required: true
       capability_required: true
       invariants: []
+
+  vault.transaction.fund:
+    aggregate: transaction
+    source_domain: vault
+    version: 1.0.0
+    description: Request funding reservation for a vault transaction
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: vault.reserve.create
+    authorization_requirements:
+      identity: required
+      capability: vault.reserve.create
+    validation_rules:
+      - rule: transaction_must_exist
+        check: transaction.state == CREATED
+        on_failure: REJECT
+    required_payload:
+      - transaction_id
+      - amount
+      - asset_id
+    resulting_events:
+      success: [vault.transaction.funding_requested]
+      failure: [vault.transaction.failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.transaction.cancel:
+    aggregate: transaction
+    source_domain: vault
+    version: 1.0.0
+    description: Cancel a pending vault transaction and release reservations
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: vault.reserve.release
+    authorization_requirements:
+      identity: required
+      capability: vault.reserve.release
+    validation_rules:
+      - rule: transaction_must_be_cancellable
+        check: transaction.state != DISBURSED and transaction.state != CLOSED
+        on_failure: REJECT
+    required_payload:
+      - transaction_id
+      - reason
+    resulting_events:
+      success: [vault.transaction.failed]
+      failure: []
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.transaction.authorize_release:
+    aggregate: transaction
+    source_domain: vault
+    version: 1.0.0
+    description: Authorize release of reserved funds for a transaction
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: vault.reserve.lock
+    authorization_requirements:
+      identity: required
+      capability: vault.reserve.lock
+    validation_rules:
+      - rule: transaction_must_be_funded
+        check: transaction.state == FUNDED or transaction.state == RELEASE_PENDING
+        on_failure: REJECT
+    required_payload:
+      - transaction_id
+      - authorization_code
+    resulting_events:
+      success: [vault.transaction.release_pending, vault.transaction.release_authorized]
+      failure: [vault.transaction.failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.transaction.disburse:
+    aggregate: transaction
+    source_domain: vault
+    version: 1.0.0
+    description: Disburse authorized transaction value to destination account
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: vault.reserve.consume
+    authorization_requirements:
+      identity: required
+      capability: vault.reserve.consume
+    validation_rules:
+      - rule: transaction_must_be_authorized
+        check: transaction.state == RELEASE_AUTHORIZED
+        on_failure: REJECT
+    required_payload:
+      - transaction_id
+      - destination_account_id
+    resulting_events:
+      success: [vault.transaction.disbursed, vault.transaction.closed]
+      failure: [vault.transaction.failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.transfer.request:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: Request internal value transfer between vault accounts
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: vault.reserve.create
+    authorization_requirements:
+      identity: required
+      capability: vault.reserve.create
+    validation_rules:
+      - rule: source_must_have_balance
+        check: source_account.available_balance >= amount
+        on_failure: REJECT
+    required_payload:
+      - source_account_id
+      - target_account_id
+      - amount
+      - asset_id
+    resulting_events:
+      success: [vault.reserve.created]
+      failure: [vault.reserve.creation_failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.ownership.transfer:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: Transfer ownership of a registered vault asset to a new identity
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: vault.asset.verify
+    authorization_requirements:
+      identity: required
+      capability: vault.asset.verify
+    validation_rules:
+      - rule: asset_must_be_verified
+        check: asset.state == VERIFIED or asset.state == AVAILABLE
+        on_failure: REJECT
+    required_payload:
+      - asset_id
+      - current_owner_id
+      - new_owner_id
+    resulting_events:
+      success: [vault.asset.verified]
+      failure: [vault.asset.verification_failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  vault.asset.write_down:
+    aggregate: asset
+    source_domain: vault
+    version: 1.0.0
+    description: Write down valuation or impair a verified vault asset
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: vault.asset.impair
+    authorization_requirements:
+      identity: required
+      capability: vault.asset.impair
+    validation_rules:
+      - rule: asset_must_exist
+        check: asset.state != REGISTERED
+        on_failure: REJECT
+    required_payload:
+      - asset_id
+      - write_down_amount
+      - reason
+    resulting_events:
+      success: [vault.asset.rejected]
+      failure: [vault.asset.verification_failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.proposal.implement:
+    aggregate: proposal
+    source_domain: governance
+    version: 1.0.0
+    description: Implement an approved constitutional or operational proposal
+    issuer:
+      actor_types: [human, governance, system]
+      minimum_capability: governance.proposal.approve
+    authorization_requirements:
+      identity: required
+      capability: governance.proposal.approve
+    validation_rules:
+      - rule: proposal_must_be_approved
+        check: proposal.state == APPROVED
+        on_failure: REJECT
+    required_payload:
+      - proposal_id
+      - implementation_hash
+    resulting_events:
+      success: [governance.proposal.approved]
+      failure: [governance.proposal.rejection_failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  governance.proposal.cancel:
+    aggregate: proposal
+    source_domain: governance
+    version: 1.0.0
+    description: Cancel a proposal prior to implementation
+    issuer:
+      actor_types: [human, governance, system]
+      minimum_capability: governance.proposal.reject
+    authorization_requirements:
+      identity: required
+      capability: governance.proposal.reject
+    validation_rules:
+      - rule: proposal_must_not_be_implemented
+        check: proposal.state != IMPLEMENTED
+        on_failure: REJECT
+    required_payload:
+      - proposal_id
+      - cancellation_reason
+    resulting_events:
+      success: [governance.proposal.rejected]
+      failure: [governance.proposal.rejection_failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  agent.suspend:
+    aggregate: agent_instance
+    source_domain: agent
+    version: 1.0.0
+    description: Suspend an active agent instance due to governance override or quota breach
+    issuer:
+      actor_types: [human, governance, system]
+      minimum_capability: agent.governance.override
+    authorization_requirements:
+      identity: required
+      capability: agent.governance.override
+    validation_rules:
+      - rule: agent_must_be_active_or_executing
+        check: agent.state == ACTIVE or agent.state == EXECUTING
+        on_failure: REJECT
+    required_payload:
+      - agent_id
+      - suspension_reason
+    resulting_events:
+      success: [agent.terminated]
+      failure: [agent.termination_failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.execution.prepare:
+    aggregate: execution
+    source_domain: payment
+    version: 1.0.0
+    description: Prepare payment adapter and reserve rail bandwidth for execution
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: payment.execution.plan
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.plan
+    validation_rules:
+      - rule: payment_request_must_be_approved
+        check: payment_request.state == APPROVED
+        on_failure: REJECT
+    required_payload:
+      - execution_id
+      - rail_id
+      - amount
+    resulting_events:
+      success: [payment.execution.planned]
+      failure: [payment.execution.planning_failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  payment.adapter.disable:
+    aggregate: execution
+    source_domain: payment
+    version: 1.0.0
+    description: Disable a failing or non-compliant payment rail adapter
+    issuer:
+      actor_types: [human, governance, system]
+      minimum_capability: payment.execution.compensate
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.compensate
+    validation_rules:
+      - rule: adapter_must_be_registered
+        check: adapter.registered == true
+        on_failure: REJECT
+    required_payload:
+      - adapter_id
+      - disable_reason
+    resulting_events:
+      success: [payment.request.cancelled]
+      failure: [payment.execution.compensation_failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []
+
+  saga.compensate:
+    aggregate: saga_execution
+    source_domain: payment
+    version: 1.0.0
+    description: Trigger saga compensation rollback across participating domains
+    issuer:
+      actor_types: [system]
+      minimum_capability: system.internal
+    authorization_requirements:
+      identity: required
+      capability: system.internal
+    validation_rules:
+      - rule: saga_must_be_failed_or_cancelling
+        check: saga.state == FAILED or saga.state == CANCELLING
+        on_failure: REJECT
+    required_payload:
+      - saga_id
+      - failed_step_id
+    resulting_events:
+      success: [payment.execution.compensated]
+      failure: [payment.execution.compensation_failed]
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: []

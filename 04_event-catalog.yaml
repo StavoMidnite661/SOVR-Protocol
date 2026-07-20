@@ -6486,3 +6486,708 @@ events:
         type: string
       failed_at:
         type: timestamp
+
+  vault.transaction.created:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction created in vault
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      created_at:
+        type: timestamp
+  vault.transaction.funding_requested:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction funding requested
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      requested_at:
+        type: timestamp
+  vault.transaction.funding_pending:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction funding pending reservation
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      pending_at:
+        type: timestamp
+  vault.transaction.funded:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction funded via reservation lock
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      funded_at:
+        type: timestamp
+  vault.transaction.release_pending:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction release authorization pending
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      pending_at:
+        type: timestamp
+  vault.transaction.release_authorized:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction release authorized
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      authorized_at:
+        type: timestamp
+  vault.transaction.disbursed:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction funds disbursed to target
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      disbursed_at:
+        type: timestamp
+  vault.transaction.closed:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction lifecycle closed and settled
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      closed_at:
+        type: timestamp
+  vault.transaction.failed:
+    aggregate: transaction
+    aggregate_id_field: transaction_id
+    source_domain: vault
+    version: 1.0.0
+    description: Transaction cancelled or failed during lifecycle
+    producer: vault_service
+    consumers:
+      - ledger_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      transaction_id:
+        type: string
+      failed_at:
+        type: timestamp
+
+  vault.asset.verification_failed:
+    aggregate: asset
+    aggregate_id_field: asset_id
+    source_domain: vault
+    version: 1.0.0
+    description: Vault asset verification or ownership transfer failed
+    producer: vault_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      asset_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  agent.termination_failed:
+    aggregate: agent_instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: Agent termination or suspension failed
+    producer: agent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      agent_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+  payment.execution.compensated:
+    aggregate: execution
+    aggregate_id_field: execution_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment execution compensated after saga failure
+    producer: payment_service
+    consumers:
+      - treasury_projection
+      - audit_projection
+    guarantees:
+      - "INV-001: value conservation"
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      execution_id:
+        type: string
+      compensated_at:
+        type: timestamp
+  payment.execution.compensation_failed:
+    aggregate: execution
+    aggregate_id_field: execution_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment execution compensation failed
+    producer: payment_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      execution_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  identity.delegation.verified:
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: Identity delegation verified during check
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      delegation_id:
+        type: string
+      verified_at:
+        type: timestamp
+
+  identity.authority.unknown:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority level unknown for actor
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      flagged_at:
+        type: timestamp
+
+  identity.authority.flagged_unknown:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority flagged as unknown for escalation
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      flagged_at:
+        type: timestamp
+
+  identity.authority.allowed:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority level allowed after evaluation
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      allowed_at:
+        type: timestamp
+
+  identity.authority.denied:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority level denied during evaluation
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      denied_at:
+        type: timestamp
+
+  identity.authority.marked_unknown:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Authority explicitly marked unknown
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      marked_at:
+        type: timestamp
+
+  identity.authority.determination.notification.sent:
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: Notification sent regarding authority determination
+    producer: identity_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      identity_id:
+        type: string
+      sent_at:
+        type: timestamp
+
+  agent.quota.checked:
+    aggregate: agent_instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: Agent quota usage and concurrency limits checked
+    producer: agent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      agent_id:
+        type: string
+      checked_at:
+        type: timestamp
+
+  policy.rule.creation_failed:
+    aggregate: policy_rule
+    aggregate_id_field: policy_rule_id
+    source_domain: policy
+    version: 1.0.0
+    description: Policy rule creation failed validation
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      policy_rule_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  policy.rule.activation_failed:
+    aggregate: policy_rule
+    aggregate_id_field: policy_rule_id
+    source_domain: policy
+    version: 1.0.0
+    description: Policy rule activation failed verification
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      policy_rule_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  policy.escalation.cancel:
+    aggregate: policy_escalation
+    aggregate_id_field: escalation_id
+    source_domain: policy
+    version: 1.0.0
+    description: Policy escalation cancelled
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      cancelled_at:
+        type: timestamp
+
+  policy.evaluation.active_operation_blocked:
+    aggregate: policy_evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    description: Operation blocked by active policy evaluation rule
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      evaluation_id:
+        type: string
+      blocked_at:
+        type: timestamp
+
+  policy.escalation.expired:
+    aggregate: policy_escalation
+    aggregate_id_field: escalation_id
+    source_domain: policy
+    version: 1.0.0
+    description: Policy escalation window expired without resolution
+    producer: policy_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      expired_at:
+        type: timestamp
+
+  governance.escalation.submission_failed:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: Escalation submission failed governance intake
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  escalation.notification.sent:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: Escalation notification dispatched
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      sent_at:
+        type: timestamp
+
+  escalation.notification.failed:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: Escalation notification delivery failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      failed_at:
+        type: timestamp
+
+  escalation.resolution.notification.sent:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: governance
+    version: 1.0.0
+    description: Escalation resolution notification dispatched
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      escalation_id:
+        type: string
+      sent_at:
+        type: timestamp
+
+  intent.rejected:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent rejected during intake or enrichment
+    producer: intent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      intent_id:
+        type: string
+      reason:
+        type: string
+      rejected_at:
+        type: timestamp
+
+  intent.validation_failed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent validation failed policy rules
+    producer: intent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      intent_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  intent.submitted:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent submitted by external client or agent
+    producer: intent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      intent_id:
+        type: string
+      submitted_at:
+        type: timestamp
+
+  intent.resumed:
+    aggregate: intent
+    aggregate_id_field: intent_id
+    source_domain: intent
+    version: 1.0.0
+    description: Intent evaluation resumed after escalation resolution
+    producer: intent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      intent_id:
+        type: string
+      resumed_at:
+        type: timestamp
