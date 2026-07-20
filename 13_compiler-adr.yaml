@@ -21,8 +21,8 @@ meta:
   supersedes: []
   compiler_target_version: "1.0.0"
   protocol_version: "1.0.0"
-  decision_count: 12
-  total_alternatives_considered: 32
+  decision_count: 17
+  total_alternatives_considered: 42
 
 # ============================================================
 # DECISION 1 — COMPILER IMPLEMENTATION LANGUAGE
@@ -993,6 +993,68 @@ decisions:
       - manifest_timing: "Compiler Manifest written after GENERATE, using CANONICAL_PIR hash"
     constitutional_alignment: Pipeline enforces INV-008 (gates) at compile time
 
+  - id: ADR-COMP-013
+    category: verification
+    question: How does the compiler mathematically verify protocol state machines and sagas?
+    decision: Compile state machines and sagas to model-checkable TLA+ specifications
+    rationale: >
+      Testing alone cannot prove the absence of deadlocks, unreachable states,
+      or compensation gaps in highly asynchronous sagas. By compiling the state
+      machines to TLA+, we enable formal mathematical verification and automated
+      model-checking via TLC.
+    implications:
+      - tla_verification: "Generate model-checkable .tla modules under verification/tla/"
+    constitutional_alignment: INV-009 (explicit states), INV-007 (safety over speed)
+
+  - id: ADR-COMP-014
+    category: security
+    question: How are validation rules evaluated deterministically without code injection risks?
+    decision: Turing-incomplete, sandboxed Validation Expression Language (VEL) interpreter
+    rationale: >
+      Evaluating user/agent written validation expressions requires absolute security and
+      determinism. Using a Turing-incomplete custom VEL evaluator ensures no code injection,
+      infinite loops, or prototype pollution can break the kernel runtime.
+    implications:
+      - vel_evaluation: "Pure-function, side-effect-free AST rule engine"
+    constitutional_alignment: INV-008 (enforcement gates), INV-010 (no autonomous bypass)
+
+  - id: ADR-COMP-015
+    category: runtime
+    question: How are constitutional invariants actively enforced on the hot-path?
+    decision: Intercepting Guardrail Command Bus executing isolated transaction dry-runs
+    rationale: >
+      Instead of relying on handwritten code to maintain constitutional principles,
+      the runtime implements an active Guardrail Command Bus that performs isolated
+      pre-check dry-runs. It verifies INV-001 (event immutability) and INV-002
+      (double-entry balance) before committing state mutations.
+    implications:
+      - guardrail_bus: "Pre-check sandbox interceptor inside execution pipeline"
+    constitutional_alignment: INV-001, INV-002, INV-003, INV-004, INV-005, INV-008, INV-010
+
+  - id: ADR-COMP-016
+    category: security
+    question: How is autonomous AI agent behavior constrained and audited?
+    decision: LLM-auditable AgentGovernor Sandbox with human-in-the-loop triggers
+    rationale: >
+      To protect financial integrity from autonomous AI agent actions, the SDK
+      enforces an AgentGovernor Sandbox. It wraps all agent executions, tracks quota limits,
+      records LLM prompt hashes, and triggers mandatory human escalations at 90% thresholds.
+    implications:
+      - agent_governor: "Quota tracking, prompt-hashed audit logs, escalation triggers"
+    constitutional_alignment: INV-004 (agent authority prohibition), INV-010 (no autonomous bypass)
+
+  - id: ADR-COMP-017
+    category: transparency
+    question: How is the complete compiled graph lineage mapped and audited?
+    decision: Interactive Lineage Graph and Protocol Topology Catalog
+    rationale: >
+      Auditors and compliance officers need direct, interactive visibility into how
+      entities, commands, events, and capabilities link. The compiler produces a unified
+      graph topology and Mermaid flowcharts for total operational transparency.
+    implications:
+      - graph_topology: "Interactive protocol-topology.json and lineage diagrams"
+    constitutional_alignment: INV-005 (complete audit trail), INV-006 (semantic descriptive events)
+
 # ============================================================
 # DECISION DEPENDENCIES
 # ============================================================
@@ -1013,6 +1075,11 @@ decision_dependencies:
   ADR-COMP-011: [ADR-COMP-007, ADR-COMP-012]
   ADR-COMP-009: [ADR-COMP-002, ADR-COMP-006]
   ADR-COMP-010: [ADR-COMP-001, ADR-COMP-008, ADR-COMP-011]
+  ADR-COMP-013: [ADR-COMP-002]
+  ADR-COMP-014: [ADR-COMP-002]
+  ADR-COMP-015: [ADR-COMP-009]
+  ADR-COMP-016: [ADR-COMP-009]
+  ADR-COMP-017: [ADR-COMP-002]
 
 # ============================================================
 # RUNTIME MILESTONE MAPPING

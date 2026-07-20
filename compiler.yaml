@@ -512,6 +512,43 @@ outputs:
       include_diagrams: false
       api_reference_from_openapi: true
 
+  tla_specifications:
+    output_type: FORMAL_VERIFICATION
+    source_files:
+      - 05_state-machines.yaml
+      - 09_saga-orchestration.yaml
+    template: STATE_MACHINE_TO_TLA
+    file_pattern: "verification/tla/{name}.tla"
+
+  vel_sandbox:
+    output_type: RULE_EVALUATION
+    source_files:
+      - 01_constitution.yaml
+      - domains/policy.yaml
+    template: RULES_TO_VEL_AST
+    file_pattern: "src/policy/vel-evaluator.ts"
+
+  guardrail_command_bus:
+    output_type: RUNTIME_ENFORCEMENT
+    source_files:
+      - 01_constitution.yaml
+    template: INVARIANT_GUARDRAIL_INTERCEPTOR
+    file_pattern: "src/execution/guardrail-bus.ts"
+
+  agent_governor_sandbox:
+    output_type: AGENT_GOVERNANCE
+    source_files:
+      - 01_constitution.yaml
+      - domains/agent.yaml
+    template: GOVERNOR_SANDBOX_SDK
+    file_pattern: "src/sdk/agent-sandbox.ts"
+
+  protocol_topology_and_lineage_graph:
+    output_type: LINEAGE_GRAPH
+    source_files: ALL
+    template: PIR_TO_KNOWLEDGE_GRAPH
+    file_pattern: "protocol-topology.json"
+
 # ============================================================
 # SECTION 4 — COMPILATION PIPELINE
 # ============================================================
