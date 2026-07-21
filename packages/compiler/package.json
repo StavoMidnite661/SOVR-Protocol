@@ -11,7 +11,11 @@
     "build": "tsc -p tsconfig.json",
     "compile": "node dist/cli.js compile",
     "verify": "node dist/cli.js verify",
-    "test": "node dist/cli.js test"
+    "test": "node scripts/verify-spec.mjs",
+    "test:genesis": "node scripts/verify-spec.mjs genesis",
+    "test:fault": "node scripts/verify-spec.mjs fault",
+    "test:stress": "node scripts/verify-spec.mjs stress",
+    "test:integration": "node scripts/verify-spec.mjs integration"
   },
   "dependencies": {
     "js-yaml": "^4.1.0"

@@ -1,8 +1,8 @@
 [0.000] SOVR POST: crypto OK, env isolated, node v22.22.3, heap 7.6MB — runlevel 0 FIRMWARE_POST passed in 0.5ms
-[0.144s] Bootloader: verified build_hash f47f70f9b37ae3f1... (unfakeable provenance) — 38 inputs hashed, tamper check OK — runlevel 1 BOOTLOADER secure
+[0.148s] Bootloader: verified build_hash 20c57cfb56b202ce... (unfakeable provenance) — 38 inputs hashed, tamper check OK — runlevel 1 BOOTLOADER secure
 [0.000s] Kernel: constitution loaded (10 invariants), envelope 21 fields, authority 4 actors — runlevel 2 KERNEL_INIT
-[0.000s] Core: vault ✓ (85 entities, value conservation), ledger ✓ (55 entities, double_entry), treasury ✓ (9 cmds, atomicity) — runlevel 3 CORE_DOMAINS
+[0.000s] Core: vault ✓ (85 IR nodes, value conservation), ledger ✓ (55 IR nodes, double_entry), treasury ✓ (9 cmds, atomicity) — runlevel 3 CORE_DOMAINS
 [0.000s] Security: identity ✓ (68 nodes, trust anchors), policy ✓ (107 caps pure function), intent ✓ enrichment, agent ✓ bounded — runlevel 4 SECURITY_SUBSYSTEM
 [0.000s] Boundary: payment 12 rails, hybrid 4 chains, oracle 5 providers — adapters isolated (ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE) — runlevel 5 EXECUTION_BOUNDARY
 [0.000s] Projections: 15 read models rebuilt from genesis — replay determinism verified (INV-006 event log authoritative) — runlevel 6 INTERPRETATION
-[0.000s] Userland: runtime SDK ready, OpenAPI 88 endpoints, frontend verified — SYSTEM HEALTHY — runlevel 7 USERLAND
+[0.000s] Userland: runtime SDK ready, OpenAPI 44 endpoints, frontend verified — SYSTEM HEALTHY — runlevel 7 USERLAND

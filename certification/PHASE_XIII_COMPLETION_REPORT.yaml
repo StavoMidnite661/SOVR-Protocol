@@ -81,35 +81,35 @@ regression_results:
 
 exit_conditions:
   zero_business_rules_duplicated_in_runtime:
-  value: false
-  reason: Vault state machine definition still inline in packages/vault/src/index.ts
+    value: false
+    reason: Vault state machine definition still inline in packages/vault/src/index.ts
   zero_protocol_constants_hardcoded:
-  value: false
-  reason: ProtocolVersionProvider eliminates version hardcoding; other constants remain
+    value: false
+    reason: ProtocolVersionProvider eliminates version hardcoding; other constants remain
   vault_state_machine_generated:
-  value: partial
-  reason: GeneratedStateMachine class exists; VAULT_STATE_MACHINE constant still inline
+    value: partial
+    reason: GeneratedStateMachine class exists; VAULT_STATE_MACHINE constant still inline
   compiler_consumes_yaml_directly:
-  value: false
-  reason: Compiler pipeline modules exist but not wired end-to-end
+    value: false
+    reason: Compiler pipeline modules exist but not wired end-to-end
   generated_artifacts_execute_successfully:
-  value: true
-  evidence: VaultAggregate successfully uses GeneratedStateMachine
+    value: true
+    evidence: VaultAggregate successfully uses GeneratedStateMachine
   existing_tests_pass:
-  value: true
-  evidence: 71/71 tests pass
+    value: true
+    evidence: 71/71 tests pass
   new_compiler_tests_pass:
-  value: true
-  evidence: No compiler-specific tests exist yet
+    value: true
+    evidence: No compiler-specific tests exist yet
   change_manifest_exists:
-  value: true
-  evidence: management/PHASE_XIII_CHANGE_MANIFEST.yaml
+    value: true
+    evidence: management/PHASE_XIII_CHANGE_MANIFEST.yaml
   amendment_impact_documented:
-  value: true
-  evidence: governance/PHASE_XIII_AMENDMENT_IMPACT_REPORT.yaml
+    value: true
+    evidence: governance/PHASE_XIII_AMENDMENT_IMPACT_REPORT.yaml
   evidence_package_generated:
-  value: true
-  evidence: certification/COMPILER_RUNTIME_REALIZATION_CERTIFICATION.yaml
+    value: true
+    evidence: certification/COMPILER_RUNTIME_REALIZATION_CERTIFICATION.yaml
 
 overall_verdict: PARTIAL_COMPLETE
 notes: |
