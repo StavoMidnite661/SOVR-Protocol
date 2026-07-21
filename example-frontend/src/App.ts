@@ -25,9 +25,11 @@ async function main() {
   console.log('Every digitalizable financial infrastructure can connect via adapters');
   console.log('');
 
+  // Protocol API Service runs on :3001 as Source of Canonical Events (CE)
+  // Explorer (frontend) runs on :3000 and connects via /api/v1 to backend
   const client = new SOVRClient({
-    apiUrl: 'http://localhost:3000/api/v1',
-    buildHash: '30f7880d5d665fbcb34ac847ab650bece84a92faa094a3a1b3f770e6732ec3c3',
+    apiUrl: 'http://localhost:3001/api/v1',
+    buildHash: '20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e',
   });
 
   // 1. Vault: define atomic value — polymorphic value model, no silent conversion

@@ -147,29 +147,56 @@ This makes SOVR feel like an OS you *boot*, not a library you import. That's the
 
 ---
 
-## Quick Start for Devs
+## Protocol API Service Extension — Runlevel 7+ (2026-07-21 update)
+
+Boot sequence CLI (`cli.js boot`) produces attestation files, but does NOT expose HTTP. **Next layer** is Protocol API Service as Source of Canonical Events on `:3001`.
+
+```
+Runlevel 7 USERLAND (cli.js boot) -> writes boot-attestation.json
+  ↓
+Runlevel 8 API SERVICE (runtime/src/server/index.ts) -> Fastify on :3001, loads boot-attestation + compiler-manifest, verifies build_hash chain, loads generated/data/sovr-events.json, rebuilds 15 projections, exposes /api/v1
+  ↓
+Runlevel 9 EXPLORER (frontend) on :3000 -> SOVRClient connects via /api/v1 to :3001, waits for /health HEALTHY
+```
+
+**Separation:**
+- Explorer = frontend/operator console :3000, imports generated types, uses SOVRClient
+- Protocol = backend financial kernel :3001, IS the Source of CE, enforces 7-stage pipeline
+
+Run:
 
 ```bash
-# 1. Compile YAML → artifacts + manifest with build_hash
+# 1-3 same as above
 node packages/compiler/dist/cli.js compile
-
-# 2. Verify reproducibility
 node packages/compiler/dist/cli.js verify
-# ✓ byte-identical
-
-# 3. Boot kernel → 8 runlevels → attestation
 node packages/compiler/dist/cli.js boot
-# ✓ SYSTEM HEALTHY, frontend can load
 
-# 4. Import generated in frontend
+# 4. Run Protocol API Service as Source of CE on :3001
+cd packages/runtime && npm run build && PORT=3001 node dist/server/index.js
+# -> 🔌 FIRMWARE_POST ... 🚀 USERLAND SYSTEM HEALTHY
+# -> EventStore loads generated/data/sovr-events.json (persistent CE)
+# -> API at http://localhost:3001/api/v1/{domain}/{aggregate}
+
+# 5. Verify health gate + manifest chain
+curl http://localhost:3001/health
+curl http://localhost:3001/api/v1/manifest | grep build_hash
+curl http://localhost:3001/api/v1/boot-attestation | grep build_hash
+# must match: compiler-manifest build_hash == boot-attestation build_hash == 20c57cfb...
+
+# 6. Import generated in frontend that connects via /api/v1 to :3001
 import { IAsset } from './generated/src/types/vault/vault.types.js'
 import { SOVRClient } from './packages/runtime/src/sdk/client.js'
 
-const client = new SOVRClient({ apiUrl: '...', buildHash: '30f7880d...' })
-await client.verifyBuildManifest('30f7880d...') // unfakeable check
-// Now safe to call treasury.transfer.request
+const health = await fetch('http://localhost:3001/health').then(r=>r.json())
+if (health.final_health !== 'HEALTHY') throw Error('halt')
+
+const client = new SOVRClient({ apiUrl: 'http://localhost:3001/api/v1', buildHash: '20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e' })
+await client.verifyBuildManifest(client.config.buildHash) // unfakeable check
+// Now safe to call treasury.transfer.request via POST /api/v1/treasury/transfer_order
 ```
 
-Boot sequence turns SOVR from spec into bootable kernel. That's my unique addition.
+Full guide: `PROTOCOL_API_SERVICE_GUIDE.md` + `packages/runtime/src/server/README.md`
+
+Boot sequence turns SOVR from spec into bootable kernel. API Service turns kernel into runnable backend that external and Explorer can connect to via universal frontend link.
 
 END

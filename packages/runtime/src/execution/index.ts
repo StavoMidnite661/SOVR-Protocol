@@ -81,7 +81,7 @@ export class GuardrailCommandBus {
 
 // Mock for tests — deterministic, no randomness
 export function mockExecutionContext<T>(overrides: Partial<ExecutionContext<T>> & { command: T }): ExecutionContext<T> {
-  return {
+  const base: ExecutionContext<T> = {
     identity: { identityId: '00000000-0000-0000-0000-000000000001', actorId: '00000000-0000-0000-0000-000000000002', actorType: 'human', trustLevel: 'HIGH', sessionId: '00000000-0000-0000-0000-000000000003' },
     policyDecision: { decisionId: '00000000-0000-0000-0000-000000000010', decision: 'ALLOW', deterministicHash: 'ph_deterministic' },
     capabilities: [{ capabilityId: 'vault.asset.create', scopePattern: 'asset:*:*' }],
@@ -92,6 +92,6 @@ export function mockExecutionContext<T>(overrides: Partial<ExecutionContext<T>> 
     command: overrides.command,
     commandId: '00000000-0000-0000-0000-000000000030',
     constitutionalGates: { identity: true, capability: true, scope: true, policy: true },
-    ...overrides,
-  } as ExecutionContext<T>;
+  };
+  return { ...base, ...overrides } as ExecutionContext<T>;
 }

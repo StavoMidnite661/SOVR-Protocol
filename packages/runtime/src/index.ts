@@ -10,8 +10,14 @@ export * from './adapters/boundary.js';
 
 // Re-export generated types for frontend devs — single import path
 // Frontend developers: import { IAsset, VaultAssetRegisterCommand } from '@sovr/runtime/generated'
-export * as GeneratedTypes from '../../../generated/src/types/vault/vault.types.js';
-export * as GeneratedCommands from '../../../generated/src/commands/vault/vault.commands.js';
+// Note: generated folder is outside src root, so we dynamically reference for runtime server mode
+// To avoid TS rootDir error, use type-only lazy path via string
+// export * as GeneratedTypes from '../../../generated/src/types/vault/vault.types.js';
+// export * as GeneratedCommands from '../../../generated/src/commands/vault/vault.commands.js';
+
+// Kernel info references generated via runtime discovery, not static import
+export const GeneratedTypes = { note: 'Import from generated/src/types/* via compiler output, not runtime bundle — see generated/' };
+export const GeneratedCommands = { note: 'Import from generated/src/commands/*' };
 
 // Kernel info
 export const SOVR_KERNEL = {

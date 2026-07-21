@@ -6,14 +6,21 @@
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "dev": "node dist/index.js"
+    "dev": "node dist/index.js",
+    "server": "node dist/server/index.js",
+    "server:dev": "tsx src/server/index.ts",
+    "boot": "node dist/server/index.js"
   },
   "dependencies": {
+    "@fastify/cors": "^9.0.1",
     "ioredis": "^5.0.0",
+    "js-yaml": "^4.1.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
+    "fastify": "^4.28.1",
     "typescript": "^5.0.0"
   }
 }

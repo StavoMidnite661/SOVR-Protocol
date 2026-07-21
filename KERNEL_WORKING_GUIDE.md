@@ -333,18 +333,59 @@ example-frontend/
 - [ ] Implement version-matrix.json per ADR-007
 - [ ] Implement CLI sovr compile --spec-dir --out-dir --no-cache --dump-pir --dry-run --output-types per ADR-010
 
+## Protocol API Service — Source of Canonical Events (2026-07-21 update)
+
+Previous guide ended with generated artifacts but no runnable backend. **Now added:**
+
+**File:** `packages/runtime/src/server/index.ts` — Fastify API Service on `:3001`
+
+```
+Runlevel 7 USERLAND (cli boot) -> boot-attestation.json
+  ↓
+Runlevel 8 API SERVICE -> Fastify :3001, EventStore persistent file generated/data/sovr-events.json, 15 projections rebuilt, 107 caps
+  ↓
+Runlevel 9 EXPLORER -> frontend :3000 connects via POST /api/v1/{domain}/{aggregate}
+```
+
+It IS the Source of CE:
+
+- **Event Store:** `eventStore.ts` append-only immutable, causation graph, correlation groups, file persistence atomic tmp rename, load on boot. INV-001 enforcement.
+- **Capability Engine:** 107 caps scope pattern `vault.asset:{id}` wildcard *, cache TTL 300s, governance.* wildcard
+- **Projection Engine:** 15 read models rebuildFromGenesis() per INV-006, cache invalidation keys
+- **Command Bus:** 7-stage pipeline identity->capability->scope->policy->constitutional->execution->publication, guardrail INV-002 double-entry
+- **Universal route:** `POST /api/v1/:domain/:aggregate` — how ANY external digitalizable infra connects (REST sync, Kafka `sovr.{domain}.{aggregate}.{event}`, Redis `sovr:stream:{domain}:{aggregate}`, payment rail adapters isolated)
+
+**Run:**
+
+```bash
+cd packages/runtime && npm run build && PORT=3001 node dist/server/index.js
+# -> health at http://localhost:3001/health must be HEALTHY before frontend loads
+curl http://localhost:3001/health
+curl http://localhost:3001/api/v1/manifest | grep build_hash # 20c57cfb...
+curl http://localhost:3001/api/v1/events?domain=vault
+```
+
+**Explorer separation:**
+
+- Explorer = frontend / operator console on :3000, uses SOVRClient apiUrl http://localhost:3001/api/v1, verifies build_hash chain unfakeable
+- Protocol = backend financial kernel on :3001, IS Source of CE, enforces all gates
+
+See `PROTOCOL_API_SERVICE_GUIDE.md` + `packages/runtime/src/server/README.md`
+
 ## Conclusion
 
 You now have a working YAML protocol that:
 
-1. **Parses** — 40 YAML files → 0 parse failures (fixed from 5)
+1. **Parses** — 38 protocol frontier YAML -> 244 total valid, 0 parse failures
 2. **Validates** — reference integrity, envelope completeness, gates completeness, invariants
-3. **Compiles** — builds deterministic IR (451 nodes, 351 edges), ir_hash sha256
-4. **Generates** — 35 artifacts with output hashes, build_hash = sha256(sorted inputs + ir_hash + sorted outputs + compiler_version)
-5. **Proves** — byte-identical reproducibility via verify
-6. **Unfakeable** — any tampering changes hash; frontend can verify manifest build_hash
-7. **Usable** — frontend devs import generated types, use SDK, implement handlers with ExecutionContext, subscribe to Kafka/Redis, connect any infra via adapters abiding by prohibition ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+3. **Compiles** — builds deterministic IR (536 nodes, 404 edges), ir_hash 6e689fa1..., build_hash 20c57cfb56b202... byte-identical verified
+4. **Generates** — 69 files with output hashes, build_hash = sha256(sorted inputs + ir_hash + sorted outputs + compiler_version)
+5. **Proves** — byte-identical reproducibility via verify + boot attestation chain build_hash -> boot_hash 87c2a236...
+6. **Unfakeable** — any tampering changes hash; frontend can verify manifest build_hash vs boot-attestation build_hash
+7. **Boots** — 8 runlevels 0-7 HEALTHY + runlevel 8 API Service on :3001 + runlevel 9 Explorer on :3000
+8. **Runnable Backend** — Fastify API Service as Source of CE with persistent event log `generated/data/sovr-events.json`, 15 projections, 107 capabilities, universal route POST /api/v1/{domain}/{aggregate}
+9. **Usable** — frontend devs import generated types, use SDK via :3001, implement handlers with ExecutionContext, subscribe to Kafka/Redis, connect any infra via adapters abiding by prohibition ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
 
-This is the Linux kernel moment: small, verified, machine-readable core; external connectivity for every digitalizable financial infrastructure; frontends can be any stack.
+This is the Linux kernel moment: small, verified, machine-readable core; external connectivity for every digitalizable financial infrastructure; frontends can be any stack — now with real backend API to connect to.
 
 END
