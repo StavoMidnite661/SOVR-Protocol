@@ -59,7 +59,7 @@
   - [Scope Pattern Language](#scope-pattern-language)
 - [Compiler](#-compiler)
   - [Compilation Pipeline](#compilation-pipeline)
-  - [Output Artifacts (17)](#output-artifacts)
+  - [Output Artifacts (22)](#output-artifacts)
   - [Reproducibility (R1–R10)](#reproducibility)
   - [Pass Registry (20 Passes)](#pass-registry)
   - [Generator Registry (9 Generators)](#generator-registry)
@@ -673,7 +673,7 @@ SOVR implements an **8-runlevel boot sequence** modeled after Linux:
 | **4** | Load LSM/SELinux | `SECURITY_SUBSYSTEM` | Identity, Policy, Intent, Agent |
 | **5** | Load drivers | `EXECUTION_BOUNDARY` | Payment 12 rails, Hybrid 4 chains, 5 oracles |
 | **6** | Mount /proc | `INTERPRETATION` | Projection engine, 15 read models rebuilt from genesis |
-| **7** | systemd → graphical | `USERLAND` | Runtime SDK, OpenAPI 101 endpoints, boot attestation |
+| **7** | systemd → graphical | `USERLAND` | Runtime SDK, OpenAPI 44 endpoints, boot attestation |
 
 ### Boot Attestation
 
@@ -797,7 +797,7 @@ SOVR-Protocol/
 ├── 📜 PROTOCOL SPECIFICATION (Root YAML — 15 files, ~600KB)
 │   ├── 00_protocol-manifest.yaml      ← Entry point: layers, domains, build phases
 │   ├── 01_constitution.yaml           ← Supreme law: invariants, authority, enforcement
-│   ├── 02_domain-model.yaml           ← 50+ entities across 9 domains
+│   ├── 02_domain-model.yaml           ← 47 entities across 9 domains
 │   ├── 03_command-catalog.yaml         ← 101 commands with validation rules
 │   ├── 04_event-catalog.yaml           ← 251 events with full envelope
 │   ├── 05_state-machines.yaml          ← 21 state machines
@@ -809,7 +809,7 @@ SOVR-Protocol/
 │   ├── compiler.yaml                   ← Compiler specification
 │   ├── hybrid-boundary.yaml            ← Blockchain + oracle boundaries
 │   ├── projection-engine.yaml          ← 15 read models
-│   └── acceptance-tests.yaml           ← 105+ acceptance tests
+│   └── acceptance-tests.yaml           ← 60 acceptance tests
 │
 ├── 📁 domains/                         ← Per-domain detailed specifications
 │   ├── agent.yaml
@@ -1013,7 +1013,7 @@ const transfer = await client.execute('treasury.transfer.request', {
 
 ## 🧪 Testing
 
-### Test Suite Categories (11 categories, 105+ tests)
+### Test Suite Categories (11 categories, 60 tests)
 
 | Category | Coverage |
 |:---------|:---------|
@@ -1061,13 +1061,13 @@ All critical findings from the audit have been resolved:
 
 | Issue | Status | Resolution |
 |:------|:-------|:-----------|
-| YAML parse failures (2 files) | ✅ FIXED | Fixed indentation in `EVENT_NAMING_STANDARD.yaml` and `EVENT_ORPHAN_REPORT.yaml` — **212/212 files parse OK** |
+| YAML parse failures (2 files) | ✅ FIXED | Fixed duplicate mapping keys in `certification/EVENT_REFERENCE_INVENTORY.yaml` and `certification/PHASE_XIII_COMPLETION_REPORT.yaml`; **244/244 repo YAML files valid** |
 | Missing meta blocks (9 files) | ✅ FIXED | Added `meta:` blocks to all 9 root YAML files per METADATA_STANDARD |
 | Missing failure events (27+) | ✅ FIXED | Added all missing failure and transaction events — **251 total events, 0 reference gaps** |
 | State machine missing commands (13) | ✅ FIXED | Defined all 13 referenced commands (`vault.transaction.fund`, etc.) — **101 total commands** |
 | Compiler validation exceptions | ✅ FIXED | Removed hardcoded whitelist bypasses from `validate.ts` — 100% strict verification |
 | Compiler not reading YAML | ✅ FIXED | ProtocolParser now reads all 38 YAML files, builds IR with 536 nodes/404 edges |
-| Placeholder build hash | ✅ FIXED | Real SHA256 build hash: `727adee2...` with R1-R10 reproducibility |
+| Placeholder build hash | ✅ FIXED | Real SHA256 build hash: `20c57cfb...` with R1-R10 reproducibility (verified byte-identical across runs) |
 | CI referencing nonexistent scripts | ✅ FIXED | Both workflows updated to use actual compiler commands |
 | Boot attestation chain | ✅ FIXED | Full 8-runlevel boot with cryptographic attestation |
 
@@ -1075,14 +1075,16 @@ All critical findings from the audit have been resolved:
 
 | Metric | Value |
 |:-------|:------|
-| YAML files parsing | **212/212** (100%) |
+| YAML files parsing | **244/244** valid (100%) — 38 protocol inputs + 206 supporting (incl. 7 multi-doc k8s) |
 | Command catalog completeness | **101 commands** (100% gated & validated) |
 | Event catalog completeness | **251 events** (100% referenced & resolved) |
 | Compiler diagnostics | **0 errors, 0 warnings** |
 | IR nodes | **536** |
 | IR edges | **404** |
-| Generated artifacts | **36 outputs + 6 config/boot files = 42 files** |
-| Byte-identical reproducibility | ✅ **Verified** (`727adee2a29231c5935f0cb865fbdd5928ea03bd99618b908723f8578d0d8d44`) |
+| Generated artifacts | **62 artifacts → 69 files** in `generated/` |
+| Acceptance tests (spec) | **60 tests** across 11 categories |
+| OpenAPI surface | **44 endpoint paths** (distinct `/api/v1/{domain}/{aggregate}`) |
+| Byte-identical reproducibility | ✅ **Verified** (`20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e`) |
 | Boot sequence | **8/8 runlevels HEALTHY** |
 | Boot attestation | ✅ **build_hash matches compiler-manifest** |
 

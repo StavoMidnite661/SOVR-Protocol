@@ -1,114 +1,114 @@
 {
-  "boot_hash": "e61da7465fff99d6ce9a608c5649a63f819c973e6c5346d07dedd393d1ce59e1",
-  "boot_log_hash": "7d2180f4195faf5fc75a4793223916cc985375dc4eaef07f7e5e67ca175d775b",
+  "boot_hash": "87c2a236a1eff6f01fd392fdedfb1847c079bc49269cd5668788e8f27e8bc3d4",
+  "boot_log_hash": "248ddcd657f8821b85696a167cbe6e361431290078f343039d04998772f2159c",
   "boot_splash": [
     "  ____   _____  __      __  ____    ___   ____    _   _ ",
     " / ___| |  _  | \\ \\    / / |  _ \\  / _ \\ / ___|  | | | |",
     " \\___ \\ | | | |  \\ \\  / /  | |_) || |_| \\___ \\  | |_| |",
     "  ___) || |_| |   \\ \\/ /   |  _ < |  _  | ___) | |  _  |",
     " |____/ |_____|    \\__/    |_| \\_\\|_| |_||____/  |_| |_|",
-    " Financial OS Kernel vf47f70f9 Booted — build_hash f47f70f9b37ae3f1...",
+    " Financial OS Kernel v20c57cfb Booted — build_hash 20c57cfb56b202ce...",
     " Frontend can now load — SDK: @sovr/runtime, Types: generated/src/types/*"
   ],
   "boot_timings_hash": "63db24987dcacf80b036bcf6533ef5e71cd5e3ba8047e203118a0a4db9451405",
-  "build_hash": "f47f70f9b37ae3f1bc688123886b6955fcf69c2f67ef35ffcc261a5abe7d88d4",
+  "build_hash": "20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e",
   "events": [
     {
       "eventName": "saga.started",
       "level": 2,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.972Z"
     },
     {
       "eventName": "system.health.restored",
       "level": 2,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "vault.asset.registered",
       "level": 3,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "ledger.journal.created",
       "level": 3,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "saga.started",
       "level": 3,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "identity.actor.registered",
       "level": 4,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "policy.rule.created",
       "level": 4,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "payment.rail.prepared",
       "level": 5,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "saga.started",
       "level": 5,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "saga.completed",
       "level": 6,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "system.health.restored",
       "level": 7,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     },
     {
       "eventName": "saga.completed",
       "level": 7,
-      "timestamp": "2026-07-20T21:25:21.639Z"
+      "timestamp": "2026-07-20T23:17:00.973Z"
     }
   ],
   "final_health": "HEALTHY",
   "schema_version": "1.0.0",
   "stages": [
     {
-      "durationMs": 0.19866100000001552,
+      "durationMs": 0.19964600000002974,
       "level": 2,
       "name": "KERNEL_INIT",
       "passed": true
     },
     {
-      "durationMs": 0.10765900000001238,
+      "durationMs": 0.10770899999999983,
       "level": 3,
       "name": "CORE_DOMAINS",
       "passed": true
     },
     {
-      "durationMs": 0.05201500000003989,
+      "durationMs": 0.05725200000000541,
       "level": 4,
       "name": "SECURITY_SUBSYSTEM",
       "passed": true
     },
     {
-      "durationMs": 0.05890799999997398,
+      "durationMs": 0.057795999999996184,
       "level": 5,
       "name": "EXECUTION_BOUNDARY",
       "passed": true
     },
     {
-      "durationMs": 0.0090460000000121,
+      "durationMs": 0.008690000000001419,
       "level": 6,
       "name": "INTERPRETATION",
       "passed": true
     },
     {
-      "durationMs": 0.004503999999997177,
+      "durationMs": 0.004457999999999629,
       "level": 7,
       "name": "USERLAND",
       "passed": true

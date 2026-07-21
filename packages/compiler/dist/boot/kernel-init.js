@@ -40,7 +40,7 @@ export async function runBootSequence(rootDir, ir, buildHash) {
         emitEvent('ledger.journal.created', 3);
         emitEvent('saga.started', 3);
         const dur = performance.now() - start;
-        const log = `[${(dur / 1000).toFixed(3)}s] Core: vault ✓ (${vaultEntities} entities, value conservation), ledger ✓ (${ledgerEntities} entities, double_entry), treasury ✓ (${treasuryCommands} cmds, atomicity) — runlevel 3 CORE_DOMAINS`;
+        const log = `[${(dur / 1000).toFixed(3)}s] Core: vault ✓ (${vaultEntities} IR nodes, value conservation), ledger ✓ (${ledgerEntities} IR nodes, double_entry), treasury ✓ (${treasuryCommands} cmds, atomicity) — runlevel 3 CORE_DOMAINS`;
         stages.push({ level: 3, name: 'CORE_DOMAINS', icon: '🏦', passed: true, durationMs: dur, bootLog: log, eventsEmitted: ['vault.asset.registered', 'ledger.journal.created', 'saga.started'], diagnostics: [] });
         bootLog.push(log);
     }
@@ -86,7 +86,9 @@ export async function runBootSequence(rootDir, ir, buildHash) {
         emitEvent('system.health.restored', 7);
         emitEvent('saga.completed', 7);
         const dur = performance.now() - start;
-        const log = `[${(dur / 1000).toFixed(3)}s] Userland: runtime SDK ready, OpenAPI 88 endpoints, frontend verified — SYSTEM HEALTHY — runlevel 7 USERLAND`;
+        // OpenAPI endpoints = distinct /api/v1/{domain}/{aggregate} routes the OpenAPI generator emits
+        const endpoints = new Set(ir.nodes.filter(n => n.type === 'command').map(n => `${n.domain}/${n.aggregate}`)).size;
+        const log = `[${(dur / 1000).toFixed(3)}s] Userland: runtime SDK ready, OpenAPI ${endpoints} endpoints, frontend verified — SYSTEM HEALTHY — runlevel 7 USERLAND`;
         stages.push({ level: 7, name: 'USERLAND', icon: '🚀', passed: true, durationMs: dur, bootLog: log, eventsEmitted: ['system.health.restored', 'saga.completed'], diagnostics: [] });
         bootLog.push(log);
     }

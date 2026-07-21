@@ -1539,14 +1539,6 @@ events:
     referenced_by:
       - command: ledger.account.create
 
-  treasury.transfer.rejected:
-    declared: true
-    emitted: true
-    referenced_by:
-      - state_machine: treasury_transfer_lifecycle
-      - command: treasury.transfer.authorize
-      - command: treasury.transfer.cancel
-
   identity.delegation.verified:
     declared: false
     emitted: false
@@ -1589,12 +1581,6 @@ events:
     referenced_by:
       - saga: unknown_authority_saga
 
-  agent.quota.checked:
-    declared: false
-    emitted: false
-    referenced_by:
-      - saga: ai_execution_saga
-
   escalation.notification.sent:
     declared: false
     emitted: false
@@ -1630,12 +1616,6 @@ events:
     emitted: false
     referenced_by:
       - saga: escalation_saga
-
-  governance.escalation.submission_failed:
-    declared: false
-    emitted: false
-    referenced_by:
-      - saga: unknown_authority_saga
 
   vault_to_treasury:
     declared: false
