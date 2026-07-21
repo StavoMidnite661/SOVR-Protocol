@@ -1,0 +1,9 @@
+dist/
+node_modules/
+generated/data/
+generated/src/**/*.js
+generated/src/**/*.d.ts
+COMMAND_INVENTORY_FULL.json
+EVENT_INVENTORY_FULL.json
+EVENT_COMMAND_INDEX.json
+FILE_INVENTORY_DETAILED.md

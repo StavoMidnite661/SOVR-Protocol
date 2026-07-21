@@ -949,6 +949,55 @@ SOVR-Protocol/
 
 ---
 
+## 🚀 Protocol API Service — Source of Canonical Events (CE)
+
+**Separation:**
+
+* **Explorer = Frontend / Operator Console on :3000** — React/Vue/mobile importing `generated/src/types/*`, using `SOVRClient` SDK
+* **Protocol = Backend Financial Kernel on :3001** — Fastify API, Event Store append-only `generated/data/sovr-events.json`, 15 projections rebuilt from genesis, 107 capabilities, 7-stage pipeline
+
+Previously the repo had contracts + generated stubs but no runnable backend. Now it has a real Protocol API Service.
+
+**Universal Frontend Link:** `POST /api/v1/{domain}/{aggregate}`
+
+```
+GET  /health                              -> SYSTEM HEALTHY gate — Explorer MUST wait for HEALTHY
+GET  /api/v1/manifest                     -> compiler-manifest.yaml build_hash 20c57cfb...
+GET  /api/v1/boot-attestation             -> boot_hash 87c2a236... chain unfakeable
+GET  /openapi.yaml                        -> full OpenAPI 44+ paths
+GET  /api/v1/events?domain=vault         -> Source of CE query
+GET  /api/v1/projections/:name           -> 15 read models (not authoritative, event log wins per INV-006)
+POST /api/v1/:domain/:aggregate           -> Execute any of 101 commands with Bearer JWT + capability_id + scope
+```
+
+**How external connects:** Any system that POSTs JSON with Bearer JWT can be REST client, Kafka consumer `sovr.{domain}.{aggregate}.{event}`, Redis `XREAD STREAMS sovr:stream:{domain}:{aggregate}`, or payment rail adapter (isolated, cannot mutate constitutional state).
+
+### Running Protocol API Service
+
+```bash
+# Build runtime
+cd packages/runtime
+npm install
+npm run build
+
+# Boot as Source of CE on :3001 (persistence to generated/data/sovr-events.json)
+PORT=3001 node dist/server/index.js
+# -> boot 0-7, SYSTEM HEALTHY, 15 projections rebuilt, 107 caps loaded
+
+# In another terminal, run Explorer demo that connects via /api/v1
+cd ../..
+node --loader tsx example-frontend/src/App.ts
+# -> SOVRClient apiUrl http://localhost:3001/api/v1, buildHash 20c57cfb...
+
+# Verify
+curl http://localhost:3001/health
+curl http://localhost:3001/api/v1/manifest | grep build_hash
+curl -X POST http://localhost:3001/api/v1/identity/session -d '{"actor_id":"alice"}'
+# -> jwt, then POST /api/v1/vault/asset with Authorization Bearer
+```
+
+Full guide: `PROTOCOL_API_SERVICE_GUIDE.md` + `packages/runtime/src/server/README.md`
+
 ## 🚀 Getting Started
 
 ### Prerequisites
@@ -973,40 +1022,75 @@ cd ../..
 # 3. Compile YAML specifications → runtime artifacts
 node packages/compiler/dist/cli.js compile
 
-# 4. Verify reproducibility
+# 4. Verify reproducibility (byte-identical)
 node packages/compiler/dist/cli.js verify
+# -> ✓ Reproducible build verified: 20c57cfb...
 
-# 5. Boot the kernel
+# 5. Boot kernel CLI (8 runlevels, attestation files)
 node packages/compiler/dist/cli.js boot
+# -> boot.log, boot-manifest.json, boot-attestation.json
+
+# 6. Run Protocol API Service as Source of CE on :3001
+cd packages/runtime
+npm install
+npm run build
+PORT=3001 node dist/server/index.js
+# -> HEALTHY, API at http://localhost:3001/api/v1/{domain}/{aggregate}
+
+# 7. Verify health gate and manifest chain
+curl http://localhost:3001/health
+curl http://localhost:3001/api/v1/manifest | grep build_hash
+curl http://localhost:3001/api/v1/boot-attestation | grep build_hash
+# -> both must match compiler-manifest build_hash
 ```
 
-### Frontend Integration
+### Frontend + External Integration
 
 ```typescript
-import { SOVRClient } from '@sovr/runtime'
-import { boot } from '@sovr/compiler/boot'
+import { SOVRClient } from '@sovr/runtime/src/sdk/client.ts'
 
-// Boot the kernel first
-const result = await boot(rootDir, outDir)
-if (result.sequence.finalHealth !== 'HEALTHY') {
-  throw new Error('Kernel not healthy — cannot accept financial commands')
-}
+// Protocol API Service is Source of CE on :3001 — Explorer on :3000 connects via /api/v1
+const health = await fetch('http://localhost:3001/health').then(r=>r.json())
+if (health.final_health !== 'HEALTHY') throw Error('Kernel not healthy — cannot accept financial commands')
 
-// Initialize client with build hash verification
+// Unfakeable provenance: same YAML + compiler = same build_hash
+const manifest = await fetch('http://localhost:3001/api/v1/manifest').then(r=>r.json())
+const attestation = await fetch('http://localhost:3001/api/v1/boot-attestation').then(r=>r.json())
+// manifest.build_hash === attestation.build_hash === 20c57cfb...
+
 const client = new SOVRClient({
-  apiUrl: 'https://api.sovr.io',
-  buildHash: result.buildHash
+  apiUrl: 'http://localhost:3001/api/v1',
+  buildHash: manifest.build_hash
 })
-await client.verifyBuildManifest(result.buildHash)
 
-// Now safe to execute financial commands
-const transfer = await client.execute('treasury.transfer.request', {
-  source_actor_id: '...',
-  destination_details: { type: 'bank_account', address: '...', rail: 'ACH' },
-  asset_id: '...',
-  amount: '1000.00',
-  purpose: 'Invoice payment'
-})
+// Login -> Bearer JWT
+const { jwt } = await fetch('http://localhost:3001/api/v1/identity/session', {
+  method: 'POST', body: JSON.stringify({actor_id: 'alice', actor_type: 'human'})
+}).then(r=>r.json())
+
+// Execute via universal route: POST /api/v1/{domain}/{aggregate}
+const transfer = await fetch('http://localhost:3001/api/v1/treasury/transfer_order', {
+  method: 'POST',
+  headers: { 'Authorization': `Bearer ${jwt}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    commandName: 'treasury.transfer.request',
+    capability_id: 'treasury.transfer.request',
+    scope: 'treasury.transfer:*',
+    payload: {
+      source_actor_id: 'alice',
+      destination_details: { type: 'bank_account', address: '...', rail: 'ACH' },
+      asset_id: 'asset_001',
+      amount: '1000.00',
+      purpose: 'Invoice payment'
+    }
+  })
+}).then(r=>r.json())
+// -> {status: ACCEPTED, events: [{event_name: treasury.transfer.requested, envelope 18 fields...}]}
+
+// Subscribe to Source of CE
+const events = await fetch('http://localhost:3001/api/v1/events?domain=treasury&limit=10').then(r=>r.json())
+const assetView = await fetch('http://localhost:3001/api/v1/projections/vault_asset_view').then(r=>r.json())
+// If projection disagrees with event log, event log wins per INV-006
 ```
 
 ---
