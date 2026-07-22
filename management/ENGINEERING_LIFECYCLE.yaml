@@ -82,3 +82,5 @@ engineering_lifecycle:
     DRAFT/REVIEW artifacts are invisible to compilation; DEPRECATED/ARCHIVED
     artifacts are excluded from generation. This prevents half-formed or
     retired objects from entering the runtime.
+_deprecated: true
+superseded_by: PROJECT_STATUS_2026-07-22.yaml

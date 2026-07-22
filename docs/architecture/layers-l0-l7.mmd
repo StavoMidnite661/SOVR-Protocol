@@ -1,0 +1,53 @@
+flowchart TB
+    subgraph L0["L0 — Protocol Governance (Immutable)"]
+        M[00_protocol-manifest]
+        CON[01_constitution<br/>10 Invariants + Authority Model]
+    end
+
+    subgraph L1["L1 — Shared Language"]
+        DM[02_domain-model<br/>47 entities]
+        CMD[03_command-catalog<br/>101 commands]
+        EVT[04_event-catalog<br/>251 events]
+    end
+
+    subgraph L2["L2 — Execution Control"]
+        SM[05_state-machines<br/>21 machines]
+        SAG[09_saga-orchestration<br/>6 sagas + compensation]
+    end
+
+    subgraph L3["L3 — Authority"]
+        CAP[08_security-capabilities<br/>107 caps + scope language]
+    end
+
+    subgraph L4["L4 — Interpretation"]
+        PROJ[projection-engine<br/>15 read models]
+    end
+
+    subgraph L5["L5 — Integration"]
+        DC[12_domain-contracts]
+    end
+
+    subgraph L6["L6 — Boundary"]
+        HYB[hybrid-boundary<br/>12 rails + 4 chains + 5 oracles]
+    end
+
+    subgraph L7["L7 — Production"]
+        COMP[compiler.yaml + acceptance-tests]
+    end
+
+    L0 --> L1
+    L1 --> L2
+    L2 --> L3
+    L3 --> L4
+    L4 --> L5
+    L5 --> L6
+    L6 --> L7
+
+    style L0 fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px
+    style L1 fill:#bbdefb,stroke:#1565c0
+    style L2 fill:#ffe0b2,stroke:#e65100
+    style L3 fill:#f8bbd0,stroke:#c2185b
+    style L4 fill:#e1bee7,stroke:#7b1fa2
+    style L5 fill:#b2dfdb,stroke:#00695c
+    style L6 fill:#ffccbc,stroke:#d84315
+    style L7 fill:#fff9c4,stroke:#f9a825,stroke-width:3px

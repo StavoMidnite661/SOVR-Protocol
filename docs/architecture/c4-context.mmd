@@ -1,0 +1,25 @@
+C4Context
+    title System Context - SOVR Financial OS
+
+    Person(developer, "Frontend Developer / Third Party", "Builds UIs, bank integrations, fintech apps")
+    Person(operator, "Operator / Compliance", "Monitors, audits, grants capabilities")
+    Person(governance, "Governance Actor", "Amends constitution, grants high-privilege capabilities")
+
+    System_Ext(bank, "External Banks / Payment Providers", "ACH, FedNow, SWIFT, Cards, Stablecoins")
+    System_Ext(blockchain, "Blockchains & Oracles", "Ethereum, Base, Chainlink, Pyth, etc.")
+    System_Ext(regulator, "Regulators & Auditors", "Consume audit trails and reports")
+
+    System_Boundary(sovr, "SOVR Financial OS") {
+        System(api, "Protocol API Server", "Source of Canonical Events\n7-stage pipeline + 10 invariants")
+        System(compiler, "Compiler", "YAML → deterministic artifacts (R1-R10)")
+        System(store, "Event Store", "Append-only, 21-field envelopes")
+    }
+
+    Rel(developer, api, "Uses SDK or REST", "JWT + capability + scope")
+    Rel(operator, api, "Queries events & projections")
+    Rel(governance, api, "Grants capabilities, emergency halt")
+    Rel(api, bank, "Settlement via adapters", "ACH, etc.")
+    Rel(api, blockchain, "Hybrid settlement", "Attestations")
+    Rel(api, regulator, "Audit export", "Events + projections")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")

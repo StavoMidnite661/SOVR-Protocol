@@ -1,0 +1,53 @@
+flowchart TB
+    subgraph External["🌐 External World / Third Parties"]
+        TP[Third-Party Apps<br/>Banks • Fintech • ERP • Regulators]
+        FE[Frontends & UIs<br/>React • Vue • Mobile • Dashboards]
+        EXT[External Systems<br/>Oracles • Blockchains • Payment Providers]
+    end
+
+    subgraph Hub["🔥 SOVR Protocol API Server<br/>(Source of Canonical Events)"]
+        direction TB
+        GATE[Health + Build Hash Gate<br/>MUST be HEALTHY + verify build_hash]
+        API[Universal REST Route<br/>POST /api/v1/:domain/:aggregate<br/>101 Commands]
+        SDK[SOVRClient SDK<br/>(TypeScript - real HTTP)]
+        PIPE[7-Stage Pipeline<br/>1. Identity<br/>2. Capability + Scope<br/>3. Policy<br/>4. Constitutional (INV-001..010)<br/>5. Execution<br/>6. Event Publication]
+        ES[(Event Store<br/>Append-only • Immutable<br/>21-field envelopes<br/>INV-001 • INV-005 • INV-006)]
+    end
+
+    subgraph Consumers["📡 Event Consumers (Async)"]
+        WS[WebSocket<br/>/api/v1/events/stream]
+        KAFKA[Kafka Topics<br/>sovr.*.*.*]
+        REDIS[Redis Streams<br/>sovr:stream:*]
+        POLL[REST Polling +<br/>/api/v1/audit/:correlation_id]
+    end
+
+    subgraph Boundaries["🔌 Boundary Adapters<br/>(Isolated - No State Mutation)"]
+        ACH[ACH Adapter<br/>(live + real)]
+        PAY[Payment Rails<br/>12 declared]
+        CHAIN[Blockchain / Hybrid<br/>Ethereum • Base • Polygon]
+        NOTE["ADAPTERS_MAY_NOT_MUTATE<br/>CONSTITUTIONAL_STATE"]
+    end
+
+    %% Connections
+    TP -->|REST + Bearer JWT + capability + scope| API
+    FE -->|SDK + waitForHealthy() + verifyBuildManifest()| API
+    EXT -->|REST or Events| API
+
+    API --> GATE
+    GATE --> PIPE
+    PIPE --> ES
+
+    ES -->|Every append publishes to| WS & KAFKA & REDIS & POLL
+
+    ES -->|Emit events only| Boundaries
+    Boundaries -->|External settlement| EXT
+
+    classDef hub fill:#e0f7fa,stroke:#006064,stroke-width:3px
+    classDef ext fill:#fff3e0,stroke:#e65100
+    classDef consumer fill:#e8f5e9,stroke:#2e7d32
+    classDef boundary fill:#fce4ec,stroke:#c2185b
+
+    class Hub hub
+    class External,TP,FE,EXT ext
+    class Consumers,WS,KAFKA,REDIS,POLL consumer
+    class Boundaries,ACH,PAY,CHAIN,NOTE boundary

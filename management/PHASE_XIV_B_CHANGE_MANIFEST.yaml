@@ -78,3 +78,5 @@ validation:
 
 rollback:
   strategy: Restore from git HEAD; generated artifacts can be regenerated from YAML
+_deprecated: true
+superseded_by: PROJECT_STATUS_2026-07-22.yaml

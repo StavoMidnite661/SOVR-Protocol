@@ -1133,15 +1133,100 @@ npm run test:integration
 
 ---
 
-## 📋 Audit Reports
+## 📋 Audit Reports & Live Status
+
+**Canonical Source of Truth (2026-07-22):**  
+[PROJECT_STATUS_2026-07-22.yaml](./PROJECT_STATUS_2026-07-22.yaml) — **Single authoritative document** for current state, live tests, domain status, **server auditability**, and **Integration Surfaces** (how third-party apps, frontends, and external systems connect).
 
 | Report | Date | Key Findings |
 |:-------|:-----|:-------------|
-| [AUDIT_REPORT_2026-07-18.md](./AUDIT_REPORT_2026-07-18.md) | 2026-07-18 | Full E2E audit + compiler assessment |
+| [WALL_TO_WALL_AUDIT_2026-07-22.md](./WALL_TO_WALL_AUDIT_2026-07-22.md) | 2026-07-22 | Full asset inventory + live verification |
+| [AUDIT_REPORT_2026-07-18.md](./AUDIT_REPORT_2026-07-18.md) | 2026-07-18 | Historical (superseded) |
+| [SOVR_FULL_AUDIT_2026-07-21.md](./SOVR_FULL_AUDIT_2026-07-21.md) | 2026-07-21 | Historical (superseded) |
 
-### Latest Status (2026-07-20)
+**Current Status (live as of 2026-07-22):** Runtime server is fully operational and **highly auditable**. See `PROJECT_STATUS_2026-07-22.yaml` (section `server_auditability`).
 
-All critical findings from the audit have been resolved:
+All prior Phase XI–XIV, old `DOMAIN_STATUS_MATRIX`, and stale container/project board references have been superseded.
+
+### Connection Model (Third-Party & Frontend Integration)
+
+The system is designed as a central hub. See the full details and live diagram in `PROJECT_STATUS_2026-07-22.yaml` → `integration_surfaces`.
+
+```mermaid
+flowchart TB
+    subgraph External["🌐 External World / Third Parties"]
+        TP[Third-Party Apps<br/>Banks • Fintech • ERP • Regulators]
+        FE[Frontends & UIs<br/>React • Vue • Mobile • Dashboards]
+        EXT[External Systems<br/>Oracles • Blockchains • Payment Providers]
+    end
+
+    subgraph Hub["🔥 SOVR Protocol API Server<br/>(Source of Canonical Events)"]
+        direction TB
+        GATE[Health + Build Hash Gate<br/>MUST be HEALTHY]
+        API[Universal REST Route<br/>POST /api/v1/:domain/:aggregate]
+        SDK[SOVRClient SDK<br/>(TypeScript - real HTTP)]
+        PIPE[7-Stage Pipeline<br/>Identity → Capability → Scope<br/>→ Policy → Constitutional<br/>→ Execution → Publication]
+        ES[(Event Store<br/>Append-only • Immutable<br/>21-field envelopes)]
+    end
+
+    subgraph Consumers["📡 Event Consumers (Async)"]
+        WS[WebSocket<br/>/api/v1/events/stream]
+        KAFKA[Kafka Topics<br/>sovr.*.*.*]
+        REDIS[Redis Streams<br/>sovr:stream:*]
+        POLL[REST Polling +<br/>/api/v1/audit]
+    end
+
+    subgraph Boundaries["🔌 Boundary Adapters<br/>(Isolated - No State Mutation)"]
+        ACH[ACH Adapter<br/>(live)]
+        PAY[Payment Rails<br/>12 declared]
+        CHAIN[Blockchain<br/>Ethereum • Base • Polygon]
+    end
+
+    %% Connections
+    TP -->|REST + Bearer JWT + capability + scope| API
+    FE -->|SDK + waitForHealthy() + verifyBuildManifest()| API
+    EXT -->|REST or Events| API
+
+    API --> GATE
+    GATE --> PIPE
+    PIPE --> ES
+
+    ES -->|Every append publishes to| WS & KAFKA & REDIS & POLL
+
+    ES -->|Emit events only| Boundaries
+    Boundaries -->|External settlement| EXT
+
+    classDef hub fill:#e0f7fa,stroke:#006064
+    classDef ext fill:#fff3e0,stroke:#e65100
+    classDef consumer fill:#e8f5e9,stroke:#2e7d32
+    classDef boundary fill:#fce4ec,stroke:#c2185b
+
+    class Hub hub
+    class External,TP,FE,EXT ext
+    class Consumers,WS,KAFKA,REDIS,POLL consumer
+    class Boundaries,ACH,PAY,CHAIN boundary
+```
+
+**Key rule**: All writes go through the central server. Adapters and external systems may only emit events — they cannot mutate constitutional state.
+
+### Full Connection Model Diagram
+
+**Rendered SVG (recommended):**
+
+![SOVR Connection Model](docs/images/connection-model.svg)
+
+**Full details + editable source** are in:
+- `PROJECT_STATUS_2026-07-22.yaml` → `integration_surfaces.diagram`
+- `PROTOCOL_API_SERVICE_GUIDE.md`
+- Source: `docs/architecture/connection-model.mmd`
+
+The diagram includes:
+- Health + Build Hash Gate
+- 7-Stage Pipeline
+- 21-field event envelopes
+- INV-001 / INV-005 / INV-006 enforcement
+- Isolated boundary adapters
+- All async consumption paths (WebSocket, Kafka, Redis, polling)
 
 | Issue | Status | Resolution |
 |:------|:-------|:-----------|

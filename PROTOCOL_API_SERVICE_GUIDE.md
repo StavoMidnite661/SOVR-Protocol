@@ -360,13 +360,102 @@ cat generated/data/sovr-events.json | jq length
 
 * **Before:** Protocol repo was contracts + generated stubs. Explorer imported types directly, no gates enforced. No runnable backend. External couldn't connect.
 
-* **After:** Protocol repo now has **real Protocol API Service on localhost:3001** that IS the Source of Canonical Events. It enforces all 7 gates, 10 invariants, 107 capabilities, produces 251 events with 18-field envelope, persists to `sovr-events.json`, rebuilds 15 projections from genesis, exposes universal route `POST /api/v1/{domain}/{aggregate}`.
+* **After:** Protocol repo now has **real Protocol API Service on localhost:3001** that IS the Source of Canonical Events. It enforces all 7 gates, 10 invariants, 107 capabilities, produces 251 events with 21-field envelope, persists to `sovr-events.json`, rebuilds 15 projections from genesis, exposes universal route `POST /api/v1/{domain}/{aggregate}`.
 
 * **Explorer (frontend)** runs on `:3000`, connects only via `/api/v1` using `SOVRClient`, waits for HEALTHY, verifies build_hash chain. It never reads YAML directly.
 
 * **External (any digitalizable financial infra)** connects via same universal route with Bearer JWT, or subscribes to Kafka topics `sovr.*.*` / Redis streams `sovr:stream:*` for async events, or uses boundary adapters for payment rails / blockchain.
 
 Run `PORT=3001 node packages/runtime/dist/server/index.js` and you have a backend/API service to connect to.
+
+---
+
+## Connection Model Diagram (Updated 2026-07-22)
+
+**Visual overview of how everything connects to the SOVR Protocol API Server (the central hub).**
+
+All writes must go through the server. Adapters are strictly isolated.
+
+### Rendered Diagram (SVG)
+
+![SOVR Connection Model](docs/images/connection-model.svg)
+
+**Direct link:** [`docs/images/connection-model.svg`](docs/images/connection-model.svg)
+
+### Editable Mermaid Source
+
+```mermaid
+flowchart TB
+    subgraph External["🌐 External World / Third Parties"]
+        TP[Third-Party Apps<br/>Banks • Fintech • ERP • Regulators]
+        FE[Frontends & UIs<br/>React • Vue • Mobile • Dashboards]
+        EXT[External Systems<br/>Oracles • Blockchains • Payment Providers]
+    end
+
+    subgraph Hub["🔥 SOVR Protocol API Server<br/>(Source of Canonical Events)"]
+        direction TB
+        GATE[Health + Build Hash Gate<br/>MUST be HEALTHY + verify build_hash]
+        API[Universal REST Route<br/>POST /api/v1/:domain/:aggregate<br/>101 Commands]
+        SDK[SOVRClient SDK<br/>(TypeScript - real HTTP)]
+        PIPE[7-Stage Pipeline<br/>1. Identity<br/>2. Capability + Scope<br/>3. Policy<br/>4. Constitutional (INV-001..010)<br/>5. Execution<br/>6. Event Publication]
+        ES[(Event Store<br/>Append-only • Immutable<br/>21-field envelopes<br/>INV-001 • INV-005 • INV-006)]
+    end
+
+    subgraph Consumers["📡 Event Consumers (Async)"]
+        WS[WebSocket<br/>/api/v1/events/stream]
+        KAFKA[Kafka Topics<br/>sovr.*.*.*]
+        REDIS[Redis Streams<br/>sovr:stream:*]
+        POLL[REST Polling +<br/>/api/v1/audit/:correlation_id]
+    end
+
+    subgraph Boundaries["🔌 Boundary Adapters<br/>(Isolated - No State Mutation)"]
+        ACH[ACH Adapter<br/>(live + real)]
+        PAY[Payment Rails<br/>12 declared]
+        CHAIN[Blockchain / Hybrid<br/>Ethereum • Base • Polygon]
+        NOTE["ADAPTERS_MAY_NOT_MUTATE<br/>CONSTITUTIONAL_STATE"]
+    end
+
+    %% Connections
+    TP -->|REST + Bearer JWT + capability + scope| API
+    FE -->|SDK + waitForHealthy() + verifyBuildManifest()| API
+    EXT -->|REST or Events| API
+
+    API --> GATE
+    GATE --> PIPE
+    PIPE --> ES
+
+    ES -->|Every append publishes to| WS & KAFKA & REDIS & POLL
+
+    ES -->|Emit events only| Boundaries
+    Boundaries -->|External settlement| EXT
+
+    classDef hub fill:#e0f7fa,stroke:#006064,stroke-width:3px
+    classDef ext fill:#fff3e0,stroke:#e65100
+    classDef consumer fill:#e8f5e9,stroke:#2e7d32
+    classDef boundary fill:#fce4ec,stroke:#c2185b
+
+    class Hub hub
+    class External,TP,FE,EXT ext
+    class Consumers,WS,KAFKA,REDIS,POLL consumer
+    class Boundaries,ACH,PAY,CHAIN,NOTE boundary
+```
+
+**Key details shown in the diagram:**
+- **21-field event envelope**
+- Explicit **INV-001, INV-005, INV-006** enforcement in the Event Store
+- Full **7-Stage Pipeline** with constitutional checks
+- **Health + Build Hash Gate** (mandatory for frontends)
+- **Isolated adapters** with the constitutional prohibition
+- All async consumption paths
+
+**Source files:**
+- Mermaid: `docs/architecture/connection-model.mmd`
+- SVG: `docs/images/connection-model.svg`
+- Also embedded in `PROJECT_STATUS_2026-07-22.yaml` under `integration_surfaces.diagram`
+
+---
+
+## Production Hardening (2026-07-21)
 
 ---
 

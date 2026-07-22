@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1100" height="720" viewBox="0 0 1100 720" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="hubGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e0f7fa"/>
+      <stop offset="100%" stop-color="#b2ebf2"/>
+    </linearGradient>
+    <linearGradient id="extGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff3e0"/>
+      <stop offset="100%" stop-color="#ffe0b2"/>
+    </linearGradient>
+    <linearGradient id="consumerGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8f5e9"/>
+      <stop offset="100%" stop-color="#c8e6c9"/>
+    </linearGradient>
+    <linearGradient id="boundaryGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fce4ec"/>
+      <stop offset="100%" stop-color="#f8bbd0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="3" stdDeviation="3" flood-color="#000" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="720" fill="#fafafa"/>
+
+  <!-- Title -->
+  <text x="550" y="35" font-size="22" font-weight="700" fill="#111" text-anchor="middle">SOVR Protocol — Connection Model (Source of Canonical Events)</text>
+  <text x="550" y="55" font-size="13" fill="#555" text-anchor="middle">Central Hub Architecture • All writes go through the 7-stage pipeline • Adapters are isolated</text>
+
+  <!-- === EXTERNAL WORLD === -->
+  <g transform="translate(40,75)">
+    <rect width="260" height="160" rx="12" fill="url(#extGrad)" stroke="#e65100" stroke-width="2.5" filter="url(#shadow)"/>
+    <text x="130" y="24" font-size="15" font-weight="700" fill="#e65100" text-anchor="middle">🌐 EXTERNAL WORLD</text>
+    <text x="130" y="46" font-size="11" fill="#333" text-anchor="middle">Third-Party Apps &amp; Systems</text>
+
+    <!-- Third party boxes -->
+    <rect x="15" y="60" width="110" height="38" rx="6" fill="#fff" stroke="#ff9800" stroke-width="1.5"/>
+    <text x="70" y="78" font-size="10" fill="#333" text-anchor="middle">Third-Party Apps</text>
+    <text x="70" y="91" font-size="9" fill="#666" text-anchor="middle">Banks • Fintech • ERP</text>
+
+    <rect x="135" y="60" width="110" height="38" rx="6" fill="#fff" stroke="#ff9800" stroke-width="1.5"/>
+    <text x="190" y="78" font-size="10" fill="#333" text-anchor="middle">Frontends &amp; UIs</text>
+    <text x="190" y="91" font-size="9" fill="#666" text-anchor="middle">React • Vue • Mobile</text>
+
+    <rect x="15" y="108" width="230" height="38" rx="6" fill="#fff" stroke="#ff9800" stroke-width="1.5"/>
+    <text x="130" y="126" font-size="10" fill="#333" text-anchor="middle">External Systems • Oracles • Chains</text>
+    <text x="130" y="139" font-size="9" fill="#666" text-anchor="middle">Regulators • Payment Providers • Blockchains</text>
+  </g>
+
+  <!-- === CENTRAL HUB === -->
+  <g transform="translate(340,75)">
+    <rect width="420" height="480" rx="14" fill="url(#hubGrad)" stroke="#006064" stroke-width="3" filter="url(#shadow)"/>
+    <text x="210" y="26" font-size="16" font-weight="700" fill="#006064" text-anchor="middle">🔥 SOVR PROTOCOL API SERVER</text>
+    <text x="210" y="44" font-size="11" fill="#004d56" text-anchor="middle">Source of Canonical Events • Single Source of Truth</text>
+
+    <!-- Gate -->
+    <rect x="30" y="58" width="360" height="48" rx="8" fill="#fff" stroke="#006064" stroke-width="2"/>
+    <text x="210" y="78" font-size="12" font-weight="600" fill="#006064" text-anchor="middle">🚪 HEALTH + BUILD HASH GATE</text>
+    <text x="210" y="94" font-size="10" fill="#333" text-anchor="middle">MUST be HEALTHY • verifyBuildManifest() • build_hash chain</text>
+
+    <!-- Universal API -->
+    <rect x="30" y="118" width="360" height="58" rx="8" fill="#fff" stroke="#006064" stroke-width="2"/>
+    <text x="210" y="138" font-size="13" font-weight="600" fill="#006064" text-anchor="middle">Universal REST Route</text>
+    <text x="210" y="154" font-size="10" fill="#222" text-anchor="middle">POST /api/v1/:domain/:aggregate   (101 Commands)</text>
+    <text x="210" y="168" font-size="9" fill="#555" text-anchor="middle">Bearer JWT + capability_id + scope</text>
+
+    <!-- SDK -->
+    <rect x="30" y="186" width="170" height="42" rx="6" fill="#f0f9ff" stroke="#0288d1" stroke-width="1.5"/>
+    <text x="115" y="203" font-size="11" font-weight="600" fill="#01579b" text-anchor="middle">SOVRClient SDK</text>
+    <text x="115" y="217" font-size="9" fill="#333" text-anchor="middle">(TypeScript — real fetch)</text>
+
+    <!-- 7-Stage Pipeline -->
+    <rect x="220" y="186" width="170" height="42" rx="6" fill="#f0f9ff" stroke="#006064" stroke-width="1.5"/>
+    <text x="305" y="203" font-size="11" font-weight="600" fill="#006064" text-anchor="middle">7-Stage Pipeline</text>
+    <text x="305" y="217" font-size="9" fill="#333" text-anchor="middle">Identity → Cap/Scope → Policy → Const → Exec → Pub</text>
+
+    <!-- Event Store (core) -->
+    <rect x="30" y="242" width="360" height="92" rx="10" fill="#e0f2f1" stroke="#00695c" stroke-width="2.5"/>
+    <text x="210" y="265" font-size="14" font-weight="700" fill="#00695c" text-anchor="middle">📦 EVENT STORE (Append-Only)</text>
+    <text x="210" y="283" font-size="10" fill="#222" text-anchor="middle">21-field envelopes • Object.freeze • INV-001</text>
+    <text x="210" y="298" font-size="9" fill="#444" text-anchor="middle">Causation + Correlation graphs • Atomic persist</text>
+    <text x="210" y="313" font-size="9" fill="#00695c" text-anchor="middle">INV-005 Audit Trail • INV-006 Event is authoritative</text>
+
+    <!-- INVARIANTS BOX -->
+    <rect x="30" y="345" width="360" height="52" rx="8" fill="#fff8e1" stroke="#f57c00" stroke-width="1.5"/>
+    <text x="210" y="363" font-size="11" font-weight="600" fill="#e65100" text-anchor="middle">CONSTITUTIONAL INVARIANTS ENFORCED</text>
+    <text x="210" y="380" font-size="9" fill="#333" text-anchor="middle">INV-001 (Immutability) • INV-002 (Double-Entry) • INV-003 (Authority)</text>
+    <text x="210" y="393" font-size="9" fill="#333" text-anchor="middle">INV-004 (No Agent Financial Authority) • INV-005 (Audit) • INV-008 (Gates)</text>
+
+    <!-- Pipeline detail -->
+    <text x="210" y="420" font-size="9" fill="#555" text-anchor="middle">All commands pass: Identity → Capability → Scope → Policy → Constitutional → Execution → Publication</text>
+  </g>
+
+  <!-- === EVENT CONSUMERS === -->
+  <g transform="translate(40,260)">
+    <rect width="260" height="160" rx="12" fill="url(#consumerGrad)" stroke="#2e7d32" stroke-width="2.5" filter="url(#shadow)"/>
+    <text x="130" y="24" font-size="15" font-weight="700" fill="#2e7d32" text-anchor="middle">📡 EVENT CONSUMERS (Async)</text>
+
+    <rect x="15" y="42" width="110" height="48" rx="6" fill="#fff" stroke="#43a047" stroke-width="1.5"/>
+    <text x="70" y="60" font-size="10" font-weight="600" fill="#1b5e20" text-anchor="middle">WebSocket</text>
+    <text x="70" y="73" font-size="8" fill="#333" text-anchor="middle">/api/v1/events/stream</text>
+    <text x="70" y="84" font-size="8" fill="#555" text-anchor="middle">Real-time</text>
+
+    <rect x="135" y="42" width="110" height="48" rx="6" fill="#fff" stroke="#43a047" stroke-width="1.5"/>
+    <text x="190" y="60" font-size="10" font-weight="600" fill="#1b5e20" text-anchor="middle">Kafka</text>
+    <text x="190" y="73" font-size="8" fill="#333" text-anchor="middle">sovr.{domain}.{aggregate}</text>
+    <text x="190" y="84" font-size="8" fill="#555" text-anchor="middle">251 topics</text>
+
+    <rect x="15" y="100" width="110" height="48" rx="6" fill="#fff" stroke="#43a047" stroke-width="1.5"/>
+    <text x="70" y="118" font-size="10" font-weight="600" fill="#1b5e20" text-anchor="middle">Redis Streams</text>
+    <text x="70" y="131" font-size="8" fill="#333" text-anchor="middle">sovr:stream:*</text>
+    <text x="70" y="142" font-size="8" fill="#555" text-anchor="middle">XADD / XREAD</text>
+
+    <rect x="135" y="100" width="110" height="48" rx="6" fill="#fff" stroke="#43a047" stroke-width="1.5"/>
+    <text x="190" y="118" font-size="10" font-weight="600" fill="#1b5e20" text-anchor="middle">REST + Audit</text>
+    <text x="190" y="131" font-size="8" fill="#333" text-anchor="middle">/events • /audit/:id</text>
+    <text x="190" y="142" font-size="8" fill="#555" text-anchor="middle">isComplete flag</text>
+  </g>
+
+  <!-- === BOUNDARY ADAPTERS === -->
+  <g transform="translate(780,75)">
+    <rect width="280" height="260" rx="12" fill="url(#boundaryGrad)" stroke="#c2185b" stroke-width="2.5" filter="url(#shadow)"/>
+    <text x="140" y="24" font-size="15" font-weight="700" fill="#c2185b" text-anchor="middle">🔌 BOUNDARY ADAPTERS</text>
+    <text x="140" y="42" font-size="10" fill="#880e4f" text-anchor="middle">Isolated — Emit events only</text>
+
+    <rect x="15" y="55" width="250" height="32" rx="6" fill="#fff" stroke="#c2185b" stroke-width="1.5"/>
+    <text x="140" y="70" font-size="10" font-weight="600" fill="#880e4f" text-anchor="middle">ACH Adapter (LIVE)</text>
+    <text x="140" y="82" font-size="8" fill="#333" text-anchor="middle">prepare → execute → confirm → compensate</text>
+
+    <rect x="15" y="95" width="250" height="32" rx="6" fill="#fff" stroke="#c2185b" stroke-width="1.5"/>
+    <text x="140" y="110" font-size="10" font-weight="600" fill="#880e4f" text-anchor="middle">Payment Rails (12 declared)</text>
+    <text x="140" y="122" font-size="8" fill="#333" text-anchor="middle">FEDNOW • WIRE • RTP • CARD • SWIFT • STABLECOIN...</text>
+
+    <rect x="15" y="135" width="250" height="32" rx="6" fill="#fff" stroke="#c2185b" stroke-width="1.5"/>
+    <text x="140" y="150" font-size="10" font-weight="600" fill="#880e4f" text-anchor="middle">Blockchain / Hybrid</text>
+    <text x="140" y="162" font-size="8" fill="#333" text-anchor="middle">Ethereum • Base • Polygon • future_chain</text>
+
+    <rect x="15" y="180" width="250" height="42" rx="6" fill="#fff0f5" stroke="#c2185b" stroke-width="2"/>
+    <text x="140" y="198" font-size="10" font-weight="700" fill="#c2185b" text-anchor="middle">ADAPTERS_MAY_NOT_MUTATE</text>
+    <text x="140" y="212" font-size="9" fill="#880e4f" text-anchor="middle">CONSTITUTIONAL_STATE</text>
+
+    <text x="140" y="245" font-size="9" fill="#555" text-anchor="middle">Only emit events back into the hub</text>
+  </g>
+
+  <!-- === ARROWS / CONNECTIONS === -->
+  <!-- External → Hub -->
+  <path d="M300 155 L340 155" stroke="#e65100" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="320" y="148" font-size="9" fill="#e65100">REST + JWT + cap + scope</text>
+
+  <path d="M300 195 L340 195" stroke="#e65100" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="320" y="210" font-size="8" fill="#e65100">SDK calls</text>
+
+  <!-- Hub → Consumers -->
+  <path d="M340 340 L300 340" stroke="#2e7d32" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="318" y="330" font-size="8" fill="#2e7d32">publish</text>
+
+  <!-- Hub → Boundaries -->
+  <path d="M760 280 L780 180" stroke="#c2185b" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="772" y="220" font-size="8" fill="#c2185b" transform="rotate(-45 772 220)">emit only</text>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#666"/>
+    </marker>
+  </defs>
+
+  <!-- Footer -->
+  <text x="550" y="700" font-size="10" fill="#666" text-anchor="middle">
+    All financial state changes must flow through the Protocol API Server. Event log is always authoritative (INV-006).
+  </text>
+</svg>
