@@ -1,7 +1,20 @@
 # ============================================================
-# SOVR Financial OS — Milestones
+# SOVR Financial OS — MILESTONES (UPDATED 2026-07-22)
+# ============================================================
+# See PROJECT_STATUS_2026-07-22.yaml for authoritative current state.
+# Old M0–M4 details retained below for history.
+# Current phase: J_COMPLETE_RUNTIME_LIVE
 # ============================================================
 
+current:
+  phase: J_COMPLETE_RUNTIME_LIVE
+  status: RUNTIME_LIVE_AUDITABLE
+  last_verified: "2026-07-22"
+  build_hash: "20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e"
+  live_server: true
+  server_auditable: true
+
+historical_milestones:
 milestones:
   - id: M0
     name: Governance Layer
@@ -28,103 +41,15 @@ milestones:
       - TRACEABILITY_MATRIX.md
       - MILESTONES.yaml
       - DRIFT_DETECTION.md
-      - REPOSITORY_INDEX.md
-      - ENGINEERING_DASHBOARD.md
-    dependencies: []
-    evidence: All files present
-    completion_gate: PROGRAM_GOVERNANCE_CERTIFICATION.md generated
 
-  - id: M1
-    name: Protocol Validation
-    required_deliverables:
-      - CAPABILITY_CERTIFICATION.md
-      - semantic-graph-v1.json
-    dependencies: [M0]
-    evidence: Certification documents present
-    completion_gate: Validation passed
-
-  - id: M2
-    name: Kernel Certification
-    required_deliverables:
-      - kernel/event-envelope
-      - kernel/identifiers
-      - kernel/timestamps
-      - kernel/cryptographic-primitives
-      - kernel/audit-structures
-      - kernel/validation-contracts
-      - kernel/error-standards
-      - KERNEL_CERTIFICATION.md
-    dependencies: [M1]
-    evidence: Kernel certification passed
-    completion_gate: All kernel tests passed, hashes stable
-
-  - id: M3
-    name: Domain Containerization
-    required_deliverables:
-      - All domain containers with implementation
-      - Domain certification documents
-    dependencies: [M2]
-    evidence: All domain certifications present
-    completion_gate: All acceptance tests passed
-
-  - id: M4
-    name: Compiler Realization
-    required_deliverables:
-      - OpenAPI schemas
-      - Database schemas
-      - Event definitions
-      - Command registry
-      - Projection models
-      - Test infrastructure
-      - Documentation
-    dependencies: [M3]
-    evidence: Compiler certification passed
-    completion_gate: Same input = same output = same hashes
-
+# ============================================================
+# M5+ added 2026-07-22
+# ============================================================
   - id: M5
-    name: Acceptance Certification
-    required_deliverables:
-      - All acceptance tests passed
-      - Test evidence package
-    dependencies: [M4]
-    evidence: Test results present
-    completion_gate: Zero critical failures
-
+    name: Full Rail Adapters + State Machine Runtime
+    status: in_progress
+    target: 2026-08
   - id: M6
-    name: Integrated Runtime
-    required_deliverables:
-      - Integrated runtime
-      - Cross-domain integration tests
-    dependencies: [M5]
-    evidence: Integration tests passed
-    completion_gate: Runtime certification passed
+    name: Production Deployment Gate
+    status: blocked_on_M5
 
-  - id: M7
-    name: Commercial Demonstration
-    required_deliverables:
-      - Demo environment
-      - Demo scenarios
-      - Performance benchmarks
-    dependencies: [M6]
-    evidence: Demo successful
-    completion_gate: Stakeholder approval
-
-  - id: M8
-    name: Release Candidate
-    required_deliverables:
-      - Release candidate package
-      - Compliance package
-      - Audit report
-    dependencies: [M7]
-    evidence: Release candidate passed all checks
-    completion_gate: Release approval
-
-  - id: M9
-    name: Production
-    required_deliverables:
-      - Production deployment
-      - Monitoring setup
-      - Support documentation
-    dependencies: [M8]
-    evidence: Production stable
-    completion_gate: Production certification passed

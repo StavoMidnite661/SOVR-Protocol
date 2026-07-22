@@ -65,3 +65,5 @@ validation:
     - certification/PROTOCOL_VERSION_AUTHORITY_REPORT.yaml
     - certification/COMPILER_RUNTIME_REALIZATION_CERTIFICATION.yaml
     - certification/PHASE_XIII_COMPLETION_REPORT.yaml
+_deprecated: true
+superseded_by: PROJECT_STATUS_2026-07-22.yaml

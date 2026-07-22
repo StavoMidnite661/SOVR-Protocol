@@ -1,0 +1,60 @@
+sequenceDiagram
+    autonumber
+    participant Ext as External Bank<br/>(external_system)
+    participant Client as SOVRClient / curl
+    participant Gateway as Protocol API Server<br/>(:3001)
+    participant Gate as Health + Provenance Gate
+    participant Bus as Command Bus<br/>(7-Stage Pipeline)
+    participant Store as Event Store
+    participant Proj as Projection Engine
+    participant Adapter as ACH Adapter<br/>(Boundary)
+
+    Ext->>Client: 1. POST /identity/session<br/>{actor_type: "external_system"}
+    Client->>Gateway: Request JWT
+    Gateway-->>Client: JWT + session
+
+    Ext->>Client: 2. POST /capabilities/grant<br/>(governance role)
+    Client->>Gateway: Grant treasury.transfer.*
+    Gateway->>Store: governance.capability.granted
+
+    Ext->>Client: 3. POST /treasury/transfer_order
+    Client->>Gateway: {commandName: "treasury.transfer.request", ...}
+    
+    Gateway->>Gate: Check HEALTHY + build_hash
+    Gate-->>Gateway: OK
+
+    Gateway->>Bus: Submit command
+
+    Bus->>Bus: Stage 1: Identity verification
+    Bus->>Bus: Stage 2: Capability + Scope check
+    Bus->>Bus: Stage 3: Policy evaluation
+    Bus->>Bus: Stage 4: Constitutional (INV-002, INV-003, etc.)
+    Bus->>Bus: Stage 5: Execute (reserve + ledger)
+
+    Bus->>Store: treasury.transfer.requested<br/>(21-field envelope)
+    Store-->>Bus: Event appended (INV-001)
+    Bus->>Proj: Update projections
+    Bus->>Store: treasury.transfer.authorized
+
+    Bus->>Gateway: ACCEPTED + events + gates
+
+    Gateway-->>Client: Response with correlation_id
+
+    Note over Ext,Adapter: Async Settlement Path
+
+    Bus->>Adapter: payment.request.create
+    Adapter->>Adapter: prepare (ACH)
+    Adapter->>Store: payment.rail.prepared
+
+    Adapter->>Adapter: execute
+    Adapter->>Store: payment.rail.executed
+
+    Adapter->>Adapter: confirm
+    Adapter->>Store: payment.rail.confirmed<br/>+ payment.receipt.issued
+
+    Store->>Proj: Rebuild read models
+    Store-->>Consumers: Publish to Kafka / Redis / WS
+
+    Ext->>Client: 4. GET /audit/{correlation_id}
+    Client->>Gateway: Query complete trail
+    Gateway-->>Ext: Full event chain + isComplete: true
