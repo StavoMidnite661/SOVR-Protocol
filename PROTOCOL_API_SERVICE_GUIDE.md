@@ -367,3 +367,109 @@ cat generated/data/sovr-events.json | jq length
 * **External (any digitalizable financial infra)** connects via same universal route with Bearer JWT, or subscribes to Kafka topics `sovr.*.*` / Redis streams `sovr:stream:*` for async events, or uses boundary adapters for payment rails / blockchain.
 
 Run `PORT=3001 node packages/runtime/dist/server/index.js` and you have a backend/API service to connect to.
+
+---
+
+# Production Hardening (2026-07-21)
+
+This is the update log of what changed to take the kernel from "demo with mocks" to "real production".
+
+## What is now real (no mocks)
+
+| Was | Now | Evidence |
+|---|---|---|
+| `SOVRClient.executeCommand()` did `console.log` and returned a fake `{status: 'ACCEPTED'}` | Real `fetch()` to `/api/v1/{domain}/{aggregate}`, propagates server response, throws `SOVRApiError` on 4xx/5xx | `packages/runtime/src/sdk/client.ts` |
+| `identity/session` returned `base64(JSON.stringify(...))` and called it a "JWT" | Real HMAC-SHA256 signed JWT via `SOVRJwt` (uses Node's built-in `crypto`, no external dep). Constant-time signature compare, exp/nbf/iss/aud validation, alg pinned to HS256 to prevent alg-confusion | `packages/runtime/src/server/jwt.ts` |
+| "Kafka" was just a static `topics.yaml` read at `/api/v1/streams` | Real `kafkajs` Producer (idempotent, allowAutoTopicCreation) wired to publish every event to `sovr.{domain}.{aggregate}.{event_name}`. Disabled by default — set `SOVR_KAFKA_ENABLED=true` + `SOVR_KAFKA_BROKERS=...` to enable | `packages/runtime/src/server/kafkaPublisher.ts` |
+| "Redis" was just a static `streams.yaml` | Real `ioredis` XADD with MAXLEN ~ 100000. Wire format `sovr:stream:{domain}:{aggregate}` | `packages/runtime/src/server/redisStreamPublisher.ts` |
+| WebSocket `WS /api/v1/events/stream` would 404 | Real `@fastify/websocket` route. Connect → receive `hello` frame → receive `event` frame for every envelope the bus emits. Filter by `?domain=&aggregate=&actor_id=` | `packages/runtime/src/server/index.ts:524-538` |
+| `final_health: 'HEALTHY'` was hardcoded | Computed from each subsystem: `event_store`, `projections`, `capabilities`, `build_provenance` (chain match). Returns `HEALTHY` / `DEGRADED` / `UNHEALTHY` | `index.ts:265-291` |
+| `SOVR_DEV_AUTO_GRANT=true` was default → INV-003/004 violated in dev | Defaults to **false**. Must be explicitly opted in. **Production refuses to start** if true | `packages/runtime/src/server/config.ts:121-127` |
+| Catalog `required_payload` was a no-op (the loop body was empty) | Real field-by-field check, returns the first missing field. Returns 400 with `VALIDATION: required field 'X' is missing` | `commandBus.ts:151-163` |
+| Unknown command → silent acceptance with no events | Produces a real `system.command.unknown` failure event in the event log so the audit trail is never silent | `commandBus.ts:178-189` |
+| Event with no `evDef` in catalog → silent skip | Produces a real `system.event.definition_missing` event so the operator can fix the spec | `commandBus.ts:198-212` |
+| Causation chain check was fail-open with only a `console.warn` | Still fail-open by default (genesis bootstraps), but now has `strictCausation` option that throws `CAUSATION_BROKEN` | `eventStore.ts:127-138` |
+| Envelope had 18 fields, spec called for 21 | Now emits all 21: `event_id, event_name, event_version, schema_version, aggregate, aggregate_id, source_domain, command_id, triggering_command, causation_id, correlation_id, actor_id, identity_context, policy_decision_id, capability_id, timestamp, payload, projection_effect, audit, retention_metadata, actor_chain` | `eventStore.ts:96-122` |
+| Event load() didn't backfill new fields | `load()` backfills `schema_version`, `actor_chain`, `retention_metadata` on legacy envelopes so old `sovr-events.json` files still pass the 21-field test | `eventStore.ts:74-79` |
+| Projection engine had loose `startsWith()` dispatch (events leaking across projections) | Tightened to ONLY match explicit `sourceEvents` subscription OR `projection_effect.target` | `projectionEngine.ts:152-167` |
+| Payment rail type had 10 unions, spec has 12 | Extended to all 12: `ACH, FEDNOW, WIRE, RTP, CARD, BLOCKCHAIN, INTERNAL_TRANSFER, STABLECOIN, SWIFT, SEPA, CASH_SETTLEMENT, FUTURE_ADAPTER` | `adapters/boundary.ts:24-34` |
+| Boundary adapters were empty interfaces | Real `AchAdapter` (mock bank) — `prepare`, `execute`, `confirm`, `compensate` all emit real `payment.rail.*` and `payment.compensation.*` envelopes. Proves `ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE` is enforceable | `packages/runtime/src/adapters/achAdapter.ts` + `index.ts:498-548` |
+| `example-frontend` App.ts used wrong build hash (`30f7880d...`) and only printed things | Real HTTP flow: polls `/api/v1/health`, fetches live `/api/v1/manifest`, verifies `build_hash`, calls `createSession` + `grantCapability` + `registerAsset` + `listEvents` + `queryProjection` | `example-frontend/src/App.ts` |
+| `BootScreen.waitForHealthyBoot()` was `setTimeout(1000)` | Real polling of `/api/v1/health` every 500ms until `final_health === 'HEALTHY'`, with timeout | `example-frontend/src/BootScreen.ts` |
+
+## New HTTP routes (real)
+
+| Method | Path | Purpose |
+|---|---|---|
+| WS | `/api/v1/events/stream?domain=&aggregate=&actor_id=` | Real-time event stream. Each connection gets a `hello` frame then `event` frames for every matching envelope |
+| POST | `/api/v1/payment/rail/ACH/prepare` | Allocate ACH preparation. Emits `payment.rail.prepared` |
+| POST | `/api/v1/payment/rail/ACH/execute` | Submit to (mock) ACH. Emits `payment.rail.executed` |
+| POST | `/api/v1/payment/rail/ACH/confirm` | Confirm with (mock) ACH. Emits `payment.rail.confirmed` |
+| POST | `/api/v1/payment/rail/ACH/compensate` | Reverse a failed rail. Emits `payment.compensation.started` |
+| GET | `/api/v1/payment/rails` | List supported rail types + which are registered |
+
+## New env vars
+
+| Var | Default | Required in prod? |
+|---|---|---|
+| `SOVR_JWT_SECRET` | dev fallback | **YES** (≥32 bytes) |
+| `SOVR_JWT_ISSUER` | `sovr-financial-os` | no |
+| `SOVR_JWT_AUDIENCE` | `sovr-clients` | no |
+| `SOVR_JWT_TTL_SECONDS` | 3600 | no |
+| `SOVR_DEV_AUTO_GRANT` | **false** (was true) | must be `false` |
+| `SOVR_KAFKA_ENABLED` | false | optional |
+| `SOVR_KAFKA_BROKERS` | `[]` | if kafka enabled |
+| `SOVR_KAFKA_CLIENT_ID` | `sovr-runtime` | no |
+| `SOVR_REDIS_ENABLED` | false | optional |
+| `SOVR_REDIS_URL` | `redis://localhost:6379` | if redis enabled |
+| `SOVR_REDIS_STREAM_MAXLEN` | 100000 | no |
+| `SOVR_ACH_ROUTING_NUMBER` | `021000021` | no |
+| `SOVR_ACH_BANK_NAME` | `SOVR Sandbox Bank` | no |
+| `SOVR_ACH_LATENCY_MS` | 50 | no |
+| `HOST` | `0.0.0.0` | no |
+| `SOVR_LOG_LEVEL` | `info` (prod) / `debug` (dev) | no |
+
+See `.env.example` at the repo root for a copy-paste template.
+
+## New npm scripts
+
+| Command | What it does |
+|---|---|
+| `cd packages/runtime && npm test` | All vitest tests (currently: integration suite) |
+| `cd packages/runtime && npm run test:integration` | Just the 16-case integration suite (boots the real server in-process) |
+| `cd packages/runtime && npm run test:watch` | Vitest watch mode |
+
+## Integration test coverage (16 tests, all green)
+
+- `health and provenance`: HEALTHY status with computed subsystem detail; manifest/attestation build_hash match (unfakeable chain).
+- `JWT (real HMAC-SHA256)`: 3-part token, valid signature, rejects tampered, rejects wrong-secret, rejects expired.
+- `7-stage pipeline (real flow)`: rejects unknown command with `system.command.unknown` event; rejects missing required_payload; rejects ai_agent on governance grant (INV-004); accepts valid register end-to-end with event log + projection round-trip.
+- `INV-002 double-entry (live)`: accepts balanced postings, rejects unbalanced with `INV-002 VIOLATION`.
+- `WebSocket event stream`: real `hello` frame, real `event` frame on append, domain filter works.
+- `ACH boundary adapter (real)`: prepare → execute → confirm emits 3 events with 21-field envelope; unknown rail returns 404 with `unknown_rail` and `supported` list.
+- `SDK error surfacing`: `SOVRApiError` on 4xx with parsed body.
+
+## Operating the stack
+
+### Local sandbox (no Kafka/Redis)
+```bash
+export NODE_ENV=development
+export SOVR_JWT_SECRET="$(node -e 'console.log(require(\"crypto\").randomBytes(48).toString(\"base64\"))')"
+node packages/runtime/dist/server/index.js
+```
+
+### Local with Kafka + Redis
+```bash
+docker compose -f deployment/docker-compose.yml up -d kafka redis
+export SOVR_KAFKA_ENABLED=true SOVR_KAFKA_BROKERS=localhost:9092
+export SOVR_REDIS_ENABLED=true  SOVR_REDIS_URL=redis://localhost:6379
+node packages/runtime/dist/server/index.js
+```
+
+### Production
+```bash
+cp .env.example .env
+# edit SOVR_JWT_SECRET
+docker compose -f deployment/docker-compose.yml up --build
+```
+

@@ -9,8 +9,9 @@
     "declaration": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowJs": true
+    "allowJs": true,
+    "resolveJsonModule": true
   },
   "include": ["src/**/*"],
-  "exclude": ["../../generated/**/*", "node_modules"]
+  "exclude": ["test/**/*", "node_modules"]
 }

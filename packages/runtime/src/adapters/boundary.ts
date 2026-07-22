@@ -15,9 +15,17 @@ export interface ChainAdapter {
   // Prohibition: adapter must emit events, not mutate vault/ledger directly
 }
 
+// Rail type union aligned with domains/payment.yaml — 12 rails.
+export const SUPPORTED_RAIL_TYPES = [
+  'ACH', 'FEDNOW', 'WIRE', 'RTP', 'CARD', 'BLOCKCHAIN',
+  'INTERNAL_TRANSFER', 'STABLECOIN', 'SWIFT', 'SEPA',
+  'CASH_SETTLEMENT', 'FUTURE_ADAPTER',
+] as const;
+export type RailType = typeof SUPPORTED_RAIL_TYPES[number];
+
 // Example: payment rail adapter
 export interface PaymentRailAdapter {
-  railType: 'ACH'|'FEDNOW'|'WIRE'|'RTP'|'CARD'|'BLOCKCHAIN'|'INTERNAL_TRANSFER'|'STABLECOIN'|'SWIFT'|'SEPA';
+  railType: RailType;
   prepare(paymentRequestId: string, amount: any): Promise<{ railPreparationId: string; fees: string }>;
   execute(railPreparationId: string): Promise<{ railExecutionId: string; railReferenceId: string }>;
   confirm(railExecutionId: string): Promise<{ confirmed: boolean; confirmedAmount: string; fees: string }>;

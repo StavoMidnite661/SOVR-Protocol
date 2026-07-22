@@ -169,18 +169,18 @@ export class ProjectionEngine {
   }
 
   handleEvent(event: EventEnvelope) {
-    // Deliver to all projections whose sourceEvents matches or wildcard
+    // Dispatch ONLY to projections that explicitly subscribe to this event_name
+    // OR whose projection_effect.target was set to the projection by the event
+    // (this was previously a loose startsWith() match that caused events to leak
+    // across projections — e.g. vault.reserve.* routed to vault_asset_view).
     for (const proj of this.projections.values()) {
-      if (proj.sourceEvents.includes(event.event_name) || proj.sourceEvents.includes('*') || event.event_name.startsWith(proj.name.split('_')[0])) {
-        try {
-          proj.handleEvent(event);
-        } catch (e) {
-          console.warn(`Projection ${proj.name} failed to handle ${event.event_name}:`, e);
-        }
-      }
-      // Also always handle if projection_effect.target matches
-      if (event.projection_effect?.target === proj.name) {
+      const subscribed = proj.sourceEvents.includes(event.event_name) || proj.sourceEvents.includes('*');
+      const targeted = event.projection_effect?.target === proj.name;
+      if (!subscribed && !targeted) continue;
+      try {
         proj.handleEvent(event);
+      } catch (e) {
+        console.warn(`Projection ${proj.name} failed to handle ${event.event_name}:`, e);
       }
     }
 
