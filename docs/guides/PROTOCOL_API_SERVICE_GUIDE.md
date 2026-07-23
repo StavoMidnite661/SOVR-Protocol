@@ -360,7 +360,7 @@ cat generated/data/sovr-events.json | jq length
 
 * **Before:** Protocol repo was contracts + generated stubs. Explorer imported types directly, no gates enforced. No runnable backend. External couldn't connect.
 
-* **After:** Protocol repo now has **real Protocol API Service on localhost:3001** that IS the Source of Canonical Events. It enforces all 7 gates, 10 invariants, 107 capabilities, produces 251 events with 21-field envelope, persists to `sovr-events.json`, rebuilds 15 projections from genesis, exposes universal route `POST /api/v1/{domain}/{aggregate}`.
+* **After:** Protocol repo now has **real Protocol API Service on localhost:3001** that IS the Source of Canonical Events. It enforces all 7 gates, 10 invariants, 107 capabilities, produces 251 events with 18-field envelope (21 leaf fields including audit), persists to `sovr-events.json`, rebuilds 15 projections from genesis, exposes universal route `POST /api/v1/{domain}/{aggregate}`.
 
 * **Explorer (frontend)** runs on `:3000`, connects only via `/api/v1` using `SOVRClient`, waits for HEALTHY, verifies build_hash chain. It never reads YAML directly.
 
@@ -398,7 +398,7 @@ flowchart TB
         API[Universal REST Route<br/>POST /api/v1/:domain/:aggregate<br/>101 Commands]
         SDK[SOVRClient SDK<br/>(TypeScript - real HTTP)]
         PIPE[7-Stage Pipeline<br/>1. Identity<br/>2. Capability + Scope<br/>3. Policy<br/>4. Constitutional (INV-001..010)<br/>5. Execution<br/>6. Event Publication]
-        ES[(Event Store<br/>Append-only • Immutable<br/>21-field envelopes<br/>INV-001 • INV-005 • INV-006)]
+        ES[(Event Store<br/>Append-only • Immutable<br/>18-field envelope (21 leaf fields including audit)s<br/>INV-001 • INV-005 • INV-006)]
     end
 
     subgraph Consumers["📡 Event Consumers (Async)"]
@@ -483,7 +483,7 @@ This is the update log of what changed to take the kernel from "demo with mocks"
 | Projection engine had loose `startsWith()` dispatch (events leaking across projections) | Tightened to ONLY match explicit `sourceEvents` subscription OR `projection_effect.target` | `projectionEngine.ts:152-167` |
 | Payment rail type had 10 unions, spec has 12 | Extended to all 12: `ACH, FEDNOW, WIRE, RTP, CARD, BLOCKCHAIN, INTERNAL_TRANSFER, STABLECOIN, SWIFT, SEPA, CASH_SETTLEMENT, FUTURE_ADAPTER` | `adapters/boundary.ts:24-34` |
 | Boundary adapters were empty interfaces | Real `AchAdapter` (mock bank) — `prepare`, `execute`, `confirm`, `compensate` all emit real `payment.rail.*` and `payment.compensation.*` envelopes. Proves `ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE` is enforceable | `packages/runtime/src/adapters/achAdapter.ts` + `index.ts:498-548` |
-| `example-frontend` App.ts used wrong build hash (`30f7880d...`) and only printed things | Real HTTP flow: polls `/api/v1/health`, fetches live `/api/v1/manifest`, verifies `build_hash`, calls `createSession` + `grantCapability` + `registerAsset` + `listEvents` + `queryProjection` | `example-frontend/src/App.ts` |
+| `example-frontend` App.ts used wrong build hash (`20c57cfb...`) and only printed things | Real HTTP flow: polls `/api/v1/health`, fetches live `/api/v1/manifest`, verifies `build_hash`, calls `createSession` + `grantCapability` + `registerAsset` + `listEvents` + `queryProjection` | `example-frontend/src/App.ts` |
 | `BootScreen.waitForHealthyBoot()` was `setTimeout(1000)` | Real polling of `/api/v1/health` every 500ms until `final_health === 'HEALTHY'`, with timeout | `example-frontend/src/BootScreen.ts` |
 
 ## New HTTP routes (real)
@@ -535,7 +535,7 @@ See `.env.example` at the repo root for a copy-paste template.
 - `7-stage pipeline (real flow)`: rejects unknown command with `system.command.unknown` event; rejects missing required_payload; rejects ai_agent on governance grant (INV-004); accepts valid register end-to-end with event log + projection round-trip.
 - `INV-002 double-entry (live)`: accepts balanced postings, rejects unbalanced with `INV-002 VIOLATION`.
 - `WebSocket event stream`: real `hello` frame, real `event` frame on append, domain filter works.
-- `ACH boundary adapter (real)`: prepare → execute → confirm emits 3 events with 21-field envelope; unknown rail returns 404 with `unknown_rail` and `supported` list.
+- `ACH boundary adapter (real)`: prepare → execute → confirm emits 3 events with 18-field envelope (21 leaf fields including audit); unknown rail returns 404 with `unknown_rail` and `supported` list.
 - `SDK error surfacing`: `SOVRApiError` on 4xx with parsed body.
 
 ## Operating the stack

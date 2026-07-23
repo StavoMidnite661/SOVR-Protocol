@@ -20,8 +20,8 @@ This directory contains the official visual and textual architecture views for t
 
 ## Live References
 
-- **Authoritative text + diagrams**: [PROJECT_STATUS_2026-07-22.yaml](../../PROJECT_STATUS_2026-07-22.yaml) → `integration_surfaces`
-- **Detailed guide**: [PROTOCOL_API_SERVICE_GUIDE.md](../../PROTOCOL_API_SERVICE_GUIDE.md)
+- **Authoritative text + diagrams**: [PROJECT_STATUS_2026-07-22.yaml](../../management/PROJECT_STATUS_2026-07-22.yaml) → `integration_surfaces`
+- **Detailed guide**: [PROTOCOL_API_SERVICE_GUIDE.md](../guides/PROTOCOL_API_SERVICE_GUIDE.md)
 - **Quick start**: [README.md](../../README.md)
 
 All diagrams are maintained as Mermaid source for easy editing and version control.

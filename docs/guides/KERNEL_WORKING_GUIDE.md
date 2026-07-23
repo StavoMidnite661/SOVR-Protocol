@@ -5,7 +5,7 @@
 
 Date: 2026-07-18
 Version: 0.2.0-kernel-working
-Build hash: `30f7880d5d665fbcb34ac847ab650bece84a92faa094a3a1b3f770e6732ec3c3`
+Build hash: `20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e`
 
 ---
 
@@ -43,7 +43,7 @@ Verify:
 
 ```bash
 node packages/compiler/dist/cli.js verify
-# → Reproducible build verified: 30f7880d... (byte-identical)
+# → Reproducible build verified: 20c57cfb56b202ce... (byte-identical)
 ```
 
 Frontend can fetch `/generated/compiler-manifest.yaml` and compare `build_hash` to expected hash baked into SDK. If mismatch → tampered.
@@ -54,8 +54,8 @@ Frontend can fetch `/generated/compiler-manifest.yaml` and compare `build_hash` 
 - `00_protocol-manifest.yaml` — 9 domains, 3 boundary systems, 8 layers L0-L7, 10 build phases A-J+FIX
 - `01_constitution.yaml` — 10 invariants INV-001..010, conflict resolution priority (invariant > asset_security > regulatory > ledger_integrity > transaction_completion > operational_efficiency > agent_autonomy), authority model, financial integrity, agent governance, runtime enforcement pipeline (7 stages)
 - `02_domain-model.yaml` — 50+ entities across 9 domains (fixed duplicate payment key)
-- `03_command-catalog.yaml` — 88 commands, each with constitutional_gates, capability, scope, policy, validation_rules, resulting_events
-- `04_event-catalog.yaml` — 179 events, event_envelope with 21 mandatory fields (event_id, event_name, version, aggregate, aggregate_id, source_domain, command_id, causation_id, correlation_id, actor_id, identity_context, policy_decision_id, capability_id, timestamp, payload, projection_effect, audit)
+- `03_command-catalog.yaml` — 101 commands, each with constitutional_gates, capability, scope, policy, validation_rules, resulting_events
+- `04_event-catalog.yaml` — 251 events, event_envelope with 21 mandatory fields (event_id, event_name, version, aggregate, aggregate_id, source_domain, command_id, causation_id, correlation_id, actor_id, identity_context, policy_decision_id, capability_id, timestamp, payload, projection_effect, audit)
 - `05_state-machines.yaml` — 21 state machines (vault_asset, reservation, collateral, transaction, ledger_journal, treasury_transfer, identity_actor, credential, session, delegation, policy_evaluation, rule, intent, agent_execution, payment_request, adapter, saga, system_health)
 - `08_security-capabilities.yaml` — 107 capabilities with scope_pattern_language `{resource}:{id}:{field}`, wildcards `* self **`, risk_level, grantable_by, max_delegation_depth
 - `09_saga-orchestration.yaml` — Sagas (human_execution, ai_execution, delegated, escalation, etc) with compensation_strategy SEQUENTIAL_REVERSE
@@ -89,8 +89,8 @@ Frontend can fetch `/generated/compiler-manifest.yaml` and compare `build_hash` 
 ```bash
 cd packages/compiler && npm install && npx tsc -p tsconfig.json
 cd ../.. && node packages/compiler/dist/cli.js compile
-# → Generated 35 artifacts with build_hash 30f7880d...
-# → Protocol version 1.0.0, IR nodes 451 edges 351
+# → Generated 62 artifacts (69 files) with build_hash 20c57cfb56b202ce...
+# → Protocol version 1.0.0, IR nodes 536 edges 404
 # → Diagnostics 27 warnings (failure events intentionally not in catalog)
 # → Reproducible: node packages/compiler/dist/cli.js verify → byte-identical
 
@@ -137,7 +137,7 @@ No manual typing — compiler generates from YAML. If YAML changes, types change
 ```ts
 import { SOVRClient } from '@sovr/runtime';
 
-const client = new SOVRClient({ apiUrl: 'https://api.sovr.financial/v1', buildHash: '30f7880d...' });
+const client = new SOVRClient({ apiUrl: 'https://api.sovr.financial/v1', buildHash: '20c57cfb56b202ce...' });
 
 const asset = await client.registerAsset({
   assetId: crypto.randomUUID(),
@@ -258,7 +258,7 @@ Prohibition: `ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE` — adapters emit ev
 Frontend can verify runtime derives from exact YAML:
 
 ```ts
-const verified = await client.verifyBuildManifest('30f7880d5d665fbcb34ac847ab650bece84a92faa094a3a1b3f770e6732ec3c3');
+const verified = await client.verifyBuildManifest('20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e');
 if (!verified) throw new Error('Runtime tampered — build_hash mismatch');
 ```
 

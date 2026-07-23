@@ -41,7 +41,7 @@
 3. Signed JWT with short TTL + refresh in production
 4. Rate limiting + per-actor quotas on the API
 5. mTLS or strong network policies between services
-6. Regular external audit of the 21-field envelope
+6. Regular external audit of the 18-field envelope (21 leaf with audit subfields)
 
 ## Trust Boundaries
 

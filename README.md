@@ -59,7 +59,7 @@
   - [Scope Pattern Language](#scope-pattern-language)
 - [Compiler](#-compiler)
   - [Compilation Pipeline](#compilation-pipeline)
-  - [Output Artifacts (22)](#output-artifacts)
+  - [Output Artifacts (23)](#output-artifacts)
   - [Reproducibility (R1–R10)](#reproducibility)
   - [Pass Registry (20 Passes)](#pass-registry)
   - [Generator Registry (9 Generators)](#generator-registry)
@@ -461,7 +461,7 @@ Identity Verification → Capability Check → Scope Validation → Policy Evalu
 
 ## 📡 Event Catalog
 
-**251 events** across 9 domains + kernel events. Every event includes the **mandatory event envelope** (21 fields):
+**251 events** across 9 domains + kernel events. Every event includes the **mandatory event envelope** (18 top-level fields, 21 leaf including audit subfields):
 
 ```
 event_id, event_name, event_version, aggregate, aggregate_id, source_domain,
@@ -895,7 +895,37 @@ SOVR-Protocol/
 │
 ├── 📁 knowledge/                       ← Knowledge graph, ontology, evidence
 │
-├── 📁 management/                      ← Project management artifacts
+├── 📁 management/                      ← Project management & status artifacts
+│   ├── PROJECT_STATUS_2026-07-22.yaml  ← Canonical current-state document
+│   ├── MILESTONES.yaml                 ← Project milestones (M0-M9)
+│   ├── DEPENDENCY_GRAPH.yaml           ← Module dependency graph
+│   ├── DOMAIN_STATUS_MATRIX.yaml       ← Domain status (deprecated, kept for history)
+│   ├── PROJECT_CONTROL_BOARD.yaml      ← (deprecated, kept for history)
+│   └── ... (dashboards, phase change manifests)
+│
+├── 📁 docs/                            ← Human-facing documentation
+│   ├── guides/                         ← How-to / operator guides
+│   │   ├── BOOT_SEQUENCE_GUIDE.md
+│   │   ├── KERNEL_WORKING_GUIDE.md
+│   │   ├── PROTOCOL_API_SERVICE_GUIDE.md
+│   │   ├── third-party-cookbook.md
+│   │   └── openapi-client-generation.md
+│   ├── reports/                        ← Dated audit reports (historical → newest)
+│   │   ├── AUDIT_REPORT_2026-07-18.md
+│   │   ├── COMPLETE_VERIFICATION_AUDIT.md
+│   │   ├── SOVR_FULL_AUDIT_2026-07-21.md
+│   │   ├── VERIFICATION_REPORT.md
+│   │   ├── WALL_TO_WALL_AUDIT_2026-07-22.md
+│   │   └── VERIFIED_CLAIMS_AUDIT_2026-07-23.md   ← Current authoritative audit
+│   ├── architecture/                   ← Diagrams (Mermaid + SVG), C4, sequence
+│   ├── security/                       ← Threat model, hardening checklist
+│   ├── formal-verification/            ← TLA+ coverage & dashboards
+│   ├── deployment/                     ← Deployment topologies
+│   ├── observability/                  ← Metrics
+│   ├── operations/                     ← Operator runbook
+│   ├── performance/                    ← Scalability notes
+│   ├── compliance/                     ← Compliance/control mapping
+│   └── roadmaps/                       ← SDK & governance roadmaps
 │
 ├── 📁 snapshots/                       ← Versioned canonical snapshots
 │   ├── v1.0.1-canonical/
@@ -919,12 +949,7 @@ SOVR-Protocol/
 │   ├── ci.yml
 │   └── ci-production.yml
 │
-├── 📄 BOOT_SEQUENCE_GUIDE.md          ← Boot sequence documentation
-├── 📄 KERNEL_WORKING_GUIDE.md         ← Kernel working guide
-├── 📄 AUDIT_REPORT_2026-07-18.md      ← Full E2E audit report
-├── 📄 DEPENDENCY_GRAPH.yaml           ← Module dependency graph
-├── 📄 DOMAIN_STATUS_MATRIX.yaml       ← Domain production status
-└── 📄 MILESTONES.yaml                 ← Project milestones (M0-M9)
+└── 📄 .env.example                    ← Environment variable template
 ```
 
 ---
@@ -996,7 +1021,7 @@ curl -X POST http://localhost:3001/api/v1/identity/session -d '{"actor_id":"alic
 # -> jwt, then POST /api/v1/vault/asset with Authorization Bearer
 ```
 
-Full guide: `PROTOCOL_API_SERVICE_GUIDE.md` + `packages/runtime/src/server/README.md`
+Full guide: `docs/guides/PROTOCOL_API_SERVICE_GUIDE.md` + `packages/runtime/src/server/README.md`
 
 ## 🚀 Getting Started
 
@@ -1136,21 +1161,27 @@ npm run test:integration
 ## 📋 Audit Reports & Live Status
 
 **Canonical Source of Truth (2026-07-22):**  
-[PROJECT_STATUS_2026-07-22.yaml](./PROJECT_STATUS_2026-07-22.yaml) — **Single authoritative document** for current state, live tests, domain status, **server auditability**, and **Integration Surfaces** (how third-party apps, frontends, and external systems connect).
+[management/PROJECT_STATUS_2026-07-22.yaml](./management/PROJECT_STATUS_2026-07-22.yaml) — **Single authoritative document** for current state, live tests, domain status, **server auditability**, and **Integration Surfaces** (how third-party apps, frontends, and external systems connect).
+
+All historical audit reports live under [`docs/reports/`](./docs/reports/), newest first:
 
 | Report | Date | Key Findings |
 |:-------|:-----|:-------------|
-| [WALL_TO_WALL_AUDIT_2026-07-22.md](./WALL_TO_WALL_AUDIT_2026-07-22.md) | 2026-07-22 | Full asset inventory + live verification |
-| [AUDIT_REPORT_2026-07-18.md](./AUDIT_REPORT_2026-07-18.md) | 2026-07-18 | Historical (superseded) |
-| [SOVR_FULL_AUDIT_2026-07-21.md](./SOVR_FULL_AUDIT_2026-07-21.md) | 2026-07-21 | Historical (superseded) |
+| [RE_VERIFICATION_AND_CLEANUP_2026-07-23.md](./docs/reports/RE_VERIFICATION_AND_CLEANUP_2026-07-23.md) | 2026-07-23 | Independent functional re-verification (compile/verify/boot/tests/live server/example frontend, all live) + repository reorganization (reports/guides/status files moved out of root) |
+| [VERIFIED_CLAIMS_AUDIT_2026-07-23.md](./docs/reports/VERIFIED_CLAIMS_AUDIT_2026-07-23.md) | 2026-07-23 | **Authoritative spec-count audit** — every number in README sourced from this file |
+| [WALL_TO_WALL_AUDIT_2026-07-22.md](./docs/reports/WALL_TO_WALL_AUDIT_2026-07-22.md) | 2026-07-22 | Full asset inventory + live verification |
+| [VERIFICATION_REPORT.md](./docs/reports/VERIFICATION_REPORT.md) | 2026-07-20 | Verification + remediation of drift found by the 07-18/07-21 audits |
+| [SOVR_FULL_AUDIT_2026-07-21.md](./docs/reports/SOVR_FULL_AUDIT_2026-07-21.md) | 2026-07-21 | Historical (superseded) |
+| [COMPLETE_VERIFICATION_AUDIT.md](./docs/reports/COMPLETE_VERIFICATION_AUDIT.md) | 2026-07-19 | Historical (superseded) |
+| [AUDIT_REPORT_2026-07-18.md](./docs/reports/AUDIT_REPORT_2026-07-18.md) | 2026-07-18 | Historical (superseded) |
 
-**Current Status (live as of 2026-07-22):** Runtime server is fully operational and **highly auditable**. See `PROJECT_STATUS_2026-07-22.yaml` (section `server_auditability`).
+**Current Status (live as of 2026-07-22):** Runtime server is fully operational and **highly auditable**. See `management/PROJECT_STATUS_2026-07-22.yaml` (section `server_auditability`).
 
-All prior Phase XI–XIV, old `DOMAIN_STATUS_MATRIX`, and stale container/project board references have been superseded.
+All prior Phase XI–XIV, old `DOMAIN_STATUS_MATRIX`, and stale container/project board references have been superseded (see [`management/`](./management/) for the deprecated files, retained for history).
 
 ### Connection Model (Third-Party & Frontend Integration)
 
-The system is designed as a central hub. See the full details and live diagram in `PROJECT_STATUS_2026-07-22.yaml` → `integration_surfaces`.
+The system is designed as a central hub. See the full details and live diagram in `management/PROJECT_STATUS_2026-07-22.yaml` → `integration_surfaces`.
 
 ```mermaid
 flowchart TB
@@ -1166,7 +1197,7 @@ flowchart TB
         API[Universal REST Route<br/>POST /api/v1/:domain/:aggregate]
         SDK[SOVRClient SDK<br/>(TypeScript - real HTTP)]
         PIPE[7-Stage Pipeline<br/>Identity → Capability → Scope<br/>→ Policy → Constitutional<br/>→ Execution → Publication]
-        ES[(Event Store<br/>Append-only • Immutable<br/>21-field envelopes)]
+        ES[(Event Store<br/>Append-only • Immutable<br/>18-field envelopes (21 leaf))]
     end
 
     subgraph Consumers["📡 Event Consumers (Async)"]
@@ -1216,8 +1247,8 @@ flowchart TB
 ![SOVR Connection Model](docs/images/connection-model.svg)
 
 **Full details + editable source** are in:
-- `PROJECT_STATUS_2026-07-22.yaml` → `integration_surfaces.diagram`
-- `PROTOCOL_API_SERVICE_GUIDE.md`
+- `management/PROJECT_STATUS_2026-07-22.yaml` → `integration_surfaces.diagram`
+- `docs/guides/PROTOCOL_API_SERVICE_GUIDE.md`
 - Source: `docs/architecture/connection-model.mmd`
 
 The diagram includes:
