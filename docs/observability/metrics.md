@@ -24,7 +24,7 @@
 ## Recommended Logs (structured JSON)
 
 Every event should be logged with:
-- full 21-field envelope
+- full 18-field envelope (21 leaf with audit subfields)
 - `trace_id` / `correlation_id`
 - `build_hash`
 

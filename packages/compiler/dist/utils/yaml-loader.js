@@ -23,11 +23,20 @@ export function loadYamlFile(fullPath, rootDir) {
 export function discoverProtocolInputs(rootDir) {
     // Closed, ordered discovery per protocol/DOMAIN_REGISTRY and 00_protocol-manifest.yaml
     // For working kernel: enumerate root-level *.yaml, domains/*.yaml, compiler/*.yaml, protocol/*.yaml
+    // Exclusions: status/milestone docs that are derived, not protocol inputs per compiler.yaml
     const candidates = [];
     const rootFiles = readdirSync(rootDir).filter(f => f.endsWith('.yaml') || f.endsWith('.yml'));
     for (const f of rootFiles) {
-        // Exclude certification and generated (derived)
-        if (f.startsWith('DEPENDENCY') || f.startsWith('DOMAIN_STATUS') || f.startsWith('MILESTONE'))
+        // Exclude derived/status files that are not part of frozen spec frontier
+        if (f.startsWith('DEPENDENCY') ||
+            f.startsWith('DOMAIN_STATUS') ||
+            f.startsWith('MILESTONE') ||
+            f.startsWith('PROJECT_STATUS') ||
+            f.startsWith('VERIFICATION_REPORT') ||
+            f.startsWith('AUDIT_REPORT') ||
+            f.startsWith('COMPLETE_VERIFICATION') ||
+            f.startsWith('WALL_TO_WALL') ||
+            f.startsWith('SOVR_FULL_AUDIT'))
             continue;
         candidates.push(join(rootDir, f));
     }

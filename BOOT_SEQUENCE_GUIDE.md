@@ -14,11 +14,11 @@ Now it does. This is my fingerprint on the kernel.
 | BIOS POST | Runlevel 0 FIRMWARE_POST | 🔌 | SHA256 self-test, env isolation (R10), node >=20, heap check. Produces saga.started |
 | GRUB + Secure Boot | Runlevel 1 BOOTLOADER | 🔐 | Verifies compiler-manifest.yaml build_hash, tamper detection (recompute input_hashes vs manifest), protocol FROZEN check. Fail → system.health.halted. Emits tamper event. |
 | Kernel decompress + init | Runlevel 2 KERNEL_INIT | 🧠 | Loads 10 invariants INV-001..010, event envelope 21 fields, authority model 4 actors, system_health aggregate HEALTHY |
-| Mount root fs /bin /lib | Runlevel 3 CORE_DOMAINS | 🏦 | Vault (Can value exist? 58 entities, value conservation), Ledger (How truth recorded? double_entry), Treasury (Can value move? 9 cmds atomicity). Topological order per DEPENDENCY_GRAPH.yaml |
+| Mount root fs /bin /lib | Runlevel 3 CORE_DOMAINS | 🏦 | Vault (Can value exist? 47 entities, value conservation), Ledger (How truth recorded? double_entry), Treasury (Can value move? 9 cmds atomicity). Topological order per DEPENDENCY_GRAPH.yaml |
 | Load LSM / SELinux | Runlevel 4 SECURITY_SUBSYSTEM | 🛡️ | Identity (Who acting? trust anchors), Policy (Is permitted? pure function deterministic_hash), Intent (What wants? enrichment), Agent (Can intelligence request? bounded, audit envelope) — INV-003,004,008 |
 | Load drivers /dev/* | Runlevel 5 EXECUTION_BOUNDARY | 🌐 | Payment 12 rails ACH/FEDNOW/WIRE/RTP/CARD/BLOCKCHAIN/STABLECOIN/SWIFT/SEPA/FUTURE_ADAPTER, Hybrid 4 chains ethereum/base/polygon/future_chain, 5 oracles CHAINLINK/PYTH/BAND/DIA/CUSTOM, prohibition ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE |
 | Mount /proc /sys | Runlevel 6 INTERPRETATION | 👁️ | Projection engine 15 read models rebuilt from genesis, replay determinism verified (INV-006 event log authoritative), Kafka topics sovr.*, Redis streams sovr:stream:* |
-| systemd → graphical.target | Runlevel 7 USERLAND | 🚀 | Runtime SDK @sovr/runtime, types src/types/*, commands, events, OpenAPI 88 endpoints, execution-context, boot attestation. Frontend gate: only load after HEALTHY |
+| systemd → graphical.target | Runlevel 7 USERLAND | 🚀 | Runtime SDK @sovr/runtime, types src/types/*, commands, events, OpenAPI 44 endpoints, execution-context, boot attestation. Frontend gate: only load after HEALTHY |
 
 ---
 
@@ -106,19 +106,19 @@ node packages/compiler/dist/cli.js boot
 # Output:
 🔌 [0] FIRMWARE_POST — [0.000] SOVR POST: crypto OK...
    ✓ POST OK
-🔐 [1] BOOTLOADER — [0.144s] verified build_hash 30f7880d... unfakeable
+🔐 [1] BOOTLOADER — [0.144s] verified build_hash 20c57cfb56b202ce... unfakeable
    ✓ Build provenance verified
 🧠 [2] KERNEL_INIT — constitution loaded (10 invariants)
 🏦 [3] CORE_DOMAINS — vault ✓, ledger ✓, treasury ✓
 🛡️ [4] SECURITY_SUBSYSTEM — identity ✓, policy ✓
 🌐 [5] EXECUTION_BOUNDARY — payment 12 rails, hybrid 4 chains
 👁️ [6] INTERPRETATION — 15 projections rebuilt, replay determinism
-🚀 [7] USERLAND — runtime SDK ready, OpenAPI 88 endpoints — SYSTEM HEALTHY
+🚀 [7] USERLAND — runtime SDK ready, OpenAPI 44 endpoints — SYSTEM HEALTHY
 
   ____   _____  __      __  ____    ___   ____    _   _
  / ___| |  _  | \ \    / / |  _ \  / _ \ / ___|  | | | |
  ...
- Financial OS Kernel v30f7880d Booted — build_hash 30f7880d...
+ Financial OS Kernel v20c57cfb Booted — build_hash 20c57cfb56b202ce...
  Frontend can now load — SDK: @sovr/runtime, Types: generated/src/types/*
 ```
 

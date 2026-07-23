@@ -17,7 +17,17 @@ function discoverInputs() {
   const c = [];
   const rootFiles = readdirSync(ROOT).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'));
   for (const f of rootFiles) {
-    if (f.startsWith('DEPENDENCY') || f.startsWith('DOMAIN_STATUS') || f.startsWith('MILESTONE')) continue;
+    if (
+      f.startsWith('DEPENDENCY') ||
+      f.startsWith('DOMAIN_STATUS') ||
+      f.startsWith('MILESTONE') ||
+      f.startsWith('PROJECT_STATUS') ||
+      f.startsWith('VERIFICATION_REPORT') ||
+      f.startsWith('AUDIT_REPORT') ||
+      f.startsWith('COMPLETE_VERIFICATION') ||
+      f.startsWith('WALL_TO_WALL') ||
+      f.startsWith('SOVR_FULL_AUDIT')
+    ) continue;
     c.push(join(ROOT, f));
   }
   for (const d of ['domains', 'compiler', 'protocol']) {
@@ -66,7 +76,7 @@ function validateSpec() {
   for (const f of inputs) {
     try { yaml.load(read(f)); } catch (e) { parseFail++; console.log('    parse error:', f, e.message); }
   }
-  check(`all ${inputs.length} compiler-input YAML files parse`, parseFail === 0, `(${parseFail} failed)`);
+  check(`all ${inputs.length} compiler-input YAML files parse (expected 38)`, parseFail === 0 && inputs.length === 38, `(got ${inputs.length}, ${parseFail} failed)`);
 
   const cmd = load(join(ROOT, '03_command-catalog.yaml'));
   const ev = load(join(ROOT, '04_event-catalog.yaml'));
@@ -74,7 +84,7 @@ function validateSpec() {
   const sm = load(join(ROOT, '05_state-machines.yaml'));
   check('101 commands', Object.keys(cmd.commands || {}).length === 101, `(got ${Object.keys(cmd.commands || {}).length})`);
   check('251 events', Object.keys(ev.events || {}).length === 251, `(got ${Object.keys(ev.events || {}).length})`);
-  check('107 capabilities', Object.keys(cap.capabilities || {}).length === 107, `(got ${Object.keys(cap.capabilities || {}).length})`);
+  check('107 capabilities', (cap.capabilities && (Array.isArray(cap.capabilities) ? cap.capabilities.length : Object.keys(cap.capabilities).length)) === 107 || Object.keys(cap.capabilities || {}).length === 107, `(got ${Array.isArray(cap.capabilities) ? cap.capabilities.length : Object.keys(cap.capabilities || {}).length})`);
   check('21 state machines', Object.keys(sm.state_machines || {}).length === 21, `(got ${Object.keys(sm.state_machines || {}).length})`);
 
   const acc = load(join(ROOT, 'acceptance-tests.yaml'));
@@ -107,8 +117,10 @@ function validateIntegration() {
   check('generated/compiler-manifest.yaml exists', existsSync(manifest));
   if (existsSync(manifest)) {
     const m = load(manifest);
-    check('build_hash present', !!m.build_hash, `(hash=${m.build_hash?.slice(0, 12)}…)`);
+    check('build_hash present (20c57cfb...)', !!m.build_hash && m.build_hash.startsWith('20c57cfb'), `(hash=${m.build_hash?.slice(0, 12)}…)`);
     check('0 errors / 0 warnings', (m.stats?.errors || 0) === 0 && (m.stats?.warnings || 0) === 0);
+    check('38 input files', m.stats?.input_files === 38, `(got ${m.stats?.input_files})`);
+    check('62 generated files', m.stats?.generated_files === 62, `(got ${m.stats?.generated_files})`);
   }
   const openapi = join(ROOT, 'generated', 'openapi.yaml');
   if (existsSync(openapi)) {

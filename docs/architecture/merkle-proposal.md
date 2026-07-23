@@ -22,7 +22,7 @@ Expose a cryptographic hash of the entire event history so external auditors and
 
 ## Implementation Notes
 - Can be computed incrementally (rolling Merkle tree)
-- Should be included in the 21-field envelope or as a separate projection
+- Should be included in the 18-field envelope (21 leaf with audit subfields) or as a separate projection
 - Add to boot attestation chain
 
 This would be a high-value addition for the "auditable financial OS" claim.

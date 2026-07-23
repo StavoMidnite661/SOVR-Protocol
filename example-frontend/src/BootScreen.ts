@@ -12,7 +12,7 @@ export interface BootScreenLevel {
 const BOOT_LEVELS: BootScreenLevel[] = [
   { level: 0, icon: '🔌', name: 'POST', desc: 'Crypto self-test, env isolated' },
   { level: 1, icon: '🔐', name: 'Bootloader', desc: 'Verifying build_hash unfakeable' },
-  { level: 2, icon: '🧠', name: 'Kernel', desc: 'Loading 10 invariants, 21 envelope fields' },
+  { level: 2, icon: '🧠', name: 'Kernel', desc: 'Loading 10 invariants, 18 envelope fields (21 leaf)' },
   { level: 3, icon: '🏦', name: 'Core', desc: 'Vault, Ledger, Treasury' },
   { level: 4, icon: '🛡️', name: 'Security', desc: 'Identity, Policy, Intent, Agent' },
   { level: 5, icon: '🌐', name: 'Boundary', desc: '12 payment rails, 4 chains' },

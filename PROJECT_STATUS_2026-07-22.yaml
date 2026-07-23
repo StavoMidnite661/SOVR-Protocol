@@ -35,7 +35,7 @@ summary:
     openapi_paths: 44
     projections: 15
     invariants_enforced: 10
-    event_envelope_fields: 21   # now matches spec (schema_version, actor_chain, retention_metadata added)
+    event_envelope_fields: 18   # now matches spec (schema_version, actor_chain, retention_metadata added)
 
 domains:
   kernel:
@@ -198,7 +198,7 @@ live_verification_2026-07-22:
   event_store:
     - "Append-only + atomic persist (tmp rename)"
     - "Full indexes: causation, correlation, aggregate"
-    - "21-field envelope (matches spec)"
+    - "18-field envelope (21 leaf) (matches spec)"
     - "INV-001 enforcement in code"
   boundary_adapters:
     - "AchAdapter fully implemented and registered"
@@ -227,7 +227,7 @@ server_auditability:
   rating: "HIGH"
   evidence:
     - "EventStore: append-only, Object.freeze(envelope), immutable violation throws"
-    - "Every financial mutation produces immutable event with full 21-field envelope + audit block"
+    - "Every financial mutation produces immutable event with full 18-field envelope (21 leaf) + audit block"
     - "Causation + correlation graphs maintained in-memory + persisted"
     - "Dedicated /api/v1/audit/:correlation_id endpoint returns isComplete flag"
     - "Health endpoint exposes full subsystem state + build provenance"
@@ -420,7 +420,7 @@ integration_surfaces:
             API[Universal REST Route<br/>POST /api/v1/:domain/:aggregate<br/>101 Commands]
             SDK[SOVRClient SDK<br/>(TypeScript - real HTTP)]
             PIPE[7-Stage Pipeline<br/>1. Identity<br/>2. Capability + Scope<br/>3. Policy<br/>4. Constitutional (INV-001..010)<br/>5. Execution<br/>6. Event Publication]
-            ES[(Event Store<br/>Append-only • Immutable<br/>21-field envelopes<br/>INV-001 • INV-005 • INV-006)]
+            ES[(Event Store<br/>Append-only • Immutable<br/>18-field envelope (21 leaf)s<br/>INV-001 • INV-005 • INV-006)]
         end
 
         subgraph Consumers["📡 Event Consumers (Async)"]

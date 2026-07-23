@@ -59,7 +59,7 @@
   - [Scope Pattern Language](#scope-pattern-language)
 - [Compiler](#-compiler)
   - [Compilation Pipeline](#compilation-pipeline)
-  - [Output Artifacts (22)](#output-artifacts)
+  - [Output Artifacts (23)](#output-artifacts)
   - [Reproducibility (R1–R10)](#reproducibility)
   - [Pass Registry (20 Passes)](#pass-registry)
   - [Generator Registry (9 Generators)](#generator-registry)
@@ -461,7 +461,7 @@ Identity Verification → Capability Check → Scope Validation → Policy Evalu
 
 ## 📡 Event Catalog
 
-**251 events** across 9 domains + kernel events. Every event includes the **mandatory event envelope** (21 fields):
+**251 events** across 9 domains + kernel events. Every event includes the **mandatory event envelope** (18 top-level fields, 21 leaf including audit subfields):
 
 ```
 event_id, event_name, event_version, aggregate, aggregate_id, source_domain,
@@ -1166,7 +1166,7 @@ flowchart TB
         API[Universal REST Route<br/>POST /api/v1/:domain/:aggregate]
         SDK[SOVRClient SDK<br/>(TypeScript - real HTTP)]
         PIPE[7-Stage Pipeline<br/>Identity → Capability → Scope<br/>→ Policy → Constitutional<br/>→ Execution → Publication]
-        ES[(Event Store<br/>Append-only • Immutable<br/>21-field envelopes)]
+        ES[(Event Store<br/>Append-only • Immutable<br/>18-field envelopes (21 leaf))]
     end
 
     subgraph Consumers["📡 Event Consumers (Async)"]

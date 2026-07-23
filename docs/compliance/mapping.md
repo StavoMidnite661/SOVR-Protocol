@@ -6,7 +6,7 @@
 |--------------|----------------|----------|
 | **Event Immutability** | INV-001 + Object.freeze | Event Store code + TLA+ models |
 | **Double-Entry** | INV-002 guard | Command Bus + ledger tests |
-| **Audit Trail** | 21-field envelope + `/audit` endpoint | Every financial command |
+| **Audit Trail** | 18-field envelope (21 leaf with audit subfields) + `/audit` endpoint | Every financial command |
 | **Authorization** | 107 capabilities + scope + JWT | Capability Engine |
 | **No Agent Bypass** | INV-004 + actor_type checks | Command Bus |
 | **Value Preservation** | Reservation before execution | Treasury + Vault contracts |
