@@ -24,7 +24,7 @@
 
 ## Recommended Evidence Package
 
-- `PROJECT_STATUS_2026-07-22.yaml`
+- `management/PROJECT_STATUS_2026-07-22.yaml`
 - Latest `compiler-manifest.yaml` + `boot-attestation.json`
 - Sample event trail from `/api/v1/audit/...`
 - TLA+ models

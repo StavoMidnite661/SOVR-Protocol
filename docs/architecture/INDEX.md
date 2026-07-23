@@ -38,7 +38,7 @@
 ## How to Navigate
 
 1. Start with `../images/connection-model.svg`
-2. Read the main `PROJECT_STATUS_2026-07-22.yaml` → `integration_surfaces` and `architecture`
+2. Read the main `management/PROJECT_STATUS_2026-07-22.yaml` → `integration_surfaces` and `architecture`
 3. Use the sequence diagram for concrete understanding
 4. Refer to security and formal sections before any production deployment
 

@@ -78,7 +78,7 @@ report:
     |---|---|---|---|
     | Amendments require ratification board | 01_constitution.yaml governance_structure | governance_structure | governance/amendments/INDEX.yaml |
     | Protocol version frozen at 1.0.0 | 00_protocol-manifest.yaml | protocol_metadata | package.json version 1.0.0 |
-    | DOMAIN_STATUS_MATRIX tracks implementation | management/PROJECT_CONTROL_BOARD.yaml | N/A (governance tracker) | DOMAIN_STATUS_MATRIX.yaml |
+    | DOMAIN_STATUS_MATRIX tracks implementation | management/PROJECT_CONTROL_BOARD.yaml | N/A (governance tracker) | management/DOMAIN_STATUS_MATRIX.yaml |
     
     ---
     
