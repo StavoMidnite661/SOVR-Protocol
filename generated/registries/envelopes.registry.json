@@ -1,0 +1,260 @@
+{
+  "abi": "v1",
+  "entries": {
+    "event_envelope": {
+      "abi": "v1",
+      "compile_target": true,
+      "description": "Every event in SOVR must include these envelope fields. No event may be published without a complete envelope. This is the authoritative event contract for the protocol compiler.\n",
+      "fields": {
+        "abi": "v1",
+        "actor_id": {
+          "abi": "v1",
+          "description": "UUID of the actor who initiated the operation",
+          "format": "uuid",
+          "required": true,
+          "type": "string"
+        },
+        "aggregate": {
+          "abi": "v1",
+          "description": "The aggregate/entity this event relates to",
+          "required": true,
+          "type": "string"
+        },
+        "aggregate_id": {
+          "abi": "v1",
+          "description": "The specific instance of the aggregate",
+          "format": "uuid",
+          "required": true,
+          "type": "string"
+        },
+        "audit": {
+          "abi": "v1",
+          "description": "Audit metadata for governance and compliance",
+          "fields": {
+            "abi": "v1",
+            "constitutional_rules_referenced": {
+              "abi": "v1",
+              "description": "Invariant IDs evaluated during command execution",
+              "items": {
+                "abi": "v1",
+                "type": "string"
+              },
+              "required": true,
+              "type": "array"
+            },
+            "enforcement_actions": {
+              "abi": "v1",
+              "description": "Any enforcement actions taken during this event lifecycle",
+              "items": {
+                "abi": "v1",
+                "type": "string"
+              },
+              "required": false,
+              "type": "array"
+            },
+            "retention_class": {
+              "abi": "v1",
+              "required": true,
+              "type": "enum",
+              "values": [
+                "permanent",
+                "regulatory_7y",
+                "operational_90d",
+                "session"
+              ]
+            }
+          },
+          "required": true,
+          "type": "object"
+        },
+        "capability_id": {
+          "abi": "v1",
+          "description": "The capability that was exercised (e.g. vault.asset.create)",
+          "required": true,
+          "type": "string"
+        },
+        "causation_id": {
+          "abi": "v1",
+          "description": "The event_id that caused this event (parent event in chain)",
+          "format": "uuid",
+          "required": true,
+          "type": "string"
+        },
+        "command_id": {
+          "abi": "v1",
+          "description": "UUID of the command that caused this event",
+          "format": "uuid",
+          "required": true,
+          "type": "string"
+        },
+        "correlation_id": {
+          "abi": "v1",
+          "description": "Groups all events from a single business operation",
+          "format": "uuid",
+          "required": true,
+          "type": "string"
+        },
+        "event_id": {
+          "abi": "v1",
+          "description": "Globally unique event identifier",
+          "format": "uuid",
+          "required": true,
+          "type": "string"
+        },
+        "event_name": {
+          "abi": "v1",
+          "description": "Fully qualified event name (domain.aggregate.action)",
+          "required": true,
+          "type": "string"
+        },
+        "event_version": {
+          "abi": "v1",
+          "description": "Event schema version",
+          "format": "semver",
+          "required": true,
+          "type": "string"
+        },
+        "identity_context": {
+          "abi": "v1",
+          "description": "Identity state at the time of event production",
+          "fields": {
+            "abi": "v1",
+            "actor_type": {
+              "abi": "v1",
+              "required": true,
+              "type": "enum",
+              "values": [
+                "human",
+                "organization",
+                "ai_agent",
+                "service_account",
+                "governance",
+                "external_system",
+                "system"
+              ]
+            },
+            "agent_id": {
+              "abi": "v1",
+              "description": "Required if actor_type is ai_agent",
+              "format": "uuid",
+              "required": false,
+              "type": "string"
+            },
+            "delegation_chain": {
+              "abi": "v1",
+              "description": "Chain of delegating identity IDs (if delegated)",
+              "items": {
+                "abi": "v1",
+                "format": "uuid",
+                "type": "string"
+              },
+              "required": false,
+              "type": "array"
+            },
+            "identity_id": {
+              "abi": "v1",
+              "format": "uuid",
+              "required": true,
+              "type": "string"
+            },
+            "model_version": {
+              "abi": "v1",
+              "description": "Required if actor_type is ai_agent",
+              "required": false,
+              "type": "string"
+            },
+            "session_id": {
+              "abi": "v1",
+              "format": "uuid",
+              "required": false,
+              "type": "string"
+            }
+          },
+          "required": true,
+          "type": "object"
+        },
+        "payload": {
+          "abi": "v1",
+          "description": "Event-specific data fields (defined per event type)",
+          "required": true,
+          "type": "object"
+        },
+        "policy_decision_id": {
+          "abi": "v1",
+          "description": "UUID of the PolicyDecision that authorized the triggering command",
+          "format": "uuid",
+          "required": true,
+          "type": "string"
+        },
+        "projection_effect": {
+          "abi": "v1",
+          "description": "Instructions for projection engine on how to process this event",
+          "fields": {
+            "abi": "v1",
+            "invalidation_keys": {
+              "abi": "v1",
+              "description": "Cache keys to invalidate",
+              "items": {
+                "abi": "v1",
+                "type": "string"
+              },
+              "required": false,
+              "type": "array"
+            },
+            "operation": {
+              "abi": "v1",
+              "required": true,
+              "type": "enum",
+              "values": [
+                "insert",
+                "update",
+                "delete",
+                "append",
+                "no_op"
+              ]
+            },
+            "target": {
+              "abi": "v1",
+              "description": "Target read model / projection name",
+              "required": true,
+              "type": "string"
+            }
+          },
+          "required": true,
+          "type": "object"
+        },
+        "source_domain": {
+          "abi": "v1",
+          "description": "The domain that produced this event",
+          "required": true,
+          "type": "enum",
+          "values": [
+            "vault",
+            "ledger",
+            "treasury",
+            "identity",
+            "policy",
+            "intent",
+            "agent",
+            "payment",
+            "governance"
+          ]
+        },
+        "timestamp": {
+          "abi": "v1",
+          "description": "When the event occurred (domain time, not wall clock)",
+          "required": true,
+          "type": "timestamp"
+        },
+        "triggering_command": {
+          "abi": "v1",
+          "description": "Fully qualified command name (e.g. vault.asset.register)",
+          "required": true,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "entry_count": 1,
+  "kind": "envelopes"
+}

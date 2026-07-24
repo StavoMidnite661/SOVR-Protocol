@@ -1,7 +1,7 @@
 // SOVR GENERATED FILE — DO NOT EDIT
-// hash c10e757dd9cf29311b9ca431b67168f6e2f2879c4bc2dbe6b8f0ead5c01852ee
+// hash c1613db16f67b02aed61cc274041286e545f6f11ec630701c8b9b99de0936375
 // SOVR GENERATED — Capability Engine
-// Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+// Compiler: 0.6.0 Protocol: 1.0.0
 // Implements INV-003, INV-008 gate 2+3
 // Scope resolution: PATTERN_MATCHING, cache: REDIS ttl 300s, wildcard **
 
@@ -54,6 +54,10 @@ export class CapabilityEngine {
   "agent.quota.update",
   "agent.register",
   "agent.terminate",
+  "escrow.account.cancel",
+  "escrow.account.create",
+  "escrow.account.fund",
+  "escrow.account.release",
   "governance.amend.propose",
   "governance.amend.ratify",
   "governance.audit.query",

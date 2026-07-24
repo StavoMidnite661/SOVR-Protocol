@@ -1,0 +1,4522 @@
+{
+  "abi": "v1",
+  "entries": {
+    "agent.activate": {
+      "abi": "v1",
+      "aggregate": "instance",
+      "authorization_requirements": {
+        "capability": "agent.activate",
+        "identity": "required",
+        "policy": "agent_activation_policy",
+        "scope": "registration_id"
+      },
+      "command_name": "agent.activate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "agent",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "agent.activate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "registration_must_exist",
+        "governance_review_must_be_approved",
+        "registration_must_be_in_registered_state"
+      ],
+      "version": "1.0.0"
+    },
+    "agent.capability.bind": {
+      "abi": "v1",
+      "aggregate": "capability_binding",
+      "authorization_requirements": {
+        "capability": "agent.capability.bind",
+        "identity": "required",
+        "policy": "agent_capability_policy",
+        "scope": "instance_id"
+      },
+      "command_name": "agent.capability.bind",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "agent",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "agent.capability.bind"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "agent_must_exist_and_be_active",
+        "capability_must_be_recognized",
+        "scope_pattern_must_be_valid"
+      ],
+      "version": "1.0.0"
+    },
+    "agent.capability.revoke": {
+      "abi": "v1",
+      "aggregate": "capability_binding",
+      "authorization_requirements": {
+        "capability": "agent.capability.revoke",
+        "identity": "required",
+        "policy": "agent_capability_policy",
+        "scope": "binding_id"
+      },
+      "command_name": "agent.capability.revoke",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "agent",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "agent.capability.revoke"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "binding_must_exist",
+        "binding_must_be_active"
+      ],
+      "version": "1.0.0"
+    },
+    "agent.execution.execute": {
+      "abi": "v1",
+      "aggregate": "instance",
+      "authorization_requirements": {
+        "capability": "varies by wrapped command",
+        "identity": "required",
+        "policy": "agent_execution_policy",
+        "scope": "intent_id"
+      },
+      "command_name": "agent.execution.execute",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "agent",
+      "issuer": {
+        "actor_types": [
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "varies by wrapped command"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "agent_must_be_active",
+        "intent_must_be_valid",
+        "policy_decision_must_allow",
+        "capability_must_be_bound",
+        "quota_must_not_be_exceeded",
+        "concurrency_limit_must_not_be_reached"
+      ],
+      "version": "1.0.0"
+    },
+    "agent.governance.override": {
+      "abi": "v1",
+      "aggregate": "governance_override",
+      "authorization_requirements": {
+        "capability": "agent.governance.override",
+        "identity": "required",
+        "policy": "agent_override_policy",
+        "scope": "instance_id"
+      },
+      "command_name": "agent.governance.override",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "agent",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "agent.governance.override"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "agent_must_exist",
+        "override_type_must_be_recognized",
+        "reason_must_be_provided",
+        "constitutional_reference_must_be_valid"
+      ],
+      "version": "1.0.0"
+    },
+    "agent.quota.update": {
+      "abi": "v1",
+      "aggregate": "execution_quota",
+      "authorization_requirements": {
+        "capability": "agent.quota.update",
+        "identity": "required",
+        "policy": "agent_quota_policy",
+        "scope": "instance_id"
+      },
+      "command_name": "agent.quota.update",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "agent",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "agent.quota.update"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "agent_must_exist",
+        "quota_values_must_be_positive",
+        "within_constitutional_bounds"
+      ],
+      "version": "1.0.0"
+    },
+    "agent.register": {
+      "abi": "v1",
+      "aggregate": "registration",
+      "authorization_requirements": {
+        "capability": "agent.register",
+        "identity": "required",
+        "policy": "agent_registration_policy",
+        "scope": "agent_type"
+      },
+      "command_name": "agent.register",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "agent",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "agent.register"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "agent_type_must_be_recognized",
+        "model_type_must_not_be_empty",
+        "model_version_must_not_be_empty",
+        "proposed_capabilities_must_be_non_empty"
+      ],
+      "version": "1.0.0"
+    },
+    "agent.suspend": {
+      "abi": "v1",
+      "aggregate": "agent_instance",
+      "authorization_requirements": {
+        "capability": "agent.governance.override",
+        "identity": "required"
+      },
+      "command_name": "agent.suspend",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "agent",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "agent.governance.override"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "agent_id",
+        "suspension_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "agent.termination_failed"
+        ],
+        "success": [
+          "agent.terminated"
+        ]
+      },
+      "validation_rule_ids": [
+        "agent_must_be_active_or_executing"
+      ],
+      "version": "1.0.0"
+    },
+    "agent.terminate": {
+      "abi": "v1",
+      "aggregate": "instance",
+      "authorization_requirements": {
+        "capability": "agent.terminate",
+        "identity": "required",
+        "policy": "agent_termination_policy",
+        "scope": "instance_id"
+      },
+      "command_name": "agent.terminate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "agent",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "agent.terminate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "agent_must_exist",
+        "agent_must_be_in_operational_state",
+        "termination_reason_must_be_provided"
+      ],
+      "version": "1.0.0"
+    },
+    "escrow.account.cancel": {
+      "abi": "v1",
+      "aggregate": "escrow_account",
+      "authorization_requirements": {
+        "capability": "escrow.account.cancel",
+        "identity": "required",
+        "policy": "escrow_cancel_policy",
+        "scope": "escrow.account:*"
+      },
+      "command_name": "escrow.account.cancel",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-003",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "escrow",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "escrow.account.cancel"
+      },
+      "lifecycle": {
+        "machine": "escrow_account_lifecycle",
+        "trigger": "escrow.account.cancel"
+      },
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "escrow_id",
+        "cancellation_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "escrow.account.cancellation_failed"
+        ],
+        "success": [
+          "escrow.account.cancelled"
+        ]
+      },
+      "validation_rule_ids": [
+        "escrow_id_required",
+        "cancellation_reason_required"
+      ],
+      "version": "1.0.0"
+    },
+    "escrow.account.create": {
+      "abi": "v1",
+      "aggregate": "escrow_account",
+      "authorization_requirements": {
+        "capability": "escrow.account.create",
+        "identity": "required",
+        "policy": "escrow_creation_policy",
+        "scope": "escrow.account:*"
+      },
+      "command_name": "escrow.account.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-003",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "escrow",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "escrow.account.create"
+      },
+      "lifecycle": {
+        "machine": "escrow_account_lifecycle",
+        "trigger": "escrow.account.create"
+      },
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "escrow_id",
+        "parties",
+        "amount",
+        "asset_type",
+        "release_conditions",
+        "initiator_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "escrow.account.creation_failed"
+        ],
+        "success": [
+          "escrow.account.created"
+        ]
+      },
+      "validation_rule_ids": [
+        "escrow_id_required",
+        "parties_required",
+        "amount_positive",
+        "asset_type_required",
+        "release_conditions_required"
+      ],
+      "version": "1.0.0"
+    },
+    "escrow.account.fund": {
+      "abi": "v1",
+      "aggregate": "escrow_account",
+      "authorization_requirements": {
+        "capability": "escrow.account.fund",
+        "identity": "required",
+        "policy": "escrow_funding_policy",
+        "scope": "escrow.account:*"
+      },
+      "command_name": "escrow.account.fund",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-003",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "escrow",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "escrow.account.fund"
+      },
+      "lifecycle": {
+        "machine": "escrow_account_lifecycle",
+        "trigger": "escrow.account.fund"
+      },
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "escrow_id",
+        "amount"
+      ],
+      "resulting_events": {
+        "failure": [
+          "escrow.account.funding_failed"
+        ],
+        "success": [
+          "escrow.account.funded"
+        ]
+      },
+      "validation_rule_ids": [
+        "escrow_id_required",
+        "amount_positive"
+      ],
+      "version": "1.0.0"
+    },
+    "escrow.account.release": {
+      "abi": "v1",
+      "aggregate": "escrow_account",
+      "authorization_requirements": {
+        "capability": "escrow.account.release",
+        "identity": "required",
+        "policy": "escrow_release_policy",
+        "scope": "escrow.account:*"
+      },
+      "command_name": "escrow.account.release",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-003",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "escrow",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "escrow.account.release"
+      },
+      "lifecycle": {
+        "machine": "escrow_account_lifecycle",
+        "trigger": "escrow.account.release"
+      },
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "escrow_id",
+        "release_proof"
+      ],
+      "resulting_events": {
+        "failure": [
+          "escrow.account.release_failed"
+        ],
+        "success": [
+          "escrow.account.released"
+        ]
+      },
+      "validation_rule_ids": [
+        "escrow_id_required",
+        "release_proof_required"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.amend.propose": {
+      "abi": "v1",
+      "aggregate": "governance_amendment",
+      "authorization_requirements": {
+        "capability": "governance.amend.propose",
+        "identity": "required",
+        "policy": "constitutional_amendment_policy",
+        "scope": "governance:amendment:*"
+      },
+      "command_name": "governance.amend.propose",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "governance.amend.propose"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "amendment_number",
+        "title",
+        "description",
+        "section",
+        "current_text",
+        "proposed_text",
+        "rationale",
+        "voting_ends_at"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.amendment.proposal_failed"
+        ],
+        "success": [
+          "governance.amendment.proposed"
+        ]
+      },
+      "validation_rule_ids": [
+        "amendment_number_unique",
+        "section_valid",
+        "text_differs",
+        "rationale_provided"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.amend.ratify": {
+      "abi": "v1",
+      "aggregate": "governance_amendment",
+      "authorization_requirements": {
+        "capability": "governance.amend.ratify",
+        "identity": "required",
+        "policy": "constitutional_amendment_policy",
+        "scope": "governance:amendment:{amendment_id}"
+      },
+      "command_name": "governance.amend.ratify",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "governance.amend.ratify"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "amendment_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.amendment.ratification_failed"
+        ],
+        "success": [
+          "governance.amendment.ratified"
+        ]
+      },
+      "validation_rule_ids": [
+        "amendment_must_exist",
+        "amendment_must_be_approved",
+        "unanimous_quorum_achieved",
+        "voting_period_ended"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.audit.query": {
+      "abi": "v1",
+      "aggregate": "audit_record",
+      "authorization_requirements": {
+        "capability": "governance.audit.query",
+        "identity": "required",
+        "policy": "governance_audit_policy",
+        "scope": "audit:*"
+      },
+      "command_name": "governance.audit.query",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "governance.audit.query"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "audit_type",
+        "target_domains",
+        "start_date",
+        "end_date",
+        "filters"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.audit.query_failed"
+        ],
+        "success": [
+          "governance.audit.queried"
+        ]
+      },
+      "validation_rule_ids": [
+        "time_range_valid",
+        "target_domains_specified"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.capability.grant": {
+      "abi": "v1",
+      "aggregate": "capability_grant",
+      "authorization_requirements": {
+        "capability": "governance.capability.grant",
+        "identity": "required",
+        "policy": "capability_management_policy",
+        "scope": "capability:{capability_id}"
+      },
+      "command_name": "governance.capability.grant",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "governance.capability.grant"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "capability_id",
+        "actor_id",
+        "scope_pattern",
+        "expires_at",
+        "conditions"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.capability.grant_failed"
+        ],
+        "success": [
+          "governance.capability.granted"
+        ]
+      },
+      "validation_rule_ids": [
+        "capability_exists",
+        "target_actor_exists",
+        "scope_pattern_valid",
+        "governance_approval_obtained"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.capability.revoke": {
+      "abi": "v1",
+      "aggregate": "capability_grant",
+      "authorization_requirements": {
+        "capability": "governance.capability.revoke",
+        "identity": "required",
+        "policy": "capability_management_policy",
+        "scope": "capability:{capability_id}"
+      },
+      "command_name": "governance.capability.revoke",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "governance.capability.revoke"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "capability_id",
+        "actor_id",
+        "revocation_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.capability.revoke_failed"
+        ],
+        "success": [
+          "governance.capability.revoked"
+        ]
+      },
+      "validation_rule_ids": [
+        "capability_grant_exists",
+        "not_governance_only_capability"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.emergency.halt": {
+      "abi": "v1",
+      "aggregate": "emergency_halt",
+      "authorization_requirements": {
+        "capability": "governance.emergency.halt",
+        "identity": "required",
+        "policy": "emergency_halt_policy",
+        "scope": "governance:emergency:*"
+      },
+      "command_name": "governance.emergency.halt",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "governance.emergency.halt"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "co_triggered_by",
+        "trigger_reason",
+        "description",
+        "affected_domains"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.emergency_halt.failed"
+        ],
+        "success": [
+          "governance.emergency_halt.issued"
+        ]
+      },
+      "validation_rule_ids": [
+        "two_distinct_governors",
+        "valid_trigger_condition",
+        "affected_domains_specified"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.emergency.lift": {
+      "abi": "v1",
+      "aggregate": "emergency_halt",
+      "authorization_requirements": {
+        "capability": "governance.emergency.halt",
+        "identity": "required",
+        "policy": "emergency_halt_policy",
+        "scope": "governance:emergency:*"
+      },
+      "command_name": "governance.emergency.lift",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "governance.emergency.halt"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "halt_id",
+        "lift_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.emergency_halt.lift_failed"
+        ],
+        "success": [
+          "governance.emergency_halt.lifted"
+        ]
+      },
+      "validation_rule_ids": [
+        "halt_must_be_active",
+        "two_distinct_governors",
+        "review_completed_or_waived"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.escalation.resolve": {
+      "abi": "v1",
+      "aggregate": "escalation",
+      "authorization_requirements": {
+        "capability": "governance.escalation.resolve",
+        "identity": "required",
+        "policy": "escalation_resolution_policy",
+        "scope": "governance:escalation:{escalation_id}"
+      },
+      "command_name": "governance.escalation.resolve",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "governance.escalation.resolve"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "escalation_id",
+        "resolution",
+        "compensation_action"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.escalation.resolution_failed"
+        ],
+        "success": [
+          "governance.escalation.resolved"
+        ]
+      },
+      "validation_rule_ids": [
+        "escalation_must_exist",
+        "escalation_must_be_pending",
+        "resolution_provided"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.oversight.review": {
+      "abi": "v1",
+      "aggregate": "audit_record",
+      "authorization_requirements": {
+        "capability": "governance.oversight.review",
+        "identity": "required",
+        "policy": "governance_oversight_policy",
+        "scope": "governance:oversight:*"
+      },
+      "command_name": "governance.oversight.review",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "governance.oversight.review"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "audit_type",
+        "review_scope",
+        "target_domains"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.oversight.review_failed"
+        ],
+        "success": [
+          "governance.oversight.reviewed"
+        ]
+      },
+      "validation_rule_ids": [
+        "review_scope_defined"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.policy_rule.review": {
+      "abi": "v1",
+      "aggregate": "policy_rule",
+      "authorization_requirements": {
+        "capability": "governance.policy.review",
+        "identity": "required",
+        "policy": "policy_review_policy",
+        "scope": "policy:rule:{rule_id}"
+      },
+      "command_name": "governance.policy_rule.review",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "governance.policy.review"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "rule_id",
+        "review_decision",
+        "review_comments"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.policy_rule.review_failed"
+        ],
+        "success": [
+          "governance.policy_rule.review_requested"
+        ]
+      },
+      "validation_rule_ids": [
+        "policy_rule_must_exist",
+        "policy_rule_must_be_draft",
+        "constitutional_compliance_passed"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.proposal.approve": {
+      "abi": "v1",
+      "aggregate": "governance_proposal",
+      "authorization_requirements": {
+        "capability": "governance.proposal.approve",
+        "identity": "required",
+        "policy": "governance_proposal_policy",
+        "scope": "governance:proposal:{proposal_id}"
+      },
+      "command_name": "governance.proposal.approve",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "governance.proposal.approve"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "proposal_id",
+        "approval_decision",
+        "comments"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.proposal.approval_failed"
+        ],
+        "success": [
+          "governance.proposal.approved"
+        ]
+      },
+      "validation_rule_ids": [
+        "proposal_must_exist",
+        "proposal_must_be_pending",
+        "actor_has_not_already_approved",
+        "proposal_not_expired"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.proposal.cancel": {
+      "abi": "v1",
+      "aggregate": "proposal",
+      "authorization_requirements": {
+        "capability": "governance.proposal.reject",
+        "identity": "required"
+      },
+      "command_name": "governance.proposal.cancel",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "governance.proposal.reject"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "proposal_id",
+        "cancellation_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.proposal.rejection_failed"
+        ],
+        "success": [
+          "governance.proposal.rejected"
+        ]
+      },
+      "validation_rule_ids": [
+        "proposal_must_not_be_implemented"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.proposal.implement": {
+      "abi": "v1",
+      "aggregate": "proposal",
+      "authorization_requirements": {
+        "capability": "governance.proposal.approve",
+        "identity": "required"
+      },
+      "command_name": "governance.proposal.implement",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "governance.proposal.approve"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "proposal_id",
+        "implementation_hash"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.proposal.rejection_failed"
+        ],
+        "success": [
+          "governance.proposal.approved"
+        ]
+      },
+      "validation_rule_ids": [
+        "proposal_must_be_approved"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.proposal.reject": {
+      "abi": "v1",
+      "aggregate": "governance_proposal",
+      "authorization_requirements": {
+        "capability": "governance.proposal.reject",
+        "identity": "required",
+        "policy": "governance_proposal_policy",
+        "scope": "governance:proposal:{proposal_id}"
+      },
+      "command_name": "governance.proposal.reject",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "governance.proposal.reject"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "proposal_id",
+        "rejection_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.proposal.rejection_failed"
+        ],
+        "success": [
+          "governance.proposal.rejected"
+        ]
+      },
+      "validation_rule_ids": [
+        "proposal_must_exist",
+        "proposal_must_be_pending",
+        "actor_has_not_already_voted",
+        "proposal_not_expired"
+      ],
+      "version": "1.0.0"
+    },
+    "governance.proposal.submit": {
+      "abi": "v1",
+      "aggregate": "governance_proposal",
+      "authorization_requirements": {
+        "capability": "governance.proposal.create",
+        "identity": "required",
+        "policy": "governance_proposal_policy",
+        "scope": "governance:proposal:*"
+      },
+      "command_name": "governance.proposal.submit",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "governance",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "governance.proposal.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "proposal_type",
+        "title",
+        "description",
+        "target_domain",
+        "payload",
+        "required_approvals",
+        "approval_threshold",
+        "expires_at"
+      ],
+      "resulting_events": {
+        "failure": [
+          "governance.proposal.submission_failed"
+        ],
+        "success": [
+          "governance.proposal.submitted"
+        ]
+      },
+      "validation_rule_ids": [
+        "proposal_type_must_be_recognized",
+        "target_domain_must_be_valid",
+        "required_approvals_must_be_positive",
+        "expires_at_must_be_future"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.actor.archive": {
+      "abi": "v1",
+      "aggregate": "actor",
+      "authorization_requirements": {
+        "capability": "identity.actor.archive",
+        "identity": "required",
+        "policy": "identity_archive_policy",
+        "scope": "actor_id"
+      },
+      "command_name": "identity.actor.archive",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "identity.actor.archive"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "actor_must_be_revoked"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.actor.register": {
+      "abi": "v1",
+      "aggregate": "actor",
+      "authorization_requirements": {
+        "capability": "identity.actor.create",
+        "identity": "required",
+        "policy": "identity_registration_policy",
+        "scope": "actor_type"
+      },
+      "command_name": "identity.actor.register",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "identity.actor.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "actor_type_must_be_recognized",
+        "display_name_must_not_be_empty",
+        "legal_identifier_format_valid_if_provided"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.actor.revoke": {
+      "abi": "v1",
+      "aggregate": "actor",
+      "authorization_requirements": {
+        "capability": "identity.actor.revoke",
+        "identity": "required",
+        "policy": "identity_revocation_policy",
+        "scope": "actor_id"
+      },
+      "command_name": "identity.actor.revoke",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "identity.actor.revoke"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "actor_must_be_active_or_suspended",
+        "revocation_reason_must_be_provided"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.actor.suspend": {
+      "abi": "v1",
+      "aggregate": "actor",
+      "authorization_requirements": {
+        "capability": "identity.actor.suspend",
+        "identity": "required",
+        "policy": "identity_suspension_policy",
+        "scope": "actor_id"
+      },
+      "command_name": "identity.actor.suspend",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "identity.actor.suspend"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "actor_must_be_active",
+        "suspension_reason_must_be_provided"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.actor.verify": {
+      "abi": "v1",
+      "aggregate": "actor",
+      "authorization_requirements": {
+        "capability": "identity.actor.verify",
+        "identity": "required",
+        "policy": "identity_verification_policy",
+        "scope": "actor_id"
+      },
+      "command_name": "identity.actor.verify",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "identity.actor.verify"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "actor_must_be_in_pending_verification_state",
+        "governance_must_have_verify_authority"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.credential.issue": {
+      "abi": "v1",
+      "aggregate": "credential",
+      "authorization_requirements": {
+        "capability": "identity.credential.issue",
+        "identity": "required",
+        "policy": "credential_issuance_policy",
+        "scope": "identity_id"
+      },
+      "command_name": "identity.credential.issue",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "identity.credential.issue"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "identity_must_exist_and_be_active",
+        "credential_type_must_be_recognized",
+        "expiry_must_be_in_future"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.credential.revoke": {
+      "abi": "v1",
+      "aggregate": "credential",
+      "authorization_requirements": {
+        "capability": "identity.credential.revoke",
+        "identity": "required",
+        "policy": "credential_revocation_policy",
+        "scope": "credential_id"
+      },
+      "command_name": "identity.credential.revoke",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "identity.credential.revoke"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "credential_must_exist",
+        "credential_must_be_active",
+        "credential_must_be_revocable"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.delegation.create": {
+      "abi": "v1",
+      "aggregate": "delegation",
+      "authorization_requirements": {
+        "capability": "identity.delegation.create",
+        "identity": "required",
+        "policy": "delegation_policy",
+        "scope": "delegator_id"
+      },
+      "command_name": "identity.delegation.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "organization",
+          "governance"
+        ],
+        "minimum_capability": "identity.delegation.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "delegator_must_be_active",
+        "delegate_must_be_active",
+        "delegator_must_have_can_delegate",
+        "max_delegation_depth_not_exceeded"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.delegation.revoke": {
+      "abi": "v1",
+      "aggregate": "delegation",
+      "authorization_requirements": {
+        "capability": "identity.delegation.revoke",
+        "identity": "required",
+        "policy": "delegation_revocation_policy",
+        "scope": "delegation_id"
+      },
+      "command_name": "identity.delegation.revoke",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "human"
+        ],
+        "minimum_capability": "identity.delegation.revoke"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "delegation_must_exist",
+        "delegation_must_be_active",
+        "caller_must_be_delegator_or_governance"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.session.create": {
+      "abi": "v1",
+      "aggregate": "session",
+      "authorization_requirements": {
+        "capability": "identity.session.create",
+        "identity": "required",
+        "policy": "session_creation_policy",
+        "scope": "identity_id"
+      },
+      "command_name": "identity.session.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "organization",
+          "ai_agent",
+          "service_account",
+          "governance",
+          "external_system"
+        ],
+        "minimum_capability": "identity.session.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "valid_credentials_required",
+        "identity_must_be_active",
+        "within_concurrent_session_limit"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.session.terminate": {
+      "abi": "v1",
+      "aggregate": "session",
+      "authorization_requirements": {
+        "capability": "identity.session.terminate",
+        "identity": "required",
+        "policy": "session_termination_policy",
+        "scope": "session_id"
+      },
+      "command_name": "identity.session.terminate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "organization",
+          "ai_agent",
+          "service_account",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "identity.session.terminate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "session_must_exist_and_be_active"
+      ],
+      "version": "1.0.0"
+    },
+    "identity.trust_anchor.register": {
+      "abi": "v1",
+      "aggregate": "trust_anchor",
+      "authorization_requirements": {
+        "capability": "identity.trust_anchor.create",
+        "identity": "required",
+        "policy": "trust_anchor_policy",
+        "scope": "anchor_type"
+      },
+      "command_name": "identity.trust_anchor.register",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "identity",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "identity.trust_anchor.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "anchor_type_must_be_recognized",
+        "public_key_material_must_be_valid",
+        "governance_approval_required"
+      ],
+      "version": "1.0.0"
+    },
+    "intent.archive": {
+      "abi": "v1",
+      "aggregate": "intent",
+      "authorization_requirements": {
+        "capability": "intent.archive",
+        "identity": "required",
+        "policy": "intent_archive_policy",
+        "scope": "intent_id"
+      },
+      "command_name": "intent.archive",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "intent",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "intent.archive"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "intent_must_exist",
+        "intent_must_be_in_terminal_state"
+      ],
+      "version": "1.0.0"
+    },
+    "intent.cancel": {
+      "abi": "v1",
+      "aggregate": "intent",
+      "authorization_requirements": {
+        "capability": "intent.cancel",
+        "identity": "required",
+        "policy": "intent_cancellation_policy",
+        "scope": "intent_id"
+      },
+      "command_name": "intent.cancel",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "intent",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "organization",
+          "governance"
+        ],
+        "minimum_capability": "intent.cancel"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "intent_must_exist",
+        "intent_must_be_in_cancellable_state",
+        "caller_must_be_actor_or_governance"
+      ],
+      "version": "1.0.0"
+    },
+    "intent.convert_to_command": {
+      "abi": "v1",
+      "aggregate": "intent",
+      "authorization_requirements": {
+        "capability": "intent.convert",
+        "identity": "required",
+        "policy": "intent_conversion_policy",
+        "scope": "intent_id"
+      },
+      "command_name": "intent.convert_to_command",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "intent",
+      "issuer": {
+        "actor_types": [
+          "system",
+          "human",
+          "ai_agent"
+        ],
+        "minimum_capability": "intent.convert"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "intent_must_exist",
+        "intent_must_be_ready",
+        "policy_decision_must_be_valid",
+        "no_blocking_failures"
+      ],
+      "version": "1.0.0"
+    },
+    "intent.enrich": {
+      "abi": "v1",
+      "aggregate": "intent",
+      "authorization_requirements": {
+        "capability": "intent.enrich",
+        "identity": "required",
+        "policy": "intent_enrichment_policy",
+        "scope": "intent_id"
+      },
+      "command_name": "intent.enrich",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "intent",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "intent.enrich"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "intent_must_exist",
+        "intent_must_be_in_enrichable_state",
+        "enrichment_steps_must_be_defined"
+      ],
+      "version": "1.0.0"
+    },
+    "intent.multi_step.advance": {
+      "abi": "v1",
+      "aggregate": "intent",
+      "authorization_requirements": {
+        "capability": "intent.multi_step.advance",
+        "identity": "required",
+        "policy": "intent_multi_step_policy",
+        "scope": "intent_id"
+      },
+      "command_name": "intent.multi_step.advance",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "intent",
+      "issuer": {
+        "actor_types": [
+          "system",
+          "ai_agent"
+        ],
+        "minimum_capability": "intent.multi_step.advance"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "intent_must_exist",
+        "intent_must_be_ready",
+        "current_step_must_be_within_bounds",
+        "step_dependencies_must_be_met"
+      ],
+      "version": "1.0.0"
+    },
+    "intent.multi_step.create": {
+      "abi": "v1",
+      "aggregate": "intent",
+      "authorization_requirements": {
+        "capability": "intent.multi_step.create",
+        "identity": "required",
+        "policy": "intent_multi_step_policy",
+        "scope": "domain_target"
+      },
+      "command_name": "intent.multi_step.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "intent",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "organization",
+          "ai_agent"
+        ],
+        "minimum_capability": "intent.multi_step.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "intent_type_must_be_multi_step",
+        "steps_array_must_be_non_empty",
+        "no_circular_dependencies"
+      ],
+      "version": "1.0.0"
+    },
+    "intent.submit": {
+      "abi": "v1",
+      "aggregate": "intent",
+      "authorization_requirements": {
+        "capability": "intent.submit",
+        "identity": "required",
+        "policy": "intent_submission_policy",
+        "scope": "domain_target"
+      },
+      "command_name": "intent.submit",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "intent",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "organization",
+          "ai_agent",
+          "service_account",
+          "governance",
+          "external_system"
+        ],
+        "minimum_capability": "intent.submit"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "actor_must_exist_and_be_active",
+        "policy_decision_must_allow",
+        "objective_must_not_be_empty",
+        "domain_target_must_be_recognized"
+      ],
+      "version": "1.0.0"
+    },
+    "intent.validate": {
+      "abi": "v1",
+      "aggregate": "intent",
+      "authorization_requirements": {
+        "capability": "intent.validate",
+        "identity": "required",
+        "policy": "intent_validation_policy",
+        "scope": "intent_id"
+      },
+      "command_name": "intent.validate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "intent",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "intent.validate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "intent_must_exist",
+        "intent_must_be_in_validatable_state",
+        "enrichment_must_be_complete"
+      ],
+      "version": "1.0.0"
+    },
+    "ledger.account.create": {
+      "abi": "v1",
+      "aggregate": "account",
+      "authorization_requirements": {
+        "capability": "ledger.account.manage",
+        "identity": "required",
+        "policy": "account_management_policy",
+        "scope": "ledger_id"
+      },
+      "command_name": "ledger.account.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "ledger",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "ledger.account.manage"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "ledger_id",
+        "account_code",
+        "account_name",
+        "account_type",
+        "domain_ownership",
+        "owner_id",
+        "parent_account_id",
+        "debit_allowed",
+        "credit_allowed",
+        "requires_approval"
+      ],
+      "resulting_events": {
+        "failure": [
+          "ledger.account.creation_failed"
+        ],
+        "success": [
+          "ledger.account.created"
+        ]
+      },
+      "validation_rule_ids": [
+        "account_code_unique",
+        "account_type_recognized",
+        "parent_exists_if_specified",
+        "normal_balance_consistent"
+      ],
+      "version": "1.0.0"
+    },
+    "ledger.account.freeze": {
+      "abi": "v1",
+      "aggregate": "account",
+      "authorization_requirements": {
+        "capability": "ledger.account.manage",
+        "identity": "required",
+        "policy": "account_management_policy",
+        "scope": "account_id"
+      },
+      "command_name": "ledger.account.freeze",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "ledger",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "ledger.account.manage"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "account_id",
+        "reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "ledger.account.freeze_failed"
+        ],
+        "success": [
+          "ledger.account.frozen"
+        ]
+      },
+      "validation_rule_ids": [
+        "account_exists",
+        "account_is_active",
+        "no_pending_entries",
+        "freeze_reason_provided"
+      ],
+      "version": "1.0.0"
+    },
+    "ledger.entry.correct": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "authorization_requirements": {
+        "capability": "ledger.entry.correct",
+        "identity": "required",
+        "policy": "entry_correction_policy",
+        "scope": "original_entry_id"
+      },
+      "command_name": "ledger.entry.correct",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "ledger",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "ledger.entry.correct"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "original_entry_id",
+        "correction_description",
+        "approved_by",
+        {
+          "postings": [
+            "account_id",
+            "amount",
+            "direction",
+            "asset_id",
+            "description"
+          ]
+        }
+      ],
+      "resulting_events": {
+        "failure": [
+          "ledger.entry.correction_failed"
+        ],
+        "success": [
+          "ledger.entry.corrected"
+        ]
+      },
+      "validation_rule_ids": [
+        "original_entry_exists",
+        "original_entry_posted_or_settled",
+        "correction_description_provided",
+        "governance_approval_obtained",
+        "correction_entry_balances"
+      ],
+      "version": "1.0.0"
+    },
+    "ledger.entry.post": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "authorization_requirements": {
+        "capability": "ledger.entry.post",
+        "identity": "required",
+        "policy": "entry_posting_policy",
+        "scope": "account_ids referenced in postings"
+      },
+      "command_name": "ledger.entry.post",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "ledger",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "ledger.entry.post"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "journal_id",
+        "transaction_id",
+        "event_reference",
+        "correlation_id",
+        "causation_id",
+        "description",
+        "entry_type",
+        {
+          "postings": [
+            "account_id",
+            "amount",
+            "direction",
+            "asset_id",
+            "description"
+          ]
+        }
+      ],
+      "resulting_events": {
+        "failure": [
+          "ledger.entry.rejected"
+        ],
+        "success": [
+          "ledger.entry.posted"
+        ]
+      },
+      "validation_rule_ids": [
+        "at_least_two_postings",
+        "all_accounts_exist_and_active",
+        "all_postings_have_valid_asset",
+        "amounts_positive",
+        "debits_equal_credits",
+        "direction_allowed_for_account",
+        "actor_has_posting_authority",
+        "event_reference_valid",
+        "event_not_already_journalized",
+        "domain_account_ownership_respected"
+      ],
+      "version": "1.0.0"
+    },
+    "ledger.entry.reverse": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "authorization_requirements": {
+        "capability": "ledger.entry.reverse",
+        "identity": "required",
+        "policy": "entry_reversal_policy",
+        "scope": "original_entry_id"
+      },
+      "command_name": "ledger.entry.reverse",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "ledger",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "ledger.entry.reverse"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "original_entry_id",
+        "reversal_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "ledger.entry.reversal_failed"
+        ],
+        "success": [
+          "ledger.entry.reversed"
+        ]
+      },
+      "validation_rule_ids": [
+        "original_entry_exists",
+        "original_entry_posted_or_settled",
+        "not_already_reversed",
+        "reversal_reason_provided",
+        "accounts_still_valid"
+      ],
+      "version": "1.0.0"
+    },
+    "ledger.journal.create": {
+      "abi": "v1",
+      "aggregate": "journal",
+      "authorization_requirements": {
+        "capability": "ledger.journal.manage",
+        "identity": "required",
+        "policy": "journal_management_policy",
+        "scope": "ledger_id"
+      },
+      "command_name": "ledger.journal.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "ledger",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "ledger.journal.manage"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "ledger_id",
+        "name",
+        "domain",
+        "description"
+      ],
+      "resulting_events": {
+        "failure": [
+          "ledger.journal.creation_failed"
+        ],
+        "success": [
+          "ledger.journal.created"
+        ]
+      },
+      "validation_rule_ids": [
+        "journal_name_unique_within_ledger",
+        "domain_must_be_recognized",
+        "ledger_must_be_active"
+      ],
+      "version": "1.0.0"
+    },
+    "ledger.period.close": {
+      "abi": "v1",
+      "aggregate": "accounting_period",
+      "authorization_requirements": {
+        "capability": "ledger.period.manage",
+        "identity": "required",
+        "policy": "period_management_policy",
+        "scope": "period_id"
+      },
+      "command_name": "ledger.period.close",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "ledger",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "ledger.period.manage"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "period_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "ledger.period.close_failed"
+        ],
+        "success": [
+          "ledger.period.closing",
+          "ledger.entry.posted",
+          "ledger.period.closed"
+        ]
+      },
+      "validation_rule_ids": [
+        "period_exists",
+        "period_is_open",
+        "all_entries_settled",
+        "no_pending_reconciliations",
+        "previous_period_closed"
+      ],
+      "version": "1.0.0"
+    },
+    "ledger.reconciliation.resolve": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "authorization_requirements": {
+        "capability": "ledger.reconcile",
+        "identity": "required",
+        "policy": "reconciliation_policy",
+        "scope": "reconciliation_id"
+      },
+      "command_name": "ledger.reconciliation.resolve",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "ledger",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "ledger.reconcile"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "reconciliation_id",
+        "resolution_method",
+        "correction_postings"
+      ],
+      "resulting_events": {
+        "conditional": [
+          "ledger.entry.corrected"
+        ],
+        "failure": [
+          "ledger.reconciliation.resolution_failed"
+        ],
+        "success": [
+          "ledger.reconciliation.completed"
+        ]
+      },
+      "validation_rule_ids": [
+        "reconciliation_exists",
+        "reconciliation_in_resolvable_state",
+        "resolution_method_provided",
+        "if_adjustment_then_balanced"
+      ],
+      "version": "1.0.0"
+    },
+    "ledger.reconciliation.start": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "authorization_requirements": {
+        "capability": "ledger.reconcile",
+        "identity": "required",
+        "policy": "reconciliation_policy",
+        "scope": "depends on reconciliation type"
+      },
+      "command_name": "ledger.reconciliation.start",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "ledger",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "ledger.reconcile"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "type",
+        "scope",
+        "source_data"
+      ],
+      "resulting_events": {
+        "conditional": [
+          "ledger.reconciliation.mismatch_detected"
+        ],
+        "failure": [
+          "ledger.reconciliation.start_failed"
+        ],
+        "success": [
+          "ledger.reconciliation.started"
+        ]
+      },
+      "validation_rule_ids": [
+        "no_conflicting_reconciliation",
+        "source_data_available",
+        "valid_reconciliation_type"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.adapter.disable": {
+      "abi": "v1",
+      "aggregate": "execution",
+      "authorization_requirements": {
+        "capability": "payment.execution.compensate",
+        "identity": "required"
+      },
+      "command_name": "payment.adapter.disable",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "payment.execution.compensate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "adapter_id",
+        "disable_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.compensation_failed"
+        ],
+        "success": [
+          "payment.request.cancelled"
+        ]
+      },
+      "validation_rule_ids": [
+        "adapter_must_be_registered"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.execution.compensate": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "authorization_requirements": {
+        "capability": "payment.execution.compensate",
+        "identity": "required",
+        "policy": "payment_compensation_policy",
+        "scope": "payment_request_id"
+      },
+      "command_name": "payment.execution.compensate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "system",
+          "governance"
+        ],
+        "minimum_capability": "payment.execution.compensate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "payment_request_id",
+        "reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.compensation.start_failed"
+        ],
+        "success": [
+          "payment.compensation.started"
+        ]
+      },
+      "validation_rule_ids": [
+        "payment_must_exist",
+        "payment_must_be_in_compensatable_state",
+        "compensation_reason_required"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.execution.confirm": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "authorization_requirements": {
+        "capability": "payment.execution.confirm",
+        "identity": "required",
+        "policy": "payment_confirmation_policy",
+        "scope": "payment_request_id"
+      },
+      "command_name": "payment.execution.confirm",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "payment.execution.confirm"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "payment_request_id",
+        "rail_reference_id",
+        "confirmed",
+        "confirmation_data"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.confirmation_failed",
+          "payment.rail.failed"
+        ],
+        "success": [
+          "payment.execution.completed",
+          "payment.rail.confirmed"
+        ]
+      },
+      "validation_rule_ids": [
+        "payment_must_exist",
+        "payment_must_be_in_confirming_state",
+        "rail_reference_required"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.execution.execute": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "authorization_requirements": {
+        "capability": "payment.execution.execute",
+        "identity": "required",
+        "policy": "payment_execution_policy",
+        "scope": "payment_request_id"
+      },
+      "command_name": "payment.execution.execute",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "payment.execution.execute"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "payment_request_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.start_failed"
+        ],
+        "success": [
+          "payment.execution.started"
+        ]
+      },
+      "validation_rule_ids": [
+        "payment_must_exist",
+        "payment_must_have_execution_plan",
+        "payment_must_be_in_executable_state",
+        "adapter_must_be_registered"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.execution.plan": {
+      "abi": "v1",
+      "aggregate": "execution_plan",
+      "authorization_requirements": {
+        "capability": "payment.execution.plan",
+        "identity": "required",
+        "policy": "payment_routing_policy",
+        "scope": "payment_request_id"
+      },
+      "command_name": "payment.execution.plan",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "payment.execution.plan"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "payment_request_id",
+        "available_rails",
+        "treasury_state",
+        "vault_state",
+        "policy_constraints"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.planning_failed"
+        ],
+        "success": [
+          "payment.execution.planned"
+        ]
+      },
+      "validation_rule_ids": [
+        "payment_must_exist",
+        "payment_must_be_in_planning_state",
+        "at_least_one_rail_available"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.execution.prepare": {
+      "abi": "v1",
+      "aggregate": "execution",
+      "authorization_requirements": {
+        "capability": "payment.execution.plan",
+        "identity": "required"
+      },
+      "command_name": "payment.execution.prepare",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "payment.execution.plan"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "execution_id",
+        "rail_id",
+        "amount"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.planning_failed"
+        ],
+        "success": [
+          "payment.execution.planned"
+        ]
+      },
+      "validation_rule_ids": [
+        "payment_request_must_be_approved"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.receipt.issue": {
+      "abi": "v1",
+      "aggregate": "execution_receipt",
+      "authorization_requirements": {
+        "capability": "payment.receipt.issue",
+        "identity": "required",
+        "policy": "payment_receipt_policy",
+        "scope": "payment_request_id"
+      },
+      "command_name": "payment.receipt.issue",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "payment.receipt.issue"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "payment_request_id",
+        "rail_reference_id",
+        "amount_executed",
+        "fees",
+        "execution_timeline",
+        "constitutional_compliance_attestation"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.receipt.issuance_failed"
+        ],
+        "success": [
+          "payment.receipt.issued"
+        ]
+      },
+      "validation_rule_ids": [
+        "payment_must_be_settled",
+        "rail_reference_required",
+        "no_duplicate_receipt"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.reconciliation.complete": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "authorization_requirements": {
+        "capability": "payment.reconciliation.complete",
+        "identity": "required",
+        "policy": "payment_reconciliation_policy",
+        "scope": "reconciliation_id"
+      },
+      "command_name": "payment.reconciliation.complete",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "system",
+          "governance"
+        ],
+        "minimum_capability": "payment.reconciliation.complete"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "reconciliation_id",
+        "status",
+        "matched",
+        "discrepancy_details"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.reconciliation.completion_failed"
+        ],
+        "success": [
+          "payment.reconciliation.completed"
+        ]
+      },
+      "validation_rule_ids": [
+        "reconciliation_must_exist",
+        "reconciliation_must_be_active"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.reconciliation.start": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "authorization_requirements": {
+        "capability": "payment.reconciliation.initiate",
+        "identity": "required",
+        "policy": "payment_reconciliation_policy",
+        "scope": "payment_request_id"
+      },
+      "command_name": "payment.reconciliation.start",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "system",
+          "governance"
+        ],
+        "minimum_capability": "payment.reconciliation.initiate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "payment_request_id",
+        "trigger_type"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.reconciliation.start_failed"
+        ],
+        "success": [
+          "payment.reconciliation.started"
+        ]
+      },
+      "validation_rule_ids": [
+        "payment_must_exist",
+        "payment_must_be_in_reconcilable_state"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.request.cancel": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "authorization_requirements": {
+        "capability": "payment.request.cancel",
+        "identity": "required",
+        "policy": "payment_cancellation_policy",
+        "scope": "payment_request_id"
+      },
+      "command_name": "payment.request.cancel",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "payment.request.cancel"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "payment_request_id",
+        "reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.request.cancellation_failed"
+        ],
+        "success": [
+          "payment.request.cancelled"
+        ]
+      },
+      "validation_rule_ids": [
+        "payment_must_exist",
+        "payment_must_be_cancellable",
+        "cancellation_reason_required"
+      ],
+      "version": "1.0.0"
+    },
+    "payment.request.create": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "authorization_requirements": {
+        "capability": "payment.request.create",
+        "identity": "required",
+        "policy": "payment_creation_policy",
+        "scope": "payment_request_id"
+      },
+      "command_name": "payment.request.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "payment.request.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "source_transfer_id",
+        "amount",
+        "sender",
+        "recipient",
+        "urgency",
+        "retry_policy"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.request.creation_failed"
+        ],
+        "success": [
+          "payment.request.created"
+        ]
+      },
+      "validation_rule_ids": [
+        "source_transfer_must_exist",
+        "amount_must_match_transfer",
+        "urgency_must_be_valid",
+        "recipient_rail_ref_required"
+      ],
+      "version": "1.0.0"
+    },
+    "policy.compliance.requirement.register": {
+      "abi": "v1",
+      "aggregate": "compliance_requirement",
+      "authorization_requirements": {
+        "capability": "policy.compliance.create",
+        "identity": "required",
+        "policy": "compliance_registration_policy",
+        "scope": "jurisdiction"
+      },
+      "command_name": "policy.compliance.requirement.register",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "policy",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "policy.compliance.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "regulation_id_must_not_be_empty",
+        "jurisdiction_must_not_be_empty"
+      ],
+      "version": "1.0.0"
+    },
+    "policy.escalation.resolve": {
+      "abi": "v1",
+      "aggregate": "escalation",
+      "authorization_requirements": {
+        "capability": "policy.escalation.resolve",
+        "identity": "required",
+        "policy": "escalation_resolution_policy",
+        "scope": "escalation_id"
+      },
+      "command_name": "policy.escalation.resolve",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "policy",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "human"
+        ],
+        "minimum_capability": "policy.escalation.resolve"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "escalation_must_exist",
+        "escalation_must_be_in_resolvable_state",
+        "resolver_must_have_authority"
+      ],
+      "version": "1.0.0"
+    },
+    "policy.rule.activate": {
+      "abi": "v1",
+      "aggregate": "rule",
+      "authorization_requirements": {
+        "capability": "policy.rule.activate",
+        "identity": "required",
+        "policy": "policy_activation_policy",
+        "scope": "rule_id"
+      },
+      "command_name": "policy.rule.activate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "policy",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "policy.rule.activate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "rule_must_exist",
+        "rule_must_be_in_draft_state",
+        "constitutional_rules_require_governance_approval"
+      ],
+      "version": "1.0.0"
+    },
+    "policy.rule.create": {
+      "abi": "v1",
+      "aggregate": "rule",
+      "authorization_requirements": {
+        "capability": "policy.rule.create",
+        "identity": "required",
+        "policy": "policy_creation_policy",
+        "scope": "rule_category"
+      },
+      "command_name": "policy.rule.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "policy",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "policy.rule.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "rule_name_must_be_unique",
+        "category_must_be_recognized",
+        "condition_type_must_be_valid"
+      ],
+      "version": "1.0.0"
+    },
+    "policy.rule.deactivate": {
+      "abi": "v1",
+      "aggregate": "rule",
+      "authorization_requirements": {
+        "capability": "policy.rule.deactivate",
+        "identity": "required",
+        "policy": "policy_deactivation_policy",
+        "scope": "rule_id"
+      },
+      "command_name": "policy.rule.deactivate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "policy",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "policy.rule.deactivate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "rule_must_exist",
+        "rule_must_be_active"
+      ],
+      "version": "1.0.0"
+    },
+    "policy.rule.update": {
+      "abi": "v1",
+      "aggregate": "rule",
+      "authorization_requirements": {
+        "capability": "policy.rule.update",
+        "identity": "required",
+        "policy": "policy_update_policy",
+        "scope": "rule_id"
+      },
+      "command_name": "policy.rule.update",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "policy",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "policy.rule.update"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "rule_must_exist",
+        "version_must_be_incremented",
+        "governance_authority_required"
+      ],
+      "version": "1.0.0"
+    },
+    "policy.set.create": {
+      "abi": "v1",
+      "aggregate": "set",
+      "authorization_requirements": {
+        "capability": "policy.set.create",
+        "identity": "required",
+        "policy": "policy_set_creation_policy",
+        "scope": "policy_set"
+      },
+      "command_name": "policy.set.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "policy",
+      "issuer": {
+        "actor_types": [
+          "governance"
+        ],
+        "minimum_capability": "policy.set.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "all_rule_ids_must_exist_and_be_active",
+        "evaluation_strategy_must_be_recognized"
+      ],
+      "version": "1.0.0"
+    },
+    "policy.set.evaluate": {
+      "abi": "v1",
+      "aggregate": "evaluation",
+      "authorization_requirements": {
+        "capability": "policy.set.evaluate",
+        "identity": "required",
+        "policy": "policy_evaluation_policy",
+        "scope": "policy_set_id"
+      },
+      "command_name": "policy.set.evaluate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "policy",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "organization",
+          "ai_agent",
+          "service_account",
+          "governance",
+          "external_system"
+        ],
+        "minimum_capability": "policy.set.evaluate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [],
+      "resulting_events": {},
+      "validation_rule_ids": [
+        "authorization_context_id_required",
+        "command_id_required",
+        "policy_set_must_exist_and_be_active"
+      ],
+      "version": "1.0.0"
+    },
+    "saga.compensate": {
+      "abi": "v1",
+      "aggregate": "saga_execution",
+      "authorization_requirements": {
+        "capability": "system.internal",
+        "identity": "required"
+      },
+      "command_name": "saga.compensate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "payment",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "system.internal"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "saga_id",
+        "failed_step_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.compensation_failed"
+        ],
+        "success": [
+          "payment.execution.compensated"
+        ]
+      },
+      "validation_rule_ids": [
+        "saga_must_be_failed_or_cancelling"
+      ],
+      "version": "1.0.0"
+    },
+    "treasury.liquidity.allocate": {
+      "abi": "v1",
+      "aggregate": "liquidity_position",
+      "authorization_requirements": {
+        "capability": "treasury.liquidity.manage",
+        "identity": "required",
+        "policy": "liquidity_allocation_policy",
+        "scope": "actor_id"
+      },
+      "command_name": "treasury.liquidity.allocate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "treasury",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "treasury.liquidity.manage"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "actor_id",
+        "source_asset_id",
+        "target_asset_id",
+        "amount",
+        "purpose"
+      ],
+      "resulting_events": {
+        "conditional": [
+          "treasury.liquidity.warning"
+        ],
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": []
+      },
+      "validation_rule_ids": [
+        "source_has_sufficient_liquidity",
+        "allocation_purpose_valid",
+        "does_not_breach_minimum_reserve",
+        "asset_compatible",
+        "no_duplicate_allocation"
+      ],
+      "version": "1.0.0"
+    },
+    "treasury.liquidity.check": {
+      "abi": "v1",
+      "aggregate": "liquidity_position",
+      "authorization_requirements": {
+        "capability": "treasury.liquidity.read",
+        "identity": "required",
+        "policy": "liquidity_read_policy",
+        "scope": "actor_id"
+      },
+      "command_name": "treasury.liquidity.check",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "treasury",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system",
+          "governance"
+        ],
+        "minimum_capability": "treasury.liquidity.read"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "actor_id",
+        "asset_id"
+      ],
+      "resulting_events": {
+        "conditional": [
+          "treasury.liquidity.warning"
+        ],
+        "failure": [],
+        "success": []
+      },
+      "validation_rule_ids": [
+        "actor_exists",
+        "scope_matches_actor"
+      ],
+      "version": "1.0.0"
+    },
+    "treasury.settlement.confirm": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "authorization_requirements": {
+        "capability": "treasury.settlement.confirm",
+        "identity": "required",
+        "policy": "settlement_policy",
+        "scope": "order_id"
+      },
+      "command_name": "treasury.settlement.confirm",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "treasury",
+      "issuer": {
+        "actor_types": [
+          "system",
+          "governance"
+        ],
+        "minimum_capability": "treasury.settlement.confirm"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "order_id",
+        "settlement_reference",
+        "settled_at",
+        "settlement_amount"
+      ],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.settled",
+          "treasury.settlement.confirmed"
+        ]
+      },
+      "validation_rule_ids": [
+        "transfer_in_settleable_state",
+        "settlement_reference_provided",
+        "settlement_amount_matches",
+        "not_already_settled"
+      ],
+      "version": "1.0.0"
+    },
+    "treasury.transfer.authorize": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "authorization_requirements": {
+        "capability": "treasury.transfer.authorize",
+        "identity": "required",
+        "policy": "transfer_execution_policy",
+        "scope": "order_id"
+      },
+      "command_name": "treasury.transfer.authorize",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "treasury",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "system"
+        ],
+        "minimum_capability": "treasury.transfer.authorize"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "order_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.authorized"
+        ]
+      },
+      "validation_rule_ids": [
+        "transfer_in_requested_state",
+        "transfer_not_expired",
+        "policy_evaluates_to_approve",
+        "actor_has_authority",
+        "compliance_rules_passed"
+      ],
+      "version": "1.0.0"
+    },
+    "treasury.transfer.cancel": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "authorization_requirements": {
+        "capability": "treasury.transfer.cancel",
+        "identity": "required",
+        "policy": "transfer_cancellation_policy",
+        "scope": "order_id"
+      },
+      "command_name": "treasury.transfer.cancel",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "treasury",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "treasury.transfer.cancel"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "order_id",
+        "reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.rejected"
+        ]
+      },
+      "validation_rule_ids": [
+        "transfer_in_cancellable_state",
+        "cancellation_reason_provided",
+        "no_execution_in_progress",
+        "vault_reservation_releasable"
+      ],
+      "version": "1.0.0"
+    },
+    "treasury.transfer.compensate": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "authorization_requirements": {
+        "capability": "treasury.transfer.compensate",
+        "identity": "required",
+        "policy": "compensation_policy",
+        "scope": "order_id"
+      },
+      "command_name": "treasury.transfer.compensate",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "treasury",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "treasury.transfer.compensate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "order_id",
+        "compensation_step"
+      ],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.compensation_required"
+        ]
+      },
+      "validation_rule_ids": [
+        "transfer_in_compensatable_state",
+        "compensation_step_defined",
+        "vault_lock_resolvable",
+        "governance_approval_if_required"
+      ],
+      "version": "1.0.0"
+    },
+    "treasury.transfer.execute": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "authorization_requirements": {
+        "capability": "treasury.transfer.execute",
+        "identity": "required",
+        "policy": "transfer_execution_policy",
+        "scope": "order_id"
+      },
+      "command_name": "treasury.transfer.execute",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "treasury",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "treasury.transfer.execute"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "order_id"
+      ],
+      "resulting_events": {
+        "conditional": [
+          "treasury.transfer.settled",
+          "treasury.transfer.failed"
+        ],
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.executing"
+        ]
+      },
+      "validation_rule_ids": [
+        "transfer_in_reserved_state",
+        "vault_lock_still_active",
+        "payment_rail_available",
+        "execution_saga_defined"
+      ],
+      "version": "1.0.0"
+    },
+    "treasury.transfer.request": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "authorization_requirements": {
+        "capability": "treasury.transfer.request",
+        "identity": "required",
+        "policy": "transfer_request_policy",
+        "scope": "source actor and asset"
+      },
+      "command_name": "treasury.transfer.request",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "treasury",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "treasury.transfer.request"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "source_actor_id",
+        {
+          "destination_details": [
+            "type",
+            "address",
+            "rail",
+            "reference"
+          ]
+        },
+        "asset_id",
+        "amount",
+        "purpose"
+      ],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.requested"
+        ]
+      },
+      "validation_rule_ids": [
+        "source_actor_exists_and_active",
+        "destination_actor_valid",
+        "asset_exists_in_vault",
+        "amount_positive_and_within_precision",
+        "no_duplicate_pending_transfer"
+      ],
+      "version": "1.0.0"
+    },
+    "treasury.transfer.reserve": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "authorization_requirements": {
+        "capability": "treasury.transfer.reserve",
+        "identity": "required",
+        "policy": "transfer_execution_policy",
+        "scope": "order_id"
+      },
+      "command_name": "treasury.transfer.reserve",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "treasury",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "treasury.transfer.reserve"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "order_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.reserved"
+        ]
+      },
+      "validation_rule_ids": [
+        "transfer_in_authorized_state",
+        "authorization_not_expired",
+        "vault_available_balance_sufficient",
+        "no_conflicting_reservation"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.asset.reconcile": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "authorization_requirements": {
+        "capability": "vault.reconcile",
+        "identity": "required",
+        "policy": "reconciliation_policy",
+        "scope": "asset_id or actor_id"
+      },
+      "command_name": "vault.asset.reconcile",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "vault.reconcile"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "scope",
+        "asset_id",
+        "actor_id",
+        "external_proof"
+      ],
+      "resulting_events": {
+        "conditional": [
+          "vault.reconciliation.completed",
+          "vault.reconciliation.discrepancy_found"
+        ],
+        "failure": [
+          "vault.reconciliation.failed"
+        ],
+        "success": [
+          "vault.reconciliation.started"
+        ]
+      },
+      "validation_rule_ids": [
+        "no_concurrent_reconciliation",
+        "external_data_provided"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.asset.register": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "authorization_requirements": {
+        "capability": "vault.asset.create",
+        "identity": "required",
+        "policy": "vault_registration_policy",
+        "scope": "custody_location"
+      },
+      "command_name": "vault.asset.register",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "vault.asset.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "asset_id",
+        "asset_type",
+        "issuer_id",
+        "face_value",
+        "quantity",
+        "custody_location",
+        "ownership_id",
+        "valuation_source",
+        "native_unit",
+        "precision"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.registration_failed"
+        ],
+        "success": [
+          "vault.asset.registered"
+        ]
+      },
+      "validation_rule_ids": [
+        "asset_id_must_be_globally_unique",
+        "asset_type_must_be_recognized",
+        "issuer_identity_must_be_verified",
+        "quantity_or_face_value_must_be_positive",
+        "custody_location_must_be_registered",
+        "ownership_id_must_be_verified_identity"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.asset.reject": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "authorization_requirements": {
+        "capability": "vault.asset.verify",
+        "identity": "required",
+        "policy": "vault_verification_policy",
+        "scope": "asset_id"
+      },
+      "command_name": "vault.asset.reject",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "vault.asset.verify"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "asset_id",
+        "reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.rejection_failed"
+        ],
+        "success": [
+          "vault.asset.rejected"
+        ]
+      },
+      "validation_rule_ids": [
+        "asset_must_exist",
+        "asset_must_be_rejectable",
+        "rejection_reason_required"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.asset.verify": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "authorization_requirements": {
+        "capability": "vault.asset.verify",
+        "identity": "required",
+        "policy": "vault_verification_policy",
+        "scope": "asset_id"
+      },
+      "command_name": "vault.asset.verify",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "vault.asset.verify"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "asset_id",
+        "attester_id",
+        "attestation_proof",
+        "verification_method"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.rejected"
+        ],
+        "success": [
+          "vault.asset.verified",
+          "vault.custody.attested"
+        ]
+      },
+      "validation_rule_ids": [
+        "asset_must_exist",
+        "asset_must_be_in_registered_state",
+        "attestation_proof_required",
+        "attester_must_be_trusted"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.asset.write_down": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "authorization_requirements": {
+        "capability": "vault.asset.impair",
+        "identity": "required"
+      },
+      "command_name": "vault.asset.write_down",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "vault.asset.impair"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "asset_id",
+        "write_down_amount",
+        "reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.verification_failed"
+        ],
+        "success": [
+          "vault.asset.rejected"
+        ]
+      },
+      "validation_rule_ids": [
+        "asset_must_exist"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.collateral.add": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "authorization_requirements": {
+        "capability": "vault.collateral.create",
+        "identity": "required",
+        "policy": "collateral_policy",
+        "scope": "asset_id"
+      },
+      "command_name": "vault.collateral.add",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human"
+        ],
+        "minimum_capability": "vault.collateral.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "asset_id",
+        "obligation_id",
+        "haircut_override"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.collateral.addition_failed"
+        ],
+        "success": [
+          "vault.collateral.added",
+          "vault.collateral.valued"
+        ]
+      },
+      "validation_rule_ids": [
+        "asset_must_be_eligible_for_collateral",
+        "ownership_must_be_verified",
+        "no_conflicting_collateral_position",
+        "concentration_limits_not_exceeded",
+        "obligation_must_exist"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.collateral.remove": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "authorization_requirements": {
+        "capability": "vault.collateral.release",
+        "identity": "required",
+        "policy": "collateral_policy",
+        "scope": "asset_id"
+      },
+      "command_name": "vault.collateral.remove",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "vault.collateral.release"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "collateral_id",
+        "release_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.collateral.release_failed"
+        ],
+        "success": [
+          "vault.collateral.released"
+        ]
+      },
+      "validation_rule_ids": [
+        "collateral_must_exist",
+        "release_conditions_must_be_met",
+        "margin_ratio_must_remain_above_maintenance"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.collateral.revalue": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "authorization_requirements": {
+        "capability": "vault.collateral.evaluate",
+        "identity": "required_for_governance, exempt_for_system",
+        "policy": "collateral_policy",
+        "scope": "asset_id"
+      },
+      "command_name": "vault.collateral.revalue",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "system",
+          "governance"
+        ],
+        "minimum_capability": "vault.collateral.evaluate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "collateral_id",
+        "new_valuation",
+        "valuation_source",
+        "valuation_source_type"
+      ],
+      "resulting_events": {
+        "conditional": [
+          "vault.collateral.margin_call"
+        ],
+        "failure": [
+          "vault.collateral.revaluation_failed"
+        ],
+        "success": [
+          "vault.collateral.revalued"
+        ]
+      },
+      "validation_rule_ids": [
+        "collateral_must_exist",
+        "valuation_source_must_be_trusted",
+        "valuation_must_not_be_stale"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.ownership.transfer": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "authorization_requirements": {
+        "capability": "vault.asset.verify",
+        "identity": "required"
+      },
+      "command_name": "vault.ownership.transfer",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "vault.asset.verify"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "asset_id",
+        "current_owner_id",
+        "new_owner_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.verification_failed"
+        ],
+        "success": [
+          "vault.asset.verified"
+        ]
+      },
+      "validation_rule_ids": [
+        "asset_must_be_verified"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.reserve.create": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "authorization_requirements": {
+        "capability": "vault.reserve.create",
+        "identity": "required",
+        "policy": "vault_reservation_policy",
+        "scope": "asset_id"
+      },
+      "command_name": "vault.reserve.create",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "vault.reserve.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "asset_id",
+        "amount",
+        "expiration",
+        "purpose"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.creation_failed"
+        ],
+        "success": [
+          "vault.reserve.created"
+        ]
+      },
+      "validation_rule_ids": [
+        "asset_must_be_available",
+        "actor_must_have_reserve_control",
+        "amount_must_be_positive",
+        "amount_must_not_exceed_available_balance",
+        "no_conflicting_reservation",
+        "expiration_must_be_in_future",
+        "expiration_within_max_duration"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.reserve.expire": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "authorization_requirements": {
+        "capability": "system.internal",
+        "identity": "exempt",
+        "policy": "none",
+        "scope": "none"
+      },
+      "command_name": "vault.reserve.expire",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "system"
+        ],
+        "minimum_capability": "system.internal"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "reservation_id"
+      ],
+      "resulting_events": {
+        "failure": [],
+        "success": [
+          "vault.reserve.expired"
+        ]
+      },
+      "validation_rule_ids": [
+        "reservation_must_exist",
+        "reservation_must_be_expirable",
+        "expiration_must_have_passed"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.reserve.lock": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "authorization_requirements": {
+        "capability": "vault.reserve.lock",
+        "identity": "required",
+        "policy": "vault_reservation_policy",
+        "scope": "asset_id"
+      },
+      "command_name": "vault.reserve.lock",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "vault.reserve.lock"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "reservation_id",
+        "expected_consuming_transaction_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.lock_failed"
+        ],
+        "success": [
+          "vault.reserve.locked"
+        ]
+      },
+      "validation_rule_ids": [
+        "reservation_must_exist",
+        "reservation_must_be_pending",
+        "reservation_must_not_be_expired",
+        "available_balance_still_sufficient"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.reserve.release": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "authorization_requirements": {
+        "capability": "vault.reserve.release",
+        "identity": "required",
+        "policy": "vault_reservation_policy",
+        "scope": "asset_id"
+      },
+      "command_name": "vault.reserve.release",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "vault.reserve.release"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "reservation_id",
+        "reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.release_failed"
+        ],
+        "success": [
+          "vault.reserve.released"
+        ]
+      },
+      "validation_rule_ids": [
+        "reservation_must_exist",
+        "reservation_must_be_releasable",
+        "release_reason_required_if_active"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.transaction.authorize_release": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "authorization_requirements": {
+        "capability": "vault.reserve.lock",
+        "identity": "required"
+      },
+      "command_name": "vault.transaction.authorize_release",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "vault.reserve.lock"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "transaction_id",
+        "authorization_code"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.transaction.failed"
+        ],
+        "success": [
+          "vault.transaction.release_pending",
+          "vault.transaction.release_authorized"
+        ]
+      },
+      "validation_rule_ids": [
+        "transaction_must_be_funded"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.transaction.cancel": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "authorization_requirements": {
+        "capability": "vault.reserve.release",
+        "identity": "required"
+      },
+      "command_name": "vault.transaction.cancel",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "vault.reserve.release"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "transaction_id",
+        "reason"
+      ],
+      "resulting_events": {
+        "failure": [],
+        "success": [
+          "vault.transaction.failed"
+        ]
+      },
+      "validation_rule_ids": [
+        "transaction_must_be_cancellable"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.transaction.disburse": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "authorization_requirements": {
+        "capability": "vault.reserve.consume",
+        "identity": "required"
+      },
+      "command_name": "vault.transaction.disburse",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "vault.reserve.consume"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "transaction_id",
+        "destination_account_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.transaction.failed"
+        ],
+        "success": [
+          "vault.transaction.disbursed",
+          "vault.transaction.closed"
+        ]
+      },
+      "validation_rule_ids": [
+        "transaction_must_be_authorized"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.transaction.fund": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "authorization_requirements": {
+        "capability": "vault.reserve.create",
+        "identity": "required"
+      },
+      "command_name": "vault.transaction.fund",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "vault.reserve.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "transaction_id",
+        "amount",
+        "asset_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.transaction.failed"
+        ],
+        "success": [
+          "vault.transaction.funding_requested"
+        ]
+      },
+      "validation_rule_ids": [
+        "transaction_must_exist"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.transfer.request": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "authorization_requirements": {
+        "capability": "vault.reserve.create",
+        "identity": "required"
+      },
+      "command_name": "vault.transfer.request",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "human",
+          "ai_agent",
+          "system"
+        ],
+        "minimum_capability": "vault.reserve.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "source_account_id",
+        "target_account_id",
+        "amount",
+        "asset_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.creation_failed"
+        ],
+        "success": [
+          "vault.reserve.created"
+        ]
+      },
+      "validation_rule_ids": [
+        "source_must_have_balance"
+      ],
+      "version": "1.0.0"
+    },
+    "vault.valuation.update": {
+      "abi": "v1",
+      "aggregate": "valuation",
+      "authorization_requirements": {
+        "capability": "vault.valuation.manage",
+        "identity": "required_for_governance, exempt_for_system",
+        "policy": "valuation_policy",
+        "scope": "asset_id"
+      },
+      "command_name": "vault.valuation.update",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [],
+        "policy_required": true
+      },
+      "domain": "vault",
+      "issuer": {
+        "actor_types": [
+          "system",
+          "governance"
+        ],
+        "minimum_capability": "vault.valuation.manage"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "asset_id",
+        "price",
+        "reference_currency",
+        "source_type",
+        "source_id",
+        "governance_approved"
+      ],
+      "resulting_events": {
+        "conditional": [
+          "vault.asset.impaired"
+        ],
+        "failure": [
+          "vault.valuation.update_failed"
+        ],
+        "success": [
+          "vault.valuation.updated"
+        ]
+      },
+      "validation_rule_ids": [
+        "asset_must_exist",
+        "source_must_be_trusted",
+        "valuation_must_not_be_stale",
+        "manual_valuation_requires_governance_approval"
+      ],
+      "version": "1.0.0"
+    }
+  },
+  "entry_count": 105,
+  "kind": "commands"
+}

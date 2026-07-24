@@ -7191,3 +7191,116 @@ events:
         type: string
       resumed_at:
         type: timestamp
+
+
+  escrow.account.created:
+    aggregate: escrow_account
+    aggregate_id_field: escrow_id
+    source_domain: escrow
+    version: 1.0.0
+    description: Escrow account created
+    retention_class: permanent
+    projection_effect: { target: escrow_account_view, operation: insert }
+    projection_effects: [UPSERT_ESCROW_ACCOUNT]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      escrow_id: { type: string }
+      parties: { type: array }
+      amount: { type: decimal }
+      asset_type: { type: string }
+      release_conditions: { type: string }
+      initiator_id: { type: string }
+
+  escrow.account.funded:
+    aggregate: escrow_account
+    aggregate_id_field: escrow_id
+    source_domain: escrow
+    version: 1.0.0
+    description: Escrow account funded
+    retention_class: permanent
+    projection_effect: { target: escrow_account_view, operation: update }
+    projection_effects: [UPDATE_ESCROW_BALANCE]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      escrow_id: { type: string }
+      amount: { type: decimal }
+
+  escrow.account.released:
+    aggregate: escrow_account
+    aggregate_id_field: escrow_id
+    source_domain: escrow
+    version: 1.0.0
+    description: Escrow account released
+    retention_class: regulatory_7y
+    projection_effect: { target: escrow_account_view, operation: update }
+    projection_effects: [CLOSE_ESCROW_ACCOUNT]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      escrow_id: { type: string }
+      release_proof: { type: string }
+
+  escrow.account.cancelled:
+    aggregate: escrow_account
+    aggregate_id_field: escrow_id
+    source_domain: escrow
+    version: 1.0.0
+    description: Escrow account cancelled
+    retention_class: regulatory_7y
+    projection_effect: { target: escrow_account_view, operation: update }
+    projection_effects: [CLOSE_ESCROW_ACCOUNT]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      escrow_id: { type: string }
+      cancellation_reason: { type: string }
+
+  escrow.account.creation_failed:
+    aggregate: escrow_account
+    aggregate_id_field: escrow_id
+    source_domain: escrow
+    version: 1.0.0
+    description: Escrow account creation failed
+    retention_class: operational_90d
+    projection_effect: { target: none, operation: no_op }
+    projection_effects: []
+    constitutional_refs: [INV-001]
+    data_fields:
+      escrow_id: { type: string, required: false }
+
+  escrow.account.funding_failed:
+    aggregate: escrow_account
+    aggregate_id_field: escrow_id
+    source_domain: escrow
+    version: 1.0.0
+    description: Escrow account funding failed
+    retention_class: operational_90d
+    projection_effect: { target: none, operation: no_op }
+    projection_effects: []
+    constitutional_refs: [INV-001]
+    data_fields:
+      escrow_id: { type: string }
+
+  escrow.account.release_failed:
+    aggregate: escrow_account
+    aggregate_id_field: escrow_id
+    source_domain: escrow
+    version: 1.0.0
+    description: Escrow account release failed
+    retention_class: operational_90d
+    projection_effect: { target: none, operation: no_op }
+    projection_effects: []
+    constitutional_refs: [INV-001]
+    data_fields:
+      escrow_id: { type: string }
+
+  escrow.account.cancellation_failed:
+    aggregate: escrow_account
+    aggregate_id_field: escrow_id
+    source_domain: escrow
+    version: 1.0.0
+    description: Escrow account cancellation failed
+    retention_class: operational_90d
+    projection_effect: { target: none, operation: no_op }
+    projection_effects: []
+    constitutional_refs: [INV-001]
+    data_fields:
+      escrow_id: { type: string }

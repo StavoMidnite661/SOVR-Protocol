@@ -1,42 +1,45 @@
 ---------------- MODULE AGENT_EXECUTION_LIFECYCLE ----------------
 * SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+* Compiler: 0.6.0 Protocol: 1.0.0
 * Provenance: agent_execution_lifecycle
 
 EXTENDS Naturals, Sequences
 
 VARIABLES state, ledger_balanced, authority_validated
 
-States == {"INIT", "ACTIVE", "COMPLETED", "FAILED"}
+States == {"ACTIVE", "COMPLETED", "ESCALATED", "EXECUTING", "FAILED", "TERMINATED"}
 
 Init == 
-    /\ state = "INIT"
+    /\ state = "ACTIVE"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
 
-ACTIVATE == 
-    /\ state = "INIT"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "ACTIVE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-
-COMPLETE == 
+ACTIVE_TO_COMPLETED == 
     /\ state = "ACTIVE"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
     /\ state' = "COMPLETED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: COMPLETE
 
-FAIL == 
+ACTIVE_TO_FAILED == 
     /\ state = "ACTIVE"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
     /\ state' = "FAILED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: FAIL
+
+INIT_TO_ACTIVE == 
+    /\ state = "INIT"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "ACTIVE"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: ACTIVATE
 
 Next == 
-    ACTIVATE \/ COMPLETE \/ FAIL
+    ACTIVE_TO_COMPLETED \/ ACTIVE_TO_FAILED \/ INIT_TO_ACTIVE
 
 * Invariant 1: State must always be in defined States
 TypeOK == state \in States

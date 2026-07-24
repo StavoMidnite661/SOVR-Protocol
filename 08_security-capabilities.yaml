@@ -2134,6 +2134,51 @@ capabilities:
 # governance has implicit wildcard access to all capabilities.
 # -----------------------------------------------------------
 
+
+  - capability_id: escrow.account.create
+    domain: escrow
+    description: Create escrow accounts
+    resource_type: escrow_account
+    action: create
+    risk_level: HIGH
+    grantable_by: [governance, human]
+    delegation_depth: 0
+    scope_pattern: "escrow.account:{escrow_id}"
+    constitutional_constraint: INV-003
+
+  - capability_id: escrow.account.fund
+    domain: escrow
+    description: Fund escrow accounts
+    resource_type: escrow_account
+    action: fund
+    risk_level: HIGH
+    grantable_by: [governance, human]
+    delegation_depth: 0
+    scope_pattern: "escrow.account:{escrow_id}"
+    constitutional_constraint: INV-003
+
+  - capability_id: escrow.account.release
+    domain: escrow
+    description: Release escrow funds
+    resource_type: escrow_account
+    action: release
+    risk_level: CRITICAL
+    grantable_by: [governance]
+    delegation_depth: 0
+    scope_pattern: "escrow.account:{escrow_id}"
+    constitutional_constraint: INV-003
+
+  - capability_id: escrow.account.cancel
+    domain: escrow
+    description: Cancel escrow accounts
+    resource_type: escrow_account
+    action: cancel
+    risk_level: HIGH
+    grantable_by: [governance, human]
+    delegation_depth: 0
+    scope_pattern: "escrow.account:{escrow_id}"
+    constitutional_constraint: INV-003
+
 capability_matrix:
   human:
     - vault.asset.read

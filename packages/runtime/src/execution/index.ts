@@ -1,3 +1,15 @@
+export * from './state-machine-interpreter.js';
+export * from './state-registry.js';
+export * from './event-factory.js';
+export * from './atomic-commit.js';
+export * from './vel-ast-evaluator.js';
+export * from './saga-registry.js';
+export * from './saga-interpreter.js';
+export * from './saga-payload-mapper.js';
+export * from './event-store.js';
+export * from './instruction-evaluator.js';
+export * from './kernel-executor.js';
+
 // ExecutionContext — the single object handlers receive per ADR-009
 // This eliminates 20+ param injection and makes replay/audit trivial
 

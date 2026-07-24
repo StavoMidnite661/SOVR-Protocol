@@ -2920,3 +2920,42 @@ domains:
             required: true
         reference: domains/payment.yaml
 
+
+
+  escrow:
+    name: Escrow
+    description: Escrow custody and conditional release
+    entities:
+      escrow_account:
+        description: A conditional custody account
+        attributes:
+          escrow_id:
+            type: string
+            required: true
+            description: Unique escrow account identifier
+          parties:
+            type: array
+            required: true
+            description: Parties to the escrow agreement
+          amount:
+            type: decimal
+            required: true
+            description: Escrow amount
+          asset_type:
+            type: string
+            required: true
+            description: Asset type held in escrow
+          release_conditions:
+            type: string
+            required: true
+            description: Conditions required for release
+          initiator_id:
+            type: string
+            required: true
+            description: Actor who initiated escrow
+          state:
+            type: enum
+            values: [CREATED, FUNDED, RELEASED, CANCELLED]
+            required: true
+            description: Escrow account lifecycle state
+        reference: domains/escrow.yaml

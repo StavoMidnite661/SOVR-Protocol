@@ -1,5 +1,5 @@
 # SOVR GENERATED — Redis Streams
-# hash da612466f59f3831cb932842174efa79281b85f32a22cecd22f3ae61b8750383
+# hash c1a1b03bcd22e80bd83968c48e7c85bc850ba763f236c27e0615a37da3ba0d21
 {
   "streams": [
     {
@@ -36,6 +36,13 @@
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
       "event": "agent.registration.approved"
+    },
+    {
+      "stream": "sovr:stream:escrow:escrow_account",
+      "consumer_group": "sovr-escrow-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "escrow.account.cancellation_failed"
     },
     {
       "stream": "sovr:stream:governance:audit_record",

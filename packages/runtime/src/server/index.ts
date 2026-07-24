@@ -17,16 +17,59 @@ import { EventStore } from './eventStore.js';
 import { CapabilityEngine } from './capabilityEngine.js';
 import { ProjectionEngine } from './projectionEngine.js';
 import { CommandBus } from './commandBus.js';
-import { DOMAIN_ROUTES, getRouteForCommand, buildOpenApiFromCommands } from './handlers.js';
+import commandsRegistry from '../../../../generated/registries/commands.registry.json' with { type: 'json' };
 import { SOVRJwt } from './jwt.js';
 import { KafkaPublisher, NullPublisher } from './kafkaPublisher.js';
 import { RedisStreamPublisher, NullStreamPublisher } from './redisStreamPublisher.js';
 import { AchAdapter } from '../adapters/achAdapter.js';
 import { AdapterRegistry, SUPPORTED_RAIL_TYPES } from '../adapters/boundary.js';
+import { PostgreSQLEventStore } from '../adapters/postgres-event-store.js';
+import { SagaInterpreter, SagaRegistry } from '../execution/index.js';
+import { BootSelfTest } from '../boot/self-test.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const protocolRoot = path.resolve(__dirname, '../../../../');
+
+const DOMAIN_ROUTES: Record<string, { description: string; commands: string[]; aggregates: string[] }> = buildDomainRoutesFromRegistry();
+
+function buildDomainRoutesFromRegistry(): Record<string, { description: string; commands: string[]; aggregates: string[] }> {
+  const routes: Record<string, { description: string; commands: string[]; aggregates: string[] }> = {};
+  for (const [commandName, def] of Object.entries((commandsRegistry as any).entries ?? {}) as Array<[string, any]>) {
+    const domain = def.domain ?? commandName.split('.')[0];
+    const aggregate = def.aggregate ?? commandName.split('.')[1] ?? 'command';
+    if (!routes[domain]) routes[domain] = { description: `${domain} command surface from commands.registry.json`, commands: [], aggregates: [] };
+    routes[domain].commands.push(commandName);
+    if (!routes[domain].aggregates.includes(aggregate)) routes[domain].aggregates.push(aggregate);
+  }
+  for (const route of Object.values(routes)) {
+    route.commands.sort();
+    route.aggregates.sort();
+  }
+  return routes;
+}
+
+function buildOpenApiFromCommands() {
+  const paths: Record<string, any> = {};
+  for (const [domain, info] of Object.entries(DOMAIN_ROUTES)) {
+    for (const aggregate of info.aggregates) {
+      const commands = info.commands.filter(command => ((commandsRegistry as any).entries?.[command]?.aggregate ?? command.split('.')[1]) === aggregate);
+      const pathStr = `/api/v1/${domain}/${aggregate}`;
+      paths[pathStr] = {
+        post: {
+          summary: `Execute ${domain}.${aggregate} command`,
+          description: `Registry-driven command endpoint. Commands: ${commands.join(', ')}`,
+          operationId: `${domain}_${aggregate}_execute`,
+          tags: [domain],
+          security: [{ bearerAuth: [] }],
+          requestBody: { content: { 'application/json': { schema: { type: 'object', properties: { commandName: { type: 'string' }, payload: { type: 'object' }, capability_id: { type: 'string' }, scope: { type: 'string' } } } } } },
+          responses: { '200': { description: 'Command result' }, '400': { description: 'Rejected' }, '403': { description: 'Capability or identity denied' }, '422': { description: 'Constitutional violation' } },
+        },
+      };
+    }
+  }
+  return paths;
+}
 
 interface SubsystemHealth {
   ok: boolean;
@@ -95,10 +138,24 @@ async function bootKernel() {
 
   // Source of CE persistence
   const persistencePath = path.join(protocolRoot, 'generated', 'data', 'sovr-events.json');
-  const eventStore = new EventStore(persistencePath);
+  let eventStore: any;
+  let eventStoreAdapter = 'JSON';
+  if (config.databaseUrl) {
+    eventStoreAdapter = 'PostgreSQL';
+    eventStore = new PostgreSQLEventStore(config.databaseUrl);
+    await eventStore.migrate();
+    console.log('🗄️ EVENT_STORE: PostgreSQL — migrations complete');
+  } else {
+    eventStore = new EventStore(persistencePath);
+    console.log('🗄️ EVENT_STORE: JSON (development)');
+  }
   const capabilityEngine = new CapabilityEngine(protocolRoot);
   const projectionEngine = new ProjectionEngine();
   const commandBus = new CommandBus(protocolRoot, eventStore, capabilityEngine, projectionEngine);
+  await commandBus.ready();
+  const sagaRegistry = new SagaRegistry();
+  const sagaInterpreter = SagaInterpreter.fromIR(path.join(protocolRoot, 'generated', 'sovr-ir.json'), sagaRegistry, eventStore);
+  console.log(`🔁 Saga interpreter loaded ${sagaInterpreter.listSagas().length} compiled saga definitions`);
 
   // Register boundary adapters (ACH + the placeholder ChainAdapter registry).
   const adapterRegistry = new AdapterRegistry();
@@ -111,7 +168,7 @@ async function bootKernel() {
   console.log(`🏦 Boundary adapters registered: ACH (${SUPPORTED_RAIL_TYPES.length} rail types supported total)`);
 
   // Wire publishers into the event store so every append also publishes.
-  eventStore.setPublisher(async (envelope) => {
+  eventStore.setPublisher(async (envelope: any) => {
     // Local broadcast (WebSocket subscribers) — no-op if no subscribers
     const evName = envelope.event_name;
     const domain = envelope.source_domain;
@@ -127,7 +184,7 @@ async function bootKernel() {
   // Seed genesis event if store was empty
   const wasEmpty = eventStore.stats().totalEvents === 0;
   if (wasEmpty) {
-    eventStore.append({
+    await eventStore.append({
       event_name: 'saga.started',
       aggregate: 'saga_instance',
       aggregate_id: crypto.randomUUID(),
@@ -146,14 +203,17 @@ async function bootKernel() {
     });
   }
 
-  projectionEngine.rebuildFromGenesis(eventStore.getAll());
+  projectionEngine.rebuildFromGenesis(await Promise.resolve(eventStore.getAll()));
+
+  const selfTest = await new BootSelfTest().run();
+  console.log(`🧪 Boot self-test passed ${selfTest.tests}/7 categories`);
 
   console.log(`🚀 [7] USERLAND — Runtime SDK @sovr/runtime ready, OpenAPI 44+ endpoints, event store ${eventStore.stats().totalEvents} events`);
   console.log(`   Frontend gate: SYSTEM HEALTHY — external can connect now`);
   console.log(`   Build hash (unfakeable): ${config.buildHash}`);
   console.log('');
 
-  return { config, eventStore, capabilityEngine, projectionEngine, commandBus, jwt, eventPublisher, streamPublisher, adapterRegistry };
+  return { config, eventStore, capabilityEngine, projectionEngine, commandBus, sagaRegistry, sagaInterpreter, jwt, eventPublisher, streamPublisher, adapterRegistry };
 }
 
 // Tiny event bus for WebSocket fan-out (no external dep needed)
@@ -179,7 +239,7 @@ class LocalBus {
 const bus = new LocalBus();
 
 async function buildServer() {
-  const { config, eventStore, capabilityEngine, projectionEngine, commandBus, jwt, eventPublisher, streamPublisher, adapterRegistry } = await bootKernel();
+  const { config, eventStore, capabilityEngine, projectionEngine, commandBus, sagaRegistry, sagaInterpreter, jwt, eventPublisher, streamPublisher, adapterRegistry } = await bootKernel();
 
   const app = Fastify({ logger: { level: config.logLevel } });
   await app.register(cors, { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] });
@@ -202,6 +262,11 @@ async function buildServer() {
       event_store: { ok: evt.totalEvents >= 0, detail: `${evt.totalEvents} events, ${evt.aggregates} aggregates, ${evt.correlations} correlations`, meta: evt },
       projections: { ok: projectionEngine.stats().projections > 0, detail: `${projectionEngine.stats().projections} projections, ${projectionEngine.stats().totalRecords} records` },
       capabilities: { ok: capabilityEngine.stats().definitions > 0, detail: `${capabilityEngine.stats().definitions} capability definitions, ${capabilityEngine.stats().actorsWithGrants} actors with grants` },
+      state_registry: {
+        ok: commandBus.isReady(),
+        detail: commandBus.isReady() ? 'state registry rebuilt from event log' : 'state registry rebuild incomplete',
+        meta: commandBus.stateRegistryStatus(),
+      },
       // Build provenance is the unfakeable part: if any of these mismatch, fail.
       build_provenance: {
         ok: config.compilerManifest?.build_hash === config.buildHash &&
@@ -259,7 +324,7 @@ async function buildServer() {
       status: h.health,
       service: 'sovr-financial-os',
       protocol_version: '1.0.0',
-      compiler_version: '0.2.0-kernel-working',
+      compiler_version: '0.6.0',
       build_hash: config.buildHash,
       boot_hash: config.bootHash,
       runlevel: 7,
@@ -269,6 +334,7 @@ async function buildServer() {
       event_store: eventStore.stats(),
       projections: projectionEngine.stats(),
       capabilities: capabilityEngine.stats(),
+      state_registry: commandBus.stateRegistryStatus(),
       timestamp: new Date().toISOString(),
     };
   });
@@ -313,25 +379,25 @@ async function buildServer() {
   // Event Store
   app.get('/api/v1/events', async (req: any) => {
     const { domain, aggregate, aggregate_id, correlation_id, command_id, limit } = req.query || {};
-    let events = eventStore.getAll();
+    let events = await Promise.resolve(eventStore.getAll());
     if (domain) events = events.filter((e: any) => e.source_domain === domain);
     if (aggregate) events = events.filter((e: any) => e.aggregate === aggregate);
     if (aggregate_id) events = events.filter((e: any) => e.aggregate_id === aggregate_id);
-    if (correlation_id) events = eventStore.getByCorrelation(correlation_id);
-    if (command_id) events = eventStore.getByCommand(command_id);
+    if (correlation_id) events = await Promise.resolve(eventStore.getByCorrelation(correlation_id));
+    if (command_id) events = await Promise.resolve(eventStore.getByCommand(command_id));
     const lim = Math.min(Number(limit || 100), 1000);
     return { total: events.length, events: events.slice(-lim).reverse(), stats: eventStore.stats() };
   });
 
   app.get('/api/v1/events/:event_id', async (req: any) => {
-    const ev = eventStore.getById(req.params.event_id);
+    const ev = await Promise.resolve(eventStore.getById(req.params.event_id));
     if (!ev) return { error: 'not_found' };
     return ev;
   });
 
   // Audit trail — INV-005
   app.get('/api/v1/audit/:correlation_id', async (req: any) => {
-    const events = eventStore.getByCorrelation(req.params.correlation_id);
+    const events = await Promise.resolve(eventStore.getByCorrelation(req.params.correlation_id));
     const complete = events.length > 0 && events.every((e: any) => e.audit && e.identity_context);
     return { correlation_id: req.params.correlation_id, events, isComplete: complete, trail_length: events.length };
   });
@@ -374,7 +440,7 @@ async function buildServer() {
     }
     const requester = req.headers['x-actor-id'] || 'governance';
     capabilityEngine.grant({ capability_id, actor_id, scope_pattern, granted_by: requester, expires_at });
-    const ev = eventStore.append({
+    const ev = await eventStore.append({
       event_name: 'governance.capability.granted',
       aggregate: 'capability_grant',
       aggregate_id: crypto.randomUUID(),
@@ -408,7 +474,7 @@ async function buildServer() {
       actor_type: typ,
       session_id,
     });
-    const ev = eventStore.append({
+    const ev = await eventStore.append({
       event_name: 'identity.session.created',
       aggregate: 'session',
       aggregate_id: session_id,
@@ -428,8 +494,53 @@ async function buildServer() {
     return { jwt: jwt_token, session_id, identity_id: id, actor_id: sub, trust_level: 'HIGH', event: ev };
   });
 
+  // Saga runtime — compiled IR saga interpreter
+  app.get('/api/v1/sagas', async () => ({
+    sagas: sagaInterpreter.listSagas().map(s => ({ saga_id: s.saga_id, domain: s.domain, steps: s.steps.length, compensation_strategy: s.compensation_strategy })),
+    instances: sagaRegistry.list(),
+  }));
+
+  app.get('/api/v1/sagas/:sagaId', async (req: any, reply) => {
+    try { return await sagaInterpreter.getState(req.params.sagaId); }
+    catch (e: any) { reply.code(404); return { error: e.message }; }
+  });
+
+  app.post('/api/v1/:domain/saga', async (req: any, reply) => {
+    if (!commandBus.isReady()) {
+      reply.code(503);
+      return { error: 'STATE_REGISTRY_NOT_READY', state_registry: commandBus.stateRegistryStatus() };
+    }
+    const identity_context = identityContextFromReq(req);
+    const body = req.body || {};
+    try {
+      const instance = await sagaInterpreter.start({
+        sagaName: body.sagaName || body.saga_name || body.saga_id,
+        correlationId: body.correlationId || body.correlation_id || crypto.randomUUID(),
+        initiatingCommand: body.initiatingCommand,
+        context: {
+          actor: identity_context,
+          payload: body.payload || {},
+          commandBus,
+          dryRun: body.dryRun ?? body.dry_run ?? false,
+          simulateFailureAtStep: body.simulateFailureAtStep ?? body.simulate_failure_at_step,
+          stepPayloads: body.stepPayloads || body.step_payloads || {},
+          capabilities: body.capabilities || {},
+          scopes: body.scopes || {},
+        },
+      });
+      return { sagaId: instance.sagaId, sagaName: instance.sagaName, state: instance.currentState, step: instance.currentStep, instance };
+    } catch (e: any) {
+      reply.code(400);
+      return { error: e.message };
+    }
+  });
+
   // UNIVERSAL ROUTE
   app.post('/api/v1/:domain/:aggregate', async (req: any, reply) => {
+    if (!commandBus.isReady()) {
+      reply.code(503);
+      return { error: 'STATE_REGISTRY_NOT_READY', state_registry: commandBus.stateRegistryStatus() };
+    }
     const { domain, aggregate } = req.params;
     const body = req.body || {};
 
@@ -468,9 +579,12 @@ async function buildServer() {
 
     if (result.status === 'REJECTED') {
       const reason = result.error || '';
-      const code = reason.includes('CAPABILITY') ? 403
+      const code = result.error_type === 'AtomicCommitFailureError' || reason.includes('AtomicCommitFailureError') ? 500
+        : result.error_type === 'UncoveredCommandError' || reason.includes('UncoveredCommandError') ? 500
+        : result.error_type === 'InvalidStateTransitionError' || reason.includes('InvalidStateTransitionError') ? 409
+        : result.error_type === 'ConstitutionalViolationError' || reason.includes('ConstitutionalViolationError') || reason.includes('INV-') ? 422
+        : reason.includes('CAPABILITY') ? 403
         : reason.includes('UNAUTH') || reason.includes('actor_type') ? 403
-        : reason.includes('INV-') ? 422
         : reason.includes('required') || reason.includes('VALIDATION') ? 400
         : 400;
       reply.code(code);
@@ -482,7 +596,7 @@ async function buildServer() {
   // GET aggregate history
   app.get('/api/v1/:domain/:aggregate/:id', async (req: any) => {
     const { domain, aggregate, id } = req.params;
-    const events = eventStore.getByAggregate(aggregate, id);
+    const events = await Promise.resolve(eventStore.getByAggregate(aggregate, id));
     const projectionMaps: Record<string, string> = {
       asset: 'vault_asset_view',
       reservation: 'vault_balance_view',

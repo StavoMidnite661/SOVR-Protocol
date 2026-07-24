@@ -1,7 +1,7 @@
 // SOVR GENERATED — ExecutionContext — DO NOT EDIT
-// hash 0044954e2f0b159f760316574ff623d224393cdc764ba7e6ae19a946a35a6ec9
+// hash 6f110dd14cb826a051f369393df64e27e72eeffc4649f82312b5a58b06574cb8
 // SOVR GENERATED — ExecutionContext per ADR-009
-// Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+// Compiler: 0.6.0 Protocol: 1.0.0
 // This is the Linux kernel of finance — single object containing everything handler needs
 // Eliminates 20+ parameter injection, enables deterministic replay, audit trivial
 

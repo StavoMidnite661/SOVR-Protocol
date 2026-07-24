@@ -1,42 +1,69 @@
 ---------------- MODULE AGENT_LIFECYCLE ----------------
 * SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+* Compiler: 0.6.0 Protocol: 1.0.0
 * Provenance: agent_lifecycle
 
 EXTENDS Naturals, Sequences
 
 VARIABLES state, ledger_balanced, authority_validated
 
-States == {"INIT", "ACTIVE", "COMPLETED", "FAILED"}
+States == {"ACTIVE", "REGISTERED", "SUSPENDED", "TERMINATED"}
 
 Init == 
-    /\ state = "INIT"
+    /\ state = "REGISTERED"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
 
-ACTIVATE == 
-    /\ state = "INIT"
+0 == 
+    /\ state = "REGISTERED"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
     /\ state' = "ACTIVE"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: AGENT_ACTIVATE
 
-COMPLETE == 
+1 == 
     /\ state = "ACTIVE"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "COMPLETED"
+    /\ state' = "SUSPENDED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: AGENT_SUSPEND
 
-FAIL == 
+2 == 
+    /\ state = "SUSPENDED"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "ACTIVE"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: AGENT_ACTIVATE
+
+3 == 
     /\ state = "ACTIVE"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "FAILED"
+    /\ state' = "TERMINATED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: AGENT_TERMINATE
+
+4 == 
+    /\ state = "SUSPENDED"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "TERMINATED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: AGENT_TERMINATE
+
+5 == 
+    /\ state = "REGISTERED"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "TERMINATED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: AGENT_TERMINATE
 
 Next == 
-    ACTIVATE \/ COMPLETE \/ FAIL
+    0 \/ 1 \/ 2 \/ 3 \/ 4 \/ 5
 
 * Invariant 1: State must always be in defined States
 TypeOK == state \in States

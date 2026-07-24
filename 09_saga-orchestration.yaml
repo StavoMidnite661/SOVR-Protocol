@@ -1093,16 +1093,48 @@ saga_templates:
       steps:
         - step: 1
           name: Reserve Value
-          command: treasury.transfer.reserve
-          compensation: treasury.transfer.release
+          target_domain: vault
+          command: vault.reserve.create
+          compensation: vault.reserve.release
+          required_capability: system.internal
+          required_scope: "*"
+          payload_mapping:
+            asset_id: "$saga.payload.asset_id"
+            amount: "$saga.payload.amount"
+            expiration: "$saga.context.expiration"
+            purpose: "saga_reservation"
+          compensation_payload_mapping:
+            reservation_id: "$saga.step.1.events.0.aggregate_id"
+            reason: "saga_compensation"
         - step: 2
-          name: Execute Transfer
-          command: treasury.transfer.execute
-          compensation: treasury.transfer.compensate
-        - step: 3
           name: Record in Ledger
+          target_domain: ledger
           command: ledger.entry.post
           compensation: ledger.entry.reverse
+          required_capability: system.internal
+          required_scope: "*"
+          payload_mapping:
+            journal_id: "$saga.context.journal_id"
+            transaction_id: "$saga.context.transaction_id"
+            event_reference: "$saga.step.1.events.0.event_id"
+            correlation_id: "$saga.correlation_id"
+            causation_id: "$saga.saga_id"
+            description: "Internal transfer debit/credit"
+            entry_type: "STANDARD"
+            postings:
+              - account_id: "$saga.payload.source_account"
+                direction: "DEBIT"
+                amount: "$saga.payload.amount"
+                asset_id: "$saga.payload.asset_id"
+                description: "Saga debit"
+              - account_id: "$saga.payload.destination_account"
+                direction: "CREDIT"
+                amount: "$saga.payload.amount"
+                asset_id: "$saga.payload.asset_id"
+                description: "Saga credit"
+          compensation_payload_mapping:
+            original_entry_id: "$saga.step.2.events.0.aggregate_id"
+            reversal_reason: "saga_compensation"
     - saga_id: external_transfer_saga
       description: >
         Orchestrates external SOVR-to-external-system transfers.

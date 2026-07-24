@@ -3931,3 +3931,223 @@ commands:
       policy_required: true
       capability_required: true
       invariants: []
+
+
+  escrow.account.create:
+    aggregate: escrow_account
+    source_domain: escrow
+    version: 1.0.0
+    description: Create a new escrow account
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: escrow.account.create
+    authorization_requirements:
+      identity: required
+      capability: escrow.account.create
+      scope: escrow.account:*
+      policy: escrow_creation_policy
+    validation_rules:
+      - rule: escrow_id_required
+        check: EXISTS payload.escrow_id
+        on_failure: REJECT
+      - rule: parties_required
+        check: EXISTS payload.parties
+        on_failure: REJECT
+      - rule: amount_positive
+        check: payload.amount > 0
+        on_failure: REJECT
+      - rule: asset_type_required
+        check: EXISTS payload.asset_type
+        on_failure: REJECT
+      - rule: release_conditions_required
+        check: EXISTS payload.release_conditions
+        on_failure: REJECT
+    required_payload: [escrow_id, parties, amount, asset_type, release_conditions, initiator_id]
+    resulting_events:
+      success: [escrow.account.created]
+      failure: [escrow.account.creation_failed]
+    lifecycle:
+      machine: escrow_account_lifecycle
+      trigger: escrow.account.create
+    lifecycle_exempt: false
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-003, INV-008]
+
+  escrow.account.fund:
+    aggregate: escrow_account
+    source_domain: escrow
+    version: 1.0.0
+    description: Fund an existing escrow account
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: escrow.account.fund
+    authorization_requirements:
+      identity: required
+      capability: escrow.account.fund
+      scope: escrow.account:*
+      policy: escrow_funding_policy
+    validation_rules:
+      - rule: escrow_id_required
+        check: EXISTS payload.escrow_id
+        on_failure: REJECT
+      - rule: amount_positive
+        check: payload.amount > 0
+        on_failure: REJECT
+    required_payload: [escrow_id, amount]
+    resulting_events:
+      success: [escrow.account.funded]
+      failure: [escrow.account.funding_failed]
+    lifecycle:
+      machine: escrow_account_lifecycle
+      trigger: escrow.account.fund
+    lifecycle_exempt: false
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-003, INV-008]
+
+  escrow.account.release:
+    aggregate: escrow_account
+    source_domain: escrow
+    version: 1.0.0
+    description: Release funds from escrow account
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: escrow.account.release
+    authorization_requirements:
+      identity: required
+      capability: escrow.account.release
+      scope: escrow.account:*
+      policy: escrow_release_policy
+    validation_rules:
+      - rule: escrow_id_required
+        check: EXISTS payload.escrow_id
+        on_failure: REJECT
+      - rule: release_proof_required
+        check: EXISTS payload.release_proof
+        on_failure: REJECT
+    required_payload: [escrow_id, release_proof]
+    resulting_events:
+      success: [escrow.account.released]
+      failure: [escrow.account.release_failed]
+    lifecycle:
+      machine: escrow_account_lifecycle
+      trigger: escrow.account.release
+    lifecycle_exempt: false
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-003, INV-008]
+
+  escrow.account.cancel:
+    aggregate: escrow_account
+    source_domain: escrow
+    version: 1.0.0
+    description: Cancel an escrow account
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: escrow.account.cancel
+    authorization_requirements:
+      identity: required
+      capability: escrow.account.cancel
+      scope: escrow.account:*
+      policy: escrow_cancel_policy
+    validation_rules:
+      - rule: escrow_id_required
+        check: EXISTS payload.escrow_id
+        on_failure: REJECT
+      - rule: cancellation_reason_required
+        check: EXISTS payload.cancellation_reason
+        on_failure: REJECT
+    required_payload: [escrow_id, cancellation_reason]
+    resulting_events:
+      success: [escrow.account.cancelled]
+      failure: [escrow.account.cancellation_failed]
+    lifecycle:
+      machine: escrow_account_lifecycle
+      trigger: escrow.account.cancel
+    lifecycle_exempt: false
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-003, INV-008]
+
+# ============================================================
+# Command Lifecycle Coverage Declarations
+# v0.6.0 coverage enforcement:
+# - Commands whose source_domain + aggregate pair has a state machine are
+#   machine-covered by the compiled IR lifecycle for that aggregate.
+# - Remaining commands below are formally lifecycle-exempt with category,
+#   reason, and governance ADR reference.
+# ============================================================
+command_lifecycle_coverage:
+  schema_version: 1.0.0
+  fail_on_uncovered: true
+  machine_coverage_rule: source_domain_and_aggregate_match_state_machine
+  lifecycle_exemptions:
+    treasury.liquidity.check:
+      lifecycle_exempt: true
+      exemption_category: READ_ONLY
+      exemption_reason: "Liquidity check reads available liquidity and emits no authoritative aggregate lifecycle transition."
+      lifecycle_exempt_reason: "Liquidity check reads available liquidity and emits no authoritative aggregate lifecycle transition."
+      lifecycle_exempt_governance_ref: ADR-COMP-015
+    governance.audit.query:
+      lifecycle_exempt: true
+      exemption_category: READ_ONLY
+      exemption_reason: "Audit query reads event/projection history only."
+      lifecycle_exempt_reason: "Audit query reads event/projection history only."
+      lifecycle_exempt_governance_ref: ADR-COMP-015
+    governance.oversight.review:
+      lifecycle_exempt: true
+      exemption_category: READ_ONLY
+      exemption_reason: "Oversight review records governance observation without lifecycle ownership in v0.6.0."
+      lifecycle_exempt_reason: "Oversight review records governance observation without lifecycle ownership in v0.6.0."
+      lifecycle_exempt_governance_ref: ADR-COMP-015
+    governance.policy_rule.review:
+      lifecycle_exempt: true
+      exemption_category: CROSS_CUTTING
+      exemption_reason: "Policy rule review is a governance cross-cutting control over policy lifecycle."
+      lifecycle_exempt_reason: "Policy rule review is a governance cross-cutting control over policy lifecycle."
+      lifecycle_exempt_governance_ref: ADR-COMP-015
+    agent.governance.override:
+      lifecycle_exempt: true
+      exemption_category: ADMINISTRATIVE
+      exemption_reason: "Governance override is an administrative safety operation with independent audit trail."
+      lifecycle_exempt_reason: "Governance override is an administrative safety operation with independent audit trail."
+      lifecycle_exempt_governance_ref: ADR-COMP-015
+    saga.compensate:
+      lifecycle_exempt: true
+      exemption_category: CROSS_CUTTING
+      exemption_reason: "Saga compensation is orchestrator-level cross-cutting behavior governed by saga lifecycle."
+      lifecycle_exempt_reason: "Saga compensation is orchestrator-level cross-cutting behavior governed by saga lifecycle."
+      lifecycle_exempt_governance_ref: ADR-COMP-015
+    payment.receipt.issue:
+      lifecycle_exempt: true
+      exemption_category: NOTIFICATION
+      exemption_reason: "Receipt issuance is notification/audit output after payment state is already represented."
+      lifecycle_exempt_reason: "Receipt issuance is notification/audit output after payment state is already represented."
+      lifecycle_exempt_governance_ref: ADR-COMP-015
+    payment.adapter.disable:
+      lifecycle_exempt: true
+      exemption_category: ADMINISTRATIVE
+      exemption_reason: "Adapter disable is administrative rail safety control; payment adapter lifecycle is separately specified."
+      lifecycle_exempt_reason: "Adapter disable is administrative rail safety control; payment adapter lifecycle is separately specified."
+      lifecycle_exempt_governance_ref: ADR-COMP-015
+    governance.emergency.halt:
+      lifecycle_exempt: true
+      exemption_category: ADMINISTRATIVE
+      exemption_reason: "Emergency halt is constitutional system-control operation also reflected in system health lifecycle."
+      lifecycle_exempt_reason: "Emergency halt is constitutional system-control operation also reflected in system health lifecycle."
+      lifecycle_exempt_governance_ref: ADR-COMP-015
+    governance.emergency.lift:
+      lifecycle_exempt: true
+      exemption_category: ADMINISTRATIVE
+      exemption_reason: "Emergency lift is constitutional system-control operation also reflected in system health lifecycle."
+      lifecycle_exempt_reason: "Emergency lift is constitutional system-control operation also reflected in system health lifecycle."
+      lifecycle_exempt_governance_ref: ADR-COMP-015

@@ -1,6 +1,6 @@
 // ============================================================
 // SOVR GENERATED FILE — DO NOT EDIT MANUALLY
-// Compiler: @sovr/compiler v0.2.0-kernel-working
+// Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 02_domain-model.yaml:governance
 // Hash: e56f3281c8ddd66317312d94303a2431b6879ce2b677fad64c622bd391387d6a

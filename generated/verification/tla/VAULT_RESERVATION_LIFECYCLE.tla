@@ -1,42 +1,77 @@
 ---------------- MODULE VAULT_RESERVATION_LIFECYCLE ----------------
 * SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+* Compiler: 0.6.0 Protocol: 1.0.0
 * Provenance: vault_reservation_lifecycle
 
 EXTENDS Naturals, Sequences
 
 VARIABLES state, ledger_balanced, authority_validated
 
-States == {"INIT", "ACTIVE", "COMPLETED", "FAILED"}
+States == {"ACTIVE", "CONSUMED", "EXPIRED", "FAILED", "PENDING", "RELEASED"}
 
 Init == 
-    /\ state = "INIT"
+    /\ state = "PENDING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
 
-ACTIVATE == 
-    /\ state = "INIT"
+ACTIVE_TO_CONSUMED == 
+    /\ state = "ACTIVE"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "CONSUMED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: CONSUMING_TRANSACTION_COMPLETED
+
+ACTIVE_TO_EXPIRED == 
+    /\ state = "ACTIVE"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "EXPIRED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: VAULT_RESERVE_EXPIRED
+
+ACTIVE_TO_RELEASED == 
+    /\ state = "ACTIVE"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "RELEASED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: VAULT_RESERVE_RELEASED
+
+PENDING_TO_ACTIVE == 
+    /\ state = "PENDING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
     /\ state' = "ACTIVE"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: VAULT_RESERVE_LOCKED
 
-COMPLETE == 
-    /\ state = "ACTIVE"
+PENDING_TO_EXPIRED == 
+    /\ state = "PENDING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "COMPLETED"
+    /\ state' = "EXPIRED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: VAULT_RESERVE_EXPIRED
 
-FAIL == 
-    /\ state = "ACTIVE"
+PENDING_TO_FAILED == 
+    /\ state = "PENDING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
     /\ state' = "FAILED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: VAULT_RESERVE_CREATION_FAILED
+
+PENDING_TO_RELEASED == 
+    /\ state = "PENDING"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "RELEASED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: VAULT_RESERVE_RELEASED
 
 Next == 
-    ACTIVATE \/ COMPLETE \/ FAIL
+    ACTIVE_TO_CONSUMED \/ ACTIVE_TO_EXPIRED \/ ACTIVE_TO_RELEASED \/ PENDING_TO_ACTIVE \/ PENDING_TO_EXPIRED \/ PENDING_TO_FAILED \/ PENDING_TO_RELEASED
 
 * Invariant 1: State must always be in defined States
 TypeOK == state \in States

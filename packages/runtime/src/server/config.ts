@@ -27,6 +27,7 @@ export interface RuntimeConfig {
   redisEnabled: boolean;
   redisUrl: string;
   redisStreamMaxLen: number;
+  databaseUrl?: string;
   bindHost: string;
   bindPort: number;
   nodeEnv: 'production' | 'staging' | 'development' | 'test';
@@ -147,6 +148,7 @@ export function loadRuntimeConfig(protocolRoot: string): RuntimeConfig {
     redisEnabled: envBool('SOVR_REDIS_ENABLED', false),
     redisUrl: process.env.SOVR_REDIS_URL ?? 'redis://localhost:6379',
     redisStreamMaxLen: envInt('SOVR_REDIS_STREAM_MAXLEN', 100000),
+    databaseUrl: process.env.DATABASE_URL,
     bindHost: process.env.HOST ?? process.env.SOVR_BIND_HOST ?? '0.0.0.0',
     bindPort: envInt('PORT', envInt('SOVR_BIND_PORT', 3001)),
     nodeEnv,

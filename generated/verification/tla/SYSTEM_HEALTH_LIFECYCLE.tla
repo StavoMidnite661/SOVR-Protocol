@@ -1,42 +1,69 @@
 ---------------- MODULE SYSTEM_HEALTH_LIFECYCLE ----------------
 * SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+* Compiler: 0.6.0 Protocol: 1.0.0
 * Provenance: system_health_lifecycle
 
 EXTENDS Naturals, Sequences
 
 VARIABLES state, ledger_balanced, authority_validated
 
-States == {"INIT", "ACTIVE", "COMPLETED", "FAILED"}
+States == {"DEGRADED", "HALTED", "HEALTHY", "UNKNOWN"}
 
 Init == 
-    /\ state = "INIT"
+    /\ state = "HEALTHY"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
 
-ACTIVATE == 
-    /\ state = "INIT"
+0 == 
+    /\ state = "HEALTHY"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "ACTIVE"
+    /\ state' = "DEGRADED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 0
 
-COMPLETE == 
-    /\ state = "ACTIVE"
+1 == 
+    /\ state = "DEGRADED"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "COMPLETED"
+    /\ state' = "HEALTHY"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 1
 
-FAIL == 
-    /\ state = "ACTIVE"
+2 == 
+    /\ state = "HEALTHY"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "FAILED"
+    /\ state' = "HALTED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: GOVERNANCE_EMERGENCY_HALT
+
+3 == 
+    /\ state = "DEGRADED"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "HALTED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: GOVERNANCE_EMERGENCY_HALT
+
+4 == 
+    /\ state = "HEALTHY"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "UNKNOWN"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 4
+
+5 == 
+    /\ state = "UNKNOWN"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "HEALTHY"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 5
 
 Next == 
-    ACTIVATE \/ COMPLETE \/ FAIL
+    0 \/ 1 \/ 2 \/ 3 \/ 4 \/ 5
 
 * Invariant 1: State must always be in defined States
 TypeOK == state \in States

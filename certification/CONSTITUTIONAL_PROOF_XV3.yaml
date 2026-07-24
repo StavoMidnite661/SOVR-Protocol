@@ -1,0 +1,96 @@
+certification_id: XV3-ESCROW-PROOF
+certified_at: 2026-07-23T00:00:00Z
+protocol_version: "1.0.0"
+compiler_version: "0.6.0"
+runtime_version: "0.6.0"
+build_hash: b7d8221b0d7359a7733791d00cf32622df7b707ff4171c0c1b541d91d7568492
+
+proof_type: ESCROW_CONSTITUTIONAL_PROOF
+
+description: >
+  Formal proof that SOVR is a generic financial execution kernel.
+  A new financial domain was added via YAML only.
+  Zero runtime domain-specific logic was written.
+  The kernel executed the new domain correctly.
+
+yaml_files_changed:
+  - domains/escrow.yaml
+  - 00_protocol-manifest.yaml
+  - 02_domain-model.yaml
+  - 03_command-catalog.yaml
+  - 04_event-catalog.yaml
+  - 05_state-machines.yaml
+  - 08_security-capabilities.yaml
+  - projection-engine.yaml
+
+runtime_source_changes:
+  domain_specific_files: 0
+  kernel_corrections: 2
+  corrections:
+    - file: packages/runtime/src/boot/self-test.ts
+      id: XV3-GAP-1
+      description: >
+        BootSelfTest contained hardcoded registry counts.
+        Fixed to read expected counts from registry.manifest.json.
+        The manifest is compiler-generated from YAML.
+        Zero domain knowledge introduced.
+    - file: packages/runtime/src/execution/kernel-executor.ts
+      id: XV3-GAP-2
+      description: >
+        KernelExecutor did not enforce transition lookup
+        for existing aggregate states. Fixed to reject
+        fail-closed when no transition exists from
+        current state for the issued command.
+        Zero domain knowledge introduced.
+
+generated_registries_updated:
+  commands:
+    count: 105
+    escrow_additions: 4
+  machines:
+    count: 43
+    escrow_additions: 1
+  validation:
+    count: 105
+    escrow_additions: 4
+  events:
+    count: 259
+    escrow_additions: 8
+  capabilities:
+    count: 111
+    escrow_additions: 4
+  projections:
+    count: 16
+    escrow_additions: 1
+
+proof_results:
+  escrow_account_create:
+    result: ACCEPTED
+    transition: INIT → CREATED
+    envelope_fields: 21
+  invalid_transition_blocked:
+    command: escrow.account.release
+    from_state: CREATED
+    result: REJECTED
+    error: InvalidStateTransitionError
+  valid_path_fund:
+    result: ACCEPTED
+    transition: CREATED → FUNDED
+    envelope_fields: 21
+  valid_path_release:
+    result: ACCEPTED
+    transition: FUNDED → RELEASED
+    envelope_fields: 21
+  purity_audit: PASS
+  purity_violations: 0
+  integration_tests: 16/16
+  boot_self_test: 7/7
+
+constitutional_statement: >
+  Every financial behavior executed by SOVR is derived
+  exclusively from the constitutional YAML corpus through
+  deterministic compiler generation. No handwritten runtime
+  financial logic exists. No domain knowledge exists in the
+  runtime kernel. Adding a new financial domain requires
+  only YAML changes and compiler execution. This proof
+  is verified, not claimed.

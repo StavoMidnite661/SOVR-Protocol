@@ -1,42 +1,37 @@
 ---------------- MODULE LEDGER_ACCOUNT_LIFECYCLE ----------------
 * SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+* Compiler: 0.6.0 Protocol: 1.0.0
 * Provenance: ledger_account_lifecycle
 
 EXTENDS Naturals, Sequences
 
 VARIABLES state, ledger_balanced, authority_validated
 
-States == {"INIT", "ACTIVE", "COMPLETED", "FAILED"}
+States == {"ACTIVE", "CLOSED", "FROZEN"}
 
 Init == 
-    /\ state = "INIT"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-
-ACTIVATE == 
-    /\ state = "INIT"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "ACTIVE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-
-COMPLETE == 
     /\ state = "ACTIVE"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "COMPLETED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
 
-FAIL == 
+0 == 
     /\ state = "ACTIVE"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "FAILED"
+    /\ state' = "FROZEN"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: LEDGER_ACCOUNT_FREEZE
+
+1 == 
+    /\ state = "ACTIVE"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "CLOSED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: LEDGER_PERIOD_CLOSE
 
 Next == 
-    ACTIVATE \/ COMPLETE \/ FAIL
+    0 \/ 1
 
 * Invariant 1: State must always be in defined States
 TypeOK == state \in States

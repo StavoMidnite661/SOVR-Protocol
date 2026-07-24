@@ -1,7 +1,7 @@
 # SOVR GENERATED — Kafka Topics
-# hash 51fed837e3110eda90c0ceed739d6077c5150ba7c58feb70af8dbe7bc7212f5e
+# hash 8ecf2ef9dd3a2edce42f5f2e480ac03728037a0218a6943ff377de7554cc18c9
 # Kafka topics — SOVR generated
-# compiler 0.2.0-kernel-working protocol 1.0.0
+# compiler 0.6.0 protocol 1.0.0
 # INV-001 event immutability -> retention PERMANENT for financial/audit
 {
   "topics": [
@@ -186,6 +186,94 @@
       "domain": "agent",
       "aggregate": "registration",
       "event": "agent.registration.submitted",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.escrow.escrow_account.cancellation_failed",
+      "domain": "escrow",
+      "aggregate": "escrow_account",
+      "event": "escrow.account.cancellation_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.escrow.escrow_account.cancelled",
+      "domain": "escrow",
+      "aggregate": "escrow_account",
+      "event": "escrow.account.cancelled",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.escrow.escrow_account.created",
+      "domain": "escrow",
+      "aggregate": "escrow_account",
+      "event": "escrow.account.created",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.escrow.escrow_account.creation_failed",
+      "domain": "escrow",
+      "aggregate": "escrow_account",
+      "event": "escrow.account.creation_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.escrow.escrow_account.funded",
+      "domain": "escrow",
+      "aggregate": "escrow_account",
+      "event": "escrow.account.funded",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.escrow.escrow_account.funding_failed",
+      "domain": "escrow",
+      "aggregate": "escrow_account",
+      "event": "escrow.account.funding_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.escrow.escrow_account.release_failed",
+      "domain": "escrow",
+      "aggregate": "escrow_account",
+      "event": "escrow.account.release_failed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.escrow.escrow_account.released",
+      "domain": "escrow",
+      "aggregate": "escrow_account",
+      "event": "escrow.account.released",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,

@@ -1,0 +1,26 @@
+{
+  "abi": "v1",
+  "entries": {
+    "constitutional_command_pipeline": {
+      "abi": "v1",
+      "invariant": "INV-008",
+      "manifest_pipeline": [
+        "schema_validation",
+        "reference_integrity",
+        "constitutional_compliance",
+        "dependency_order_check"
+      ],
+      "order": [
+        "identity",
+        "capability",
+        "scope",
+        "policy",
+        "constitutional",
+        "state_machine",
+        "event_publication"
+      ]
+    }
+  },
+  "entry_count": 1,
+  "kind": "execution_plans"
+}

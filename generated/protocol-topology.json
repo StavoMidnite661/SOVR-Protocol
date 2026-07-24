@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
-  "generated_by": "@sovr/compiler v0.2.0-kernel-working",
+  "generated_by": "@sovr/compiler v0.6.0",
   "protocol_version": "1.0.0",
-  "ir_hash": "6e689fa100324678142f63601f72a1808662b894a9d89fab0859e80ceaecbad1",
+  "ir_hash": "134306ef6913d1571a25e7da7eebd0f8321349ea0417e1ad58c4dc0f70e536f3",
   "stats": {
-    "nodes": 536,
-    "edges": 404
+    "nodes": 592,
+    "edges": 459
   },
   "nodes": [
     {
@@ -54,6 +54,34 @@
       "id": "capability:agent.terminate",
       "type": "capability",
       "name": "agent.terminate",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:escrow.account.cancel",
+      "type": "capability",
+      "name": "escrow.account.cancel",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:escrow.account.create",
+      "type": "capability",
+      "name": "escrow.account.create",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:escrow.account.fund",
+      "type": "capability",
+      "name": "escrow.account.fund",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:escrow.account.release",
+      "type": "capability",
+      "name": "escrow.account.release",
       "version": "1.0.0",
       "properties": {}
     },
@@ -863,6 +891,66 @@
         "policy_required": true,
         "capability_required": true,
         "invariants": []
+      }
+    },
+    {
+      "id": "command:escrow.account.cancel",
+      "type": "command",
+      "name": "escrow.account.cancel",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-003",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:escrow.account.create",
+      "type": "command",
+      "name": "escrow.account.create",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-003",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:escrow.account.fund",
+      "type": "command",
+      "name": "escrow.account.fund",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-003",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:escrow.account.release",
+      "type": "command",
+      "name": "escrow.account.release",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-003",
+          "INV-008"
+        ]
       }
     },
     {
@@ -1977,6 +2065,13 @@
       "properties": {}
     },
     {
+      "id": "domain:escrow",
+      "type": "domain",
+      "name": "escrow",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "domain:governance",
       "type": "domain",
       "name": "governance",
@@ -2518,6 +2613,55 @@
           "type": "boolean",
           "required": true,
           "description": "Whether the quota is actively enforced"
+        }
+      }
+    },
+    {
+      "id": "entity:escrow.escrow_account",
+      "type": "entity",
+      "name": "escrow.escrow_account",
+      "version": "1.0.0",
+      "properties": {
+        "escrow_id": {
+          "type": "string",
+          "required": true,
+          "description": "Unique escrow account identifier"
+        },
+        "parties": {
+          "type": "array",
+          "required": true,
+          "description": "Parties to the escrow agreement"
+        },
+        "amount": {
+          "type": "decimal",
+          "required": true,
+          "description": "Escrow amount"
+        },
+        "asset_type": {
+          "type": "string",
+          "required": true,
+          "description": "Asset type held in escrow"
+        },
+        "release_conditions": {
+          "type": "string",
+          "required": true,
+          "description": "Conditions required for release"
+        },
+        "initiator_id": {
+          "type": "string",
+          "required": true,
+          "description": "Actor who initiated escrow"
+        },
+        "state": {
+          "type": "enum",
+          "values": [
+            "CREATED",
+            "FUNDED",
+            "RELEASED",
+            "CANCELLED"
+          ],
+          "required": true,
+          "description": "Escrow account lifecycle state"
         }
       }
     },
@@ -6527,6 +6671,62 @@
       "properties": {}
     },
     {
+      "id": "event:escrow.account.cancellation_failed",
+      "type": "event",
+      "name": "escrow.account.cancellation_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:escrow.account.cancelled",
+      "type": "event",
+      "name": "escrow.account.cancelled",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:escrow.account.created",
+      "type": "event",
+      "name": "escrow.account.created",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:escrow.account.creation_failed",
+      "type": "event",
+      "name": "escrow.account.creation_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:escrow.account.funded",
+      "type": "event",
+      "name": "escrow.account.funded",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:escrow.account.funding_failed",
+      "type": "event",
+      "name": "escrow.account.funding_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:escrow.account.release_failed",
+      "type": "event",
+      "name": "escrow.account.release_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:escrow.account.released",
+      "type": "event",
+      "name": "escrow.account.released",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:governance.amendment.proposal_failed",
       "type": "event",
       "name": "governance.amendment.proposal_failed",
@@ -8144,9 +8344,142 @@
       "properties": {}
     },
     {
+      "id": "saga:ai_execution_saga",
+      "type": "saga",
+      "name": "ai_execution_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:asset_registration_saga",
+      "type": "saga",
+      "name": "asset_registration_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:asset_verification_saga",
+      "type": "saga",
+      "name": "asset_verification_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:cross_chain_settlement_saga",
+      "type": "saga",
+      "name": "cross_chain_settlement_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:delegated_execution_saga",
+      "type": "saga",
+      "name": "delegated_execution_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:delegation_setup_saga",
+      "type": "saga",
+      "name": "delegation_setup_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:escalation_saga",
+      "type": "saga",
+      "name": "escalation_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:external_transfer_saga",
+      "type": "saga",
+      "name": "external_transfer_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:human_execution_saga",
+      "type": "saga",
+      "name": "human_execution_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:identity_actor_onboarding_saga",
+      "type": "saga",
+      "name": "identity_actor_onboarding_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:internal_transfer_saga",
+      "type": "saga",
+      "name": "internal_transfer_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:oracle_reading_saga",
+      "type": "saga",
+      "name": "oracle_reading_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:payment_adapter_execution_saga",
+      "type": "saga",
+      "name": "payment_adapter_execution_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:policy_review_saga",
+      "type": "saga",
+      "name": "policy_review_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:unknown_authority_saga",
+      "type": "saga",
+      "name": "unknown_authority_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "saga:vault_reconciliation_saga",
+      "type": "saga",
+      "name": "vault_reconciliation_saga",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:agent_agent_instance_v06_lifecycle",
+      "type": "state_machine",
+      "name": "agent_agent_instance_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:agent_capability_binding_v06_lifecycle",
+      "type": "state_machine",
+      "name": "agent_capability_binding_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "state_machine:agent_execution_lifecycle",
       "type": "state_machine",
       "name": "agent_execution_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:agent_execution_quota_v06_lifecycle",
+      "type": "state_machine",
+      "name": "agent_execution_quota_v06_lifecycle",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8158,9 +8491,51 @@
       "properties": {}
     },
     {
+      "id": "state_machine:agent_registration_v06_lifecycle",
+      "type": "state_machine",
+      "name": "agent_registration_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:escrow_account_lifecycle",
+      "type": "state_machine",
+      "name": "escrow_account_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:governance_capability_grant_v06_lifecycle",
+      "type": "state_machine",
+      "name": "governance_capability_grant_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:governance_escalation_v06_lifecycle",
+      "type": "state_machine",
+      "name": "governance_escalation_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:governance_governance_amendment_v06_lifecycle",
+      "type": "state_machine",
+      "name": "governance_governance_amendment_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "state_machine:governance_proposal_lifecycle",
       "type": "state_machine",
       "name": "governance_proposal_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:governance_proposal_v06_lifecycle",
+      "type": "state_machine",
+      "name": "governance_proposal_v06_lifecycle",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8193,6 +8568,13 @@
       "properties": {}
     },
     {
+      "id": "state_machine:identity_trust_anchor_v06_lifecycle",
+      "type": "state_machine",
+      "name": "identity_trust_anchor_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "state_machine:intent_lifecycle",
       "type": "state_machine",
       "name": "intent_lifecycle",
@@ -8207,9 +8589,30 @@
       "properties": {}
     },
     {
+      "id": "state_machine:ledger_accounting_period_v06_lifecycle",
+      "type": "state_machine",
+      "name": "ledger_accounting_period_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "state_machine:ledger_journal_lifecycle",
       "type": "state_machine",
       "name": "ledger_journal_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:ledger_journal_v06_lifecycle",
+      "type": "state_machine",
+      "name": "ledger_journal_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:ledger_reconciliation_v06_lifecycle",
+      "type": "state_machine",
+      "name": "ledger_reconciliation_v06_lifecycle",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8221,9 +8624,44 @@
       "properties": {}
     },
     {
+      "id": "state_machine:payment_execution_plan_v06_lifecycle",
+      "type": "state_machine",
+      "name": "payment_execution_plan_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:payment_execution_v06_lifecycle",
+      "type": "state_machine",
+      "name": "payment_execution_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:payment_reconciliation_v06_lifecycle",
+      "type": "state_machine",
+      "name": "payment_reconciliation_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "state_machine:payment_request_lifecycle",
       "type": "state_machine",
       "name": "payment_request_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:policy_compliance_requirement_v06_lifecycle",
+      "type": "state_machine",
+      "name": "policy_compliance_requirement_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:policy_escalation_v06_lifecycle",
+      "type": "state_machine",
+      "name": "policy_escalation_v06_lifecycle",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8242,6 +8680,13 @@
       "properties": {}
     },
     {
+      "id": "state_machine:policy_set_v06_lifecycle",
+      "type": "state_machine",
+      "name": "policy_set_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "state_machine:saga_lifecycle",
       "type": "state_machine",
       "name": "saga_lifecycle",
@@ -8252,6 +8697,13 @@
       "id": "state_machine:system_health_lifecycle",
       "type": "state_machine",
       "name": "system_health_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:treasury_liquidity_position_v06_lifecycle",
+      "type": "state_machine",
+      "name": "treasury_liquidity_position_v06_lifecycle",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8277,6 +8729,13 @@
       "properties": {}
     },
     {
+      "id": "state_machine:vault_reconciliation_v06_lifecycle",
+      "type": "state_machine",
+      "name": "vault_reconciliation_v06_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "state_machine:vault_reservation_lifecycle",
       "type": "state_machine",
       "name": "vault_reservation_lifecycle",
@@ -8287,6 +8746,13 @@
       "id": "state_machine:vault_transaction_lifecycle",
       "type": "state_machine",
       "name": "vault_transaction_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:vault_valuation_v06_lifecycle",
+      "type": "state_machine",
+      "name": "vault_valuation_v06_lifecycle",
       "version": "1.0.0",
       "properties": {}
     }
@@ -8300,6 +8766,46 @@
     {
       "source": "command:agent.suspend",
       "target": "event:agent.termination_failed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:escrow.account.cancel",
+      "target": "event:escrow.account.cancellation_failed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:escrow.account.cancel",
+      "target": "event:escrow.account.cancelled",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:escrow.account.create",
+      "target": "event:escrow.account.created",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:escrow.account.create",
+      "target": "event:escrow.account.creation_failed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:escrow.account.fund",
+      "target": "event:escrow.account.funded",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:escrow.account.fund",
+      "target": "event:escrow.account.funding_failed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:escrow.account.release",
+      "target": "event:escrow.account.release_failed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:escrow.account.release",
+      "target": "event:escrow.account.released",
       "type": "command_produces_event"
     },
     {
@@ -9008,6 +9514,26 @@
       "type": "command_requires_capability"
     },
     {
+      "source": "command:escrow.account.cancel",
+      "target": "capability:escrow.account.cancel",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:escrow.account.create",
+      "target": "capability:escrow.account.create",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:escrow.account.fund",
+      "target": "capability:escrow.account.fund",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:escrow.account.release",
+      "target": "capability:escrow.account.release",
+      "type": "command_requires_capability"
+    },
+    {
       "source": "command:governance.amend.propose",
       "target": "capability:governance.amend.propose",
       "type": "command_requires_capability"
@@ -9493,6 +10019,11 @@
       "type": "domain_contains_entity"
     },
     {
+      "source": "domain:escrow",
+      "target": "entity:escrow.escrow_account",
+      "type": "domain_contains_entity"
+    },
+    {
       "source": "domain:governance",
       "target": "entity:governance.audit_record",
       "type": "domain_contains_entity"
@@ -9704,6 +10235,86 @@
     },
     {
       "source": "domain:agent",
+      "target": "saga:ai_execution_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:hybrid",
+      "target": "saga:cross_chain_settlement_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:identity",
+      "target": "saga:delegation_setup_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:identity",
+      "target": "saga:identity_actor_onboarding_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:identity",
+      "target": "saga:unknown_authority_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:intent",
+      "target": "saga:delegated_execution_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:intent",
+      "target": "saga:human_execution_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:payment",
+      "target": "saga:payment_adapter_execution_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:policy",
+      "target": "saga:escalation_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:policy",
+      "target": "saga:policy_review_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:treasury",
+      "target": "saga:external_transfer_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:treasury",
+      "target": "saga:internal_transfer_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:vault",
+      "target": "saga:asset_registration_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:vault",
+      "target": "saga:asset_verification_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:vault",
+      "target": "saga:oracle_reading_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:vault",
+      "target": "saga:vault_reconciliation_saga",
+      "type": "domain_defines_saga"
+    },
+    {
+      "source": "domain:agent",
       "target": "command:agent.activate",
       "type": "entity_accepts_command"
     },
@@ -9745,6 +10356,26 @@
     {
       "source": "domain:agent",
       "target": "command:agent.terminate",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:escrow",
+      "target": "command:escrow.account.cancel",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:escrow",
+      "target": "command:escrow.account.create",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:escrow",
+      "target": "command:escrow.account.fund",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:escrow",
+      "target": "command:escrow.account.release",
       "type": "entity_accepts_command"
     },
     {
@@ -10209,7 +10840,22 @@
     },
     {
       "source": "domain:agent",
+      "target": "state_machine:agent_agent_instance_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:agent",
+      "target": "state_machine:agent_capability_binding_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:agent",
       "target": "state_machine:agent_execution_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:agent",
+      "target": "state_machine:agent_execution_quota_v06_lifecycle",
       "type": "state_machine_governs_entity"
     },
     {
@@ -10218,8 +10864,38 @@
       "type": "state_machine_governs_entity"
     },
     {
+      "source": "domain:agent",
+      "target": "state_machine:agent_registration_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:escrow",
+      "target": "state_machine:escrow_account_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:governance",
+      "target": "state_machine:governance_capability_grant_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:governance",
+      "target": "state_machine:governance_escalation_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:governance",
+      "target": "state_machine:governance_governance_amendment_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
       "source": "domain:governance",
       "target": "state_machine:governance_proposal_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:governance",
+      "target": "state_machine:governance_proposal_v06_lifecycle",
       "type": "state_machine_governs_entity"
     },
     {
@@ -10240,6 +10916,11 @@
     {
       "source": "domain:identity",
       "target": "state_machine:identity_session_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:identity",
+      "target": "state_machine:identity_trust_anchor_v06_lifecycle",
       "type": "state_machine_governs_entity"
     },
     {
@@ -10264,7 +10945,22 @@
     },
     {
       "source": "domain:ledger",
+      "target": "state_machine:ledger_accounting_period_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:ledger",
       "target": "state_machine:ledger_journal_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:ledger",
+      "target": "state_machine:ledger_journal_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:ledger",
+      "target": "state_machine:ledger_reconciliation_v06_lifecycle",
       "type": "state_machine_governs_entity"
     },
     {
@@ -10274,7 +10970,32 @@
     },
     {
       "source": "domain:payment",
+      "target": "state_machine:payment_execution_plan_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:payment",
+      "target": "state_machine:payment_execution_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:payment",
+      "target": "state_machine:payment_reconciliation_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:payment",
       "target": "state_machine:payment_request_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:policy",
+      "target": "state_machine:policy_compliance_requirement_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:policy",
+      "target": "state_machine:policy_escalation_v06_lifecycle",
       "type": "state_machine_governs_entity"
     },
     {
@@ -10285,6 +11006,16 @@
     {
       "source": "domain:policy",
       "target": "state_machine:policy_rule_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:policy",
+      "target": "state_machine:policy_set_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:treasury",
+      "target": "state_machine:treasury_liquidity_position_v06_lifecycle",
       "type": "state_machine_governs_entity"
     },
     {
@@ -10304,12 +11035,22 @@
     },
     {
       "source": "domain:vault",
+      "target": "state_machine:vault_reconciliation_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:vault",
       "target": "state_machine:vault_reservation_lifecycle",
       "type": "state_machine_governs_entity"
     },
     {
       "source": "domain:vault",
       "target": "state_machine:vault_transaction_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:vault",
+      "target": "state_machine:vault_valuation_v06_lifecycle",
       "type": "state_machine_governs_entity"
     }
   ]

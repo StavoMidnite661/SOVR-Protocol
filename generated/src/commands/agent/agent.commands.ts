@@ -1,6 +1,6 @@
 // ============================================================
 // SOVR GENERATED FILE — DO NOT EDIT MANUALLY
-// Compiler: @sovr/compiler v0.2.0-kernel-working
+// Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 03_command-catalog.yaml:agent
 // Hash: 5fe1550c4f831df437abd18c3049ef96ee07a47edc6e0940a93d65531f6b15ec

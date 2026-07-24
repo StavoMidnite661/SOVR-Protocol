@@ -7,10 +7,18 @@ flowchart TD
     capability_agent_capability_bind(["CAPABILITY: bind"])
     capability_agent_capability_revoke(["CAPABILITY: revoke"])
   end
+  subgraph ESCROW [ESCROW Domain]
+    capability_escrow_account_cancel(["CAPABILITY: cancel"])
+    capability_escrow_account_create(["CAPABILITY: create"])
+    capability_escrow_account_fund(["CAPABILITY: fund"])
+  end
   subgraph GOVERNANCE [GOVERNANCE Domain]
     capability_governance_amend_propose(["CAPABILITY: propose"])
     capability_governance_amend_ratify(["CAPABILITY: ratify"])
     capability_governance_audit_query(["CAPABILITY: query"])
+  end
+  subgraph HYBRID [HYBRID Domain]
+    saga_cross_chain_settlement_saga(["SAGA: cross_chain_settlement_saga"])
   end
   subgraph IDENTITY [IDENTITY Domain]
     capability_identity_actor_archive(["CAPABILITY: archive"])
@@ -57,6 +65,14 @@ flowchart TD
   end
   command_agent_suspend -->|command_produces_event| event_agent_terminated
   command_agent_suspend -->|command_produces_event| event_agent_termination_failed
+  command_escrow_account_cancel -->|command_produces_event| event_escrow_account_cancellation_failed
+  command_escrow_account_cancel -->|command_produces_event| event_escrow_account_cancelled
+  command_escrow_account_create -->|command_produces_event| event_escrow_account_created
+  command_escrow_account_create -->|command_produces_event| event_escrow_account_creation_failed
+  command_escrow_account_fund -->|command_produces_event| event_escrow_account_funded
+  command_escrow_account_fund -->|command_produces_event| event_escrow_account_funding_failed
+  command_escrow_account_release -->|command_produces_event| event_escrow_account_release_failed
+  command_escrow_account_release -->|command_produces_event| event_escrow_account_released
   command_governance_amend_propose -->|command_produces_event| event_governance_amendment_proposal_failed
   command_governance_amend_propose -->|command_produces_event| event_governance_amendment_proposed
   command_governance_amend_ratify -->|command_produces_event| event_governance_amendment_ratification_failed
@@ -77,12 +93,4 @@ flowchart TD
   command_governance_oversight_review -->|command_produces_event| event_governance_oversight_reviewed
   command_governance_policy_rule_review -->|command_produces_event| event_governance_policy_rule_review_failed
   command_governance_policy_rule_review -->|command_produces_event| event_governance_policy_rule_review_requested
-  command_governance_proposal_approve -->|command_produces_event| event_governance_proposal_approval_failed
-  command_governance_proposal_approve -->|command_produces_event| event_governance_proposal_approved
-  command_governance_proposal_cancel -->|command_produces_event| event_governance_proposal_rejected
-  command_governance_proposal_cancel -->|command_produces_event| event_governance_proposal_rejection_failed
-  command_governance_proposal_implement -->|command_produces_event| event_governance_proposal_approved
-  command_governance_proposal_implement -->|command_produces_event| event_governance_proposal_rejection_failed
-  command_governance_proposal_reject -->|command_produces_event| event_governance_proposal_rejected
-  command_governance_proposal_reject -->|command_produces_event| event_governance_proposal_rejection_failed
 ```

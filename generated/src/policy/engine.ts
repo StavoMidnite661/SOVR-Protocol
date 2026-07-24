@@ -1,7 +1,7 @@
 // SOVR GENERATED — DO NOT EDIT
-// hash e9a0cb406d180d0e2b4bc363d4e7c722d22399716b879b569455baf8183905d7
+// hash cc0c26c259106356d4a12ac615bb5976a40e7e746d804053b78d70beb620a609
 // SOVR GENERATED — Policy Engine
-// Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+// Compiler: 0.6.0 Protocol: 1.0.0
 // Rule format: CER-like, determinism: PURE_FUNCTION, evaluation order defined
 // Output: ALLOW | DENY | ESCALATE | DEFER
 

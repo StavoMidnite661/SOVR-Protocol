@@ -1,0 +1,14 @@
+commands:
+  total: 105
+  generated: 105
+  manual: 0
+state_machines:
+  total: 43
+  generated: 43
+  manual: 0
+runtime_bridges:
+  count: 0
+  status: PASS
+generated_behavior:
+  percentage: 100
+  status: PASS
