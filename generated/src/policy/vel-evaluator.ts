@@ -1,7 +1,7 @@
 // SOVR GENERATED — VEL SANDBOX — DO NOT EDIT
-// hash 39f129defa0601b87822e6da0ce088041e4155aac61da73993043f6958152c99
+// hash b4efaa56a2dadc375aae293d44a7ceb9d4004a9cbc110dfc65418f6347cfc4cb
 // SOVR GENERATED — Validation Expression Language (VEL) Sandbox
-// Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+// Compiler: 0.6.0 Protocol: 1.0.0
 // Turing-incomplete sandboxed evaluator for security rules & policies
 
 export type VELValue = string | number | boolean | string[] | Record<string, any>;

@@ -8,14 +8,38 @@ export * from './execution/index.js';
 export * from './sdk/client.js';
 export * from './adapters/boundary.js';
 
-// Re-export generated types for frontend devs — single import path
-// Frontend developers: import { IAsset, VaultAssetRegisterCommand } from '@sovr/runtime/generated'
-// Note: generated folder is outside src root, so we dynamically reference for runtime server mode
-// To avoid TS rootDir error, use type-only lazy path via string
-// export * as GeneratedTypes from '../../../generated/src/types/vault/vault.types.js';
-// export * as GeneratedCommands from '../../../generated/src/commands/vault/vault.commands.js';
+// Generated artifact runtime bindings.
+//
+// The compiler emits output-only TypeScript under /generated/src. Those files are
+// not compiled into this package yet, so the runtime exposes the wired kernel
+// bindings that correspond to the generated capability engine and guardrail bus.
+// The source artifact paths are retained for traceability until generated TS is
+// compiled as part of the runtime bundle.
+export { CapabilityEngine as GeneratedCapabilityEngine } from './server/capabilityEngine.js';
+export type { CapabilityDef as GeneratedCapabilityDef, GrantedCapability as GeneratedGrantedCapability } from './server/capabilityEngine.js';
+export { GuardrailCommandBus as GeneratedGuardrailCommandBus } from './execution/index.js';
+export type { ExecutionContext as GeneratedExecutionContext, TransactionEffects as GeneratedTransactionEffects } from './execution/index.js';
 
-// Kernel info references generated via runtime discovery, not static import
+export const GeneratedArtifacts = {
+  capabilityEngine: {
+    artifact: 'generated/src/security/capability-engine.ts',
+    runtimeBinding: 'GeneratedCapabilityEngine',
+    status: 'wired',
+  },
+  guardrailBus: {
+    artifact: 'generated/src/execution/guardrail-bus.ts',
+    runtimeBinding: 'GeneratedGuardrailCommandBus',
+    status: 'wired',
+  },
+  stateMachineInterpreter: {
+    artifact: '05_state-machines.yaml + generated/sovr-ir.json',
+    runtimeBinding: 'StateMachineInterpreter',
+    status: 'wired',
+  },
+} as const;
+
+// Frontend developers can continue importing generated types/commands directly
+// from the compiler output until generated TS is bundled into @sovr/runtime.
 export const GeneratedTypes = { note: 'Import from generated/src/types/* via compiler output, not runtime bundle — see generated/' };
 export const GeneratedCommands = { note: 'Import from generated/src/commands/*' };
 
@@ -24,7 +48,7 @@ export const SOVR_KERNEL = {
   name: 'SOVR Financial OS',
   description: 'Machine-readable, compiler-enforced financial kernel — Linux of financing',
   protocolVersion: '1.0.0',
-  compilerVersion: '0.2.0-kernel-working',
+  compilerVersion: '0.6.0',
   principle: 'Same YAML input + same compiler version = byte-identical output = unfakeable provenance',
   connectivity: [
     'Vault (atomic value) answers: Can value exist?',

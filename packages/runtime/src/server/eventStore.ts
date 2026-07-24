@@ -52,7 +52,7 @@ export interface EventEnvelope {
   actor_chain?: string[];
 }
 
-interface AppendInput {
+export interface AppendInput {
   event_name: string;
   aggregate: string;
   aggregate_id: string;
@@ -72,6 +72,14 @@ interface AppendInput {
 }
 
 export type EventPublisher = (envelope: EventEnvelope) => Promise<void>;
+
+type EventStoreSnapshot = {
+  events: EventEnvelope[];
+  sequence: number;
+  causationGraph: Map<string, string[]>;
+  correlationGroups: Map<string, EventEnvelope[]>;
+  aggregateIndex: Map<string, EventEnvelope[]>;
+};
 
 export class EventStore {
   private events: EventEnvelope[] = [];
@@ -103,19 +111,10 @@ export class EventStore {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           for (const envelope of parsed) {
-            // Backfill spec fields if loading an older envelope shape
             if (envelope.schema_version === undefined) envelope.schema_version = '1.0.0';
             if (envelope.actor_chain === undefined) envelope.actor_chain = [];
             if (envelope.retention_metadata === undefined) envelope.retention_metadata = { legal_hold: envelope.audit?.retention_class === 'permanent' || false };
-            this.events.push(envelope);
-            this.sequence++;
-            const aggKey = `${envelope.aggregate}:${envelope.aggregate_id}`;
-            if (!this.aggregateIndex.has(aggKey)) this.aggregateIndex.set(aggKey, []);
-            this.aggregateIndex.get(aggKey)!.push(envelope);
-            if (!this.correlationGroups.has(envelope.correlation_id)) this.correlationGroups.set(envelope.correlation_id, []);
-            this.correlationGroups.get(envelope.correlation_id)!.push(envelope);
-            if (!this.causationGraph.has(envelope.causation_id)) this.causationGraph.set(envelope.causation_id, []);
-            this.causationGraph.get(envelope.causation_id)!.push(envelope.event_id);
+            this.commitEnvelope(envelope, { freeze: false });
           }
           console.log(`📚 EventStore loaded ${this.events.length} events from ${this.persistencePath} — Source of CE restored`);
         }
@@ -125,7 +124,7 @@ export class EventStore {
     }
   }
 
-  private persist() {
+  private persist(opts: { throwOnError?: boolean } = {}) {
     if (!this.persistencePath) return;
     try {
       const dir = path.dirname(this.persistencePath);
@@ -134,11 +133,30 @@ export class EventStore {
       fs.writeFileSync(tmp, JSON.stringify(this.events, null, 2));
       fs.renameSync(tmp, this.persistencePath);
     } catch (e) {
+      if (opts.throwOnError) throw e;
       console.warn('EventStore persist failed', e);
     }
   }
 
-  append(input: AppendInput): EventEnvelope {
+  private snapshot(): EventStoreSnapshot {
+    return {
+      events: [...this.events],
+      sequence: this.sequence,
+      causationGraph: cloneStringArrayMap(this.causationGraph),
+      correlationGroups: cloneEnvelopeArrayMap(this.correlationGroups),
+      aggregateIndex: cloneEnvelopeArrayMap(this.aggregateIndex),
+    };
+  }
+
+  private restore(snapshot: EventStoreSnapshot): void {
+    this.events = snapshot.events;
+    this.sequence = snapshot.sequence;
+    this.causationGraph = snapshot.causationGraph;
+    this.correlationGroups = snapshot.correlationGroups;
+    this.aggregateIndex = snapshot.aggregateIndex;
+  }
+
+  private buildEnvelope(input: AppendInput): EventEnvelope {
     const event_id = crypto.randomUUID();
     const now = new Date().toISOString();
     const envelope: EventEnvelope = {
@@ -165,44 +183,82 @@ export class EventStore {
       retention_metadata: { legal_hold: input.audit?.retention_class === 'permanent' || false },
     };
 
-    // Validate causation: if the parent event/event_id is not found and we have other events,
-    // either warn (tolerant) or throw (strict). The genesis case (no events yet) is always tolerated.
-    if (input.causation_id && input.causation_id !== input.correlation_id) {
-      const parentExists = this.events.some(e => e.event_id === input.causation_id || e.command_id === input.causation_id);
-      if (!parentExists && this.events.length > 0) {
-        if (this.strictCausation) {
-          throw new Error(`CAUSATION_BROKEN: parent ${input.causation_id} not found for event ${input.event_name} (correlation ${input.correlation_id})`);
-        }
-        console.warn(`⚠️ Causation parent ${input.causation_id} not found for ${input.event_name}, treating as genesis for correlation ${input.correlation_id}`);
-      }
-    }
+    this.validateCausation(envelope);
 
-    this.sequence++;
-    // Ensure optional fields are present (not undefined) for spec compliance — set BEFORE freeze
     if (envelope.actor_chain === undefined) (envelope as any).actor_chain = [];
     if (envelope.retention_metadata === undefined) (envelope as any).retention_metadata = { legal_hold: false };
     Object.freeze(envelope.payload);
     Object.freeze(envelope);
+    return envelope;
+  }
+
+  private validateCausation(envelope: EventEnvelope): void {
+    if (envelope.causation_id && envelope.causation_id !== envelope.correlation_id) {
+      const parentExists = this.events.some(e => e.event_id === envelope.causation_id || e.command_id === envelope.causation_id);
+      if (!parentExists && this.events.length > 0) {
+        if (this.strictCausation) {
+          throw new Error(`CAUSATION_BROKEN: parent ${envelope.causation_id} not found for event ${envelope.event_name} (correlation ${envelope.correlation_id})`);
+        }
+        console.warn(`⚠️ Causation parent ${envelope.causation_id} not found for ${envelope.event_name}, treating as genesis for correlation ${envelope.correlation_id}`);
+      }
+    }
+  }
+
+  private commitEnvelope(envelope: EventEnvelope, opts: { freeze?: boolean } = {}) {
+    this.sequence++;
+    if (opts.freeze !== false) {
+      if (envelope.actor_chain === undefined) (envelope as any).actor_chain = [];
+      if (envelope.retention_metadata === undefined) (envelope as any).retention_metadata = { legal_hold: false };
+      Object.freeze(envelope.payload);
+      Object.freeze(envelope);
+    }
     this.events.push(envelope);
 
-    const aggKey = `${input.aggregate}:${input.aggregate_id}`;
+    const aggKey = `${envelope.aggregate}:${envelope.aggregate_id}`;
     if (!this.aggregateIndex.has(aggKey)) this.aggregateIndex.set(aggKey, []);
     this.aggregateIndex.get(aggKey)!.push(envelope);
-    if (!this.correlationGroups.has(input.correlation_id)) this.correlationGroups.set(input.correlation_id, []);
-    this.correlationGroups.get(input.correlation_id)!.push(envelope);
-    if (!this.causationGraph.has(input.causation_id)) this.causationGraph.set(input.causation_id, []);
-    this.causationGraph.get(input.causation_id)!.push(event_id);
+    if (!this.correlationGroups.has(envelope.correlation_id)) this.correlationGroups.set(envelope.correlation_id, []);
+    this.correlationGroups.get(envelope.correlation_id)!.push(envelope);
+    if (!this.causationGraph.has(envelope.causation_id)) this.causationGraph.set(envelope.causation_id, []);
+    this.causationGraph.get(envelope.causation_id)!.push(envelope.event_id);
+  }
 
-    this.persist();
-
-    // External publish (fire-and-forget but errors are logged by the publisher wrapper)
+  private publish(envelope: EventEnvelope): void {
     if (this.publisher) {
       Promise.resolve(this.publisher(envelope)).catch((e) => {
         console.warn(`Event publisher failed for ${envelope.event_name}:`, (e as Error).message);
       });
     }
+  }
 
-    return envelope;
+  append(input: AppendInput): EventEnvelope {
+    return this.appendManyAtomic([input], { throwOnPersist: false })[0];
+  }
+
+  /**
+   * Atomically appends a batch of events to the in-process event log and, when
+   * configured, to the JSON persistence file. If persistence fails, the in-memory
+   * log and all indexes are restored to their previous snapshots, so callers do
+   * not observe partial event batches.
+   */
+  appendManyAtomic(inputs: AppendInput[], opts: { throwOnPersist?: boolean } = { throwOnPersist: true }): EventEnvelope[] {
+    if (inputs.length === 0) return [];
+    const snapshot = this.snapshot();
+    const envelopes: EventEnvelope[] = [];
+    try {
+      for (const input of inputs) {
+        const envelope = this.buildEnvelope(input);
+        this.commitEnvelope(envelope, { freeze: false });
+        envelopes.push(envelope);
+      }
+      this.persist({ throwOnError: opts.throwOnPersist ?? true });
+    } catch (error) {
+      this.restore(snapshot);
+      throw error;
+    }
+
+    for (const envelope of envelopes) this.publish(envelope);
+    return envelopes;
   }
 
   attemptModification(event_id: string): never {
@@ -218,6 +274,9 @@ export class EventStore {
   getByCorrelation(correlation_id: string): EventEnvelope[] { return this.correlationGroups.get(correlation_id) || []; }
   getByCommand(command_id: string): EventEnvelope[] { return this.events.filter(e => e.command_id === command_id); }
   getByActor(actor_id: string): EventEnvelope[] { return this.events.filter(e => e.actor_id === actor_id); }
+  getByDomain(domain: string, limit = 100): EventEnvelope[] { return this.events.filter(e => e.source_domain === domain).slice(-limit); }
+  getAfter(timestamp: string): EventEnvelope[] { return this.events.filter(e => e.timestamp > timestamp); }
+  count(): number { return this.events.length; }
 
   replay(fromSequence?: number, filter?: (e: EventEnvelope) => boolean): EventEnvelope[] {
     let slice = this.events;
@@ -241,4 +300,12 @@ export class EventStore {
       latestTimestamp: this.events[this.events.length - 1]?.timestamp,
     };
   }
+}
+
+function cloneStringArrayMap(input: Map<string, string[]>): Map<string, string[]> {
+  return new Map([...input.entries()].map(([k, v]) => [k, [...v]]));
+}
+
+function cloneEnvelopeArrayMap(input: Map<string, EventEnvelope[]>): Map<string, EventEnvelope[]> {
+  return new Map([...input.entries()].map(([k, v]) => [k, [...v]]));
 }

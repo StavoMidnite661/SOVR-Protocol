@@ -692,6 +692,47 @@ projections:
 # SECTION 3 — REPLAY PROTOCOL
 # ============================================================
 
+
+  escrow_account_view:
+    projection_id: PRJ-016
+    name: escrow_account_view
+    source_domain: escrow
+    description: Current state of all escrow accounts
+    source_events:
+      - escrow.account.created
+      - escrow.account.funded
+      - escrow.account.released
+      - escrow.account.cancelled
+    handler_type: UPSERT
+    idempotency_key: aggregate_id
+    replay_strategy: FULL_REBUILD
+    recovery_strategy: REBUILD_FROM_GENESIS
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: [escrow:{escrow_id}]
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: 1.0.0
+    invalidation:
+      trigger_events:
+        - escrow.account.created
+        - escrow.account.funded
+        - escrow.account.released
+        - escrow.account.cancelled
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        escrow_id: { type: string }
+        parties: { type: array }
+        amount: { type: decimal }
+        asset_type: { type: string }
+        state: { type: string }
+
 replay_protocol:
 
   full_replay:

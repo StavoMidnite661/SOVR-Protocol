@@ -1,42 +1,61 @@
 ---------------- MODULE SAGA_LIFECYCLE ----------------
 * SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+* Compiler: 0.6.0 Protocol: 1.0.0
 * Provenance: saga_lifecycle
 
 EXTENDS Naturals, Sequences
 
 VARIABLES state, ledger_balanced, authority_validated
 
-States == {"INIT", "ACTIVE", "COMPLETED", "FAILED"}
+States == {"COMPENSATED", "COMPENSATING", "COMPLETED", "FAILED", "PENDING", "RUNNING"}
 
 Init == 
-    /\ state = "INIT"
+    /\ state = "PENDING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
 
-ACTIVATE == 
-    /\ state = "INIT"
+0 == 
+    /\ state = "PENDING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "ACTIVE"
+    /\ state' = "RUNNING"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 0
 
-COMPLETE == 
-    /\ state = "ACTIVE"
+1 == 
+    /\ state = "RUNNING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
     /\ state' = "COMPLETED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 1
 
-FAIL == 
-    /\ state = "ACTIVE"
+2 == 
+    /\ state = "RUNNING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
     /\ state' = "FAILED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 2
+
+3 == 
+    /\ state = "FAILED"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "COMPENSATING"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: SAGA_COMPENSATE
+
+4 == 
+    /\ state = "COMPENSATING"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "COMPENSATED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 4
 
 Next == 
-    ACTIVATE \/ COMPLETE \/ FAIL
+    0 \/ 1 \/ 2 \/ 3 \/ 4
 
 * Invariant 1: State must always be in defined States
 TypeOK == state \in States

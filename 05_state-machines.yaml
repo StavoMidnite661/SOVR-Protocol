@@ -1954,3 +1954,582 @@ state_machines:
       - from: UNKNOWN
         to: HEALTHY
         event: system.health.restored
+
+  # ========================================================
+  # V0.6.0 — LIFECYCLE MODELS FOR FORMERLY EXEMPT COMMANDS
+  # ========================================================
+
+  vault_reconciliation_v06_lifecycle:
+    domain: vault
+    aggregate: reconciliation
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for vault.reconciliation.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - vault.asset.reconcile
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: vault.reconciliation.started
+        condition: none
+        emitted_events: [vault.reconciliation.started]
+        invalid: false
+
+  vault_valuation_v06_lifecycle:
+    domain: vault
+    aggregate: valuation
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for vault.valuation.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - vault.valuation.update
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: vault.valuation.updated
+        condition: none
+        emitted_events: [vault.valuation.updated]
+        invalid: false
+
+  ledger_journal_v06_lifecycle:
+    domain: ledger
+    aggregate: journal
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for ledger.journal.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - ledger.journal.create
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: ledger.journal.created
+        condition: none
+        emitted_events: [ledger.journal.created]
+        invalid: false
+
+  ledger_reconciliation_v06_lifecycle:
+    domain: ledger
+    aggregate: reconciliation
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for ledger.reconciliation.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - ledger.reconciliation.start
+          - ledger.reconciliation.resolve
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: ledger.reconciliation.started
+        condition: none
+        emitted_events: [ledger.reconciliation.started]
+        invalid: false
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: ledger.reconciliation.completed
+        condition: none
+        emitted_events: [ledger.reconciliation.completed]
+        invalid: false
+
+  ledger_accounting_period_v06_lifecycle:
+    domain: ledger
+    aggregate: accounting_period
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for ledger.accounting_period.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - ledger.period.close
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: ledger.period.closing
+        condition: none
+        emitted_events: [ledger.period.closing]
+        invalid: false
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: ledger.entry.posted
+        condition: none
+        emitted_events: [ledger.entry.posted]
+        invalid: false
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: ledger.period.closed
+        condition: none
+        emitted_events: [ledger.period.closed]
+        invalid: false
+
+  treasury_liquidity_position_v06_lifecycle:
+    domain: treasury
+    aggregate: liquidity_position
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for treasury.liquidity_position.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - treasury.liquidity.allocate
+        entry_actions: []
+        exit_actions: []
+    transitions:
+
+  identity_trust_anchor_v06_lifecycle:
+    domain: identity
+    aggregate: trust_anchor
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for identity.trust_anchor.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - identity.trust_anchor.register
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: identity.trust_anchor.registered
+        condition: none
+        emitted_events: [identity.trust_anchor.registered]
+        invalid: false
+
+  policy_set_v06_lifecycle:
+    domain: policy
+    aggregate: set
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for policy.set.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - policy.set.create
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: policy.evaluation.completed
+        condition: none
+        emitted_events: [policy.evaluation.completed]
+        invalid: false
+
+  policy_escalation_v06_lifecycle:
+    domain: policy
+    aggregate: escalation
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for policy.escalation.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - policy.escalation.resolve
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: policy.escalation.resolved
+        condition: none
+        emitted_events: [policy.escalation.resolved]
+        invalid: false
+
+  policy_compliance_requirement_v06_lifecycle:
+    domain: policy
+    aggregate: compliance_requirement
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for policy.compliance_requirement.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - policy.compliance.requirement.register
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: policy.compliance.requirement.registered
+        condition: none
+        emitted_events: [policy.compliance.requirement.registered]
+        invalid: false
+
+  agent_registration_v06_lifecycle:
+    domain: agent
+    aggregate: registration
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for agent.registration.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - agent.register
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: agent.registration.submitted
+        condition: none
+        emitted_events: [agent.registration.submitted]
+        invalid: false
+
+  agent_capability_binding_v06_lifecycle:
+    domain: agent
+    aggregate: capability_binding
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for agent.capability_binding.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - agent.capability.bind
+          - agent.capability.revoke
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: agent.capability.bound
+        condition: none
+        emitted_events: [agent.capability.bound]
+        invalid: false
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: agent.capability.revoked
+        condition: none
+        emitted_events: [agent.capability.revoked]
+        invalid: false
+
+  agent_execution_quota_v06_lifecycle:
+    domain: agent
+    aggregate: execution_quota
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for agent.execution_quota.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - agent.quota.update
+        entry_actions: []
+        exit_actions: []
+    transitions:
+
+  payment_execution_plan_v06_lifecycle:
+    domain: payment
+    aggregate: execution_plan
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for payment.execution_plan.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - payment.execution.plan
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: payment.execution.planned
+        condition: none
+        emitted_events: [payment.execution.planned]
+        invalid: false
+
+  payment_reconciliation_v06_lifecycle:
+    domain: payment
+    aggregate: reconciliation
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for payment.reconciliation.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - payment.reconciliation.start
+          - payment.reconciliation.complete
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: payment.reconciliation.started
+        condition: none
+        emitted_events: [payment.reconciliation.started]
+        invalid: false
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: payment.reconciliation.completed
+        condition: none
+        emitted_events: [payment.reconciliation.completed]
+        invalid: false
+
+  governance_governance_amendment_v06_lifecycle:
+    domain: governance
+    aggregate: governance_amendment
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for governance.governance_amendment.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - governance.amend.propose
+          - governance.amend.ratify
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: governance.amendment.proposed
+        condition: none
+        emitted_events: [governance.amendment.proposed]
+        invalid: false
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: governance.amendment.ratified
+        condition: none
+        emitted_events: [governance.amendment.ratified]
+        invalid: false
+
+  governance_capability_grant_v06_lifecycle:
+    domain: governance
+    aggregate: capability_grant
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for governance.capability_grant.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - governance.capability.grant
+          - governance.capability.revoke
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: governance.capability.granted
+        condition: none
+        emitted_events: [governance.capability.granted]
+        invalid: false
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: governance.capability.revoked
+        condition: none
+        emitted_events: [governance.capability.revoked]
+        invalid: false
+
+  governance_escalation_v06_lifecycle:
+    domain: governance
+    aggregate: escalation
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for governance.escalation.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - governance.escalation.resolve
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: governance.escalation.resolved
+        condition: none
+        emitted_events: [governance.escalation.resolved]
+        invalid: false
+
+  governance_proposal_v06_lifecycle:
+    domain: governance
+    aggregate: proposal
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for governance.proposal.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - governance.proposal.implement
+          - governance.proposal.cancel
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: governance.proposal.approved
+        condition: none
+        emitted_events: [governance.proposal.approved]
+        invalid: false
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: governance.proposal.rejected
+        condition: none
+        emitted_events: [governance.proposal.rejected]
+        invalid: false
+
+  agent_agent_instance_v06_lifecycle:
+    domain: agent
+    aggregate: agent_instance
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for agent.agent_instance.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - agent.suspend
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: agent.terminated
+        condition: none
+        emitted_events: [agent.terminated]
+        invalid: false
+
+  payment_execution_v06_lifecycle:
+    domain: payment
+    aggregate: execution
+    initial_state: ACTIVE
+    final_states: []
+    description: >
+      v0.6.0 administrative lifecycle for payment.execution.
+      Commands remain event-sourced and guarded while receiving explicit lifecycle coverage.
+    states:
+      ACTIVE:
+        description: Aggregate accepts covered lifecycle commands
+        allowed_commands:
+          - payment.execution.prepare
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      - from: ACTIVE
+        to: ACTIVE
+        trigger: payment.execution.planned
+        condition: none
+        emitted_events: [payment.execution.planned]
+        invalid: false
+
+
+  escrow_account_lifecycle:
+    domain: escrow
+    aggregate: escrow_account
+    description: Escrow account lifecycle
+    initial_state: CREATED
+    final_states: [RELEASED, CANCELLED]
+    states:
+      CREATED:
+        description: Escrow account created, awaiting funding
+        allowed_commands: [escrow.account.fund, escrow.account.cancel]
+        entry_actions: []
+        exit_actions: []
+      FUNDED:
+        description: Escrow account funded, awaiting release conditions
+        allowed_commands: [escrow.account.release, escrow.account.cancel]
+        entry_actions: []
+        exit_actions: []
+      RELEASED:
+        description: Funds released to beneficiary
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+      CANCELLED:
+        description: Escrow cancelled and funds returned
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+    transitions:
+      CREATED_to_FUNDED:
+        trigger: escrow.account.funded
+        condition: none
+        emitted_events: [escrow.account.funded]
+        invalid: false
+      FUNDED_to_RELEASED:
+        trigger: escrow.account.released
+        condition: none
+        emitted_events: [escrow.account.released]
+        invalid: false
+      CREATED_to_CANCELLED:
+        trigger: escrow.account.cancelled
+        condition: none
+        emitted_events: [escrow.account.cancelled]
+        invalid: false
+      FUNDED_to_CANCELLED:
+        trigger: escrow.account.cancelled
+        condition: none
+        emitted_events: [escrow.account.cancelled]
+        invalid: false

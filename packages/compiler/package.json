@@ -1,6 +1,6 @@
 {
   "name": "@sovr/compiler",
-  "version": "0.2.0-kernel-working",
+  "version": "0.6.0",
   "description": "SOVR Protocol Compiler — deterministic, unfakeable, machine-readable kernel compiler",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,7 +18,8 @@
     "test:integration": "node scripts/verify-spec.mjs integration"
   },
   "dependencies": {
-    "js-yaml": "^4.1.0"
+    "js-yaml": "^4.1.0",
+    "@sovr/shared": "file:../shared"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

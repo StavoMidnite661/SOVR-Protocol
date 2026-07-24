@@ -1,42 +1,77 @@
 ---------------- MODULE GOVERNANCE_PROPOSAL_LIFECYCLE ----------------
 * SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+* Compiler: 0.6.0 Protocol: 1.0.0
 * Provenance: governance_proposal_lifecycle
 
 EXTENDS Naturals, Sequences
 
 VARIABLES state, ledger_balanced, authority_validated
 
-States == {"INIT", "ACTIVE", "COMPLETED", "FAILED"}
+States == {"APPROVED", "CANCELLED", "DRAFT", "EXPIRED", "IMPLEMENTED", "PENDING_REVIEW", "REJECTED"}
 
 Init == 
-    /\ state = "INIT"
+    /\ state = "DRAFT"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
 
-ACTIVATE == 
-    /\ state = "INIT"
+0 == 
+    /\ state = "DRAFT"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "ACTIVE"
+    /\ state' = "PENDING_REVIEW"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: GOVERNANCE_PROPOSAL_SUBMIT
 
-COMPLETE == 
-    /\ state = "ACTIVE"
+1 == 
+    /\ state = "PENDING_REVIEW"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "COMPLETED"
+    /\ state' = "APPROVED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: GOVERNANCE_PROPOSAL_APPROVE
 
-FAIL == 
-    /\ state = "ACTIVE"
+2 == 
+    /\ state = "PENDING_REVIEW"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "FAILED"
+    /\ state' = "REJECTED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: GOVERNANCE_PROPOSAL_REJECT
+
+3 == 
+    /\ state = "PENDING_REVIEW"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "EXPIRED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 3
+
+4 == 
+    /\ state = "PENDING_REVIEW"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "CANCELLED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: GOVERNANCE_PROPOSAL_CANCEL
+
+5 == 
+    /\ state = "APPROVED"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "IMPLEMENTED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: GOVERNANCE_PROPOSAL_IMPLEMENT
+
+6 == 
+    /\ state = "DRAFT"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "CANCELLED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: GOVERNANCE_PROPOSAL_CANCEL
 
 Next == 
-    ACTIVATE \/ COMPLETE \/ FAIL
+    0 \/ 1 \/ 2 \/ 3 \/ 4 \/ 5 \/ 6
 
 * Invariant 1: State must always be in defined States
 TypeOK == state \in States

@@ -1,7 +1,7 @@
 // SOVR GENERATED FILE — DO NOT EDIT
-// compiler 0.2.0-kernel-working protocol 1.0.0 hash c6ffdbc3a28a84731ae2d09f53ce7772055450109969890f68187f80f0b99762
+// compiler 0.6.0 protocol 1.0.0 hash aaa34473bdcfbf46d4ac436dbb2c709f5562b6d1e0b044baffc77689c4783e6b
 // SOVR GENERATED — Prisma schema
-// Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+// Compiler: 0.6.0 Protocol: 1.0.0
 // DO NOT EDIT — generated from 02_domain-model.yaml
 
 generator client { provider = "prisma-client-js" }
@@ -97,6 +97,18 @@ model AgentExecutionQuota {
   financial_value_moved Decimal
   reset_at DateTime
   enforced Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model EscrowEscrowAccount {
+  escrow_id String
+  parties Json
+  amount Decimal
+  asset_type String
+  release_conditions String
+  initiator_id String
+  state String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

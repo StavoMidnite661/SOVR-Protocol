@@ -1,0 +1,38 @@
+meta:
+  schema_version: "1.0.0"
+  file_id: "domains/escrow"
+  status: "FROZEN"
+  version: "1.0.0"
+  domain: "escrow"
+  owner: "governance"
+  constitutional_reference: "L1"
+
+domain:
+  id: escrow
+  name: Escrow
+  description: >
+    Escrow custody and conditional release domain.
+    Manages multi-party escrow accounts with condition-based fund release.
+  version: "1.0.0"
+  entities:
+    - id: escrow_account
+      description: A conditional custody account
+      fields:
+        - id: escrow_id
+          type: string
+          required: true
+        - id: parties
+          type: array
+          required: true
+        - id: amount
+          type: number
+          required: true
+        - id: asset_type
+          type: string
+          required: true
+        - id: release_conditions
+          type: string
+          required: true
+        - id: initiator_id
+          type: string
+          required: true

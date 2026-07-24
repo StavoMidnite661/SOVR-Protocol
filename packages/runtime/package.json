@@ -1,6 +1,6 @@
 {
   "name": "@sovr/runtime",
-  "version": "0.2.0-kernel-working",
+  "version": "0.6.0",
   "description": "SOVR Financial OS Runtime — Linux kernel of finance, machine-readable, unfakeable",
   "type": "module",
   "main": "./dist/index.js",
@@ -20,8 +20,10 @@
     "ioredis": "^5.0.0",
     "js-yaml": "^4.1.0",
     "kafkajs": "^2.2.4",
+    "pg": "^8.22.0",
     "ws": "^8.18.0",
-    "zod": "^3.22.0"
+    "zod": "^3.22.0",
+    "@sovr/shared": "file:../shared"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",

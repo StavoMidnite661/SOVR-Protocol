@@ -1,42 +1,53 @@
 ---------------- MODULE PAYMENT_ADAPTER_LIFECYCLE ----------------
 * SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+* Compiler: 0.6.0 Protocol: 1.0.0
 * Provenance: payment_adapter_lifecycle
 
 EXTENDS Naturals, Sequences
 
 VARIABLES state, ledger_balanced, authority_validated
 
-States == {"INIT", "ACTIVE", "COMPLETED", "FAILED"}
+States == {"DISABLED", "ENABLED", "EXECUTING", "PREPARING"}
 
 Init == 
-    /\ state = "INIT"
+    /\ state = "ENABLED"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
 
-ACTIVATE == 
-    /\ state = "INIT"
+0 == 
+    /\ state = "ENABLED"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "ACTIVE"
+    /\ state' = "PREPARING"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: PAYMENT_EXECUTION_PREPARE
 
-COMPLETE == 
-    /\ state = "ACTIVE"
+1 == 
+    /\ state = "PREPARING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "COMPLETED"
+    /\ state' = "EXECUTING"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: PAYMENT_EXECUTION_EXECUTE
 
-FAIL == 
-    /\ state = "ACTIVE"
+2 == 
+    /\ state = "EXECUTING"
     /\ ledger_balanced = TRUE
     /\ authority_validated = TRUE
-    /\ state' = "FAILED"
+    /\ state' = "ENABLED"
     /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: 2
+
+3 == 
+    /\ state = "ENABLED"
+    /\ ledger_balanced = TRUE
+    /\ authority_validated = TRUE
+    /\ state' = "DISABLED"
+    /\ UNCHANGED <<ledger_balanced, authority_validated>>
+* Trigger: PAYMENT_ADAPTER_DISABLE
 
 Next == 
-    ACTIVATE \/ COMPLETE \/ FAIL
+    0 \/ 1 \/ 2 \/ 3
 
 * Invariant 1: State must always be in defined States
 TypeOK == state \in States

@@ -1,0 +1,1992 @@
+{
+  "abi": "v1",
+  "entries": {
+    "boundary_contracts": {
+      "abi": "v1",
+      "sovr_runtime_to_on_chain": {
+        "abi": "v1",
+        "status": "PENDING_PHASE_G"
+      },
+      "sovr_runtime_to_payment_rails": {
+        "abi": "v1",
+        "status": "PENDING_PHASE_F"
+      },
+      "sovr_runtime_to_regulatory": {
+        "abi": "v1",
+        "status": "PENDING_PHASE_G"
+      }
+    },
+    "domain_contracts": {
+      "abi": "v1",
+      "agent_to_treasury": {
+        "abi": "v1",
+        "agent_guarantees": [
+          {
+            "abi": "v1",
+            "description": "complete agent_audit_envelope is present",
+            "guarantee_id": "AG-T-001",
+            "name": "audit_envelope_attached",
+            "proof": "audit_envelope object with all required fields populated",
+            "response_format": {
+              "abi": "v1",
+              "audit_envelope": "object"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "ALLOW decision with valid policy_decision_id",
+            "guarantee_id": "AG-T-002",
+            "name": "policy_decision_valid",
+            "proof": "policy_decision lookup confirms decision == ALLOW",
+            "response_format": {
+              "abi": "v1",
+              "decision": "enum",
+              "policy_decision_id": "uuid"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "agent has not exceeded execution quotas",
+            "guarantee_id": "AG-T-003",
+            "name": "within_quota",
+            "proof": "agent quota counters below limits",
+            "response_format": {
+              "abi": "v1",
+              "agent_id": "uuid",
+              "quota_limit": "integer",
+              "quota_used": "integer"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "agent is within concurrent execution limit",
+            "guarantee_id": "AG-T-004",
+            "name": "within_concurrency",
+            "proof": "active execution count below concurrency limit",
+            "response_format": {
+              "abi": "v1",
+              "active_executions": "integer",
+              "agent_id": "uuid",
+              "concurrency_limit": "integer"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "agent holds the required capability binding",
+            "guarantee_id": "AG-T-005",
+            "name": "capability_bound",
+            "proof": "capability_binding record exists and is ACTIVE",
+            "response_format": {
+              "abi": "v1",
+              "binding_state": "enum",
+              "capability_id": "string"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "policy decision was made by different identity than agent",
+            "guarantee_id": "AG-T-006",
+            "name": "not_self_approving",
+            "proof": "policy_decision.authorizing_identity_id != agent.identity_id",
+            "response_format": {
+              "abi": "v1",
+              "agent_identity_id": "uuid",
+              "different": "boolean",
+              "policy_identity_id": "uuid"
+            }
+          }
+        ],
+        "constitutional_reference": "INV-004, INV-005, INV-007, INV-008, INV-010",
+        "description": "Treasury receives commands from Agent that carry the full audit envelope. Agent does not bypass any pipeline stage.\n",
+        "direction": "agent_provides_to_treasury (via standard command pipeline)",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "treasury.rejects",
+            "condition": "audit_envelope_missing",
+            "error_code": "AGENT_AUDIT_MISSING",
+            "escalation": "governance",
+            "event": "treasury.command.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.rejects",
+            "condition": "quota_exceeded",
+            "error_code": "AGENT_QUOTA_EXCEEDED",
+            "event": "treasury.command.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.queues",
+            "condition": "concurrency_exceeded",
+            "error_code": "AGENT_CONCURRENCY_LIMIT",
+            "event": "treasury.command.queued",
+            "retry_note": "retry after delay",
+            "retryable": true
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.rejects",
+            "condition": "capability_not_bound",
+            "error_code": "AGENT_CAPABILITY_NOT_BOUND",
+            "escalation": "governance",
+            "event": "treasury.command.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.rejects",
+            "condition": "self_approval_detected",
+            "error_code": "AGENT_SELF_APPROVAL",
+            "escalation": "governance",
+            "event": "treasury.command.rejected",
+            "retryable": false
+          }
+        ],
+        "timeout": {
+          "abi": "v1",
+          "agent_response_timeout": "5000ms",
+          "on_timeout": "reject"
+        },
+        "treasury_requires_from_agent": [
+          {
+            "abi": "v1",
+            "description": "Full audit envelope object",
+            "field": "audit_envelope",
+            "required": true,
+            "type": "object"
+          },
+          {
+            "abi": "v1",
+            "field": "agent_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "description": "Fully qualified command",
+            "field": "command",
+            "required": true,
+            "type": "object"
+          },
+          {
+            "abi": "v1",
+            "field": "policy_decision_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "intent_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "capability_id",
+            "required": true,
+            "type": "string"
+          }
+        ]
+      },
+      "governance_to_agent": {
+        "abi": "v1",
+        "agent_requires": [
+          "governance_approval_id",
+          "approved_capabilities",
+          "execution_limits"
+        ],
+        "description": "Governance approves agents and can override agent decisions. Agent executes within governance-approved boundaries.\n",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "agent.defaults_to_deny",
+            "condition": "governance_unavailable",
+            "error_code": "GOVERNANCE_UNAVAILABLE",
+            "event": "agent.governance_unavailable",
+            "retryable": true
+          }
+        ],
+        "governance_guarantees": [
+          "agent_registration_reviewed",
+          "override_recorded_and_audited"
+        ]
+      },
+      "governance_to_all_domains": {
+        "abi": "v1",
+        "all_domains_require": [
+          "escalation_notification_channel",
+          "audit_event_format"
+        ],
+        "description": "Governance has oversight authority over all domains. Domains must report escalation events to Governance.\n",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "domain.defaults_to_safe_state",
+            "condition": "governance_unavailable",
+            "error_code": "GOVERNANCE_UNAVAILABLE",
+            "event": "governance.unavailable",
+            "retryable": true
+          }
+        ],
+        "governance_guarantees": [
+          "audit_trail_queryable",
+          "escalation_response_within_timeout"
+        ]
+      },
+      "governance_to_identity": {
+        "abi": "v1",
+        "description": "Governance manages capabilities through Identity. Identity enforces capability grants and revocations.\n",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "governance.command.rejected",
+            "condition": "identity_unavailable",
+            "error_code": "IDENTITY_UNAVAILABLE",
+            "event": "governance.identity_unavailable",
+            "retryable": true
+          }
+        ],
+        "governance_guarantees": [
+          "capability_grant_recorded",
+          "capability_revocation_recorded"
+        ],
+        "identity_requires": [
+          "capability_id",
+          "actor_id",
+          "scope_pattern",
+          "grant_expiry"
+        ]
+      },
+      "governance_to_ledger": {
+        "abi": "v1",
+        "description": "Governance can query the complete audit trail and verify ledger integrity. Ledger provides immutable evidence to Governance.\n",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "governance.query_fails_with_error",
+            "condition": "ledger_unavailable",
+            "error_code": "LEDGER_UNAVAILABLE",
+            "event": "governance.ledger_unavailable",
+            "retryable": true
+          }
+        ],
+        "governance_guarantees": [
+          "complete_audit_trail_available",
+          "ledger_integrity_verifiable"
+        ],
+        "ledger_requires": [
+          "audit_query_parameters",
+          "time_range"
+        ]
+      },
+      "governance_to_policy": {
+        "abi": "v1",
+        "description": "Governance modifies and approves policy rules. Policy enforces governance decisions. Governance receives escalation notifications.\n",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "policy.defaults_to_deny",
+            "condition": "governance_unavailable",
+            "error_code": "GOVERNANCE_UNAVAILABLE",
+            "event": "policy.governance_unavailable",
+            "retryable": true
+          }
+        ],
+        "governance_guarantees": [
+          "policy_rule_reviewed_before_activation",
+          "escalation_target_notified",
+          "constitutional_compliance_verified"
+        ],
+        "policy_requires": [
+          "governance_approval_id",
+          "review_decision",
+          "constitutional_references"
+        ]
+      },
+      "governance_to_treasury": {
+        "abi": "v1",
+        "description": "Governance can halt treasury operations, block transactions, and review financial state during emergency situations.\n",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "payment.defaults_to_reject",
+            "condition": "treasury_unavailable_during_halt",
+            "error_code": "TREASURY_UNAVAILABLE",
+            "event": "treasury.halt_enforcement_failed",
+            "retryable": false
+          }
+        ],
+        "governance_guarantees": [
+          "emergency_halt_enforced",
+          "transaction_block_recorded",
+          "financial_state_preserved"
+        ],
+        "treasury_requires": [
+          "halt_command_verified",
+          "block_reason",
+          "affected_accounts"
+        ]
+      },
+      "identity_to_policy": {
+        "abi": "v1",
+        "constitutional_reference": "INV-003, INV-008 (gates 1→2)",
+        "description": "Policy depends on Identity for authorization context before any evaluation can occur.\n",
+        "direction": "identity_provides_to_policy",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "policy.defaults_to_deny",
+            "condition": "identity_not_authenticated",
+            "error_code": "IDENTITY_NOT_AUTHENTICATED",
+            "event": "policy.evaluation.identity_failed",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "policy.defaults_to_deny",
+            "condition": "session_expired",
+            "error_code": "SESSION_EXPIRED",
+            "event": "policy.evaluation.session_expired",
+            "retry_note": "re-authenticate",
+            "retryable": true
+          },
+          {
+            "abi": "v1",
+            "action": "policy.defaults_to_deny",
+            "condition": "delegation_chain_invalid",
+            "error_code": "DELEGATION_CHAIN_INVALID",
+            "escalation": "governance",
+            "event": "policy.evaluation.delegation_invalid",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "policy.defaults_to_deny",
+            "condition": "identity_service_unavailable",
+            "error_code": "IDENTITY_UNAVAILABLE",
+            "event": "policy.evaluation.identity_unavailable",
+            "retryable": true
+          }
+        ],
+        "identity_guarantees": [
+          {
+            "abi": "v1",
+            "description": "identity_id maps to an ACTIVE actor with valid session",
+            "guarantee_id": "IG-P-001",
+            "name": "actor_authenticated",
+            "proof": "identity lookup confirms actor.state == ACTIVE and session valid",
+            "response_format": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "identity_id": "uuid",
+              "session_valid": "boolean",
+              "state": "enum"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "trust_level is set and binding_strength verified",
+            "guarantee_id": "IG-P-002",
+            "name": "trust_level_established",
+            "proof": "trust assessment record exists and is current",
+            "response_format": {
+              "abi": "v1",
+              "assessed_at": "timestamp",
+              "binding_strength": "enum",
+              "trust_level": "enum"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "effective capabilities computed from identity + delegation chain",
+            "guarantee_id": "IG-P-003",
+            "name": "capability_set_computed",
+            "proof": "capability computation result with full provenance",
+            "response_format": {
+              "abi": "v1",
+              "capabilities": "array",
+              "computation_hash": "string"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "all delegations in chain are ACTIVE and within limits",
+            "guarantee_id": "IG-P-004",
+            "name": "delegation_chain_valid",
+            "proof": "chain traversal confirms every link is ACTIVE and not exceeded",
+            "response_format": {
+              "abi": "v1",
+              "chain_valid": "boolean",
+              "delegation_chain": "array",
+              "depth": "integer"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "session has not expired and has not been revoked",
+            "guarantee_id": "IG-P-005",
+            "name": "session_active",
+            "proof": "session record confirms not_expired and not_revoked",
+            "response_format": {
+              "abi": "v1",
+              "expires_at": "timestamp",
+              "revoked": "boolean",
+              "session_id": "uuid"
+            }
+          }
+        ],
+        "policy_requires_from_identity": [
+          {
+            "abi": "v1",
+            "description": "Full authorization context object",
+            "field": "authorization_context",
+            "required": true,
+            "type": "object"
+          },
+          {
+            "abi": "v1",
+            "field": "identity_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "actor_type",
+            "required": true,
+            "type": "enum"
+          },
+          {
+            "abi": "v1",
+            "field": "trust_level",
+            "required": true,
+            "type": "enum"
+          },
+          {
+            "abi": "v1",
+            "field": "session_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "delegation_chain",
+            "required": true,
+            "type": "array"
+          }
+        ],
+        "timeout": {
+          "abi": "v1",
+          "identity_response_timeout": "5000ms",
+          "on_timeout": "deny"
+        }
+      },
+      "identity_to_treasury": {
+        "abi": "v1",
+        "constitutional_reference": "INV-003, INV-008",
+        "description": "Treasury depends on Identity for actor verification before processing transfers.\n",
+        "direction": "identity_provides_to_treasury",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "treasury.rejects",
+            "condition": "actor_not_found",
+            "error_code": "ACTOR_NOT_FOUND",
+            "event": "treasury.transfer.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.rejects",
+            "condition": "actor_not_active",
+            "error_code": "ACTOR_NOT_ACTIVE",
+            "event": "treasury.transfer.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.defaults_to_deny",
+            "condition": "identity_unavailable",
+            "error_code": "IDENTITY_UNAVAILABLE",
+            "event": "treasury.transfer.identity_unavailable",
+            "retryable": true
+          }
+        ],
+        "identity_guarantees": [
+          {
+            "abi": "v1",
+            "description": "actor_id maps to ACTIVE identity",
+            "guarantee_id": "IT-T-001",
+            "name": "actor_exists_and_active",
+            "proof": "identity lookup confirms actor.state == ACTIVE",
+            "response_format": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "identity_id": "uuid",
+              "state": "enum"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "actor has ownership or transfer authority for the asset",
+            "guarantee_id": "IT-T-002",
+            "name": "ownership_verified",
+            "proof": "ownership record confirms full_control or transfer_control",
+            "response_format": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "asset_id": "uuid",
+              "has_authority": "boolean",
+              "ownership_id": "uuid"
+            }
+          }
+        ],
+        "timeout": {
+          "abi": "v1",
+          "identity_response_timeout": "5000ms",
+          "on_timeout": "deny"
+        },
+        "treasury_requires_from_identity": [
+          {
+            "abi": "v1",
+            "field": "identity_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "actor_type",
+            "required": true,
+            "type": "enum"
+          },
+          {
+            "abi": "v1",
+            "field": "trust_level",
+            "required": true,
+            "type": "enum"
+          }
+        ]
+      },
+      "intent_to_agent": {
+        "abi": "v1",
+        "agent_requires_from_intent": [
+          {
+            "abi": "v1",
+            "field": "intent_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "command_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "command_name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "abi": "v1",
+            "field": "command_payload",
+            "required": true,
+            "type": "object"
+          },
+          {
+            "abi": "v1",
+            "field": "policy_decision_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "authorization_context_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "conversion_confidence",
+            "required": true,
+            "type": "enum"
+          },
+          {
+            "abi": "v1",
+            "field": "assumptions_made",
+            "required": true,
+            "type": "array"
+          }
+        ],
+        "constitutional_reference": "INV-004, INV-005, INV-008, INV-010",
+        "description": "Agent depends on Intent for a fully validated command with complete authorization chain.\n",
+        "direction": "intent_provides_to_agent",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "agent.rejects_execution",
+            "condition": "intent_not_validated",
+            "error_code": "INTENT_NOT_VALIDATED",
+            "event": "agent.execution.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "agent.rejects_execution",
+            "condition": "policy_not_approved",
+            "error_code": "POLICY_NOT_APPROVED",
+            "event": "agent.execution.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "agent.rejects_execution",
+            "condition": "authorization_missing",
+            "error_code": "AUTHORIZATION_MISSING",
+            "escalation": "governance",
+            "event": "agent.execution.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "agent.rejects_execution",
+            "condition": "command_incomplete",
+            "error_code": "COMMAND_INCOMPLETE",
+            "event": "agent.execution.rejected",
+            "retryable": false
+          }
+        ],
+        "intent_guarantees": [
+          {
+            "abi": "v1",
+            "description": "intent has passed validation (state == READY or CONVERTED_TO_COMMAND)",
+            "guarantee_id": "II-A-001",
+            "name": "intent_validated",
+            "proof": "intent.state in [READY, CONVERTED_TO_COMMAND]",
+            "response_format": {
+              "abi": "v1",
+              "intent_id": "uuid",
+              "state": "enum",
+              "validated_at": "timestamp"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "policy_decision_id with ALLOW decision is present",
+            "guarantee_id": "II-A-002",
+            "name": "policy_approval_attached",
+            "proof": "linked policy_decision exists with decision == ALLOW",
+            "response_format": {
+              "abi": "v1",
+              "decision": "enum",
+              "policy_decision_id": "uuid"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "full authorization context from Identity is linked",
+            "guarantee_id": "II-A-003",
+            "name": "authorization_context_attached",
+            "proof": "authorization_context_id references a valid context record",
+            "response_format": {
+              "abi": "v1",
+              "authorization_context_id": "uuid",
+              "identity_id": "uuid",
+              "trust_level": "enum"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "converted command has all required fields",
+            "guarantee_id": "II-A-004",
+            "name": "command_fully_specified",
+            "proof": "command schema validation passes with no missing required fields",
+            "response_format": {
+              "abi": "v1",
+              "command_id": "uuid",
+              "command_name": "string",
+              "payload_complete": "boolean"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "all ambiguities explicitly resolved with enrichment records",
+            "guarantee_id": "II-A-005",
+            "name": "ambiguity_resolved",
+            "proof": "no unresolved ambiguity records; all have resolution records",
+            "response_format": {
+              "abi": "v1",
+              "ambiguities_resolved": "integer",
+              "unresolved_count": "integer"
+            }
+          }
+        ],
+        "timeout": {
+          "abi": "v1",
+          "intent_response_timeout": "5000ms",
+          "on_timeout": "reject"
+        }
+      },
+      "ledger_to_audit": {
+        "abi": "v1",
+        "audit_requires_from_ledger": [
+          {
+            "abi": "v1",
+            "description": "Filterable journal entries",
+            "field": "journal_entries",
+            "required": true,
+            "type": "array"
+          },
+          {
+            "abi": "v1",
+            "description": "Filterable account balances",
+            "field": "account_balances",
+            "required": true,
+            "type": "array"
+          },
+          {
+            "abi": "v1",
+            "description": "Filterable reconciliation records",
+            "field": "reconciliation_records",
+            "required": true,
+            "type": "array"
+          },
+          {
+            "abi": "v1",
+            "description": "Time range with start and end",
+            "field": "time_range",
+            "fields": [
+              "start",
+              "end"
+            ],
+            "required": true,
+            "type": "object"
+          },
+          {
+            "abi": "v1",
+            "description": "Optional identity_id filter",
+            "field": "actor_filter",
+            "required": false,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "description": "Optional asset_id filter",
+            "field": "asset_filter",
+            "required": false,
+            "type": "uuid"
+          }
+        ],
+        "constitutional_reference": "INV-001, INV-005, INV-006",
+        "description": "Governance/Audit depends on Ledger for the complete, immutable financial truth.\n",
+        "direction": "ledger_provides_to_audit",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "audit.queries_fail",
+            "condition": "ledger_unavailable",
+            "error_code": "LEDGER_UNAVAILABLE",
+            "event": "audit.query.failed",
+            "retryable": true
+          },
+          {
+            "abi": "v1",
+            "action": "audit.partial_results_returned_with_timeout_flag",
+            "condition": "query_timeout",
+            "error_code": "LEDGER_QUERY_TIMEOUT",
+            "event": "audit.query.partial",
+            "retryable": true
+          }
+        ],
+        "ledger_guarantees": [
+          {
+            "abi": "v1",
+            "description": "all journal entries are append-only and never modified",
+            "guarantee_id": "LA-A-001",
+            "name": "journal_immutability",
+            "proof": "no UPDATE or DELETE operations on journal entries; only INSERT",
+            "response_format": {
+              "abi": "v1",
+              "entry_count": "integer",
+              "immutability_verified": "boolean",
+              "journal_id": "uuid"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "every journal entry is balanced (debits == credits)",
+            "guarantee_id": "LA-A-002",
+            "name": "double_entry_integrity",
+            "proof": "sum(debit_postings.amount) == sum(credit_postings.amount) for every entry",
+            "response_format": {
+              "abi": "v1",
+              "balanced": "boolean",
+              "entry_id": "uuid",
+              "total_credits": "decimal",
+              "total_debits": "decimal"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "every financial event has a corresponding journal entry",
+            "guarantee_id": "LA-A-003",
+            "name": "event_completeness",
+            "proof": "every financial event correlates to at least one journal entry",
+            "response_format": {
+              "abi": "v1",
+              "correlated": "boolean",
+              "event_id": "uuid",
+              "journal_entry_id": "uuid"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "all entries are queryable by identity_id, time range, asset_id, transaction_id",
+            "guarantee_id": "LA-A-004",
+            "name": "audit_trail_queryable",
+            "proof": "query interface supports all filter dimensions",
+            "response_format": {
+              "abi": "v1",
+              "filters_applied": "array",
+              "query_results": "array",
+              "total_matching": "integer"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "reconciliation status is available for any time period",
+            "guarantee_id": "LA-A-005",
+            "name": "reconciliation_state",
+            "proof": "reconciliation records exist for requested time range",
+            "response_format": {
+              "abi": "v1",
+              "discrepancies": "array",
+              "reconciliation_status": "enum",
+              "time_range_end": "timestamp",
+              "time_range_start": "timestamp"
+            }
+          }
+        ]
+      },
+      "policy_to_intent": {
+        "abi": "v1",
+        "constitutional_reference": "INV-003, INV-008 (gate 4)",
+        "description": "Intent depends on Policy for a decision before normalization can proceed.\n",
+        "direction": "policy_provides_to_intent",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "intent.enters_failed_state",
+            "condition": "policy_denied",
+            "error_code": "POLICY_DENIED",
+            "event": "intent.validation.policy_denied",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "intent.enters_validating_with_pending_escalation",
+            "condition": "policy_escalated",
+            "error_code": "POLICY_ESCALATED",
+            "event": "intent.validation.policy_escalated",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "intent.waits_until_defer_until",
+            "condition": "policy_deferred",
+            "error_code": "POLICY_DEFERRED",
+            "event": "intent.validation.policy_deferred",
+            "retry_note": "retry at defer_until",
+            "retryable": true
+          },
+          {
+            "abi": "v1",
+            "action": "intent.halts",
+            "condition": "policy_unavailable",
+            "error_code": "POLICY_UNAVAILABLE",
+            "event": "intent.validation.policy_unavailable",
+            "retryable": true
+          }
+        ],
+        "intent_requires_from_policy": [
+          {
+            "abi": "v1",
+            "field": "policy_decision_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "decision",
+            "required": true,
+            "type": "enum",
+            "values": [
+              "ALLOW",
+              "DENY",
+              "ESCALATE",
+              "DEFER"
+            ]
+          },
+          {
+            "abi": "v1",
+            "field": "confidence",
+            "required": true,
+            "type": "enum"
+          },
+          {
+            "abi": "v1",
+            "field": "risk_level",
+            "required": true,
+            "type": "enum"
+          },
+          {
+            "abi": "v1",
+            "field": "deterministic_hash",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "abi": "v1",
+            "field": "conditions",
+            "required": false,
+            "type": "array"
+          }
+        ],
+        "policy_guarantees": [
+          {
+            "abi": "v1",
+            "description": "policy evaluation has produced a decision",
+            "guarantee_id": "PI-I-001",
+            "name": "evaluation_completed",
+            "proof": "policy_result record exists with non-null decision",
+            "response_format": {
+              "abi": "v1",
+              "decision": "enum",
+              "evaluated_at": "timestamp",
+              "policy_decision_id": "uuid"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "same inputs produce same decision (deterministic_hash)",
+            "guarantee_id": "PI-I-002",
+            "name": "decision_deterministic",
+            "proof": "deterministic_hash computed over all inputs matches stored hash",
+            "response_format": {
+              "abi": "v1",
+              "deterministic_hash": "string",
+              "input_hash": "string"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "risk level and factors are computed",
+            "guarantee_id": "PI-I-003",
+            "name": "risk_assessed",
+            "proof": "risk assessment record with level and factor breakdown",
+            "response_format": {
+              "abi": "v1",
+              "risk_factors": "array",
+              "risk_level": "enum"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "all applicable compliance rules evaluated",
+            "guarantee_id": "PI-I-004",
+            "name": "compliance_checked",
+            "proof": "compliance evaluation record with per-rule results",
+            "response_format": {
+              "abi": "v1",
+              "all_passed": "boolean",
+              "compliance_rules_applied": "array"
+            }
+          }
+        ],
+        "timeout": {
+          "abi": "v1",
+          "on_timeout": "halt",
+          "policy_response_timeout": "10000ms"
+        }
+      },
+      "policy_to_treasury": {
+        "abi": "v1",
+        "constitutional_reference": "INV-008 (gate 4)",
+        "description": "Treasury depends on Policy for execution permission and risk evaluation before any transfer.\n",
+        "direction": "policy_provides_to_treasury",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "treasury.transfer.rejected",
+            "condition": "policy_denies",
+            "error_code": "POLICY_DENIED",
+            "event": "treasury.transfer.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.halts_awaiting_governance",
+            "condition": "policy_requires_approval",
+            "error_code": "POLICY_REQUIRES_APPROVAL",
+            "escalation": "governance",
+            "event": "none",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.defaults_to_deny",
+            "condition": "policy_unavailable",
+            "error_code": "POLICY_UNAVAILABLE",
+            "event": "treasury.transfer.rejected",
+            "retryable": true
+          }
+        ],
+        "policy_guarantees": [
+          {
+            "abi": "v1",
+            "description": "Policy has evaluated and approved this transfer",
+            "guarantee_id": "PT-P-001",
+            "name": "execution_permission",
+            "proof": "policy_result == APPROVE"
+          },
+          {
+            "abi": "v1",
+            "description": "Risk assessment completed",
+            "guarantee_id": "PT-P-002",
+            "name": "risk_evaluation",
+            "proof": "risk_level assigned"
+          },
+          {
+            "abi": "v1",
+            "description": "Transfer complies with all active regulations",
+            "guarantee_id": "PT-P-003",
+            "name": "compliance_check",
+            "proof": "all compliance rules passed"
+          }
+        ],
+        "treasury_requires_from_policy": [
+          {
+            "abi": "v1",
+            "field": "transfer_context",
+            "fields": [
+              "source_actor_id",
+              "destination_actor_id",
+              "asset_id",
+              "amount",
+              "purpose"
+            ],
+            "required": true,
+            "type": "object"
+          },
+          {
+            "abi": "v1",
+            "field": "result",
+            "required": true,
+            "type": "enum",
+            "values": [
+              "APPROVE",
+              "DENY",
+              "REQUIRE_APPROVAL"
+            ]
+          },
+          {
+            "abi": "v1",
+            "field": "rules_applied",
+            "required": true,
+            "type": "array"
+          },
+          {
+            "abi": "v1",
+            "field": "conditions",
+            "required": false,
+            "type": "array"
+          }
+        ]
+      },
+      "treasury_to_ledger": {
+        "abi": "v1",
+        "constitutional_reference": "INV-002, INV-005",
+        "description": "Treasury depends on Ledger to record the financial interpretation of every value movement. Ledger provides the authoritative record; Treasury provides the operation context.\n",
+        "direction": "mutual",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "treasury.command.halted",
+            "condition": "ledger_rejects_entry",
+            "error_code": "LEDGER_ENTRY_REJECTED",
+            "escalation": "governance",
+            "event": "treasury.transfer.halted",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.command.proceeds_with_warning",
+            "condition": "ledger_unavailable",
+            "constitutional_note": "Treasury may proceed if Vault confirms value exists. Ledger recording catches up. This respects the priority ordering: asset_security (2) > ledger_integrity (4).\n",
+            "error_code": "LEDGER_UNAVAILABLE",
+            "event": "treasury.transfer.ledger_unavailable",
+            "retryable": true
+          }
+        ],
+        "ledger_returns_to_treasury": [
+          {
+            "abi": "v1",
+            "description": "The journal entry_id that records this transfer",
+            "guarantee_id": "TL-L-001",
+            "name": "journal_reference",
+            "response_format": {
+              "abi": "v1",
+              "entry_id": "uuid",
+              "journal_id": "uuid",
+              "posted_at": "timestamp"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "Confirmation that the entry was posted and balanced",
+            "guarantee_id": "TL-L-002",
+            "name": "posting_confirmation",
+            "response_format": {
+              "abi": "v1",
+              "balanced": "boolean",
+              "total_credits": "decimal",
+              "total_debits": "decimal"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "Whether this transfer's ledger entry has been reconciled",
+            "guarantee_id": "TL-L-003",
+            "name": "reconciliation_state",
+            "response_format": {
+              "abi": "v1",
+              "entry_id": "uuid",
+              "reconciliation_status": "enum [NOT_RECONCILED, RECONCILED, DISCREPANCY]"
+            }
+          }
+        ],
+        "status": "ACTIVE",
+        "treasury_provides_to_ledger": [
+          {
+            "abi": "v1",
+            "description": "The purpose and context of the value movement",
+            "guarantee_id": "TL-T-001",
+            "name": "transfer_intent",
+            "response_format": {
+              "abi": "v1",
+              "amount": "decimal",
+              "asset_id": "uuid",
+              "intent_id": "uuid",
+              "purpose": "string",
+              "transfer_id": "uuid"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "The source of the value movement",
+            "guarantee_id": "TL-T-002",
+            "name": "source_account",
+            "response_format": {
+              "abi": "v1",
+              "account_id": "uuid",
+              "owner_id": "uuid"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "The destination of the value movement",
+            "guarantee_id": "TL-T-003",
+            "name": "destination_account",
+            "response_format": {
+              "abi": "v1",
+              "account_id": "uuid",
+              "owner_id": "uuid"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "Whether the transfer completed, failed, or is pending",
+            "guarantee_id": "TL-T-004",
+            "name": "settlement_status",
+            "response_format": {
+              "abi": "v1",
+              "settled_at": "timestamp",
+              "status": "enum [INITIATED, PROCESSING, SETTLED, FAILED]",
+              "transfer_id": "uuid"
+            }
+          }
+        ]
+      },
+      "treasury_to_payment": {
+        "abi": "v1",
+        "constitutional_reference": "INV-005, INV-007",
+        "description": "Payment domain depends on Treasury for approved execution instructions with Vault-backed value guarantees.\n",
+        "direction": "treasury_provides_to_payment",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "treasury initiates compensation saga",
+            "condition": "payment_execution_fails",
+            "error_code": "PAYMENT_EXECUTION_FAILED",
+            "event": "treasury.transfer.failed",
+            "retryable": "depends_on_failure_type"
+          },
+          {
+            "abi": "v1",
+            "action": "treasury enters UNKNOWN_EXTERNAL_STATE",
+            "condition": "payment_returns_unknown",
+            "constitutional_note": "INV-009 — uncertainty modeled explicitly",
+            "error_code": "PAYMENT_STATE_UNKNOWN",
+            "event": "none (state change only)",
+            "retryable": false
+          }
+        ],
+        "payment_requires_from_treasury": [
+          {
+            "abi": "v1",
+            "field": "instruction_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "order_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "asset_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "amount",
+            "required": true,
+            "type": "decimal"
+          },
+          {
+            "abi": "v1",
+            "field": "destination_details",
+            "fields": [
+              "type",
+              "address",
+              "rail",
+              "reference"
+            ],
+            "required": true,
+            "type": "object"
+          },
+          {
+            "abi": "v1",
+            "field": "vault_lock_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "vault_reservation_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "max_attempts",
+            "required": true,
+            "type": "integer"
+          },
+          {
+            "abi": "v1",
+            "field": "timeout",
+            "required": true,
+            "type": "integer"
+          }
+        ],
+        "payment_returns_to_treasury": [
+          "settlement confirmation or failure or unknown state",
+          {
+            "abi": "v1",
+            "via": "treasury.settlement.confirm or treasury.transfer.failed or UNKNOWN_EXTERNAL_STATE"
+          }
+        ],
+        "treasury_guarantees": [
+          {
+            "abi": "v1",
+            "description": "Transfer has passed all authorization gates",
+            "guarantee_id": "TP-T-001",
+            "name": "approved_execution_instruction",
+            "proof": "transfer_order.state in [RESERVED, EXECUTING]"
+          },
+          {
+            "abi": "v1",
+            "description": "Value is locked in Vault for this specific payment",
+            "guarantee_id": "TP-T-002",
+            "name": "vault_backed_value",
+            "proof": "vault_lock_id provided and verified"
+          },
+          {
+            "abi": "v1",
+            "description": "The asset type and amount are policy-approved",
+            "guarantee_id": "TP-T-003",
+            "name": "authorized_asset_movement",
+            "proof": "policy evaluation passed for this specific transfer"
+          },
+          {
+            "abi": "v1",
+            "description": "If settlement fails, a compensation saga is defined",
+            "guarantee_id": "TP-T-004",
+            "name": "compensation_path_exists",
+            "proof": "external_transfer_saga defined with compensation steps"
+          }
+        ]
+      },
+      "vault_to_ledger": {
+        "abi": "v1",
+        "constitutional_reference": "INV-002 (double_entry_balance), INV-006 (event_describes_does_not_mutate)",
+        "description": "Ledger depends on Vault for authoritative asset state when recording financial events. The Ledger records the truth — the Vault is the authority on current state.\n",
+        "direction": "vault_provides_to_ledger",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "ledger.records_as_pending",
+            "condition": "vault_state_unknown",
+            "description": "Ledger records the entry in PENDING state rather than rejecting it. This preserves the operation while Vault state is clarified. Constitution INV-009 requires unknown states be explicit.\n",
+            "error_code": "VAULT_STATE_UNKNOWN",
+            "event": "ledger.entry.pending",
+            "resolution_trigger": "vault_state_becomes_known",
+            "retryable": true
+          }
+        ],
+        "ledger_requires_from_vault": [
+          {
+            "abi": "v1",
+            "field": "event_id_for_correlation",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "asset_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "amount",
+            "required": true,
+            "type": "decimal"
+          },
+          {
+            "abi": "v1",
+            "field": "operation_type",
+            "required": true,
+            "type": "enum",
+            "values": [
+              "debit",
+              "credit",
+              "reserve",
+              "release",
+              "lock",
+              "consume",
+              "write_down"
+            ]
+          }
+        ],
+        "vault_guarantees": [
+          {
+            "abi": "v1",
+            "description": "Vault provides authoritative asset state at the moment an event occurs",
+            "guarantee_id": "VG-L-001",
+            "name": "asset_state_at_time_of_event",
+            "proof": "state snapshot from vault projection",
+            "response_format": {
+              "abi": "v1",
+              "asset_id": "uuid",
+              "balance_snapshot": "decimal",
+              "state": "enum",
+              "timestamp": "timestamp"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "The balance before a financial operation was applied",
+            "guarantee_id": "VG-L-002",
+            "name": "balance_before_operation",
+            "proof": "computed from event log and current projections",
+            "response_format": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "asset_id": "uuid",
+              "available_balance": "decimal",
+              "reserved_balance": "decimal",
+              "timestamp": "timestamp",
+              "total_balance": "decimal"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "Status of any reservation related to the ledger entry",
+            "guarantee_id": "VG-L-003",
+            "name": "reservation_status",
+            "proof": "reservation lookup by consuming_transaction_id",
+            "response_format": {
+              "abi": "v1",
+              "consumed": "boolean",
+              "consumed_at": "timestamp",
+              "reservation_id": "uuid",
+              "state": "enum"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "Reference to the latest custody attestation for the asset",
+            "guarantee_id": "VG-L-004",
+            "name": "custody_attestation_reference",
+            "proof": "attestation record lookup",
+            "response_format": {
+              "abi": "v1",
+              "attestation_id": "uuid",
+              "attested_at": "timestamp",
+              "proof_hash": "string",
+              "valid_until": "timestamp"
+            }
+          }
+        ]
+      },
+      "vault_to_ledger_reverse": {
+        "abi": "v1",
+        "constitutional_reference": "INV-002, INV-006",
+        "description": "Ledger depends on Vault for asset state snapshots when recording financial events. This is the Ledger's view of the same contract defined in vault_to_ledger above.\n",
+        "direction": "ledger_requires_from_vault",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "ledger.records_as_pending",
+            "condition": "vault_asset_not_found",
+            "error_code": "VAULT_ASSET_NOT_FOUND",
+            "event": "ledger.entry.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "ledger.entry.rejected",
+            "condition": "vault_ownership_not_verified",
+            "error_code": "VAULT_OWNERSHIP_NOT_VERIFIED",
+            "event": "ledger.entry.rejected",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "ledger.records_as_pending",
+            "condition": "vault_unavailable",
+            "constitutional_note": "INV-009 requires unknown state be explicit",
+            "error_code": "VAULT_UNAVAILABLE",
+            "event": "none",
+            "retryable": true
+          }
+        ],
+        "ledger_requires_from_vault": [
+          {
+            "abi": "v1",
+            "description": "asset_id for every asset referenced in postings",
+            "field": "asset_reference",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "description": "correlation_id linking to the originating operation",
+            "field": "transaction_reference",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "authorized_actor",
+            "fields": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "authority_level": "enum",
+              "scope": "string"
+            },
+            "required": true,
+            "type": "object"
+          }
+        ],
+        "vault_guarantees_to_ledger": [
+          {
+            "abi": "v1",
+            "description": "The asset referenced in the journal entry exists and is verified",
+            "guarantee_id": "VL-V-001",
+            "name": "asset_exists",
+            "proof": "vault.asset.verified event exists for this asset_id"
+          },
+          {
+            "abi": "v1",
+            "description": "The actor posting to the ledger has ownership/control of the asset",
+            "guarantee_id": "VL-V-002",
+            "name": "ownership_verified",
+            "proof": "vault.ownership record confirms actor authority"
+          },
+          {
+            "abi": "v1",
+            "description": "If the entry references a valuation, a trusted valuation exists",
+            "guarantee_id": "VL-V-003",
+            "name": "valuation_reference_exists",
+            "proof": "vault.valuation.updated event with non-stale price"
+          },
+          {
+            "abi": "v1",
+            "description": "If the entry references a reservation, the reservation is in a valid state",
+            "guarantee_id": "VL-V-004",
+            "name": "reservation_reference_valid",
+            "proof": "vault.reserve state matches the entry's expected state"
+          }
+        ]
+      },
+      "vault_to_payment": {
+        "abi": "v1",
+        "constitutional_reference": "INV-007 (asset_security), INV-005 (audit_trail_completeness)",
+        "description": "Payment domain depends on Vault for value confirmation before executing external settlement. No payment leaves SOVR without Vault confirmation.\n",
+        "direction": "vault_provides_to_payment",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "payment.command.rejected",
+            "condition": "vault_lock_not_found",
+            "error_code": "VAULT_LOCK_NOT_FOUND",
+            "event": "payment.initiation.failed",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "payment.command.rejected",
+            "condition": "vault_lock_expired",
+            "error_code": "VAULT_LOCK_EXPIRED",
+            "event": "payment.initiation.failed",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "payment.command.rejected",
+            "condition": "asset_not_in_locked_state",
+            "error_code": "VAULT_ASSET_NOT_LOCKED",
+            "event": "payment.initiation.failed",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "payment.command.halted",
+            "condition": "ownership_mismatch",
+            "error_code": "VAULT_OWNERSHIP_MISMATCH",
+            "escalation": "governance",
+            "event": "payment.initiation.halted",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "payment.command.rejected",
+            "condition": "vault_service_unavailable",
+            "error_code": "VAULT_UNAVAILABLE",
+            "event": "payment.initiation.failed",
+            "retry_strategy": "exponential_backoff",
+            "retryable": true
+          }
+        ],
+        "payment_requires_from_vault": [
+          {
+            "abi": "v1",
+            "field": "vault_lock_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "reservation_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "asset_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "amount",
+            "required": true,
+            "type": "decimal"
+          },
+          {
+            "abi": "v1",
+            "description": "Which external rail will execute the payment",
+            "field": "payment_rail_identifier",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "timeout": {
+          "abi": "v1",
+          "on_timeout": "reject_and_retry",
+          "vault_response_timeout": "5000ms"
+        },
+        "vault_guarantees": [
+          {
+            "abi": "v1",
+            "description": "Value has been locked specifically for this payment",
+            "guarantee_id": "VG-PY-001",
+            "name": "value_locked_for_payment",
+            "proof": "reservation in ACTIVE state with consuming_transaction_id matching payment",
+            "response_format": {
+              "abi": "v1",
+              "amount": "decimal",
+              "asset_id": "uuid",
+              "lock_id": "uuid",
+              "reservation_id": "uuid",
+              "state": "ACTIVE"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "Unique lock_id to prevent double-settlement",
+            "guarantee_id": "VG-PY-002",
+            "name": "lock_id_for_correlation",
+            "proof": "lock_id is globally unique",
+            "response_format": {
+              "abi": "v1",
+              "created_at": "timestamp",
+              "lock_id": "uuid"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "The asset backing this payment is confirmed locked",
+            "guarantee_id": "VG-PY-003",
+            "name": "asset_exists_in_locked_state",
+            "proof": "asset state is LOCKED with matching lock",
+            "response_format": {
+              "abi": "v1",
+              "asset_id": "uuid",
+              "lock_id": "uuid",
+              "state": "LOCKED"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "The payment initiator has authority to move this asset",
+            "guarantee_id": "VG-PY-004",
+            "name": "ownership_confirmed",
+            "proof": "actor has full_control or transfer_control",
+            "response_format": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "has_authority": "boolean",
+              "ownership_id": "uuid"
+            }
+          }
+        ]
+      },
+      "vault_to_policy": {
+        "abi": "v1",
+        "constitutional_reference": "INV-008 (command_execution_gates)",
+        "description": "Policy engine depends on Vault for asset context when evaluating rules. The policy engine cannot make correct decisions without knowing the current Vault state.\n",
+        "direction": "vault_provides_to_policy",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "policy.defaults_to_deny",
+            "condition": "vault_unavailable",
+            "description": "If Vault is unavailable, the policy engine defaults to DENY for any operation requiring vault state. This implements the constitutional principle that uncertainty blocks action (INV-009).\n",
+            "error_code": "VAULT_UNAVAILABLE",
+            "event": "policy.evaluation.vault_unavailable",
+            "retryable": true
+          }
+        ],
+        "policy_requires_from_vault": [
+          {
+            "abi": "v1",
+            "field": "asset_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "actor_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "operation_type",
+            "required": true,
+            "type": "enum"
+          },
+          {
+            "abi": "v1",
+            "field": "amount",
+            "required": true,
+            "type": "decimal"
+          }
+        ],
+        "vault_guarantees": [
+          {
+            "abi": "v1",
+            "description": "The current state of the asset being evaluated",
+            "guarantee_id": "VG-P-001",
+            "name": "current_asset_state",
+            "response_format": {
+              "abi": "v1",
+              "asset_id": "uuid",
+              "current_valuation": "decimal",
+              "risk_classification": "enum",
+              "state": "enum",
+              "valuation_stale": "boolean"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "The available balance for the actor on this asset",
+            "guarantee_id": "VG-P-002",
+            "name": "available_balance",
+            "response_format": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "asset_id": "uuid",
+              "available_balance": "decimal"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "Active reservations for this actor and asset",
+            "guarantee_id": "VG-P-003",
+            "name": "reserve_status",
+            "response_format": {
+              "abi": "v1",
+              "reservations": "array",
+              "total_reserved": "decimal"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "Active collateral positions for this actor",
+            "guarantee_id": "VG-P-004",
+            "name": "collateral_positions",
+            "response_format": {
+              "abi": "v1",
+              "positions": "array",
+              "total_encumbered": "decimal"
+            }
+          },
+          {
+            "abi": "v1",
+            "description": "The risk classification of the asset",
+            "guarantee_id": "VG-P-005",
+            "name": "risk_classification",
+            "response_format": {
+              "abi": "v1",
+              "asset_id": "uuid",
+              "quality_score": "decimal",
+              "risk_classification": "enum"
+            }
+          }
+        ]
+      },
+      "vault_to_treasury": {
+        "abi": "v1",
+        "constitutional_reference": "INV-007 (asset_security)",
+        "description": "Treasury depends on Vault to confirm that value exists and is available before initiating any movement. This is the most critical coupling contract in SOVR — it ensures no value moves that doesn't exist.\n",
+        "direction": "vault_provides_to_treasury",
+        "failure_protocol": [
+          {
+            "abi": "v1",
+            "action": "treasury.command.rejected",
+            "condition": "vault_cannot_confirm_asset_exists",
+            "error_code": "VAULT_ASSET_NOT_FOUND",
+            "event": "treasury.transfer.failed",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.command.rejected",
+            "condition": "vault_cannot_confirm_reservation",
+            "error_code": "VAULT_RESERVATION_NOT_FOUND",
+            "event": "treasury.transfer.failed",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.command.rejected",
+            "condition": "vault_lock_expired",
+            "error_code": "VAULT_LOCK_EXPIRED",
+            "event": "treasury.transfer.failed",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.command.halted",
+            "condition": "ownership_disputed",
+            "error_code": "VAULT_OWNERSHIP_DISPUTE",
+            "escalation": "governance",
+            "event": "treasury.transfer.halted",
+            "retryable": false
+          },
+          {
+            "abi": "v1",
+            "action": "treasury.command.rejected",
+            "condition": "vault_service_unavailable",
+            "error_code": "VAULT_UNAVAILABLE",
+            "event": "treasury.transfer.failed",
+            "retry_strategy": "exponential_backoff",
+            "retryable": true
+          }
+        ],
+        "timeout": {
+          "abi": "v1",
+          "on_timeout": "reject_and_retry",
+          "vault_response_timeout": "5000ms"
+        },
+        "treasury_requires_from_vault": [
+          {
+            "abi": "v1",
+            "description": "Unique identifier for the locked reservation",
+            "field": "vault_lock_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "description": "The parent reservation",
+            "field": "reservation_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "asset_id",
+            "required": true,
+            "type": "uuid"
+          },
+          {
+            "abi": "v1",
+            "field": "amount",
+            "required": true,
+            "type": "decimal"
+          },
+          {
+            "abi": "v1",
+            "field": "expiration_timestamp",
+            "required": true,
+            "type": "timestamp"
+          },
+          {
+            "abi": "v1",
+            "field": "actor_authorization_context",
+            "fields": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "capability": "string",
+              "identity_id": "uuid",
+              "policy_result": "enum",
+              "scope": "string"
+            },
+            "required": true,
+            "type": "object"
+          },
+          {
+            "abi": "v1",
+            "description": "The intent that originated this operation",
+            "field": "transaction_intent_reference",
+            "required": true,
+            "type": "uuid"
+          }
+        ],
+        "vault_guarantees": [
+          {
+            "abi": "v1",
+            "description": "The asset is in a verified or higher operational state",
+            "guarantee_id": "VG-T-001",
+            "name": "asset_exists_and_verified",
+            "proof": "asset.state in [VERIFIED, AVAILABLE, RESERVED, LOCKED]",
+            "response_format": {
+              "abi": "v1",
+              "asset_id": "uuid",
+              "exists": "boolean",
+              "state": "enum"
+            },
+            "verification": "vault_service queries asset state"
+          },
+          {
+            "abi": "v1",
+            "description": "Value has been reserved and locked for this specific operation",
+            "guarantee_id": "VG-T-002",
+            "name": "reservation_created_and_locked",
+            "proof": "reservation exists in ACTIVE state with matching lock_id",
+            "response_format": {
+              "abi": "v1",
+              "amount": "decimal",
+              "expiration": "timestamp",
+              "lock_id": "uuid",
+              "reservation_id": "uuid",
+              "state": "enum"
+            },
+            "verification": "vault_service queries reservation by reservation_id"
+          },
+          {
+            "abi": "v1",
+            "description": "The actor has sufficient available balance for this operation",
+            "guarantee_id": "VG-T-003",
+            "name": "available_balance_confirmed",
+            "proof": "balance.available_balance >= requested_amount at time of reservation",
+            "response_format": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "asset_id": "uuid",
+              "available_balance": "decimal",
+              "locked_balance": "decimal",
+              "reserved_balance": "decimal",
+              "total_balance": "decimal"
+            },
+            "verification": "vault_service computes balance projection"
+          },
+          {
+            "abi": "v1",
+            "description": "The actor has transfer authority over this asset",
+            "guarantee_id": "VG-T-004",
+            "name": "ownership_authority_confirmed",
+            "proof": "actor_id has full_control or transfer_control on asset.ownership_id",
+            "response_format": {
+              "abi": "v1",
+              "actor_id": "uuid",
+              "asset_id": "uuid",
+              "control_level": "enum",
+              "has_transfer_authority": "boolean",
+              "ownership_id": "uuid"
+            },
+            "verification": "vault_service checks ownership and control records"
+          },
+          {
+            "abi": "v1",
+            "description": "A unique lock_id is provided to prevent double-spending",
+            "guarantee_id": "VG-T-005",
+            "name": "lock_id_provided_for_deduplication",
+            "proof": "lock_id is globally unique and tied to a single reservation",
+            "response_format": {
+              "abi": "v1",
+              "created_at": "timestamp",
+              "lock_id": "uuid",
+              "reservation_id": "uuid"
+            },
+            "verification": "vault_service confirms lock_id uniqueness"
+          }
+        ]
+      }
+    }
+  },
+  "entry_count": 2,
+  "kind": "contracts"
+}

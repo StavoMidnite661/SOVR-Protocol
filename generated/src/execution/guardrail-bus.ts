@@ -1,7 +1,7 @@
 // SOVR GENERATED — ACTIVE CONSTITUTIONAL GUARDRAILS — DO NOT EDIT
-// hash bdcebf2beddf48716e529500f6318e8b3a38f86630e76be6806c1e3210c1f434
+// hash 1cdcdb9a0057e40ac12df35c0e45635fc7b52a39149b80d3e26a0ed128559165
 // SOVR GENERATED — Active Constitutional Guardrail Command Bus
-// Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+// Compiler: 0.6.0 Protocol: 1.0.0
 // Implements L0 runtime enforcement for Invariants INV-001 through INV-010
 
 import { ExecutionContext } from "./execution-context.js";

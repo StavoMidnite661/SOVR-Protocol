@@ -1,0 +1,26 @@
+{
+  "abi": "v1",
+  "entries": {
+    "boot": {
+      "abi": "v1",
+      "compiler_version": "0.6.0",
+      "constitution": {
+        "lock_hash": "34dfbdc2de193f54f87bb873039603bb5a5502a8448ef6151133f54c77a54ed3",
+        "status": "LOCKED"
+      },
+      "protocol_version": "1.0.0",
+      "runlevels": [
+        "FIRMWARE_POST",
+        "BOOTLOADER",
+        "KERNEL_INIT",
+        "CORE_DOMAINS",
+        "SECURITY_SUBSYSTEM",
+        "EXECUTION_BOUNDARY",
+        "INTERPRETATION",
+        "USERLAND"
+      ]
+    }
+  },
+  "entry_count": 1,
+  "kind": "boot"
+}

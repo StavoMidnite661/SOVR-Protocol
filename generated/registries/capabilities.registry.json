@@ -1,0 +1,2816 @@
+{
+  "abi": "v1",
+  "entries": {
+    "agent.activate": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "agent.activate",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Activate registered agents for operation",
+      "domain": "AGENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "agent",
+      "risk_level": "HIGH",
+      "scope_pattern": "agent:{agent_id}:status"
+    },
+    "agent.capability.bind": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "agent.capability.bind",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Bind capabilities to agents",
+      "domain": "AGENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "agent_capability",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "agent:{agent_id}:capabilities"
+    },
+    "agent.capability.revoke": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": false,
+      "capability_id": "agent.capability.revoke",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Revoke capabilities from agents",
+      "domain": "AGENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "agent_capability",
+      "risk_level": "HIGH",
+      "scope_pattern": "agent:{agent_id}:capabilities:{capability_id}"
+    },
+    "agent.governance.override": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "agent.governance.override",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Issue governance override for agent operations",
+      "domain": "AGENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "agent",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "agent:{agent_id}:governance_override"
+    },
+    "agent.quota.update": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "agent.quota.update",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Update agent operational quotas and limits",
+      "domain": "AGENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "agent_quota",
+      "risk_level": "HIGH",
+      "scope_pattern": "agent:{agent_id}:quota"
+    },
+    "agent.register": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "agent.register",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "human": {
+          "abi": "v1",
+          "scope": "agent:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "agent:self:*"
+        }
+      },
+      "delegable": false,
+      "description": "Register new AI agents in the system",
+      "domain": "AGENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance",
+        "human"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "agent",
+      "risk_level": "HIGH",
+      "scope_pattern": "agent:*:*"
+    },
+    "agent.terminate": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": false,
+      "capability_id": "agent.terminate",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Permanently terminate agents from the system",
+      "domain": "AGENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "agent",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "agent:{agent_id}:*"
+    },
+    "escrow.account.cancel": {
+      "abi": "v1",
+      "action": "cancel",
+      "capability_id": "escrow.account.cancel",
+      "constitutional_constraint": "INV-003",
+      "delegation_depth": 0,
+      "description": "Cancel escrow accounts",
+      "domain": "escrow",
+      "grantable_by": [
+        "governance",
+        "human"
+      ],
+      "resource_type": "escrow_account",
+      "risk_level": "HIGH",
+      "scope_pattern": "escrow.account:{escrow_id}"
+    },
+    "escrow.account.create": {
+      "abi": "v1",
+      "action": "create",
+      "capability_id": "escrow.account.create",
+      "constitutional_constraint": "INV-003",
+      "delegation_depth": 0,
+      "description": "Create escrow accounts",
+      "domain": "escrow",
+      "grantable_by": [
+        "governance",
+        "human"
+      ],
+      "resource_type": "escrow_account",
+      "risk_level": "HIGH",
+      "scope_pattern": "escrow.account:{escrow_id}"
+    },
+    "escrow.account.fund": {
+      "abi": "v1",
+      "action": "fund",
+      "capability_id": "escrow.account.fund",
+      "constitutional_constraint": "INV-003",
+      "delegation_depth": 0,
+      "description": "Fund escrow accounts",
+      "domain": "escrow",
+      "grantable_by": [
+        "governance",
+        "human"
+      ],
+      "resource_type": "escrow_account",
+      "risk_level": "HIGH",
+      "scope_pattern": "escrow.account:{escrow_id}"
+    },
+    "escrow.account.release": {
+      "abi": "v1",
+      "action": "release",
+      "capability_id": "escrow.account.release",
+      "constitutional_constraint": "INV-003",
+      "delegation_depth": 0,
+      "description": "Release escrow funds",
+      "domain": "escrow",
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "escrow_account",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "escrow.account:{escrow_id}"
+    },
+    "governance.amend.propose": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "governance.amend.propose",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:amendment:*"
+        }
+      },
+      "delegable": false,
+      "description": "Propose constitutional amendments",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "amendment",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "governance:amendment:*"
+    },
+    "governance.amend.ratify": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "governance.amend.ratify",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:amendment:*:ratification"
+        }
+      },
+      "delegable": false,
+      "description": "Ratify approved constitutional amendments",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "amendment",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "governance:amendment:{amendment_id}:ratification"
+    },
+    "governance.audit.query": {
+      "abi": "v1",
+      "action": "READ",
+      "agent_executable": true,
+      "capability_id": "governance.audit.query",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "audit:self:*"
+        },
+        "governance": {
+          "abi": "v1",
+          "scope": "audit:*:*"
+        }
+      },
+      "delegable": true,
+      "description": "Query audit logs and compliance records",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "audit_log",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "audit:*:*"
+    },
+    "governance.capability.grant": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "governance.capability.grant",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:capability:*:grant"
+        }
+      },
+      "delegable": false,
+      "description": "Grant capabilities to actors",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "capability_grant",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "governance:capability:*:grant"
+    },
+    "governance.capability.revoke": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": false,
+      "capability_id": "governance.capability.revoke",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:capability:*:revoke"
+        }
+      },
+      "delegable": false,
+      "description": "Revoke capabilities from actors",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "capability_grant",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "governance:capability:*:revoke"
+    },
+    "governance.emergency.halt": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "governance.emergency.halt",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:emergency:*"
+        }
+      },
+      "delegable": false,
+      "description": "Emergency system halt — stops all operations",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "system",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "governance:emergency:*"
+    },
+    "governance.escalation.resolve": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "governance.escalation.resolve",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:escalation:*:*"
+        }
+      },
+      "delegable": false,
+      "description": "Resolve governance escalations",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "escalation",
+      "risk_level": "HIGH",
+      "scope_pattern": "governance:escalation:{escalation_id}:*"
+    },
+    "governance.oversight.review": {
+      "abi": "v1",
+      "action": "AUDIT",
+      "agent_executable": false,
+      "capability_id": "governance.oversight.review",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:oversight:*"
+        }
+      },
+      "delegable": false,
+      "description": "Review overall system state and health",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "system_state",
+      "risk_level": "HIGH",
+      "scope_pattern": "governance:oversight:*"
+    },
+    "governance.policy.review": {
+      "abi": "v1",
+      "action": "AUDIT",
+      "agent_executable": false,
+      "capability_id": "governance.policy.review",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:policy:*:review"
+        }
+      },
+      "delegable": false,
+      "description": "Review and audit policy compliance",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "policy_review",
+      "risk_level": "HIGH",
+      "scope_pattern": "governance:policy:*:review"
+    },
+    "governance.proposal.approve": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "governance.proposal.approve",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:proposal:*:approval"
+        }
+      },
+      "delegable": false,
+      "description": "Approve governance proposals",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "proposal",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "governance:proposal:{proposal_id}:approval"
+    },
+    "governance.proposal.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "governance.proposal.create",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:proposal:*"
+        }
+      },
+      "delegable": false,
+      "description": "Create governance proposals for system changes",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "proposal",
+      "risk_level": "HIGH",
+      "scope_pattern": "governance:proposal:*"
+    },
+    "governance.proposal.reject": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "governance.proposal.reject",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "governance:proposal:*:rejection"
+        }
+      },
+      "delegable": false,
+      "description": "Reject governance proposals",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "proposal",
+      "risk_level": "HIGH",
+      "scope_pattern": "governance:proposal:{proposal_id}:rejection"
+    },
+    "identity.actor.archive": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "identity.actor.archive",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Archive revoked or inactive actors",
+      "domain": "IDENTITY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "actor",
+      "risk_level": "HIGH",
+      "scope_pattern": "actor:{actor_id}:archive"
+    },
+    "identity.actor.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "identity.actor.create",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Register new actors in the system",
+      "domain": "IDENTITY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "actor",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "actor:*:*"
+    },
+    "identity.actor.read": {
+      "abi": "v1",
+      "action": "READ",
+      "agent_executable": true,
+      "capability_id": "identity.actor.read",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "actor:self:identity"
+        },
+        "external_system": {
+          "abi": "v1",
+          "scope": "actor:self:identity"
+        },
+        "governance": {
+          "abi": "v1",
+          "scope": "actor:*:identity"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "actor:self:identity"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "actor:self:identity"
+        },
+        "service_account": {
+          "abi": "v1",
+          "scope": "actor:self:identity"
+        }
+      },
+      "delegable": true,
+      "description": "Query actor information and identity state",
+      "domain": "IDENTITY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "actor",
+      "risk_level": "LOW",
+      "scope_pattern": "actor:{actor_id}:identity"
+    },
+    "identity.actor.revoke": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": false,
+      "capability_id": "identity.actor.revoke",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Permanently revoke actors from the system",
+      "domain": "IDENTITY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "actor",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "actor:{actor_id}:*"
+    },
+    "identity.actor.suspend": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "identity.actor.suspend",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Suspend actors, preventing all operations",
+      "domain": "IDENTITY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "actor",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "actor:{actor_id}:status"
+    },
+    "identity.actor.verify": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "identity.actor.verify",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Verify actor identity and credentials",
+      "domain": "IDENTITY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "actor",
+      "risk_level": "HIGH",
+      "scope_pattern": "actor:{actor_id}:identity"
+    },
+    "identity.credential.issue": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "identity.credential.issue",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Issue credentials to actors",
+      "domain": "IDENTITY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance",
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "credential",
+      "risk_level": "HIGH",
+      "scope_pattern": "credential:*:*"
+    },
+    "identity.credential.revoke": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": false,
+      "capability_id": "identity.credential.revoke",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Revoke credentials from actors",
+      "domain": "IDENTITY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance",
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "credential",
+      "risk_level": "HIGH",
+      "scope_pattern": "credential:{credential_id}:*"
+    },
+    "identity.delegation.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "identity.delegation.create",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "human": {
+          "abi": "v1",
+          "scope": "delegation:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "delegation:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Create delegation relationships between actors",
+      "domain": "IDENTITY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "delegation",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "delegation:self:*"
+    },
+    "identity.delegation.revoke": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": false,
+      "capability_id": "identity.delegation.revoke",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "human": {
+          "abi": "v1",
+          "scope": "delegation:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "delegation:self:*"
+        }
+      },
+      "delegable": false,
+      "description": "Revoke delegation relationships",
+      "domain": "IDENTITY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "delegation",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "delegation:{delegation_id}:*"
+    },
+    "identity.session.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "identity.session.create",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "session:self:*"
+        },
+        "external_system": {
+          "abi": "v1",
+          "scope": "session:self:*"
+        },
+        "governance": {
+          "abi": "v1",
+          "scope": "session:self:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "session:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "session:self:*"
+        },
+        "service_account": {
+          "abi": "v1",
+          "scope": "session:self:*"
+        }
+      },
+      "delegable": false,
+      "derivation_note": "Derived from actor state — not explicitly granted. System issues session capability upon successful authentication.",
+      "description": "Create authentication sessions for actors",
+      "domain": "IDENTITY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "session",
+      "risk_level": "LOW",
+      "scope_pattern": "session:self:*"
+    },
+    "identity.session.terminate": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": false,
+      "capability_id": "identity.session.terminate",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "session:*:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "session:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "session:self:*"
+        }
+      },
+      "delegable": false,
+      "description": "Terminate active authentication sessions",
+      "domain": "IDENTITY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance",
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "session",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "session:{session_id}:*"
+    },
+    "identity.trust_anchor.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "identity.trust_anchor.create",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Register trust anchors in the identity subsystem",
+      "domain": "IDENTITY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "trust_anchor",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "trust_anchor:*:*"
+    },
+    "intent.archive": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "intent.archive",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Archive completed or cancelled intents",
+      "domain": "INTENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system",
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "intent",
+      "risk_level": "LOW",
+      "scope_pattern": "intent:{intent_id}:archive"
+    },
+    "intent.cancel": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": true,
+      "capability_id": "intent.cancel",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Cancel pending or in-progress intents",
+      "domain": "INTENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "intent",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "intent:self:*"
+    },
+    "intent.convert": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "intent.convert",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Convert validated intent to executable command",
+      "domain": "INTENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "system",
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "intent",
+      "restriction_note": "System-internal only. No agent or human may hold this capability.",
+      "risk_level": "HIGH",
+      "scope_pattern": "intent:{intent_id}:convert"
+    },
+    "intent.enrich": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "intent.enrich",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Enrich intent with resolved context and parameters",
+      "domain": "INTENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "intent",
+      "restriction_note": "System-internal enrichment stage.",
+      "risk_level": "LOW",
+      "scope_pattern": "intent:{intent_id}:enrich"
+    },
+    "intent.multi_step.advance": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "intent.multi_step.advance",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Advance multi-step intent to next stage",
+      "domain": "INTENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "multi_step_intent",
+      "restriction_note": "System-internal stage advancement.",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "intent:multi_step:{intent_id}:advance"
+    },
+    "intent.multi_step.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": true,
+      "capability_id": "intent.multi_step.create",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "intent:multi_step:self:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "intent:multi_step:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "intent:multi_step:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Create multi-step intent orchestration plans",
+      "domain": "INTENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system",
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "multi_step_intent",
+      "risk_level": "HIGH",
+      "scope_pattern": "intent:multi_step:*"
+    },
+    "intent.read": {
+      "abi": "v1",
+      "action": "READ",
+      "agent_executable": true,
+      "capability_id": "intent.read",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        },
+        "external_system": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        },
+        "governance": {
+          "abi": "v1",
+          "scope": "intent:*:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        },
+        "service_account": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Query intent state and processing status",
+      "domain": "INTENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "intent",
+      "risk_level": "LOW",
+      "scope_pattern": "intent:{intent_id}:*"
+    },
+    "intent.submit": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": true,
+      "capability_id": "intent.submit",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "intent:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Submit intents to the intent processor",
+      "domain": "INTENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "intent",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "intent:self:*"
+    },
+    "intent.validate": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "intent.validate",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Validate intent parameters and feasibility",
+      "domain": "INTENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "intent",
+      "restriction_note": "System-internal validation stage.",
+      "risk_level": "LOW",
+      "scope_pattern": "intent:{intent_id}:validate"
+    },
+    "ledger.account.freeze": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "ledger.account.freeze",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Freeze a ledger account",
+      "domain": "LEDGER",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "account",
+      "risk_level": "HIGH",
+      "scope_pattern": "account:{account_id}:*"
+    },
+    "ledger.account.manage": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "ledger.account.manage",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Create and manage ledger accounts",
+      "domain": "LEDGER",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "account",
+      "risk_level": "HIGH",
+      "scope_pattern": "ledger:account:*"
+    },
+    "ledger.account.read": {
+      "abi": "v1",
+      "action": "READ",
+      "agent_executable": true,
+      "capability_id": "ledger.account.read",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "ledger:account:self"
+        },
+        "external_system": {
+          "abi": "v1",
+          "scope": "ledger:account:self"
+        },
+        "governance": {
+          "abi": "v1",
+          "scope": "ledger:account:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "ledger:account:self"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "ledger:account:self"
+        },
+        "service_account": {
+          "abi": "v1",
+          "scope": "ledger:account:self"
+        }
+      },
+      "delegable": true,
+      "description": "Query account balances and ledger account state",
+      "domain": "LEDGER",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 2,
+      "resource_type": "account",
+      "risk_level": "LOW",
+      "scope_pattern": "ledger:account:{account_id}"
+    },
+    "ledger.balance.query": {
+      "abi": "v1",
+      "action": "READ",
+      "agent_executable": true,
+      "capability_id": "ledger.balance.query",
+      "constitutional_constraint": "INV-006",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "human": {
+          "abi": "v1",
+          "scope": "account:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "account:organization:*"
+        }
+      },
+      "delegable": true,
+      "description": "Query account balance",
+      "domain": "LEDGER",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "account_balance",
+      "risk_level": "LOW",
+      "scope_pattern": "account:{account_id}:*"
+    },
+    "ledger.entry.correct": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "ledger.entry.correct",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Apply corrections to ledger entries",
+      "domain": "LEDGER",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "ledger_entry",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "ledger:entry:{entry_id}:correct"
+    },
+    "ledger.entry.post": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "ledger.entry.post",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Post balanced entries to the general ledger",
+      "domain": "LEDGER",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "ledger_entry",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "ledger:entry:*"
+    },
+    "ledger.entry.reverse": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "ledger.entry.reverse",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Reverse a posted ledger entry",
+      "domain": "LEDGER",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "ledger_entry",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "ledger:entry:{entry_id}:reverse"
+    },
+    "ledger.journal.compensate": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "ledger.journal.compensate",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Create a compensating journal entry",
+      "domain": "LEDGER",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "journal_entry",
+      "risk_level": "HIGH",
+      "scope_pattern": "journal_entry:{entry_id}:*"
+    },
+    "ledger.journal.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": true,
+      "capability_id": "ledger.journal.create",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "ledger:self:journal"
+        },
+        "service_account": {
+          "abi": "v1",
+          "scope": "ledger:self:journal"
+        }
+      },
+      "delegable": true,
+      "description": "Create journal entries in the ledger",
+      "domain": "LEDGER",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance",
+        "system"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "journal_entry",
+      "risk_level": "HIGH",
+      "scope_pattern": "ledger:*:journal"
+    },
+    "ledger.journal.manage": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "ledger.journal.manage",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Manage journal lifecycle (close, archive)",
+      "domain": "LEDGER",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "journal_entry",
+      "risk_level": "HIGH",
+      "scope_pattern": "ledger:journal:*"
+    },
+    "ledger.journal.post": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "ledger.journal.post",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Post a balanced journal entry to the ledger",
+      "domain": "LEDGER",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "journal_entry",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "journal:{journal_id}:*"
+    },
+    "ledger.journal.read": {
+      "abi": "v1",
+      "action": "READ",
+      "agent_executable": true,
+      "capability_id": "ledger.journal.read",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "governance": {
+          "abi": "v1",
+          "scope": "ledger:*:journal"
+        }
+      },
+      "delegable": true,
+      "description": "Query journal entries",
+      "domain": "LEDGER",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance",
+        "system"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "journal_entry",
+      "risk_level": "LOW",
+      "scope_pattern": "ledger:{ledger_id}:journal"
+    },
+    "ledger.journal.reverse": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "ledger.journal.reverse",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Reverse a posted journal entry",
+      "domain": "LEDGER",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "journal_entry",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "journal_entry:{entry_id}:*"
+    },
+    "ledger.period.close": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "ledger.period.close",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Close an accounting period",
+      "domain": "LEDGER",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "accounting_period",
+      "risk_level": "HIGH",
+      "scope_pattern": "period:{period_id}:*"
+    },
+    "ledger.period.manage": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "ledger.period.manage",
+      "constitutional_constraint": "INV-002",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Open and close accounting periods",
+      "domain": "LEDGER",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "accounting_period",
+      "risk_level": "HIGH",
+      "scope_pattern": "ledger:period:*"
+    },
+    "ledger.reconcile": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "capability_id": "ledger.reconcile",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "ledger:self:reconcile"
+        }
+      },
+      "delegable": true,
+      "description": "Reconcile ledger accounts against external sources",
+      "domain": "LEDGER",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "ledger",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "ledger:*:reconcile"
+    },
+    "ledger.reconcile.initiate": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "capability_id": "ledger.reconcile.initiate",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "ledger:self:reconciliation"
+        }
+      },
+      "delegable": true,
+      "description": "Initiate ledger reconciliation process",
+      "domain": "LEDGER",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "ledger",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "ledger:{ledger_id}:reconciliation"
+    },
+    "payment.execution.compensate": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "payment.execution.compensate",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Compensate failed payment executions",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "payment_execution",
+      "risk_level": "HIGH",
+      "scope_pattern": "payment:execution:{execution_id}:compensate"
+    },
+    "payment.execution.confirm": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "payment.execution.confirm",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Confirm successful payment execution",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system",
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "payment_execution",
+      "risk_level": "HIGH",
+      "scope_pattern": "payment:execution:{execution_id}:confirm"
+    },
+    "payment.execution.execute": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "payment.execution.execute",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Execute planned payments through payment rails",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "payment_execution",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "payment:execution:{execution_id}:execute"
+    },
+    "payment.execution.plan": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "payment.execution.plan",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Plan payment execution routes and strategy",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "payment_execution",
+      "restriction_note": "System-internal planning stage.",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "payment:execution:*:plan"
+    },
+    "payment.initiate": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "agent_execution_conditions": [
+        "amount must not exceed per-payment limit",
+        "recipient must be in approved payee list",
+        "must comply with applicable policy rules"
+      ],
+      "capability_id": "payment.initiate",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "conditions": [
+            "amount <= per_payment_limit",
+            "recipient in approved_payee_list"
+          ],
+          "scope": "payment:self:*"
+        },
+        "human": {
+          "abi": "v1",
+          "conditions": [
+            "amount <= per_payment_limit"
+          ],
+          "scope": "payment:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "conditions": [
+            "amount <= per_payment_limit"
+          ],
+          "scope": "payment:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Initiate external payments to external systems",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "payment",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "payment:*:*"
+    },
+    "payment.receipt.issue": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "payment.receipt.issue",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Issue payment receipts for settled payments",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "payment_receipt",
+      "risk_level": "LOW",
+      "scope_pattern": "payment:receipt:*"
+    },
+    "payment.reconcile": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "capability_id": "payment.reconcile",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "payment:self:reconciliation"
+        }
+      },
+      "delegable": true,
+      "description": "Reconcile external payments with internal records",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "payment",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "payment:{payment_id}:reconciliation"
+    },
+    "payment.reconciliation.complete": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "capability_id": "payment.reconciliation.complete",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": true,
+      "description": "Complete payment reconciliation with resolution",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "payment_reconciliation",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "payment:reconciliation:{reconciliation_id}:complete"
+    },
+    "payment.reconciliation.initiate": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": true,
+      "capability_id": "payment.reconciliation.initiate",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "payment:reconciliation:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Initiate payment reconciliation process",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "payment_reconciliation",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "payment:reconciliation:*"
+    },
+    "payment.request.cancel": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": true,
+      "capability_id": "payment.request.cancel",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "human": {
+          "abi": "v1",
+          "scope": "payment:request:self:cancel"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "payment:request:self:cancel"
+        }
+      },
+      "delegable": true,
+      "description": "Cancel pending payment requests",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "payment_request",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "payment:request:{request_id}:cancel"
+    },
+    "payment.request.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": true,
+      "capability_id": "payment.request.create",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "payment:request:self:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "payment:request:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "payment:request:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Create payment requests",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "payment_request",
+      "risk_level": "HIGH",
+      "scope_pattern": "payment:request:*"
+    },
+    "policy.compliance.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "policy.compliance.create",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Register compliance requirements in the policy subsystem",
+      "domain": "POLICY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "compliance_requirement",
+      "risk_level": "HIGH",
+      "scope_pattern": "policy:compliance:*"
+    },
+    "policy.escalation.resolve": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "policy.escalation.resolve",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Resolve policy escalations and exceptions",
+      "domain": "POLICY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "escalation",
+      "risk_level": "HIGH",
+      "scope_pattern": "policy:escalation:{escalation_id}:*"
+    },
+    "policy.rule.activate": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "policy.rule.activate",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Activate a draft policy rule",
+      "domain": "POLICY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "policy_rule",
+      "risk_level": "HIGH",
+      "scope_pattern": "policy:rule:{rule_id}:activate"
+    },
+    "policy.rule.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "policy.rule.create",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Create policy rules in the policy engine",
+      "domain": "POLICY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "policy_rule",
+      "risk_level": "HIGH",
+      "scope_pattern": "policy:rule:*"
+    },
+    "policy.rule.deactivate": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "policy.rule.deactivate",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Deactivate an active policy rule",
+      "domain": "POLICY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "policy_rule",
+      "risk_level": "HIGH",
+      "scope_pattern": "policy:rule:{rule_id}:deactivate"
+    },
+    "policy.rule.read": {
+      "abi": "v1",
+      "action": "READ",
+      "agent_executable": true,
+      "capability_id": "policy.rule.read",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "policy:rule:active:*"
+        },
+        "external_system": {
+          "abi": "v1",
+          "scope": "policy:rule:active:*"
+        },
+        "governance": {
+          "abi": "v1",
+          "scope": "policy:rule:*:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "policy:rule:active:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "policy:rule:active:*"
+        },
+        "service_account": {
+          "abi": "v1",
+          "scope": "policy:rule:active:*"
+        }
+      },
+      "delegable": true,
+      "description": "Read policy rules and compliance requirements",
+      "domain": "POLICY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "policy_rule",
+      "risk_level": "LOW",
+      "scope_pattern": "policy:rule:{rule_id}:*"
+    },
+    "policy.rule.update": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "policy.rule.update",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Update existing policy rules",
+      "domain": "POLICY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "policy_rule",
+      "risk_level": "HIGH",
+      "scope_pattern": "policy:rule:{rule_id}:*"
+    },
+    "policy.set.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "policy.set.create",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Create policy evaluation sets",
+      "domain": "POLICY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "policy_set",
+      "risk_level": "HIGH",
+      "scope_pattern": "policy:set:*"
+    },
+    "policy.set.evaluate": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "capability_id": "policy.set.evaluate",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "policy:set:active:evaluate"
+        }
+      },
+      "delegable": true,
+      "description": "Request policy evaluation against a policy set",
+      "domain": "POLICY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance",
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "policy_set",
+      "risk_level": "LOW",
+      "scope_pattern": "policy:set:{set_id}:evaluate"
+    },
+    "system.internal": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "system.internal",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "System-internal capability for automated pipeline operations",
+      "domain": "GOVERNANCE",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "system",
+      "restriction_note": "Automatically assigned to system-internal pipeline steps. Not grantable to any actor.",
+      "risk_level": "NONE",
+      "scope_pattern": "system:internal:*"
+    },
+    "treasury.liquidity.manage": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": true,
+      "agent_execution_conditions": [
+        "must operate within configured rebalance tolerance",
+        "cross-pool transfers require prior governance approval"
+      ],
+      "capability_id": "treasury.liquidity.manage",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "conditions": [
+            "rebalance_within_tolerance",
+            "no_cross_pool_transfer_without_approval"
+          ],
+          "scope": "treasury:liquidity:{pool_id}:allocation"
+        }
+      },
+      "delegable": true,
+      "description": "Manage liquidity pools and liquidity allocation",
+      "domain": "TREASURY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "liquidity_pool",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "treasury:liquidity:{pool_id}:*"
+    },
+    "treasury.liquidity.read": {
+      "abi": "v1",
+      "action": "READ",
+      "agent_executable": true,
+      "capability_id": "treasury.liquidity.read",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "treasury:liquidity:*:read"
+        },
+        "governance": {
+          "abi": "v1",
+          "scope": "treasury:liquidity:*:read"
+        }
+      },
+      "delegable": true,
+      "description": "Query liquidity pool state and allocations",
+      "domain": "TREASURY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "liquidity_pool",
+      "risk_level": "LOW",
+      "scope_pattern": "treasury:liquidity:*:read"
+    },
+    "treasury.settlement.confirm": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "capability_id": "treasury.settlement.confirm",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "treasury:settlement:self:*"
+        },
+        "external_system": {
+          "abi": "v1",
+          "scope": "treasury:settlement:self:status"
+        },
+        "service_account": {
+          "abi": "v1",
+          "scope": "treasury:settlement:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Confirm final settlement of transfers",
+      "domain": "TREASURY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance",
+        "system"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "settlement",
+      "risk_level": "HIGH",
+      "scope_pattern": "treasury:settlement:{settlement_id}:*"
+    },
+    "treasury.transfer.approve": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "treasury.transfer.approve",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Approve pending treasury transfers",
+      "domain": "TREASURY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "transfer",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "treasury:transfer:{transfer_id}:approval"
+    },
+    "treasury.transfer.authorize": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "treasury.transfer.authorize",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Authorize requested treasury transfers",
+      "domain": "TREASURY",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "transfer",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "treasury:transfer:{transfer_id}:authorize"
+    },
+    "treasury.transfer.cancel": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": false,
+      "capability_id": "treasury.transfer.cancel",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "human": {
+          "abi": "v1",
+          "scope": "treasury:transfer:self:cancel"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "treasury:transfer:self:cancel"
+        }
+      },
+      "delegable": false,
+      "description": "Cancel pending or reserved treasury transfers",
+      "domain": "TREASURY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "transfer",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "treasury:transfer:{transfer_id}:cancel"
+    },
+    "treasury.transfer.compensate": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "treasury.transfer.compensate",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Compensate failed treasury transfers",
+      "domain": "TREASURY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "transfer",
+      "risk_level": "HIGH",
+      "scope_pattern": "treasury:transfer:{transfer_id}:compensate"
+    },
+    "treasury.transfer.execute": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "treasury.transfer.execute",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Execute authorized and reserved treasury transfers",
+      "domain": "TREASURY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "transfer",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "treasury:transfer:{transfer_id}:execute"
+    },
+    "treasury.transfer.initiate": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "agent_execution_conditions": [
+        "amount must not exceed per-transfer limit",
+        "cumulative daily amount must not exceed daily cap"
+      ],
+      "capability_id": "treasury.transfer.initiate",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "conditions": [
+            "amount <= per_transfer_limit",
+            "daily_cumulative <= daily_limit"
+          ],
+          "scope": "treasury:transfer:self"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "treasury:transfer:self"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "treasury:transfer:self"
+        },
+        "service_account": {
+          "abi": "v1",
+          "scope": "treasury:transfer:self"
+        }
+      },
+      "delegable": true,
+      "description": "Initiate treasury transfers between accounts",
+      "domain": "TREASURY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "transfer",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "treasury:transfer:*"
+    },
+    "treasury.transfer.request": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": true,
+      "capability_id": "treasury.transfer.request",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "treasury:transfer:self:request"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "treasury:transfer:self:request"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "treasury:transfer:self:request"
+        }
+      },
+      "delegable": true,
+      "description": "Request a treasury transfer",
+      "domain": "TREASURY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "transfer",
+      "risk_level": "HIGH",
+      "scope_pattern": "treasury:transfer:*:request"
+    },
+    "treasury.transfer.reserve": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "treasury.transfer.reserve",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Reserve funds for an authorized transfer",
+      "domain": "TREASURY",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "transfer",
+      "risk_level": "HIGH",
+      "scope_pattern": "treasury:transfer:{transfer_id}:reserve"
+    },
+    "vault.asset.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "vault.asset.create",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Register new assets in the vault",
+      "domain": "VAULT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "asset",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "asset:*:*"
+    },
+    "vault.asset.impair": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "vault.asset.impair",
+      "constitutional_constraint": "INV-007",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Mark an asset as impaired",
+      "domain": "VAULT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "asset",
+      "risk_level": "HIGH",
+      "scope_pattern": "asset:{asset_id}:*"
+    },
+    "vault.asset.read": {
+      "abi": "v1",
+      "action": "READ",
+      "agent_executable": true,
+      "capability_id": "vault.asset.read",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "asset:self:*"
+        },
+        "external_system": {
+          "abi": "v1",
+          "scope": "asset:*:state"
+        },
+        "governance": {
+          "abi": "v1",
+          "scope": "asset:*:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "asset:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "asset:self:*"
+        },
+        "service_account": {
+          "abi": "v1",
+          "scope": "asset:*:state"
+        }
+      },
+      "delegable": true,
+      "description": "Query asset state and metadata",
+      "domain": "VAULT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance",
+        "system"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "asset",
+      "risk_level": "LOW",
+      "scope_pattern": "asset:{asset_id}:*"
+    },
+    "vault.asset.reconcile": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "capability_id": "vault.asset.reconcile",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "asset:self:reconciliation"
+        }
+      },
+      "delegable": true,
+      "description": "Initiate vault asset reconciliation",
+      "domain": "VAULT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "asset",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "asset:{asset_id}:reconciliation"
+    },
+    "vault.asset.reject": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "vault.asset.reject",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Reject a registered asset that fails verification",
+      "domain": "VAULT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "asset",
+      "risk_level": "HIGH",
+      "scope_pattern": "asset:{asset_id}:*"
+    },
+    "vault.asset.verify": {
+      "abi": "v1",
+      "action": "GOVERN",
+      "agent_executable": false,
+      "capability_id": "vault.asset.verify",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Verify asset existence and provenance",
+      "domain": "VAULT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "asset",
+      "risk_level": "HIGH",
+      "scope_pattern": "asset:*:*"
+    },
+    "vault.collateral.add": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "vault.collateral.add",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Add collateral to a position",
+      "domain": "VAULT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "collateral",
+      "risk_level": "HIGH",
+      "scope_pattern": "collateral:{collateral_id}:*"
+    },
+    "vault.collateral.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "vault.collateral.create",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Create collateral positions",
+      "domain": "VAULT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "collateral",
+      "risk_level": "HIGH",
+      "scope_pattern": "collateral:*:*"
+    },
+    "vault.collateral.evaluate": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "capability_id": "vault.collateral.evaluate",
+      "constitutional_constraint": "INV-007",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "collateral:self:evaluate"
+        }
+      },
+      "delegable": true,
+      "description": "Evaluate collateral adequacy and value",
+      "domain": "VAULT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "collateral",
+      "risk_level": "HIGH",
+      "scope_pattern": "collateral:{collateral_id}:evaluate"
+    },
+    "vault.collateral.release": {
+      "abi": "v1",
+      "action": "DELETE",
+      "agent_executable": false,
+      "capability_id": "vault.collateral.release",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Release collateral positions",
+      "domain": "VAULT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "collateral",
+      "risk_level": "HIGH",
+      "scope_pattern": "collateral:{collateral_id}:release"
+    },
+    "vault.reconcile": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": true,
+      "capability_id": "vault.reconcile",
+      "constitutional_constraint": null,
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "vault:self:reconcile"
+        }
+      },
+      "delegable": true,
+      "description": "Initiate vault-wide reconciliation process",
+      "domain": "VAULT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "vault",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "vault:*:reconcile"
+    },
+    "vault.reserve.consume": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "vault.reserve.consume",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Consume a locked reservation for a completed operation",
+      "domain": "VAULT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "system"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "reservation",
+      "risk_level": "HIGH",
+      "scope_pattern": "reservation:{reservation_id}:*"
+    },
+    "vault.reserve.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": true,
+      "capability_id": "vault.reserve.create",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "asset:self:reserve"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "asset:self:reserve"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "asset:self:reserve"
+        }
+      },
+      "delegable": true,
+      "description": "Create asset reservations against available balance",
+      "domain": "VAULT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "reserve",
+      "risk_level": "HIGH",
+      "scope_pattern": "asset:{asset_id}:reserve"
+    },
+    "vault.reserve.lock": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "vault.reserve.lock",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Lock a pending reservation, committing the value",
+      "domain": "VAULT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "reservation",
+      "risk_level": "HIGH",
+      "scope_pattern": "reservation:{reservation_id}:*"
+    },
+    "vault.reserve.release": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": true,
+      "capability_id": "vault.reserve.release",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "scope": "reserve:self:*"
+        },
+        "human": {
+          "abi": "v1",
+          "scope": "reserve:self:*"
+        },
+        "organization": {
+          "abi": "v1",
+          "scope": "reserve:self:*"
+        }
+      },
+      "delegable": true,
+      "description": "Release previously created asset reservations",
+      "domain": "VAULT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 1,
+      "resource_type": "reserve",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "reserve:{reserve_id}:*"
+    },
+    "vault.valuation.manage": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "vault.valuation.manage",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Manage valuation models and parameters",
+      "domain": "VAULT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "valuation",
+      "risk_level": "HIGH",
+      "scope_pattern": "vault:valuation:*:manage"
+    },
+    "vault.valuation.update": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": true,
+      "agent_execution_conditions": [
+        "must reference approved valuation source",
+        "delta must be within configured tolerance band"
+      ],
+      "capability_id": "vault.valuation.update",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "conditions": [
+            "valuation_delta_pct <= configured_threshold",
+            "source_authority in [approved_oracle_list]"
+          ],
+          "scope": "asset:self:valuation"
+        }
+      },
+      "delegable": true,
+      "description": "Update asset valuations",
+      "domain": "VAULT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "asset",
+      "risk_level": "HIGH",
+      "scope_pattern": "asset:{asset_id}:valuation"
+    }
+  },
+  "entry_count": 111,
+  "kind": "capabilities"
+}

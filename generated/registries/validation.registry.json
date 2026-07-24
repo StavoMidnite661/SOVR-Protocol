@@ -1,0 +1,5306 @@
+{
+  "abi": "v1",
+  "entries": {
+    "agent_activate_rules": {
+      "abi": "v1",
+      "command": "agent.activate",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "registration_with_registration_id_exists",
+          "error_code": "REGISTRATION_MUST_EXIST_FAILED",
+          "error_message": "registration_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "registration_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "registration_governance_review_status_approved",
+          "error_code": "GOVERNANCE_REVIEW_MUST_BE_APPROVED_FAILED",
+          "error_message": "governance_review_must_be_approved failed",
+          "on_failure": "REJECT",
+          "rule_id": "governance_review_must_be_approved",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "registration_state_registered",
+          "error_code": "REGISTRATION_MUST_BE_IN_REGISTERED_STATE_FAILED",
+          "error_message": "registration_must_be_in_registered_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "registration_must_be_in_registered_state",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "agent_capability_bind_rules": {
+      "abi": "v1",
+      "command": "agent.capability.bind",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "agent_instance_exists_and_state_active",
+          "error_code": "AGENT_MUST_EXIST_AND_BE_ACTIVE_FAILED",
+          "error_message": "agent_must_exist_and_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "agent_must_exist_and_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "capability_id_references_a_recognized_capability_definition",
+          "error_code": "CAPABILITY_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "capability_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "capability_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "scope_pattern_is_a_valid_scope_expression",
+          "error_code": "SCOPE_PATTERN_MUST_BE_VALID_FAILED",
+          "error_message": "scope_pattern_must_be_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "scope_pattern_must_be_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "agent_capability_revoke_rules": {
+      "abi": "v1",
+      "command": "agent.capability.revoke",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "capability_binding_with_binding_id_exists",
+          "error_code": "BINDING_MUST_EXIST_FAILED",
+          "error_message": "binding_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "binding_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "binding_state_active",
+          "error_code": "BINDING_MUST_BE_ACTIVE_FAILED",
+          "error_message": "binding_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "binding_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "agent_execution_execute_rules": {
+      "abi": "v1",
+      "command": "agent.execution.execute",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "agent_instance_state_active",
+          "error_code": "AGENT_MUST_BE_ACTIVE_FAILED",
+          "error_message": "agent_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "agent_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "intent_id_references_a_valid_intent",
+          "error_code": "INTENT_MUST_BE_VALID_FAILED",
+          "error_message": "intent_must_be_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_be_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "policy_decision_id_references_a_valid_allow_decision",
+          "error_code": "POLICY_DECISION_MUST_ALLOW_FAILED",
+          "error_message": "policy_decision_must_allow failed",
+          "on_failure": "REJECT",
+          "rule_id": "policy_decision_must_allow",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "required_capability_id_is_bound_to_this_agent",
+          "error_code": "CAPABILITY_MUST_BE_BOUND_FAILED",
+          "error_message": "capability_must_be_bound failed",
+          "on_failure": "REJECT",
+          "rule_id": "capability_must_be_bound",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "execution_would_not_exceed_agent_s_quota_limits",
+          "error_code": "QUOTA_MUST_NOT_BE_EXCEEDED_FAILED",
+          "error_message": "quota_must_not_be_exceeded failed",
+          "on_failure": "REJECT",
+          "rule_id": "quota_must_not_be_exceeded",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "agent_concurrent_execution_count_is_below_limit",
+          "error_code": "CONCURRENCY_LIMIT_MUST_NOT_BE_REACHED_FAILED",
+          "error_message": "concurrency_limit_must_not_be_reached failed",
+          "on_failure": "REJECT",
+          "rule_id": "concurrency_limit_must_not_be_reached",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "agent_governance_override_rules": {
+      "abi": "v1",
+      "command": "agent.governance.override",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "agent_instance_exists",
+          "error_code": "AGENT_MUST_EXIST_FAILED",
+          "error_message": "agent_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "agent_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "override_type_in_recognized_override_types",
+          "error_code": "OVERRIDE_TYPE_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "override_type_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "override_type_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reason_is_non_empty_string",
+          "error_code": "REASON_MUST_BE_PROVIDED_FAILED",
+          "error_message": "reason_must_be_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "reason_must_be_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "constitutional_reference_references_a_valid_constitutional_provision",
+          "error_code": "CONSTITUTIONAL_REFERENCE_MUST_BE_VALID_FAILED",
+          "error_message": "constitutional_reference_must_be_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "constitutional_reference_must_be_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "agent_quota_update_rules": {
+      "abi": "v1",
+      "command": "agent.quota.update",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "agent_instance_exists",
+          "error_code": "AGENT_MUST_EXIST_FAILED",
+          "error_message": "agent_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "agent_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_quota_values_are_positive_numbers",
+          "error_code": "QUOTA_VALUES_MUST_BE_POSITIVE_FAILED",
+          "error_message": "quota_values_must_be_positive failed",
+          "on_failure": "REJECT",
+          "rule_id": "quota_values_must_be_positive",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "quota_values_do_not_exceed_constitutional_maximums",
+          "error_code": "WITHIN_CONSTITUTIONAL_BOUNDS_FAILED",
+          "error_message": "within_constitutional_bounds failed",
+          "on_failure": "REJECT",
+          "rule_id": "within_constitutional_bounds",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "agent_register_rules": {
+      "abi": "v1",
+      "command": "agent.register",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "agent_type_in_recognized_agent_types",
+          "error_code": "AGENT_TYPE_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "agent_type_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "agent_type_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "model_type_is_non_empty_string",
+          "error_code": "MODEL_TYPE_MUST_NOT_BE_EMPTY_FAILED",
+          "error_message": "model_type_must_not_be_empty failed",
+          "on_failure": "REJECT",
+          "rule_id": "model_type_must_not_be_empty",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "model_version_is_non_empty_string",
+          "error_code": "MODEL_VERSION_MUST_NOT_BE_EMPTY_FAILED",
+          "error_message": "model_version_must_not_be_empty failed",
+          "on_failure": "REJECT",
+          "rule_id": "model_version_must_not_be_empty",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "proposed_capabilities_array_has_at_least_one_entry",
+          "error_code": "PROPOSED_CAPABILITIES_MUST_BE_NON_EMPTY_FAILED",
+          "error_message": "proposed_capabilities_must_be_non_empty failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposed_capabilities_must_be_non_empty",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "agent_suspend_rules": {
+      "abi": "v1",
+      "command": "agent.suspend",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AGENT_ID",
+          "error_message": "agent_id is required",
+          "field": "payload.agent_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SUSPENSION_REASON",
+          "error_message": "suspension_reason is required",
+          "field": "payload.suspension_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "agent_state_active_or_agent_state_executing",
+          "error_code": "AGENT_MUST_BE_ACTIVE_OR_EXECUTING_FAILED",
+          "error_message": "agent_must_be_active_or_executing failed",
+          "on_failure": "REJECT",
+          "rule_id": "agent_must_be_active_or_executing",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "agent_terminate_rules": {
+      "abi": "v1",
+      "command": "agent.terminate",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "agent_instance_exists",
+          "error_code": "AGENT_MUST_EXIST_FAILED",
+          "error_message": "agent_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "agent_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "agent_state_in_active_paused_suspended_executing_escalated",
+          "error_code": "AGENT_MUST_BE_IN_OPERATIONAL_STATE_FAILED",
+          "error_message": "agent_must_be_in_operational_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "agent_must_be_in_operational_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reason_is_non_empty_string",
+          "error_code": "TERMINATION_REASON_MUST_BE_PROVIDED_FAILED",
+          "error_message": "termination_reason_must_be_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "termination_reason_must_be_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "escrow_account_cancel_rules": {
+      "abi": "v1",
+      "command": "escrow.account.cancel",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ESCROW_ID",
+          "error_message": "escrow_id is required",
+          "field": "payload.escrow_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CANCELLATION_REASON",
+          "error_message": "cancellation_reason is required",
+          "field": "payload.cancellation_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "exists_payload_escrow_id",
+          "error_code": "ESCROW_ID_REQUIRED_FAILED",
+          "error_message": "escrow_id_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "escrow_id_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "exists_payload_cancellation_reason",
+          "error_code": "CANCELLATION_REASON_REQUIRED_FAILED",
+          "error_message": "cancellation_reason_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "cancellation_reason_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "escrow_account_create_rules": {
+      "abi": "v1",
+      "command": "escrow.account.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ESCROW_ID",
+          "error_message": "escrow_id is required",
+          "field": "payload.escrow_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PARTIES",
+          "error_message": "parties is required",
+          "field": "payload.parties",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT",
+          "error_message": "amount is required",
+          "field": "payload.amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_AMOUNT",
+          "error_message": "amount must be non-negative",
+          "field": "payload.amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_TYPE",
+          "error_message": "asset_type is required",
+          "field": "payload.asset_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RELEASE_CONDITIONS",
+          "error_message": "release_conditions is required",
+          "field": "payload.release_conditions",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_INITIATOR_ID",
+          "error_message": "initiator_id is required",
+          "field": "payload.initiator_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "exists_payload_escrow_id",
+          "error_code": "ESCROW_ID_REQUIRED_FAILED",
+          "error_message": "escrow_id_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "escrow_id_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "exists_payload_parties",
+          "error_code": "PARTIES_REQUIRED_FAILED",
+          "error_message": "parties_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "parties_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payload_amount_0",
+          "error_code": "AMOUNT_POSITIVE_FAILED",
+          "error_message": "amount_positive failed",
+          "on_failure": "REJECT",
+          "rule_id": "amount_positive",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "exists_payload_asset_type",
+          "error_code": "ASSET_TYPE_REQUIRED_FAILED",
+          "error_message": "asset_type_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_type_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "exists_payload_release_conditions",
+          "error_code": "RELEASE_CONDITIONS_REQUIRED_FAILED",
+          "error_message": "release_conditions_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "release_conditions_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "escrow_account_fund_rules": {
+      "abi": "v1",
+      "command": "escrow.account.fund",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ESCROW_ID",
+          "error_message": "escrow_id is required",
+          "field": "payload.escrow_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT",
+          "error_message": "amount is required",
+          "field": "payload.amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_AMOUNT",
+          "error_message": "amount must be non-negative",
+          "field": "payload.amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "check_id": "exists_payload_escrow_id",
+          "error_code": "ESCROW_ID_REQUIRED_FAILED",
+          "error_message": "escrow_id_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "escrow_id_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payload_amount_0",
+          "error_code": "AMOUNT_POSITIVE_FAILED",
+          "error_message": "amount_positive failed",
+          "on_failure": "REJECT",
+          "rule_id": "amount_positive",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "escrow_account_release_rules": {
+      "abi": "v1",
+      "command": "escrow.account.release",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ESCROW_ID",
+          "error_message": "escrow_id is required",
+          "field": "payload.escrow_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RELEASE_PROOF",
+          "error_message": "release_proof is required",
+          "field": "payload.release_proof",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "exists_payload_escrow_id",
+          "error_code": "ESCROW_ID_REQUIRED_FAILED",
+          "error_message": "escrow_id_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "escrow_id_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "exists_payload_release_proof",
+          "error_code": "RELEASE_PROOF_REQUIRED_FAILED",
+          "error_message": "release_proof_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "release_proof_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_amend_propose_rules": {
+      "abi": "v1",
+      "command": "governance.amend.propose",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMENDMENT_NUMBER",
+          "error_message": "amendment_number is required",
+          "field": "payload.amendment_number",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TITLE",
+          "error_message": "title is required",
+          "field": "payload.title",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DESCRIPTION",
+          "error_message": "description is required",
+          "field": "payload.description",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SECTION",
+          "error_message": "section is required",
+          "field": "payload.section",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CURRENT_TEXT",
+          "error_message": "current_text is required",
+          "field": "payload.current_text",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PROPOSED_TEXT",
+          "error_message": "proposed_text is required",
+          "field": "payload.proposed_text",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RATIONALE",
+          "error_message": "rationale is required",
+          "field": "payload.rationale",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_VOTING_ENDS_AT",
+          "error_message": "voting_ends_at is required",
+          "field": "payload.voting_ends_at",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_existing_amendment_with_same_amendment_number",
+          "error_code": "AMENDMENT_NUMBER_UNIQUE_FAILED",
+          "error_message": "amendment_number_unique failed",
+          "on_failure": "REJECT",
+          "rule_id": "amendment_number_unique",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "section_in_invariants_conflict_resolution_authority_model_financial_integrity_agent_governance_governance_structure_runtime_enforcement_protected_articles",
+          "error_code": "SECTION_VALID_FAILED",
+          "error_message": "section_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "section_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "proposed_text_current_text",
+          "error_code": "TEXT_DIFFERS_FAILED",
+          "error_message": "text_differs failed",
+          "on_failure": "REJECT",
+          "rule_id": "text_differs",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "rationale_is_non_empty",
+          "error_code": "RATIONALE_PROVIDED_FAILED",
+          "error_message": "rationale_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "rationale_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_amend_ratify_rules": {
+      "abi": "v1",
+      "command": "governance.amend.ratify",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMENDMENT_ID",
+          "error_message": "amendment_id is required",
+          "field": "payload.amendment_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "governance_amendment_with_amendment_id_exists",
+          "error_code": "AMENDMENT_MUST_EXIST_FAILED",
+          "error_message": "amendment_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "amendment_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "amendment_state_approved",
+          "error_code": "AMENDMENT_MUST_BE_APPROVED_FAILED",
+          "error_message": "amendment_must_be_approved failed",
+          "on_failure": "REJECT",
+          "rule_id": "amendment_must_be_approved",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_required_voters_have_approved",
+          "error_code": "UNANIMOUS_QUORUM_ACHIEVED_FAILED",
+          "error_message": "unanimous_quorum_achieved failed",
+          "on_failure": "REJECT",
+          "rule_id": "unanimous_quorum_achieved",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "now_voting_ends_at",
+          "error_code": "VOTING_PERIOD_ENDED_FAILED",
+          "error_message": "voting_period_ended failed",
+          "on_failure": "REJECT",
+          "rule_id": "voting_period_ended",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_audit_query_rules": {
+      "abi": "v1",
+      "command": "governance.audit.query",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AUDIT_TYPE",
+          "error_message": "audit_type is required",
+          "field": "payload.audit_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TARGET_DOMAINS",
+          "error_message": "target_domains is required",
+          "field": "payload.target_domains",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_START_DATE",
+          "error_message": "start_date is required",
+          "field": "payload.start_date",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_END_DATE",
+          "error_message": "end_date is required",
+          "field": "payload.end_date",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_FILTERS",
+          "error_message": "filters is required",
+          "field": "payload.filters",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "start_date_end_date_if_end_date_provided",
+          "error_code": "TIME_RANGE_VALID_FAILED",
+          "error_message": "time_range_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "time_range_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "target_domains_is_non_empty",
+          "error_code": "TARGET_DOMAINS_SPECIFIED_FAILED",
+          "error_message": "target_domains_specified failed",
+          "on_failure": "REJECT",
+          "rule_id": "target_domains_specified",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_capability_grant_rules": {
+      "abi": "v1",
+      "command": "governance.capability.grant",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CAPABILITY_ID",
+          "error_message": "capability_id is required",
+          "field": "payload.capability_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ACTOR_ID",
+          "error_message": "actor_id is required",
+          "field": "payload.actor_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SCOPE_PATTERN",
+          "error_message": "scope_pattern is required",
+          "field": "payload.scope_pattern",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EXPIRES_AT",
+          "error_message": "expires_at is required",
+          "field": "payload.expires_at",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CONDITIONS",
+          "error_message": "conditions is required",
+          "field": "payload.conditions",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "capability_id_exists_in_security_capabilities",
+          "error_code": "CAPABILITY_EXISTS_FAILED",
+          "error_message": "capability_exists failed",
+          "on_failure": "REJECT",
+          "rule_id": "capability_exists",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_id_references_verified_identity",
+          "error_code": "TARGET_ACTOR_EXISTS_FAILED",
+          "error_message": "target_actor_exists failed",
+          "on_failure": "REJECT",
+          "rule_id": "target_actor_exists",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "scope_pattern_matches_scope_pattern_language_syntax",
+          "error_code": "SCOPE_PATTERN_VALID_FAILED",
+          "error_message": "scope_pattern_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "scope_pattern_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "governance_approval_id_is_provided",
+          "error_code": "GOVERNANCE_APPROVAL_OBTAINED_FAILED",
+          "error_message": "governance_approval_obtained failed",
+          "on_failure": "REJECT",
+          "rule_id": "governance_approval_obtained",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_capability_revoke_rules": {
+      "abi": "v1",
+      "command": "governance.capability.revoke",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CAPABILITY_ID",
+          "error_message": "capability_id is required",
+          "field": "payload.capability_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ACTOR_ID",
+          "error_message": "actor_id is required",
+          "field": "payload.actor_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REVOCATION_REASON",
+          "error_message": "revocation_reason is required",
+          "field": "payload.revocation_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "active_capability_grant_exists_for_actor_id_capability_id",
+          "error_code": "CAPABILITY_GRANT_EXISTS_FAILED",
+          "error_message": "capability_grant_exists failed",
+          "on_failure": "REJECT",
+          "rule_id": "capability_grant_exists",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "capability_id_is_not_governance_only",
+          "error_code": "NOT_GOVERNANCE_ONLY_CAPABILITY_FAILED",
+          "error_message": "not_governance_only_capability failed",
+          "on_failure": "REJECT",
+          "rule_id": "not_governance_only_capability",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_emergency_halt_rules": {
+      "abi": "v1",
+      "command": "governance.emergency.halt",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CO_TRIGGERED_BY",
+          "error_message": "co_triggered_by is required",
+          "field": "payload.co_triggered_by",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TRIGGER_REASON",
+          "error_message": "trigger_reason is required",
+          "field": "payload.trigger_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DESCRIPTION",
+          "error_message": "description is required",
+          "field": "payload.description",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AFFECTED_DOMAINS",
+          "error_message": "affected_domains is required",
+          "field": "payload.affected_domains",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "two_distinct_governance_identity_ids_provided",
+          "error_code": "TWO_DISTINCT_GOVERNORS_FAILED",
+          "error_message": "two_distinct_governors failed",
+          "on_failure": "REJECT",
+          "rule_id": "two_distinct_governors",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "trigger_reason_in_active_breach_asset_integrity_compromised_regulatory_mandate_systemic_failure",
+          "error_code": "VALID_TRIGGER_CONDITION_FAILED",
+          "error_message": "valid_trigger_condition failed",
+          "on_failure": "REJECT",
+          "rule_id": "valid_trigger_condition",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "affected_domains_is_non_empty",
+          "error_code": "AFFECTED_DOMAINS_SPECIFIED_FAILED",
+          "error_message": "affected_domains_specified failed",
+          "on_failure": "REJECT",
+          "rule_id": "affected_domains_specified",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_emergency_lift_rules": {
+      "abi": "v1",
+      "command": "governance.emergency.lift",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_HALT_ID",
+          "error_message": "halt_id is required",
+          "field": "payload.halt_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_LIFT_REASON",
+          "error_message": "lift_reason is required",
+          "field": "payload.lift_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "emergency_halt_state_active",
+          "error_code": "HALT_MUST_BE_ACTIVE_FAILED",
+          "error_message": "halt_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "halt_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "two_distinct_governance_identity_ids_provided",
+          "error_code": "TWO_DISTINCT_GOVERNORS_FAILED",
+          "error_message": "two_distinct_governors failed",
+          "on_failure": "REJECT",
+          "rule_id": "two_distinct_governors",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "post_action_review_completed_true_or_review_waived_true",
+          "error_code": "REVIEW_COMPLETED_OR_WAIVED_FAILED",
+          "error_message": "review_completed_or_waived failed",
+          "on_failure": "REJECT",
+          "rule_id": "review_completed_or_waived",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_escalation_resolve_rules": {
+      "abi": "v1",
+      "command": "governance.escalation.resolve",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ESCALATION_ID",
+          "error_message": "escalation_id is required",
+          "field": "payload.escalation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RESOLUTION",
+          "error_message": "resolution is required",
+          "field": "payload.resolution",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_COMPENSATION_ACTION",
+          "error_message": "compensation_action is required",
+          "field": "payload.compensation_action",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "escalation_with_escalation_id_exists",
+          "error_code": "ESCALATION_MUST_EXIST_FAILED",
+          "error_message": "escalation_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "escalation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "escalation_state_in_pending_under_review",
+          "error_code": "ESCALATION_MUST_BE_PENDING_FAILED",
+          "error_message": "escalation_must_be_pending failed",
+          "on_failure": "REJECT",
+          "rule_id": "escalation_must_be_pending",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "resolution_is_non_empty",
+          "error_code": "RESOLUTION_PROVIDED_FAILED",
+          "error_message": "resolution_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "resolution_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_oversight_review_rules": {
+      "abi": "v1",
+      "command": "governance.oversight.review",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AUDIT_TYPE",
+          "error_message": "audit_type is required",
+          "field": "payload.audit_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REVIEW_SCOPE",
+          "error_message": "review_scope is required",
+          "field": "payload.review_scope",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TARGET_DOMAINS",
+          "error_message": "target_domains is required",
+          "field": "payload.target_domains",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "review_scope_is_non_empty",
+          "error_code": "REVIEW_SCOPE_DEFINED_FAILED",
+          "error_message": "review_scope_defined failed",
+          "on_failure": "REJECT",
+          "rule_id": "review_scope_defined",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_policy_rule_review_rules": {
+      "abi": "v1",
+      "command": "governance.policy_rule.review",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RULE_ID",
+          "error_message": "rule_id is required",
+          "field": "payload.rule_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REVIEW_DECISION",
+          "error_message": "review_decision is required",
+          "field": "payload.review_decision",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REVIEW_COMMENTS",
+          "error_message": "review_comments is required",
+          "field": "payload.review_comments",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "policy_rule_with_rule_id_exists",
+          "error_code": "POLICY_RULE_MUST_EXIST_FAILED",
+          "error_message": "policy_rule_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "policy_rule_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "policy_rule_state_draft",
+          "error_code": "POLICY_RULE_MUST_BE_DRAFT_FAILED",
+          "error_message": "policy_rule_must_be_draft failed",
+          "on_failure": "REJECT",
+          "rule_id": "policy_rule_must_be_draft",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "constitutional_compliance_check_pass",
+          "error_code": "CONSTITUTIONAL_COMPLIANCE_PASSED_FAILED",
+          "error_message": "constitutional_compliance_passed failed",
+          "on_failure": "REJECT",
+          "rule_id": "constitutional_compliance_passed",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_proposal_approve_rules": {
+      "abi": "v1",
+      "command": "governance.proposal.approve",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PROPOSAL_ID",
+          "error_message": "proposal_id is required",
+          "field": "payload.proposal_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_APPROVAL_DECISION",
+          "error_message": "approval_decision is required",
+          "field": "payload.approval_decision",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_COMMENTS",
+          "error_message": "comments is required",
+          "field": "payload.comments",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "governance_proposal_with_proposal_id_exists",
+          "error_code": "PROPOSAL_MUST_EXIST_FAILED",
+          "error_message": "proposal_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposal_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "proposal_state_pending_review",
+          "error_code": "PROPOSAL_MUST_BE_PENDING_FAILED",
+          "error_message": "proposal_must_be_pending failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposal_must_be_pending",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_id_not_in_proposal_approvals",
+          "error_code": "ACTOR_HAS_NOT_ALREADY_APPROVED_FAILED",
+          "error_message": "actor_has_not_already_approved failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_has_not_already_approved",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "proposal_expires_at_now",
+          "error_code": "PROPOSAL_NOT_EXPIRED_FAILED",
+          "error_message": "proposal_not_expired failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposal_not_expired",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_proposal_cancel_rules": {
+      "abi": "v1",
+      "command": "governance.proposal.cancel",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PROPOSAL_ID",
+          "error_message": "proposal_id is required",
+          "field": "payload.proposal_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CANCELLATION_REASON",
+          "error_message": "cancellation_reason is required",
+          "field": "payload.cancellation_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "proposal_state_implemented",
+          "error_code": "PROPOSAL_MUST_NOT_BE_IMPLEMENTED_FAILED",
+          "error_message": "proposal_must_not_be_implemented failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposal_must_not_be_implemented",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_proposal_implement_rules": {
+      "abi": "v1",
+      "command": "governance.proposal.implement",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PROPOSAL_ID",
+          "error_message": "proposal_id is required",
+          "field": "payload.proposal_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_IMPLEMENTATION_HASH",
+          "error_message": "implementation_hash is required",
+          "field": "payload.implementation_hash",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "proposal_state_approved",
+          "error_code": "PROPOSAL_MUST_BE_APPROVED_FAILED",
+          "error_message": "proposal_must_be_approved failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposal_must_be_approved",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_proposal_reject_rules": {
+      "abi": "v1",
+      "command": "governance.proposal.reject",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PROPOSAL_ID",
+          "error_message": "proposal_id is required",
+          "field": "payload.proposal_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REJECTION_REASON",
+          "error_message": "rejection_reason is required",
+          "field": "payload.rejection_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "governance_proposal_with_proposal_id_exists",
+          "error_code": "PROPOSAL_MUST_EXIST_FAILED",
+          "error_message": "proposal_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposal_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "proposal_state_pending_review",
+          "error_code": "PROPOSAL_MUST_BE_PENDING_FAILED",
+          "error_message": "proposal_must_be_pending failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposal_must_be_pending",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_id_not_in_proposal_votes",
+          "error_code": "ACTOR_HAS_NOT_ALREADY_VOTED_FAILED",
+          "error_message": "actor_has_not_already_voted failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_has_not_already_voted",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "proposal_expires_at_now",
+          "error_code": "PROPOSAL_NOT_EXPIRED_FAILED",
+          "error_message": "proposal_not_expired failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposal_not_expired",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "governance_proposal_submit_rules": {
+      "abi": "v1",
+      "command": "governance.proposal.submit",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PROPOSAL_TYPE",
+          "error_message": "proposal_type is required",
+          "field": "payload.proposal_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TITLE",
+          "error_message": "title is required",
+          "field": "payload.title",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DESCRIPTION",
+          "error_message": "description is required",
+          "field": "payload.description",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TARGET_DOMAIN",
+          "error_message": "target_domain is required",
+          "field": "payload.target_domain",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PAYLOAD",
+          "error_message": "payload is required",
+          "field": "payload.payload",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REQUIRED_APPROVALS",
+          "error_message": "required_approvals is required",
+          "field": "payload.required_approvals",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_APPROVAL_THRESHOLD",
+          "error_message": "approval_threshold is required",
+          "field": "payload.approval_threshold",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EXPIRES_AT",
+          "error_message": "expires_at is required",
+          "field": "payload.expires_at",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "proposal_type_in_constitutional_amendment_policy_rule_create_policy_rule_modify_capability_grant_capability_revoke_agent_approval_agent_override_boundary_system_approval_emergency_halt_audit_investigation",
+          "error_code": "PROPOSAL_TYPE_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "proposal_type_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "proposal_type_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "target_domain_in_vault_ledger_treasury_identity_policy_intent_agent_payment_governance_system",
+          "error_code": "TARGET_DOMAIN_MUST_BE_VALID_FAILED",
+          "error_message": "target_domain_must_be_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "target_domain_must_be_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "required_approvals_0",
+          "error_code": "REQUIRED_APPROVALS_MUST_BE_POSITIVE_FAILED",
+          "error_message": "required_approvals_must_be_positive failed",
+          "on_failure": "REJECT",
+          "rule_id": "required_approvals_must_be_positive",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "expires_at_now",
+          "error_code": "EXPIRES_AT_MUST_BE_FUTURE_FAILED",
+          "error_message": "expires_at_must_be_future failed",
+          "on_failure": "REJECT",
+          "rule_id": "expires_at_must_be_future",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_actor_archive_rules": {
+      "abi": "v1",
+      "command": "identity.actor.archive",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "actor_state_revoked",
+          "error_code": "ACTOR_MUST_BE_REVOKED_FAILED",
+          "error_message": "actor_must_be_revoked failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_must_be_revoked",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_actor_register_rules": {
+      "abi": "v1",
+      "command": "identity.actor.register",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "actor_type_in_human_organization_ai_agent_service_account_external_system",
+          "error_code": "ACTOR_TYPE_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "actor_type_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_type_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "display_name_is_non_empty_string",
+          "error_code": "DISPLAY_NAME_MUST_NOT_BE_EMPTY_FAILED",
+          "error_message": "display_name_must_not_be_empty failed",
+          "on_failure": "REJECT",
+          "rule_id": "display_name_must_not_be_empty",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "if_legal_identifier_provided_it_matches_expected_format_for_actor_type",
+          "error_code": "LEGAL_IDENTIFIER_FORMAT_VALID_IF_PROVIDED_FAILED",
+          "error_message": "legal_identifier_format_valid_if_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "legal_identifier_format_valid_if_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_actor_revoke_rules": {
+      "abi": "v1",
+      "command": "identity.actor.revoke",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "actor_state_in_active_suspended",
+          "error_code": "ACTOR_MUST_BE_ACTIVE_OR_SUSPENDED_FAILED",
+          "error_message": "actor_must_be_active_or_suspended failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_must_be_active_or_suspended",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reason_is_non_empty_string",
+          "error_code": "REVOCATION_REASON_MUST_BE_PROVIDED_FAILED",
+          "error_message": "revocation_reason_must_be_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "revocation_reason_must_be_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_actor_suspend_rules": {
+      "abi": "v1",
+      "command": "identity.actor.suspend",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "actor_state_active",
+          "error_code": "ACTOR_MUST_BE_ACTIVE_FAILED",
+          "error_message": "actor_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reason_is_non_empty_string",
+          "error_code": "SUSPENSION_REASON_MUST_BE_PROVIDED_FAILED",
+          "error_message": "suspension_reason_must_be_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "suspension_reason_must_be_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_actor_verify_rules": {
+      "abi": "v1",
+      "command": "identity.actor.verify",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "actor_state_pending_verification",
+          "error_code": "ACTOR_MUST_BE_IN_PENDING_VERIFICATION_STATE_FAILED",
+          "error_message": "actor_must_be_in_pending_verification_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_must_be_in_pending_verification_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "caller_governance_identity_has_verification_authority",
+          "error_code": "GOVERNANCE_MUST_HAVE_VERIFY_AUTHORITY_FAILED",
+          "error_message": "governance_must_have_verify_authority failed",
+          "on_failure": "REJECT",
+          "rule_id": "governance_must_have_verify_authority",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_credential_issue_rules": {
+      "abi": "v1",
+      "command": "identity.credential.issue",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "identity_id_references_an_existing_identity_with_state_active",
+          "error_code": "IDENTITY_MUST_EXIST_AND_BE_ACTIVE_FAILED",
+          "error_message": "identity_must_exist_and_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "identity_must_exist_and_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "credential_type_in_recognized_credential_types",
+          "error_code": "CREDENTIAL_TYPE_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "credential_type_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "credential_type_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "expires_at_now",
+          "error_code": "EXPIRY_MUST_BE_IN_FUTURE_FAILED",
+          "error_message": "expiry_must_be_in_future failed",
+          "on_failure": "REJECT",
+          "rule_id": "expiry_must_be_in_future",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_credential_revoke_rules": {
+      "abi": "v1",
+      "command": "identity.credential.revoke",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "credential_with_credential_id_exists",
+          "error_code": "CREDENTIAL_MUST_EXIST_FAILED",
+          "error_message": "credential_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "credential_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "credential_state_active",
+          "error_code": "CREDENTIAL_MUST_BE_ACTIVE_FAILED",
+          "error_message": "credential_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "credential_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "credential_revocable_true",
+          "error_code": "CREDENTIAL_MUST_BE_REVOCABLE_FAILED",
+          "error_message": "credential_must_be_revocable failed",
+          "on_failure": "REJECT",
+          "rule_id": "credential_must_be_revocable",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_delegation_create_rules": {
+      "abi": "v1",
+      "command": "identity.delegation.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "delegator_state_active",
+          "error_code": "DELEGATOR_MUST_BE_ACTIVE_FAILED",
+          "error_message": "delegator_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "delegator_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "delegate_state_active",
+          "error_code": "DELEGATE_MUST_BE_ACTIVE_FAILED",
+          "error_message": "delegate_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "delegate_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "delegator_can_delegate_true",
+          "error_code": "DELEGATOR_MUST_HAVE_CAN_DELEGATE_FAILED",
+          "error_message": "delegator_must_have_can_delegate failed",
+          "on_failure": "REJECT",
+          "rule_id": "delegator_must_have_can_delegate",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "delegation_chain_depth_does_not_exceed_maximum_allowed_depth",
+          "error_code": "MAX_DELEGATION_DEPTH_NOT_EXCEEDED_FAILED",
+          "error_message": "max_delegation_depth_not_exceeded failed",
+          "on_failure": "REJECT",
+          "rule_id": "max_delegation_depth_not_exceeded",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_delegation_revoke_rules": {
+      "abi": "v1",
+      "command": "identity.delegation.revoke",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "delegation_with_delegation_id_exists",
+          "error_code": "DELEGATION_MUST_EXIST_FAILED",
+          "error_message": "delegation_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "delegation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "delegation_state_active",
+          "error_code": "DELEGATION_MUST_BE_ACTIVE_FAILED",
+          "error_message": "delegation_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "delegation_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "caller_is_the_delegator_or_has_governance_authority",
+          "error_code": "CALLER_MUST_BE_DELEGATOR_OR_GOVERNANCE_FAILED",
+          "error_message": "caller_must_be_delegator_or_governance failed",
+          "on_failure": "REJECT",
+          "rule_id": "caller_must_be_delegator_or_governance",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_session_create_rules": {
+      "abi": "v1",
+      "command": "identity.session.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "presented_credentials_are_valid_and_not_expired",
+          "error_code": "VALID_CREDENTIALS_REQUIRED_FAILED",
+          "error_message": "valid_credentials_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "valid_credentials_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "identity_state_active",
+          "error_code": "IDENTITY_MUST_BE_ACTIVE_FAILED",
+          "error_message": "identity_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "identity_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "current_active_session_count_max_concurrent_sessions_for_identity",
+          "error_code": "WITHIN_CONCURRENT_SESSION_LIMIT_FAILED",
+          "error_message": "within_concurrent_session_limit failed",
+          "on_failure": "REJECT",
+          "rule_id": "within_concurrent_session_limit",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_session_terminate_rules": {
+      "abi": "v1",
+      "command": "identity.session.terminate",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "session_exists_and_session_state_active",
+          "error_code": "SESSION_MUST_EXIST_AND_BE_ACTIVE_FAILED",
+          "error_message": "session_must_exist_and_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "session_must_exist_and_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "identity_trust_anchor_register_rules": {
+      "abi": "v1",
+      "command": "identity.trust_anchor.register",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "anchor_type_in_recognized_trust_anchor_types",
+          "error_code": "ANCHOR_TYPE_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "anchor_type_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "anchor_type_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "public_key_material_is_cryptographically_valid",
+          "error_code": "PUBLIC_KEY_MATERIAL_MUST_BE_VALID_FAILED",
+          "error_message": "public_key_material_must_be_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "public_key_material_must_be_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "governance_has_approved_this_trust_anchor_registration",
+          "error_code": "GOVERNANCE_APPROVAL_REQUIRED_FAILED",
+          "error_message": "governance_approval_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "governance_approval_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "intent_archive_rules": {
+      "abi": "v1",
+      "command": "intent.archive",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "intent_with_intent_id_exists",
+          "error_code": "INTENT_MUST_EXIST_FAILED",
+          "error_message": "intent_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "intent_state_in_converted_to_command_failed_cancelled_expired",
+          "error_code": "INTENT_MUST_BE_IN_TERMINAL_STATE_FAILED",
+          "error_message": "intent_must_be_in_terminal_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_be_in_terminal_state",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "intent_cancel_rules": {
+      "abi": "v1",
+      "command": "intent.cancel",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "intent_with_intent_id_exists",
+          "error_code": "INTENT_MUST_EXIST_FAILED",
+          "error_message": "intent_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "intent_state_in_received_enriching_validating_ready",
+          "error_code": "INTENT_MUST_BE_IN_CANCELLABLE_STATE_FAILED",
+          "error_message": "intent_must_be_in_cancellable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_be_in_cancellable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "caller_is_the_intent_s_actor_id_or_has_governance_authority",
+          "error_code": "CALLER_MUST_BE_ACTOR_OR_GOVERNANCE_FAILED",
+          "error_message": "caller_must_be_actor_or_governance failed",
+          "on_failure": "REJECT",
+          "rule_id": "caller_must_be_actor_or_governance",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "intent_convert_to_command_rules": {
+      "abi": "v1",
+      "command": "intent.convert_to_command",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "intent_with_intent_id_exists",
+          "error_code": "INTENT_MUST_EXIST_FAILED",
+          "error_message": "intent_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "intent_state_ready",
+          "error_code": "INTENT_MUST_BE_READY_FAILED",
+          "error_message": "intent_must_be_ready failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_be_ready",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "policy_decision_id_references_a_valid_allow_decision",
+          "error_code": "POLICY_DECISION_MUST_BE_VALID_FAILED",
+          "error_message": "policy_decision_must_be_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "policy_decision_must_be_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "intent_has_no_blocking_validation_failures",
+          "error_code": "NO_BLOCKING_FAILURES_FAILED",
+          "error_message": "no_blocking_failures failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_blocking_failures",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "intent_enrich_rules": {
+      "abi": "v1",
+      "command": "intent.enrich",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "intent_with_intent_id_exists",
+          "error_code": "INTENT_MUST_EXIST_FAILED",
+          "error_message": "intent_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "intent_state_in_received_enriching",
+          "error_code": "INTENT_MUST_BE_IN_ENRICHABLE_STATE_FAILED",
+          "error_message": "intent_must_be_in_enrichable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_be_in_enrichable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "enrichment_pipeline_has_defined_steps_for_this_intent_type",
+          "error_code": "ENRICHMENT_STEPS_MUST_BE_DEFINED_FAILED",
+          "error_message": "enrichment_steps_must_be_defined failed",
+          "on_failure": "REJECT",
+          "rule_id": "enrichment_steps_must_be_defined",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "intent_multi_step_advance_rules": {
+      "abi": "v1",
+      "command": "intent.multi_step.advance",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "intent_with_intent_id_exists",
+          "error_code": "INTENT_MUST_EXIST_FAILED",
+          "error_message": "intent_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "intent_state_ready",
+          "error_code": "INTENT_MUST_BE_READY_FAILED",
+          "error_message": "intent_must_be_ready failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_be_ready",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "current_step_total_steps",
+          "error_code": "CURRENT_STEP_MUST_BE_WITHIN_BOUNDS_FAILED",
+          "error_message": "current_step_must_be_within_bounds failed",
+          "on_failure": "REJECT",
+          "rule_id": "current_step_must_be_within_bounds",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_prerequisite_steps_have_completed_successfully",
+          "error_code": "STEP_DEPENDENCIES_MUST_BE_MET_FAILED",
+          "error_message": "step_dependencies_must_be_met failed",
+          "on_failure": "REJECT",
+          "rule_id": "step_dependencies_must_be_met",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "intent_multi_step_create_rules": {
+      "abi": "v1",
+      "command": "intent.multi_step.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "intent_type_multi_step",
+          "error_code": "INTENT_TYPE_MUST_BE_MULTI_STEP_FAILED",
+          "error_message": "intent_type_must_be_multi_step failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_type_must_be_multi_step",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "steps_array_has_at_least_one_step",
+          "error_code": "STEPS_ARRAY_MUST_BE_NON_EMPTY_FAILED",
+          "error_message": "steps_array_must_be_non_empty failed",
+          "on_failure": "REJECT",
+          "rule_id": "steps_array_must_be_non_empty",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "step_dependency_graph_has_no_cycles",
+          "error_code": "NO_CIRCULAR_DEPENDENCIES_FAILED",
+          "error_message": "no_circular_dependencies failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_circular_dependencies",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "intent_submit_rules": {
+      "abi": "v1",
+      "command": "intent.submit",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "actor_id_references_an_existing_actor_with_state_active",
+          "error_code": "ACTOR_MUST_EXIST_AND_BE_ACTIVE_FAILED",
+          "error_message": "actor_must_exist_and_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_must_exist_and_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "policy_decision_id_exists_and_associated_decision_allow",
+          "error_code": "POLICY_DECISION_MUST_ALLOW_FAILED",
+          "error_message": "policy_decision_must_allow failed",
+          "on_failure": "REJECT",
+          "rule_id": "policy_decision_must_allow",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "objective_is_non_empty_string",
+          "error_code": "OBJECTIVE_MUST_NOT_BE_EMPTY_FAILED",
+          "error_message": "objective_must_not_be_empty failed",
+          "on_failure": "REJECT",
+          "rule_id": "objective_must_not_be_empty",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "domain_target_in_recognized_domain_targets",
+          "error_code": "DOMAIN_TARGET_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "domain_target_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "domain_target_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "intent_validate_rules": {
+      "abi": "v1",
+      "command": "intent.validate",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "intent_with_intent_id_exists",
+          "error_code": "INTENT_MUST_EXIST_FAILED",
+          "error_message": "intent_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "intent_state_in_enriching_validating",
+          "error_code": "INTENT_MUST_BE_IN_VALIDATABLE_STATE_FAILED",
+          "error_message": "intent_must_be_in_validatable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "intent_must_be_in_validatable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_enrichment_steps_have_completed_successfully",
+          "error_code": "ENRICHMENT_MUST_BE_COMPLETE_FAILED",
+          "error_message": "enrichment_must_be_complete failed",
+          "on_failure": "REJECT",
+          "rule_id": "enrichment_must_be_complete",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ledger_account_create_rules": {
+      "abi": "v1",
+      "command": "ledger.account.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_LEDGER_ID",
+          "error_message": "ledger_id is required",
+          "field": "payload.ledger_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ACCOUNT_CODE",
+          "error_message": "account_code is required",
+          "field": "payload.account_code",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ACCOUNT_NAME",
+          "error_message": "account_name is required",
+          "field": "payload.account_name",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ACCOUNT_TYPE",
+          "error_message": "account_type is required",
+          "field": "payload.account_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DOMAIN_OWNERSHIP",
+          "error_message": "domain_ownership is required",
+          "field": "payload.domain_ownership",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_OWNER_ID",
+          "error_message": "owner_id is required",
+          "field": "payload.owner_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PARENT_ACCOUNT_ID",
+          "error_message": "parent_account_id is required",
+          "field": "payload.parent_account_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DEBIT_ALLOWED",
+          "error_message": "debit_allowed is required",
+          "field": "payload.debit_allowed",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CREDIT_ALLOWED",
+          "error_message": "credit_allowed is required",
+          "field": "payload.credit_allowed",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REQUIRES_APPROVAL",
+          "error_message": "requires_approval is required",
+          "field": "payload.requires_approval",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_existing_account_with_same_code_in_this_ledger",
+          "error_code": "ACCOUNT_CODE_UNIQUE_FAILED",
+          "error_message": "account_code_unique failed",
+          "on_failure": "REJECT",
+          "rule_id": "account_code_unique",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "account_type_in_asset_liability_equity_revenue_expense_memorandum_reserve_collateral",
+          "error_code": "ACCOUNT_TYPE_RECOGNIZED_FAILED",
+          "error_message": "account_type_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "account_type_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "if_parent_account_id_parent_account_exists",
+          "error_code": "PARENT_EXISTS_IF_SPECIFIED_FAILED",
+          "error_message": "parent_exists_if_specified failed",
+          "on_failure": "REJECT",
+          "rule_id": "parent_exists_if_specified",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "normal_balance_matches_account_type_definition",
+          "error_code": "NORMAL_BALANCE_CONSISTENT_FAILED",
+          "error_message": "normal_balance_consistent failed",
+          "on_failure": "REJECT",
+          "rule_id": "normal_balance_consistent",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ledger_account_freeze_rules": {
+      "abi": "v1",
+      "command": "ledger.account.freeze",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ACCOUNT_ID",
+          "error_message": "account_id is required",
+          "field": "payload.account_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REASON",
+          "error_message": "reason is required",
+          "field": "payload.reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "account_with_account_id_exists",
+          "error_code": "ACCOUNT_EXISTS_FAILED",
+          "error_message": "account_exists failed",
+          "on_failure": "REJECT",
+          "rule_id": "account_exists",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "account_status_active",
+          "error_code": "ACCOUNT_IS_ACTIVE_FAILED",
+          "error_message": "account_is_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "account_is_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_journal_entries_in_created_or_validating_state_reference_this_account",
+          "error_code": "NO_PENDING_ENTRIES_FAILED",
+          "error_message": "no_pending_entries failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_pending_entries",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reason_is_non_empty_string",
+          "error_code": "FREEZE_REASON_PROVIDED_FAILED",
+          "error_message": "freeze_reason_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "freeze_reason_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ledger_entry_correct_rules": {
+      "abi": "v1",
+      "command": "ledger.entry.correct",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ORIGINAL_ENTRY_ID",
+          "error_message": "original_entry_id is required",
+          "field": "payload.original_entry_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CORRECTION_DESCRIPTION",
+          "error_message": "correction_description is required",
+          "field": "payload.correction_description",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_APPROVED_BY",
+          "error_message": "approved_by is required",
+          "field": "payload.approved_by",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_POSTINGS",
+          "error_message": "postings is required",
+          "field": "payload.postings",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_POSTINGS_ITEM",
+          "error_message": "postings items must contain required fields",
+          "field": "payload.postings",
+          "fields": [
+            "account_id",
+            "amount",
+            "direction",
+            "asset_id",
+            "description"
+          ],
+          "type": "ARRAY_ITEMS_REQUIRE_FIELDS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "entry_with_original_entry_id_exists",
+          "error_code": "ORIGINAL_ENTRY_EXISTS_FAILED",
+          "error_message": "original_entry_exists failed",
+          "on_failure": "REJECT",
+          "rule_id": "original_entry_exists",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "original_entry_status_in_posted_settled",
+          "error_code": "ORIGINAL_ENTRY_POSTED_OR_SETTLED_FAILED",
+          "error_message": "original_entry_posted_or_settled failed",
+          "on_failure": "REJECT",
+          "rule_id": "original_entry_posted_or_settled",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "correction_description_is_non_empty_string",
+          "error_code": "CORRECTION_DESCRIPTION_PROVIDED_FAILED",
+          "error_message": "correction_description_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "correction_description_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "approved_by_references_a_verified_governor",
+          "error_code": "GOVERNANCE_APPROVAL_OBTAINED_FAILED",
+          "error_message": "governance_approval_obtained failed",
+          "on_failure": "REJECT",
+          "rule_id": "governance_approval_obtained",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "constitutional_ref": "INV-002",
+          "error_code": "INV_002_UNBALANCED_POSTINGS",
+          "error_message": "postings must balance debits and credits",
+          "field": "payload.postings",
+          "type": "BALANCED_POSTINGS"
+        }
+      ]
+    },
+    "ledger_entry_post_rules": {
+      "abi": "v1",
+      "command": "ledger.entry.post",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_JOURNAL_ID",
+          "error_message": "journal_id is required",
+          "field": "payload.journal_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TRANSACTION_ID",
+          "error_message": "transaction_id is required",
+          "field": "payload.transaction_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EVENT_REFERENCE",
+          "error_message": "event_reference is required",
+          "field": "payload.event_reference",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CORRELATION_ID",
+          "error_message": "correlation_id is required",
+          "field": "payload.correlation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CAUSATION_ID",
+          "error_message": "causation_id is required",
+          "field": "payload.causation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DESCRIPTION",
+          "error_message": "description is required",
+          "field": "payload.description",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ENTRY_TYPE",
+          "error_message": "entry_type is required",
+          "field": "payload.entry_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_POSTINGS",
+          "error_message": "postings is required",
+          "field": "payload.postings",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_POSTINGS_ITEM",
+          "error_message": "postings items must contain required fields",
+          "field": "payload.postings",
+          "fields": [
+            "account_id",
+            "amount",
+            "direction",
+            "asset_id",
+            "description"
+          ],
+          "type": "ARRAY_ITEMS_REQUIRE_FIELDS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "postings_length_2",
+          "error_code": "AT_LEAST_TWO_POSTINGS_FAILED",
+          "error_message": "at_least_two_postings failed",
+          "on_failure": "REJECT",
+          "rule_id": "at_least_two_postings",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_posting_account_id_reference_active_accounts",
+          "error_code": "ALL_ACCOUNTS_EXIST_AND_ACTIVE_FAILED",
+          "error_message": "all_accounts_exist_and_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "all_accounts_exist_and_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_posting_asset_id_reference_valid_vault_assets",
+          "error_code": "ALL_POSTINGS_HAVE_VALID_ASSET_FAILED",
+          "error_message": "all_postings_have_valid_asset failed",
+          "on_failure": "REJECT",
+          "rule_id": "all_postings_have_valid_asset",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_posting_amount_0",
+          "error_code": "AMOUNTS_POSITIVE_FAILED",
+          "error_message": "amounts_positive failed",
+          "on_failure": "REJECT",
+          "rule_id": "amounts_positive",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "constitutional_ref": "INV-002",
+          "error_code": "INV_002_UNBALANCED_POSTINGS",
+          "error_message": "postings must balance debits and credits",
+          "field": "payload.postings",
+          "type": "BALANCED_POSTINGS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "posting_direction_consistent_with_account_debit_allowed_credit_allowed",
+          "error_code": "DIRECTION_ALLOWED_FOR_ACCOUNT_FAILED",
+          "error_message": "direction_allowed_for_account failed",
+          "on_failure": "REJECT",
+          "rule_id": "direction_allowed_for_account",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_has_permission_to_post_to_all_referenced_accounts",
+          "error_code": "ACTOR_HAS_POSTING_AUTHORITY_FAILED",
+          "error_message": "actor_has_posting_authority failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_has_posting_authority",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "event_reference_exists_in_event_store_and_is_journalizable",
+          "error_code": "EVENT_REFERENCE_VALID_FAILED",
+          "error_message": "event_reference_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "event_reference_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_existing_entry_references_this_event_reference_unless_correction",
+          "error_code": "EVENT_NOT_ALREADY_JOURNALIZED_FAILED",
+          "error_message": "event_not_already_journalized failed",
+          "on_failure": "REJECT",
+          "rule_id": "event_not_already_journalized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "postings_to_domain_owned_accounts_are_from_permitted_domains",
+          "error_code": "DOMAIN_ACCOUNT_OWNERSHIP_RESPECTED_FAILED",
+          "error_message": "domain_account_ownership_respected failed",
+          "on_failure": "REJECT",
+          "rule_id": "domain_account_ownership_respected",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ledger_entry_reverse_rules": {
+      "abi": "v1",
+      "command": "ledger.entry.reverse",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ORIGINAL_ENTRY_ID",
+          "error_message": "original_entry_id is required",
+          "field": "payload.original_entry_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REVERSAL_REASON",
+          "error_message": "reversal_reason is required",
+          "field": "payload.reversal_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "entry_with_original_entry_id_exists",
+          "error_code": "ORIGINAL_ENTRY_EXISTS_FAILED",
+          "error_message": "original_entry_exists failed",
+          "on_failure": "REJECT",
+          "rule_id": "original_entry_exists",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "original_entry_status_in_posted_settled",
+          "error_code": "ORIGINAL_ENTRY_POSTED_OR_SETTLED_FAILED",
+          "error_message": "original_entry_posted_or_settled failed",
+          "on_failure": "REJECT",
+          "rule_id": "original_entry_posted_or_settled",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_existing_reversal_entry_references_this_original_entry_id",
+          "error_code": "NOT_ALREADY_REVERSED_FAILED",
+          "error_message": "not_already_reversed failed",
+          "on_failure": "REJECT",
+          "rule_id": "not_already_reversed",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reversal_reason_is_non_empty_string",
+          "error_code": "REVERSAL_REASON_PROVIDED_FAILED",
+          "error_message": "reversal_reason_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "reversal_reason_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_accounts_in_original_entry_still_exist",
+          "error_code": "ACCOUNTS_STILL_VALID_FAILED",
+          "error_message": "accounts_still_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "accounts_still_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ledger_journal_create_rules": {
+      "abi": "v1",
+      "command": "ledger.journal.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_LEDGER_ID",
+          "error_message": "ledger_id is required",
+          "field": "payload.ledger_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_NAME",
+          "error_message": "name is required",
+          "field": "payload.name",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DOMAIN",
+          "error_message": "domain is required",
+          "field": "payload.domain",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DESCRIPTION",
+          "error_message": "description is required",
+          "field": "payload.description",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_existing_journal_with_same_name_in_this_ledger",
+          "error_code": "JOURNAL_NAME_UNIQUE_WITHIN_LEDGER_FAILED",
+          "error_message": "journal_name_unique_within_ledger failed",
+          "on_failure": "REJECT",
+          "rule_id": "journal_name_unique_within_ledger",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "domain_in_recognized_domains",
+          "error_code": "DOMAIN_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "domain_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "domain_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "ledger_status_active",
+          "error_code": "LEDGER_MUST_BE_ACTIVE_FAILED",
+          "error_message": "ledger_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "ledger_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ledger_period_close_rules": {
+      "abi": "v1",
+      "command": "ledger.period.close",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PERIOD_ID",
+          "error_message": "period_id is required",
+          "field": "payload.period_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "period_with_period_id_exists",
+          "error_code": "PERIOD_EXISTS_FAILED",
+          "error_message": "period_exists failed",
+          "on_failure": "REJECT",
+          "rule_id": "period_exists",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "period_status_open",
+          "error_code": "PERIOD_IS_OPEN_FAILED",
+          "error_message": "period_is_open failed",
+          "on_failure": "REJECT",
+          "rule_id": "period_is_open",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_entries_for_this_period_are_in_posted_or_settled_state",
+          "error_code": "ALL_ENTRIES_SETTLED_FAILED",
+          "error_message": "all_entries_settled failed",
+          "on_failure": "REJECT",
+          "rule_id": "all_entries_settled",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_active_reconciliations_for_this_period",
+          "error_code": "NO_PENDING_RECONCILIATIONS_FAILED",
+          "error_message": "no_pending_reconciliations failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_pending_reconciliations",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "if_not_first_period_previous_period_status_closed",
+          "error_code": "PREVIOUS_PERIOD_CLOSED_FAILED",
+          "error_message": "previous_period_closed failed",
+          "on_failure": "REJECT",
+          "rule_id": "previous_period_closed",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ledger_reconciliation_resolve_rules": {
+      "abi": "v1",
+      "command": "ledger.reconciliation.resolve",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RECONCILIATION_ID",
+          "error_message": "reconciliation_id is required",
+          "field": "payload.reconciliation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RESOLUTION_METHOD",
+          "error_message": "resolution_method is required",
+          "field": "payload.resolution_method",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CORRECTION_POSTINGS",
+          "error_message": "correction_postings is required",
+          "field": "payload.correction_postings",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reconciliation_with_reconciliation_id_exists",
+          "error_code": "RECONCILIATION_EXISTS_FAILED",
+          "error_message": "reconciliation_exists failed",
+          "on_failure": "REJECT",
+          "rule_id": "reconciliation_exists",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reconciliation_state_in_investigation_adjustment_required",
+          "error_code": "RECONCILIATION_IN_RESOLVABLE_STATE_FAILED",
+          "error_message": "reconciliation_in_resolvable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "reconciliation_in_resolvable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "resolution_method_specified",
+          "error_code": "RESOLUTION_METHOD_PROVIDED_FAILED",
+          "error_message": "resolution_method_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "resolution_method_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "if_resolution_requires_adjustment_the_correction_entry_must_balance",
+          "error_code": "IF_ADJUSTMENT_THEN_BALANCED_FAILED",
+          "error_message": "if_adjustment_then_balanced failed",
+          "on_failure": "REJECT",
+          "rule_id": "if_adjustment_then_balanced",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ledger_reconciliation_start_rules": {
+      "abi": "v1",
+      "command": "ledger.reconciliation.start",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TYPE",
+          "error_message": "type is required",
+          "field": "payload.type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SCOPE",
+          "error_message": "scope is required",
+          "field": "payload.scope",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SOURCE_DATA",
+          "error_message": "source_data is required",
+          "field": "payload.source_data",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_active_reconciliation_for_same_scope",
+          "error_code": "NO_CONFLICTING_RECONCILIATION_FAILED",
+          "error_message": "no_conflicting_reconciliation failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_conflicting_reconciliation",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "external_reference_data_provided",
+          "error_code": "SOURCE_DATA_AVAILABLE_FAILED",
+          "error_message": "source_data_available failed",
+          "on_failure": "REJECT",
+          "rule_id": "source_data_available",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "type_in_internal_vault_reconciliation_treasury_reconciliation_external_reconciliation",
+          "error_code": "VALID_RECONCILIATION_TYPE_FAILED",
+          "error_message": "valid_reconciliation_type failed",
+          "on_failure": "REJECT",
+          "rule_id": "valid_reconciliation_type",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_adapter_disable_rules": {
+      "abi": "v1",
+      "command": "payment.adapter.disable",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ADAPTER_ID",
+          "error_message": "adapter_id is required",
+          "field": "payload.adapter_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DISABLE_REASON",
+          "error_message": "disable_reason is required",
+          "field": "payload.disable_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "adapter_registered_true",
+          "error_code": "ADAPTER_MUST_BE_REGISTERED_FAILED",
+          "error_message": "adapter_must_be_registered failed",
+          "on_failure": "REJECT",
+          "rule_id": "adapter_must_be_registered",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_execution_compensate_rules": {
+      "abi": "v1",
+      "command": "payment.execution.compensate",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PAYMENT_REQUEST_ID",
+          "error_message": "payment_request_id is required",
+          "field": "payload.payment_request_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REASON",
+          "error_message": "reason is required",
+          "field": "payload.reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_with_payment_request_id_exists",
+          "error_code": "PAYMENT_MUST_EXIST_FAILED",
+          "error_message": "payment_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_state_in_failed_executing",
+          "error_code": "PAYMENT_MUST_BE_IN_COMPENSATABLE_STATE_FAILED",
+          "error_message": "payment_must_be_in_compensatable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_be_in_compensatable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reason_is_non_empty_string",
+          "error_code": "COMPENSATION_REASON_REQUIRED_FAILED",
+          "error_message": "compensation_reason_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "compensation_reason_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_execution_confirm_rules": {
+      "abi": "v1",
+      "command": "payment.execution.confirm",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PAYMENT_REQUEST_ID",
+          "error_message": "payment_request_id is required",
+          "field": "payload.payment_request_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RAIL_REFERENCE_ID",
+          "error_message": "rail_reference_id is required",
+          "field": "payload.rail_reference_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CONFIRMED",
+          "error_message": "confirmed is required",
+          "field": "payload.confirmed",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CONFIRMATION_DATA",
+          "error_message": "confirmation_data is required",
+          "field": "payload.confirmation_data",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_with_payment_request_id_exists",
+          "error_code": "PAYMENT_MUST_EXIST_FAILED",
+          "error_message": "payment_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_state_confirming",
+          "error_code": "PAYMENT_MUST_BE_IN_CONFIRMING_STATE_FAILED",
+          "error_message": "payment_must_be_in_confirming_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_be_in_confirming_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "rail_reference_id_is_non_empty",
+          "error_code": "RAIL_REFERENCE_REQUIRED_FAILED",
+          "error_message": "rail_reference_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "rail_reference_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_execution_execute_rules": {
+      "abi": "v1",
+      "command": "payment.execution.execute",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PAYMENT_REQUEST_ID",
+          "error_message": "payment_request_id is required",
+          "field": "payload.payment_request_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_with_payment_request_id_exists",
+          "error_code": "PAYMENT_MUST_EXIST_FAILED",
+          "error_message": "payment_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "execution_plan_id_is_non_null_and_plan_exists",
+          "error_code": "PAYMENT_MUST_HAVE_EXECUTION_PLAN_FAILED",
+          "error_message": "payment_must_have_execution_plan failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_have_execution_plan",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_state_in_routing_preparing",
+          "error_code": "PAYMENT_MUST_BE_IN_EXECUTABLE_STATE_FAILED",
+          "error_message": "payment_must_be_in_executable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_be_in_executable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "rail_adapter_for_selected_rail_exists",
+          "error_code": "ADAPTER_MUST_BE_REGISTERED_FAILED",
+          "error_message": "adapter_must_be_registered failed",
+          "on_failure": "REJECT",
+          "rule_id": "adapter_must_be_registered",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_execution_plan_rules": {
+      "abi": "v1",
+      "command": "payment.execution.plan",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PAYMENT_REQUEST_ID",
+          "error_message": "payment_request_id is required",
+          "field": "payload.payment_request_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AVAILABLE_RAILS",
+          "error_message": "available_rails is required",
+          "field": "payload.available_rails",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TREASURY_STATE",
+          "error_message": "treasury_state is required",
+          "field": "payload.treasury_state",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_VAULT_STATE",
+          "error_message": "vault_state is required",
+          "field": "payload.vault_state",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_POLICY_CONSTRAINTS",
+          "error_message": "policy_constraints is required",
+          "field": "payload.policy_constraints",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_with_payment_request_id_exists",
+          "error_code": "PAYMENT_MUST_EXIST_FAILED",
+          "error_message": "payment_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_state_planning",
+          "error_code": "PAYMENT_MUST_BE_IN_PLANNING_STATE_FAILED",
+          "error_message": "payment_must_be_in_planning_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_be_in_planning_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "len_available_rails_0",
+          "error_code": "AT_LEAST_ONE_RAIL_AVAILABLE_FAILED",
+          "error_message": "at_least_one_rail_available failed",
+          "on_failure": "REJECT",
+          "rule_id": "at_least_one_rail_available",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_execution_prepare_rules": {
+      "abi": "v1",
+      "command": "payment.execution.prepare",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EXECUTION_ID",
+          "error_message": "execution_id is required",
+          "field": "payload.execution_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RAIL_ID",
+          "error_message": "rail_id is required",
+          "field": "payload.rail_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT",
+          "error_message": "amount is required",
+          "field": "payload.amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_AMOUNT",
+          "error_message": "amount must be non-negative",
+          "field": "payload.amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_state_approved",
+          "error_code": "PAYMENT_REQUEST_MUST_BE_APPROVED_FAILED",
+          "error_message": "payment_request_must_be_approved failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_request_must_be_approved",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_receipt_issue_rules": {
+      "abi": "v1",
+      "command": "payment.receipt.issue",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PAYMENT_REQUEST_ID",
+          "error_message": "payment_request_id is required",
+          "field": "payload.payment_request_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RAIL_REFERENCE_ID",
+          "error_message": "rail_reference_id is required",
+          "field": "payload.rail_reference_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT_EXECUTED",
+          "error_message": "amount_executed is required",
+          "field": "payload.amount_executed",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_FEES",
+          "error_message": "fees is required",
+          "field": "payload.fees",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EXECUTION_TIMELINE",
+          "error_message": "execution_timeline is required",
+          "field": "payload.execution_timeline",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CONSTITUTIONAL_COMPLIANCE_ATTESTATION",
+          "error_message": "constitutional_compliance_attestation is required",
+          "field": "payload.constitutional_compliance_attestation",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_state_settled",
+          "error_code": "PAYMENT_MUST_BE_SETTLED_FAILED",
+          "error_message": "payment_must_be_settled failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_be_settled",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "rail_reference_id_is_non_empty",
+          "error_code": "RAIL_REFERENCE_REQUIRED_FAILED",
+          "error_message": "rail_reference_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "rail_reference_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_existing_receipt_for_this_payment_request_id",
+          "error_code": "NO_DUPLICATE_RECEIPT_FAILED",
+          "error_message": "no_duplicate_receipt failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_duplicate_receipt",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_reconciliation_complete_rules": {
+      "abi": "v1",
+      "command": "payment.reconciliation.complete",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RECONCILIATION_ID",
+          "error_message": "reconciliation_id is required",
+          "field": "payload.reconciliation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_STATUS",
+          "error_message": "status is required",
+          "field": "payload.status",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_MATCHED",
+          "error_message": "matched is required",
+          "field": "payload.matched",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DISCREPANCY_DETAILS",
+          "error_message": "discrepancy_details is required",
+          "field": "payload.discrepancy_details",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reconciliation_with_reconciliation_id_exists",
+          "error_code": "RECONCILIATION_MUST_EXIST_FAILED",
+          "error_message": "reconciliation_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "reconciliation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reconciliation_status_active",
+          "error_code": "RECONCILIATION_MUST_BE_ACTIVE_FAILED",
+          "error_message": "reconciliation_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "reconciliation_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_reconciliation_start_rules": {
+      "abi": "v1",
+      "command": "payment.reconciliation.start",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PAYMENT_REQUEST_ID",
+          "error_message": "payment_request_id is required",
+          "field": "payload.payment_request_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TRIGGER_TYPE",
+          "error_message": "trigger_type is required",
+          "field": "payload.trigger_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_with_payment_request_id_exists",
+          "error_code": "PAYMENT_MUST_EXIST_FAILED",
+          "error_message": "payment_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_state_in_confirming_reconciling_settled",
+          "error_code": "PAYMENT_MUST_BE_IN_RECONCILABLE_STATE_FAILED",
+          "error_message": "payment_must_be_in_reconcilable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_be_in_reconcilable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_request_cancel_rules": {
+      "abi": "v1",
+      "command": "payment.request.cancel",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PAYMENT_REQUEST_ID",
+          "error_message": "payment_request_id is required",
+          "field": "payload.payment_request_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REASON",
+          "error_message": "reason is required",
+          "field": "payload.reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_with_payment_request_id_exists",
+          "error_code": "PAYMENT_MUST_EXIST_FAILED",
+          "error_message": "payment_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "payment_request_state_in_received_planning_routing_preparing",
+          "error_code": "PAYMENT_MUST_BE_CANCELLABLE_FAILED",
+          "error_message": "payment_must_be_cancellable failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_must_be_cancellable",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reason_is_non_empty_string",
+          "error_code": "CANCELLATION_REASON_REQUIRED_FAILED",
+          "error_message": "cancellation_reason_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "cancellation_reason_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "payment_request_create_rules": {
+      "abi": "v1",
+      "command": "payment.request.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SOURCE_TRANSFER_ID",
+          "error_message": "source_transfer_id is required",
+          "field": "payload.source_transfer_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT",
+          "error_message": "amount is required",
+          "field": "payload.amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_AMOUNT",
+          "error_message": "amount must be non-negative",
+          "field": "payload.amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SENDER",
+          "error_message": "sender is required",
+          "field": "payload.sender",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RECIPIENT",
+          "error_message": "recipient is required",
+          "field": "payload.recipient",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_URGENCY",
+          "error_message": "urgency is required",
+          "field": "payload.urgency",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RETRY_POLICY",
+          "error_message": "retry_policy is required",
+          "field": "payload.retry_policy",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "treasury_transfer_with_source_transfer_id_exists_and_state_authorized",
+          "error_code": "SOURCE_TRANSFER_MUST_EXIST_FAILED",
+          "error_message": "source_transfer_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "source_transfer_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "amount_treasury_transfer_amount",
+          "error_code": "AMOUNT_MUST_MATCH_TRANSFER_FAILED",
+          "error_message": "amount_must_match_transfer failed",
+          "on_failure": "REJECT",
+          "rule_id": "amount_must_match_transfer",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "urgency_in_immediate_standard_batch",
+          "error_code": "URGENCY_MUST_BE_VALID_FAILED",
+          "error_message": "urgency_must_be_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "urgency_must_be_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "recipient_rail_account_ref_is_non_empty",
+          "error_code": "RECIPIENT_RAIL_REF_REQUIRED_FAILED",
+          "error_message": "recipient_rail_ref_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "recipient_rail_ref_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "policy_compliance_requirement_register_rules": {
+      "abi": "v1",
+      "command": "policy.compliance.requirement.register",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "regulation_id_is_non_empty_string",
+          "error_code": "REGULATION_ID_MUST_NOT_BE_EMPTY_FAILED",
+          "error_message": "regulation_id_must_not_be_empty failed",
+          "on_failure": "REJECT",
+          "rule_id": "regulation_id_must_not_be_empty",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "jurisdiction_is_non_empty_string",
+          "error_code": "JURISDICTION_MUST_NOT_BE_EMPTY_FAILED",
+          "error_message": "jurisdiction_must_not_be_empty failed",
+          "on_failure": "REJECT",
+          "rule_id": "jurisdiction_must_not_be_empty",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "policy_escalation_resolve_rules": {
+      "abi": "v1",
+      "command": "policy.escalation.resolve",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "escalation_with_escalation_id_exists",
+          "error_code": "ESCALATION_MUST_EXIST_FAILED",
+          "error_message": "escalation_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "escalation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "escalation_state_in_pending_under_review",
+          "error_code": "ESCALATION_MUST_BE_IN_RESOLVABLE_STATE_FAILED",
+          "error_message": "escalation_must_be_in_resolvable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "escalation_must_be_in_resolvable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "caller_has_authority_to_resolve_this_escalation_type",
+          "error_code": "RESOLVER_MUST_HAVE_AUTHORITY_FAILED",
+          "error_message": "resolver_must_have_authority failed",
+          "on_failure": "REJECT",
+          "rule_id": "resolver_must_have_authority",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "policy_rule_activate_rules": {
+      "abi": "v1",
+      "command": "policy.rule.activate",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "rule_with_rule_id_exists",
+          "error_code": "RULE_MUST_EXIST_FAILED",
+          "error_message": "rule_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "rule_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "rule_state_draft",
+          "error_code": "RULE_MUST_BE_IN_DRAFT_STATE_FAILED",
+          "error_message": "rule_must_be_in_draft_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "rule_must_be_in_draft_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "if_rule_affects_constitutional_constraints_governance_approval_is_present",
+          "error_code": "CONSTITUTIONAL_RULES_REQUIRE_GOVERNANCE_APPROVAL_FAILED",
+          "error_message": "constitutional_rules_require_governance_approval failed",
+          "on_failure": "REJECT",
+          "rule_id": "constitutional_rules_require_governance_approval",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "policy_rule_create_rules": {
+      "abi": "v1",
+      "command": "policy.rule.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "no_existing_rule_with_same_name",
+          "error_code": "RULE_NAME_MUST_BE_UNIQUE_FAILED",
+          "error_message": "rule_name_must_be_unique failed",
+          "on_failure": "REJECT",
+          "rule_id": "rule_name_must_be_unique",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "category_in_recognized_policy_categories",
+          "error_code": "CATEGORY_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "category_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "category_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "condition_type_in_recognized_condition_types",
+          "error_code": "CONDITION_TYPE_MUST_BE_VALID_FAILED",
+          "error_message": "condition_type_must_be_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "condition_type_must_be_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "policy_rule_deactivate_rules": {
+      "abi": "v1",
+      "command": "policy.rule.deactivate",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "rule_with_rule_id_exists",
+          "error_code": "RULE_MUST_EXIST_FAILED",
+          "error_message": "rule_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "rule_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "rule_state_active",
+          "error_code": "RULE_MUST_BE_ACTIVE_FAILED",
+          "error_message": "rule_must_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "rule_must_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "policy_rule_update_rules": {
+      "abi": "v1",
+      "command": "policy.rule.update",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "rule_with_rule_id_exists",
+          "error_code": "RULE_MUST_EXIST_FAILED",
+          "error_message": "rule_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "rule_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "new_version_current_version",
+          "error_code": "VERSION_MUST_BE_INCREMENTED_FAILED",
+          "error_message": "version_must_be_incremented failed",
+          "on_failure": "REJECT",
+          "rule_id": "version_must_be_incremented",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "caller_has_governance_authority_for_rule_updates",
+          "error_code": "GOVERNANCE_AUTHORITY_REQUIRED_FAILED",
+          "error_message": "governance_authority_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "governance_authority_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "policy_set_create_rules": {
+      "abi": "v1",
+      "command": "policy.set.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "every_rule_id_in_the_set_references_an_existing_rule_with_state_active",
+          "error_code": "ALL_RULE_IDS_MUST_EXIST_AND_BE_ACTIVE_FAILED",
+          "error_message": "all_rule_ids_must_exist_and_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "all_rule_ids_must_exist_and_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "evaluation_strategy_in_all_must_pass_any_must_pass_first_match_weighted_score",
+          "error_code": "EVALUATION_STRATEGY_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "evaluation_strategy_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "evaluation_strategy_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "policy_set_evaluate_rules": {
+      "abi": "v1",
+      "command": "policy.set.evaluate",
+      "rules": [
+        {
+          "abi": "v1",
+          "check_id": "authorization_context_id_is_present_and_non_empty",
+          "error_code": "AUTHORIZATION_CONTEXT_ID_REQUIRED_FAILED",
+          "error_message": "authorization_context_id_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "authorization_context_id_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "command_id_is_present_and_non_empty",
+          "error_code": "COMMAND_ID_REQUIRED_FAILED",
+          "error_message": "command_id_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "command_id_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "policy_set_with_policy_set_id_exists_and_state_active",
+          "error_code": "POLICY_SET_MUST_EXIST_AND_BE_ACTIVE_FAILED",
+          "error_message": "policy_set_must_exist_and_be_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "policy_set_must_exist_and_be_active",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "saga_compensate_rules": {
+      "abi": "v1",
+      "command": "saga.compensate",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SAGA_ID",
+          "error_message": "saga_id is required",
+          "field": "payload.saga_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_FAILED_STEP_ID",
+          "error_message": "failed_step_id is required",
+          "field": "payload.failed_step_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "saga_state_failed_or_saga_state_cancelling",
+          "error_code": "SAGA_MUST_BE_FAILED_OR_CANCELLING_FAILED",
+          "error_message": "saga_must_be_failed_or_cancelling failed",
+          "on_failure": "REJECT",
+          "rule_id": "saga_must_be_failed_or_cancelling",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "treasury_liquidity_allocate_rules": {
+      "abi": "v1",
+      "command": "treasury.liquidity.allocate",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ACTOR_ID",
+          "error_message": "actor_id is required",
+          "field": "payload.actor_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SOURCE_ASSET_ID",
+          "error_message": "source_asset_id is required",
+          "field": "payload.source_asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TARGET_ASSET_ID",
+          "error_message": "target_asset_id is required",
+          "field": "payload.target_asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT",
+          "error_message": "amount is required",
+          "field": "payload.amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_AMOUNT",
+          "error_message": "amount must be non-negative",
+          "field": "payload.amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PURPOSE",
+          "error_message": "purpose is required",
+          "field": "payload.purpose",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "source_available_balance_allocation_amount",
+          "error_code": "SOURCE_HAS_SUFFICIENT_LIQUIDITY_FAILED",
+          "error_message": "source_has_sufficient_liquidity failed",
+          "on_failure": "REJECT",
+          "rule_id": "source_has_sufficient_liquidity",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "purpose_in_transfer_cover_margin_call_settlement_reserve_operational",
+          "error_code": "ALLOCATION_PURPOSE_VALID_FAILED",
+          "error_message": "allocation_purpose_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "allocation_purpose_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "post_allocation_balance_minimum_reserve_threshold",
+          "error_code": "DOES_NOT_BREACH_MINIMUM_RESERVE_FAILED",
+          "error_message": "does_not_breach_minimum_reserve failed",
+          "on_failure": "REJECT",
+          "rule_id": "does_not_breach_minimum_reserve",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "source_and_target_assets_are_conversion_compatible",
+          "error_code": "ASSET_COMPATIBLE_FAILED",
+          "error_message": "asset_compatible failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_compatible",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_active_allocation_with_same_dedup_key",
+          "error_code": "NO_DUPLICATE_ALLOCATION_FAILED",
+          "error_message": "no_duplicate_allocation failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_duplicate_allocation",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "treasury_liquidity_check_rules": {
+      "abi": "v1",
+      "command": "treasury.liquidity.check",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ACTOR_ID",
+          "error_message": "actor_id is required",
+          "field": "payload.actor_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_id_references_an_active_actor",
+          "error_code": "ACTOR_EXISTS_FAILED",
+          "error_message": "actor_exists failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_exists",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "caller_has_read_access_to_this_actor_s_liquidity",
+          "error_code": "SCOPE_MATCHES_ACTOR_FAILED",
+          "error_message": "scope_matches_actor failed",
+          "on_failure": "REJECT",
+          "rule_id": "scope_matches_actor",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "treasury_settlement_confirm_rules": {
+      "abi": "v1",
+      "command": "treasury.settlement.confirm",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ORDER_ID",
+          "error_message": "order_id is required",
+          "field": "payload.order_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_REFERENCE",
+          "error_message": "settlement_reference is required",
+          "field": "payload.settlement_reference",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLED_AT",
+          "error_message": "settled_at is required",
+          "field": "payload.settled_at",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_AMOUNT",
+          "error_message": "settlement_amount is required",
+          "field": "payload.settlement_amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_SETTLEMENT_AMOUNT",
+          "error_message": "settlement_amount must be non-negative",
+          "field": "payload.settlement_amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "check_id": "transfer_order_state_in_executing_pending_settlement_unknown_external_state",
+          "error_code": "TRANSFER_IN_SETTLEABLE_STATE_FAILED",
+          "error_message": "transfer_in_settleable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "transfer_in_settleable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_reference_is_non_empty",
+          "error_code": "SETTLEMENT_REFERENCE_PROVIDED_FAILED",
+          "error_message": "settlement_reference_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "settlement_reference_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_amount_transfer_order_amount",
+          "error_code": "SETTLEMENT_AMOUNT_MATCHES_FAILED",
+          "error_message": "settlement_amount_matches failed",
+          "on_failure": "REJECT",
+          "rule_id": "settlement_amount_matches",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_prior_settlement_confirmation_for_this_order_id",
+          "error_code": "NOT_ALREADY_SETTLED_FAILED",
+          "error_message": "not_already_settled failed",
+          "on_failure": "REJECT",
+          "rule_id": "not_already_settled",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "treasury_transfer_authorize_rules": {
+      "abi": "v1",
+      "command": "treasury.transfer.authorize",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ORDER_ID",
+          "error_message": "order_id is required",
+          "field": "payload.order_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "transfer_order_state_requested",
+          "error_code": "TRANSFER_IN_REQUESTED_STATE_FAILED",
+          "error_message": "transfer_in_requested_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "transfer_in_requested_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "now_transfer_order_created_at_3600s",
+          "error_code": "TRANSFER_NOT_EXPIRED_FAILED",
+          "error_message": "transfer_not_expired failed",
+          "on_failure": "REJECT",
+          "rule_id": "transfer_not_expired",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "policy_result_approve",
+          "error_code": "POLICY_EVALUATES_TO_APPROVE_FAILED",
+          "error_message": "policy_evaluates_to_approve failed",
+          "on_failure": "REJECT",
+          "rule_id": "policy_evaluates_to_approve",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_has_transfer_authority_over_source_asset",
+          "error_code": "ACTOR_HAS_AUTHORITY_FAILED",
+          "error_message": "actor_has_authority failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_has_authority",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "all_compliance_rules_evaluate_to_pass",
+          "error_code": "COMPLIANCE_RULES_PASSED_FAILED",
+          "error_message": "compliance_rules_passed failed",
+          "on_failure": "REJECT",
+          "rule_id": "compliance_rules_passed",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "treasury_transfer_cancel_rules": {
+      "abi": "v1",
+      "command": "treasury.transfer.cancel",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ORDER_ID",
+          "error_message": "order_id is required",
+          "field": "payload.order_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REASON",
+          "error_message": "reason is required",
+          "field": "payload.reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "transfer_order_state_in_requested_authorized_reserved",
+          "error_code": "TRANSFER_IN_CANCELLABLE_STATE_FAILED",
+          "error_message": "transfer_in_cancellable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "transfer_in_cancellable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reason_is_non_empty_string",
+          "error_code": "CANCELLATION_REASON_PROVIDED_FAILED",
+          "error_message": "cancellation_reason_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "cancellation_reason_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_pending_execution_instruction_on_payment_rail",
+          "error_code": "NO_EXECUTION_IN_PROGRESS_FAILED",
+          "error_message": "no_execution_in_progress failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_execution_in_progress",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "if_reserved_vault_reservation_can_be_released",
+          "error_code": "VAULT_RESERVATION_RELEASABLE_FAILED",
+          "error_message": "vault_reservation_releasable failed",
+          "on_failure": "REJECT",
+          "rule_id": "vault_reservation_releasable",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "treasury_transfer_compensate_rules": {
+      "abi": "v1",
+      "command": "treasury.transfer.compensate",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ORDER_ID",
+          "error_message": "order_id is required",
+          "field": "payload.order_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_COMPENSATION_STEP",
+          "error_message": "compensation_step is required",
+          "field": "payload.compensation_step",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "transfer_order_state_in_failed_compensation_required",
+          "error_code": "TRANSFER_IN_COMPENSATABLE_STATE_FAILED",
+          "error_message": "transfer_in_compensatable_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "transfer_in_compensatable_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "next_compensation_step_exists_in_saga_definition",
+          "error_code": "COMPENSATION_STEP_DEFINED_FAILED",
+          "error_message": "compensation_step_defined failed",
+          "on_failure": "REJECT",
+          "rule_id": "compensation_step_defined",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "vault_lock_can_be_released_or_consumed_appropriately",
+          "error_code": "VAULT_LOCK_RESOLVABLE_FAILED",
+          "error_message": "vault_lock_resolvable failed",
+          "on_failure": "REJECT",
+          "rule_id": "vault_lock_resolvable",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "if_saga_step_requires_governance_approval_is_present",
+          "error_code": "GOVERNANCE_APPROVAL_IF_REQUIRED_FAILED",
+          "error_message": "governance_approval_if_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "governance_approval_if_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "treasury_transfer_execute_rules": {
+      "abi": "v1",
+      "command": "treasury.transfer.execute",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ORDER_ID",
+          "error_message": "order_id is required",
+          "field": "payload.order_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "transfer_order_state_reserved",
+          "error_code": "TRANSFER_IN_RESERVED_STATE_FAILED",
+          "error_message": "transfer_in_reserved_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "transfer_in_reserved_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "vault_confirms_lock_id_is_still_active",
+          "error_code": "VAULT_LOCK_STILL_ACTIVE_FAILED",
+          "error_message": "vault_lock_still_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "vault_lock_still_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "target_payment_rail_is_reachable",
+          "error_code": "PAYMENT_RAIL_AVAILABLE_FAILED",
+          "error_message": "payment_rail_available failed",
+          "on_failure": "REJECT",
+          "rule_id": "payment_rail_available",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "compensation_saga_steps_are_defined_for_this_rail",
+          "error_code": "EXECUTION_SAGA_DEFINED_FAILED",
+          "error_message": "execution_saga_defined failed",
+          "on_failure": "REJECT",
+          "rule_id": "execution_saga_defined",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "treasury_transfer_request_rules": {
+      "abi": "v1",
+      "command": "treasury.transfer.request",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SOURCE_ACTOR_ID",
+          "error_message": "source_actor_id is required",
+          "field": "payload.source_actor_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DESTINATION_DETAILS",
+          "error_message": "destination_details is required",
+          "field": "payload.destination_details",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_DESTINATION_DETAILS_ITEM",
+          "error_message": "destination_details items must contain required fields",
+          "field": "payload.destination_details",
+          "fields": [
+            "type",
+            "address",
+            "rail",
+            "reference"
+          ],
+          "type": "ARRAY_ITEMS_REQUIRE_FIELDS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT",
+          "error_message": "amount is required",
+          "field": "payload.amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_AMOUNT",
+          "error_message": "amount must be non-negative",
+          "field": "payload.amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PURPOSE",
+          "error_message": "purpose is required",
+          "field": "payload.purpose",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "source_actor_id_references_an_active_actor",
+          "error_code": "SOURCE_ACTOR_EXISTS_AND_ACTIVE_FAILED",
+          "error_message": "source_actor_exists_and_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "source_actor_exists_and_active",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "destination_details_are_complete_and_valid",
+          "error_code": "DESTINATION_ACTOR_VALID_FAILED",
+          "error_message": "destination_actor_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "destination_actor_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_id_references_a_verified_or_available_vault_asset",
+          "error_code": "ASSET_EXISTS_IN_VAULT_FAILED",
+          "error_message": "asset_exists_in_vault failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_exists_in_vault",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "amount_0_and_within_asset_precision",
+          "error_code": "AMOUNT_POSITIVE_AND_WITHIN_PRECISION_FAILED",
+          "error_message": "amount_positive_and_within_precision failed",
+          "on_failure": "REJECT",
+          "rule_id": "amount_positive_and_within_precision",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_active_transfer_with_same_dedup_key_exists",
+          "error_code": "NO_DUPLICATE_PENDING_TRANSFER_FAILED",
+          "error_message": "no_duplicate_pending_transfer failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_duplicate_pending_transfer",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "treasury_transfer_reserve_rules": {
+      "abi": "v1",
+      "command": "treasury.transfer.reserve",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ORDER_ID",
+          "error_message": "order_id is required",
+          "field": "payload.order_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "transfer_order_state_authorized",
+          "error_code": "TRANSFER_IN_AUTHORIZED_STATE_FAILED",
+          "error_message": "transfer_in_authorized_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "transfer_in_authorized_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "now_transfer_order_authorized_at_300s",
+          "error_code": "AUTHORIZATION_NOT_EXPIRED_FAILED",
+          "error_message": "authorization_not_expired failed",
+          "on_failure": "REJECT",
+          "rule_id": "authorization_not_expired",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "vault_confirms_available_balance_transfer_order_amount",
+          "error_code": "VAULT_AVAILABLE_BALANCE_SUFFICIENT_FAILED",
+          "error_message": "vault_available_balance_sufficient failed",
+          "on_failure": "REJECT",
+          "rule_id": "vault_available_balance_sufficient",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_active_reservation_for_this_order_id",
+          "error_code": "NO_CONFLICTING_RESERVATION_FAILED",
+          "error_message": "no_conflicting_reservation failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_conflicting_reservation",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_asset_reconcile_rules": {
+      "abi": "v1",
+      "command": "vault.asset.reconcile",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SCOPE",
+          "error_message": "scope is required",
+          "field": "payload.scope",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ACTOR_ID",
+          "error_message": "actor_id is required",
+          "field": "payload.actor_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EXTERNAL_PROOF",
+          "error_message": "external_proof is required",
+          "field": "payload.external_proof",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_active_reconciliation_for_same_scope",
+          "error_code": "NO_CONCURRENT_RECONCILIATION_FAILED",
+          "error_message": "no_concurrent_reconciliation failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_concurrent_reconciliation",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "external_proof_or_external_data_is_non_empty",
+          "error_code": "EXTERNAL_DATA_PROVIDED_FAILED",
+          "error_message": "external_data_provided failed",
+          "on_failure": "REJECT",
+          "rule_id": "external_data_provided",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_asset_register_rules": {
+      "abi": "v1",
+      "command": "vault.asset.register",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_TYPE",
+          "error_message": "asset_type is required",
+          "field": "payload.asset_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ISSUER_ID",
+          "error_message": "issuer_id is required",
+          "field": "payload.issuer_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_FACE_VALUE",
+          "error_message": "face_value is required",
+          "field": "payload.face_value",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_FACE_VALUE",
+          "error_message": "face_value must be non-negative",
+          "field": "payload.face_value",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_QUANTITY",
+          "error_message": "quantity is required",
+          "field": "payload.quantity",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_QUANTITY",
+          "error_message": "quantity must be non-negative",
+          "field": "payload.quantity",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CUSTODY_LOCATION",
+          "error_message": "custody_location is required",
+          "field": "payload.custody_location",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_OWNERSHIP_ID",
+          "error_message": "ownership_id is required",
+          "field": "payload.ownership_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_VALUATION_SOURCE",
+          "error_message": "valuation_source is required",
+          "field": "payload.valuation_source",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_NATIVE_UNIT",
+          "error_message": "native_unit is required",
+          "field": "payload.native_unit",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PRECISION",
+          "error_message": "precision is required",
+          "field": "payload.precision",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_existing_asset_with_same_id",
+          "error_code": "ASSET_ID_MUST_BE_GLOBALLY_UNIQUE_FAILED",
+          "error_message": "asset_id_must_be_globally_unique failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_id_must_be_globally_unique",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_type_in_cash_stablecoin_tokenized_asset_collateral_position_liquidity_position_external_claim",
+          "error_code": "ASSET_TYPE_MUST_BE_RECOGNIZED_FAILED",
+          "error_message": "asset_type_must_be_recognized failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_type_must_be_recognized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "identity_state_verified",
+          "error_code": "ISSUER_IDENTITY_MUST_BE_VERIFIED_FAILED",
+          "error_message": "issuer_identity_must_be_verified failed",
+          "on_failure": "REJECT",
+          "rule_id": "issuer_identity_must_be_verified",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "quantity_0_or_face_value_0",
+          "error_code": "QUANTITY_OR_FACE_VALUE_MUST_BE_POSITIVE_FAILED",
+          "error_message": "quantity_or_face_value_must_be_positive failed",
+          "on_failure": "REJECT",
+          "rule_id": "quantity_or_face_value_must_be_positive",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "custody_location_exists_in_registered_custody_targets",
+          "error_code": "CUSTODY_LOCATION_MUST_BE_REGISTERED_FAILED",
+          "error_message": "custody_location_must_be_registered failed",
+          "on_failure": "REJECT",
+          "rule_id": "custody_location_must_be_registered",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "identity_with_ownership_id_exists_and_is_verified",
+          "error_code": "OWNERSHIP_ID_MUST_BE_VERIFIED_IDENTITY_FAILED",
+          "error_message": "ownership_id_must_be_verified_identity failed",
+          "on_failure": "REJECT",
+          "rule_id": "ownership_id_must_be_verified_identity",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_asset_reject_rules": {
+      "abi": "v1",
+      "command": "vault.asset.reject",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REASON",
+          "error_message": "reason is required",
+          "field": "payload.reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_with_asset_id_exists",
+          "error_code": "ASSET_MUST_EXIST_FAILED",
+          "error_message": "asset_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_state_in_registered_verified",
+          "error_code": "ASSET_MUST_BE_REJECTABLE_FAILED",
+          "error_message": "asset_must_be_rejectable failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_must_be_rejectable",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reason_is_non_empty_string",
+          "error_code": "REJECTION_REASON_REQUIRED_FAILED",
+          "error_message": "rejection_reason_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "rejection_reason_required",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_asset_verify_rules": {
+      "abi": "v1",
+      "command": "vault.asset.verify",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ATTESTER_ID",
+          "error_message": "attester_id is required",
+          "field": "payload.attester_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ATTESTATION_PROOF",
+          "error_message": "attestation_proof is required",
+          "field": "payload.attestation_proof",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_VERIFICATION_METHOD",
+          "error_message": "verification_method is required",
+          "field": "payload.verification_method",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_with_asset_id_exists",
+          "error_code": "ASSET_MUST_EXIST_FAILED",
+          "error_message": "asset_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_state_registered",
+          "error_code": "ASSET_MUST_BE_IN_REGISTERED_STATE_FAILED",
+          "error_message": "asset_must_be_in_registered_state failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_must_be_in_registered_state",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "attestation_proof_provided_and_non_empty",
+          "error_code": "ATTESTATION_PROOF_REQUIRED_FAILED",
+          "error_message": "attestation_proof_required failed",
+          "on_failure": "REJECT",
+          "rule_id": "attestation_proof_required",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "attester_id_in_trusted_attesters",
+          "error_code": "ATTESTER_MUST_BE_TRUSTED_FAILED",
+          "error_message": "attester_must_be_trusted failed",
+          "on_failure": "REJECT",
+          "rule_id": "attester_must_be_trusted",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_asset_write_down_rules": {
+      "abi": "v1",
+      "command": "vault.asset.write_down",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_WRITE_DOWN_AMOUNT",
+          "error_message": "write_down_amount is required",
+          "field": "payload.write_down_amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_WRITE_DOWN_AMOUNT",
+          "error_message": "write_down_amount must be non-negative",
+          "field": "payload.write_down_amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REASON",
+          "error_message": "reason is required",
+          "field": "payload.reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_state_registered",
+          "error_code": "ASSET_MUST_EXIST_FAILED",
+          "error_message": "asset_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_collateral_add_rules": {
+      "abi": "v1",
+      "command": "vault.collateral.add",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_OBLIGATION_ID",
+          "error_message": "obligation_id is required",
+          "field": "payload.obligation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_HAIRCUT_OVERRIDE",
+          "error_message": "haircut_override is required",
+          "field": "payload.haircut_override",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_quality_score_0_6_and_asset_type_in_eligible_types",
+          "error_code": "ASSET_MUST_BE_ELIGIBLE_FOR_COLLATERAL_FAILED",
+          "error_message": "asset_must_be_eligible_for_collateral failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_must_be_eligible_for_collateral",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_ownership_id_actor_id",
+          "error_code": "OWNERSHIP_MUST_BE_VERIFIED_FAILED",
+          "error_message": "ownership_must_be_verified failed",
+          "on_failure": "REJECT",
+          "rule_id": "ownership_must_be_verified",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_active_collateral_for_same_asset_id_and_obligation_id",
+          "error_code": "NO_CONFLICTING_COLLATERAL_POSITION_FAILED",
+          "error_message": "no_conflicting_collateral_position failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_conflicting_collateral_position",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "adding_this_collateral_would_not_breach_any_concentration_limit",
+          "error_code": "CONCENTRATION_LIMITS_NOT_EXCEEDED_FAILED",
+          "error_message": "concentration_limits_not_exceeded failed",
+          "on_failure": "REJECT",
+          "rule_id": "concentration_limits_not_exceeded",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "obligation_with_obligation_id_exists",
+          "error_code": "OBLIGATION_MUST_EXIST_FAILED",
+          "error_message": "obligation_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "obligation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_collateral_remove_rules": {
+      "abi": "v1",
+      "command": "vault.collateral.remove",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_COLLATERAL_ID",
+          "error_message": "collateral_id is required",
+          "field": "payload.collateral_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RELEASE_REASON",
+          "error_message": "release_reason is required",
+          "field": "payload.release_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "collateral_with_collateral_id_exists",
+          "error_code": "COLLATERAL_MUST_EXIST_FAILED",
+          "error_message": "collateral_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "collateral_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "obligation_satisfied_or_obligation_amount_reduced_sufficiently",
+          "error_code": "RELEASE_CONDITIONS_MUST_BE_MET_FAILED",
+          "error_message": "release_conditions_must_be_met failed",
+          "on_failure": "REJECT",
+          "rule_id": "release_conditions_must_be_met",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "remaining_collateral_this_collateral_obligation_0_80",
+          "error_code": "MARGIN_RATIO_MUST_REMAIN_ABOVE_MAINTENANCE_FAILED",
+          "error_message": "margin_ratio_must_remain_above_maintenance failed",
+          "on_failure": "REJECT",
+          "rule_id": "margin_ratio_must_remain_above_maintenance",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_collateral_revalue_rules": {
+      "abi": "v1",
+      "command": "vault.collateral.revalue",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_COLLATERAL_ID",
+          "error_message": "collateral_id is required",
+          "field": "payload.collateral_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_NEW_VALUATION",
+          "error_message": "new_valuation is required",
+          "field": "payload.new_valuation",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_VALUATION_SOURCE",
+          "error_message": "valuation_source is required",
+          "field": "payload.valuation_source",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_VALUATION_SOURCE_TYPE",
+          "error_message": "valuation_source_type is required",
+          "field": "payload.valuation_source_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "collateral_with_collateral_id_exists",
+          "error_code": "COLLATERAL_MUST_EXIST_FAILED",
+          "error_message": "collateral_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "collateral_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "valuation_source_in_trusted_sources",
+          "error_code": "VALUATION_SOURCE_MUST_BE_TRUSTED_FAILED",
+          "error_message": "valuation_source_must_be_trusted failed",
+          "on_failure": "REJECT",
+          "rule_id": "valuation_source_must_be_trusted",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "valuation_age_staleness_threshold",
+          "error_code": "VALUATION_MUST_NOT_BE_STALE_FAILED",
+          "error_message": "valuation_must_not_be_stale failed",
+          "on_failure": "REJECT",
+          "rule_id": "valuation_must_not_be_stale",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_ownership_transfer_rules": {
+      "abi": "v1",
+      "command": "vault.ownership.transfer",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CURRENT_OWNER_ID",
+          "error_message": "current_owner_id is required",
+          "field": "payload.current_owner_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_NEW_OWNER_ID",
+          "error_message": "new_owner_id is required",
+          "field": "payload.new_owner_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_state_verified_or_asset_state_available",
+          "error_code": "ASSET_MUST_BE_VERIFIED_FAILED",
+          "error_message": "asset_must_be_verified failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_must_be_verified",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_reserve_create_rules": {
+      "abi": "v1",
+      "command": "vault.reserve.create",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT",
+          "error_message": "amount is required",
+          "field": "payload.amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_AMOUNT",
+          "error_message": "amount must be non-negative",
+          "field": "payload.amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EXPIRATION",
+          "error_message": "expiration is required",
+          "field": "payload.expiration",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PURPOSE",
+          "error_message": "purpose is required",
+          "field": "payload.purpose",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_state_available",
+          "error_code": "ASSET_MUST_BE_AVAILABLE_FAILED",
+          "error_message": "asset_must_be_available failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_must_be_available",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_has_reserve_control_authority_on_asset_id",
+          "error_code": "ACTOR_MUST_HAVE_RESERVE_CONTROL_FAILED",
+          "error_message": "actor_must_have_reserve_control failed",
+          "on_failure": "REJECT",
+          "rule_id": "actor_must_have_reserve_control",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "amount_0",
+          "error_code": "AMOUNT_MUST_BE_POSITIVE_FAILED",
+          "error_message": "amount_must_be_positive failed",
+          "on_failure": "REJECT",
+          "rule_id": "amount_must_be_positive",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "amount_balance_available_balance_for_asset_id",
+          "error_code": "AMOUNT_MUST_NOT_EXCEED_AVAILABLE_BALANCE_FAILED",
+          "error_message": "amount_must_not_exceed_available_balance failed",
+          "on_failure": "REJECT",
+          "rule_id": "amount_must_not_exceed_available_balance",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "no_overlapping_active_reservation_for_same_asset_portion",
+          "error_code": "NO_CONFLICTING_RESERVATION_FAILED",
+          "error_message": "no_conflicting_reservation failed",
+          "on_failure": "REJECT",
+          "rule_id": "no_conflicting_reservation",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "expiration_now",
+          "error_code": "EXPIRATION_MUST_BE_IN_FUTURE_FAILED",
+          "error_message": "expiration_must_be_in_future failed",
+          "on_failure": "REJECT",
+          "rule_id": "expiration_must_be_in_future",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "expiration_now_86400s",
+          "error_code": "EXPIRATION_WITHIN_MAX_DURATION_FAILED",
+          "error_message": "expiration_within_max_duration failed",
+          "on_failure": "REJECT",
+          "rule_id": "expiration_within_max_duration",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_reserve_expire_rules": {
+      "abi": "v1",
+      "command": "vault.reserve.expire",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RESERVATION_ID",
+          "error_message": "reservation_id is required",
+          "field": "payload.reservation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reservation_with_reservation_id_exists",
+          "error_code": "RESERVATION_MUST_EXIST_FAILED",
+          "error_message": "reservation_must_exist failed",
+          "on_failure": "NOOP",
+          "rule_id": "reservation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reservation_state_in_pending_active",
+          "error_code": "RESERVATION_MUST_BE_EXPIRABLE_FAILED",
+          "error_message": "reservation_must_be_expirable failed",
+          "on_failure": "NOOP",
+          "rule_id": "reservation_must_be_expirable",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reservation_expiration_now",
+          "error_code": "EXPIRATION_MUST_HAVE_PASSED_FAILED",
+          "error_message": "expiration_must_have_passed failed",
+          "on_failure": "NOOP",
+          "rule_id": "expiration_must_have_passed",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_reserve_lock_rules": {
+      "abi": "v1",
+      "command": "vault.reserve.lock",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RESERVATION_ID",
+          "error_message": "reservation_id is required",
+          "field": "payload.reservation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EXPECTED_CONSUMING_TRANSACTION_ID",
+          "error_message": "expected_consuming_transaction_id is required",
+          "field": "payload.expected_consuming_transaction_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reservation_with_reservation_id_exists",
+          "error_code": "RESERVATION_MUST_EXIST_FAILED",
+          "error_message": "reservation_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "reservation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reservation_state_pending",
+          "error_code": "RESERVATION_MUST_BE_PENDING_FAILED",
+          "error_message": "reservation_must_be_pending failed",
+          "on_failure": "REJECT",
+          "rule_id": "reservation_must_be_pending",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reservation_expiration_now",
+          "error_code": "RESERVATION_MUST_NOT_BE_EXPIRED_FAILED",
+          "error_message": "reservation_must_not_be_expired failed",
+          "on_failure": "REJECT",
+          "rule_id": "reservation_must_not_be_expired",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reservation_amount_balance_available_balance",
+          "error_code": "AVAILABLE_BALANCE_STILL_SUFFICIENT_FAILED",
+          "error_message": "available_balance_still_sufficient failed",
+          "on_failure": "REJECT",
+          "rule_id": "available_balance_still_sufficient",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_reserve_release_rules": {
+      "abi": "v1",
+      "command": "vault.reserve.release",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RESERVATION_ID",
+          "error_message": "reservation_id is required",
+          "field": "payload.reservation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REASON",
+          "error_message": "reason is required",
+          "field": "payload.reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reservation_with_reservation_id_exists",
+          "error_code": "RESERVATION_MUST_EXIST_FAILED",
+          "error_message": "reservation_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "reservation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "reservation_state_in_pending_active",
+          "error_code": "RESERVATION_MUST_BE_RELEASABLE_FAILED",
+          "error_message": "reservation_must_be_releasable failed",
+          "on_failure": "REJECT",
+          "rule_id": "reservation_must_be_releasable",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "if_reservation_state_active_then_reason_is_non_empty",
+          "error_code": "RELEASE_REASON_REQUIRED_IF_ACTIVE_FAILED",
+          "error_message": "release_reason_required_if_active failed",
+          "on_failure": "REJECT",
+          "rule_id": "release_reason_required_if_active",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_transaction_authorize_release_rules": {
+      "abi": "v1",
+      "command": "vault.transaction.authorize_release",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TRANSACTION_ID",
+          "error_message": "transaction_id is required",
+          "field": "payload.transaction_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AUTHORIZATION_CODE",
+          "error_message": "authorization_code is required",
+          "field": "payload.authorization_code",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "transaction_state_funded_or_transaction_state_release_pending",
+          "error_code": "TRANSACTION_MUST_BE_FUNDED_FAILED",
+          "error_message": "transaction_must_be_funded failed",
+          "on_failure": "REJECT",
+          "rule_id": "transaction_must_be_funded",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_transaction_cancel_rules": {
+      "abi": "v1",
+      "command": "vault.transaction.cancel",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TRANSACTION_ID",
+          "error_message": "transaction_id is required",
+          "field": "payload.transaction_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REASON",
+          "error_message": "reason is required",
+          "field": "payload.reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "transaction_state_disbursed_and_transaction_state_closed",
+          "error_code": "TRANSACTION_MUST_BE_CANCELLABLE_FAILED",
+          "error_message": "transaction_must_be_cancellable failed",
+          "on_failure": "REJECT",
+          "rule_id": "transaction_must_be_cancellable",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_transaction_disburse_rules": {
+      "abi": "v1",
+      "command": "vault.transaction.disburse",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TRANSACTION_ID",
+          "error_message": "transaction_id is required",
+          "field": "payload.transaction_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DESTINATION_ACCOUNT_ID",
+          "error_message": "destination_account_id is required",
+          "field": "payload.destination_account_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "transaction_state_release_authorized",
+          "error_code": "TRANSACTION_MUST_BE_AUTHORIZED_FAILED",
+          "error_message": "transaction_must_be_authorized failed",
+          "on_failure": "REJECT",
+          "rule_id": "transaction_must_be_authorized",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_transaction_fund_rules": {
+      "abi": "v1",
+      "command": "vault.transaction.fund",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TRANSACTION_ID",
+          "error_message": "transaction_id is required",
+          "field": "payload.transaction_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT",
+          "error_message": "amount is required",
+          "field": "payload.amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_AMOUNT",
+          "error_message": "amount must be non-negative",
+          "field": "payload.amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "transaction_state_created",
+          "error_code": "TRANSACTION_MUST_EXIST_FAILED",
+          "error_message": "transaction_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "transaction_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_transfer_request_rules": {
+      "abi": "v1",
+      "command": "vault.transfer.request",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SOURCE_ACCOUNT_ID",
+          "error_message": "source_account_id is required",
+          "field": "payload.source_account_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TARGET_ACCOUNT_ID",
+          "error_message": "target_account_id is required",
+          "field": "payload.target_account_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT",
+          "error_message": "amount is required",
+          "field": "payload.amount",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "INVALID_AMOUNT",
+          "error_message": "amount must be non-negative",
+          "field": "payload.amount",
+          "type": "GREATER_THAN_OR_EQUAL",
+          "value": 0
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "source_account_available_balance_amount",
+          "error_code": "SOURCE_MUST_HAVE_BALANCE_FAILED",
+          "error_message": "source_must_have_balance failed",
+          "on_failure": "REJECT",
+          "rule_id": "source_must_have_balance",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "vault_valuation_update_rules": {
+      "abi": "v1",
+      "command": "vault.valuation.update",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ASSET_ID",
+          "error_message": "asset_id is required",
+          "field": "payload.asset_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PRICE",
+          "error_message": "price is required",
+          "field": "payload.price",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_REFERENCE_CURRENCY",
+          "error_message": "reference_currency is required",
+          "field": "payload.reference_currency",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SOURCE_TYPE",
+          "error_message": "source_type is required",
+          "field": "payload.source_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SOURCE_ID",
+          "error_message": "source_id is required",
+          "field": "payload.source_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_GOVERNANCE_APPROVED",
+          "error_message": "governance_approved is required",
+          "field": "payload.governance_approved",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "asset_with_asset_id_exists",
+          "error_code": "ASSET_MUST_EXIST_FAILED",
+          "error_message": "asset_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "asset_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "source_type_in_oracle_internal_pricing_market_feed_manual",
+          "error_code": "SOURCE_MUST_BE_TRUSTED_FAILED",
+          "error_message": "source_must_be_trusted failed",
+          "on_failure": "REJECT",
+          "rule_id": "source_must_be_trusted",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "valuation_timestamp_within_staleness_threshold",
+          "error_code": "VALUATION_MUST_NOT_BE_STALE_FAILED",
+          "error_message": "valuation_must_not_be_stale failed",
+          "on_failure": "REJECT",
+          "rule_id": "valuation_must_not_be_stale",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "if_source_type_manual_then_governance_approved_true",
+          "error_code": "MANUAL_VALUATION_REQUIRES_GOVERNANCE_APPROVAL_FAILED",
+          "error_message": "manual_valuation_requires_governance_approval failed",
+          "on_failure": "REJECT",
+          "rule_id": "manual_valuation_requires_governance_approval",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    }
+  },
+  "entry_count": 105,
+  "kind": "validation"
+}

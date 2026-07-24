@@ -1,0 +1,8 @@
+{
+  "name": "sovr-protocol-root",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "protocol:runtime-audit": "node scripts/runtime-audit.mjs"
+  }
+}

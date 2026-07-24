@@ -1,0 +1,1396 @@
+{
+  "abi": "v1",
+  "entries": {
+    "account_summary": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "account:{account_id}",
+          "identity:{identity_id}",
+          "treasury:balances"
+        ],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Treasury balances and activity per identity",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "treasury.transfer.settled",
+          "treasury.transfer.compensation_required",
+          "treasury.liquidity.warning"
+        ]
+      },
+      "name": "account_summary",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "account_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "available_balance": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "currency_breakdown": {
+            "abi": "v1",
+            "items": {
+              "abi": "v1",
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "identity_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "last_activity_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "pending_transfers_count": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "reserved_balance": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "total_balance": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-001",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "treasury",
+      "source_events": [
+        "treasury.transfer.requested",
+        "treasury.transfer.authorized",
+        "treasury.transfer.settled",
+        "treasury.transfer.failed",
+        "treasury.transfer.expired",
+        "treasury.liquidity.warning"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "agent_activity": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "agent:activity",
+          "agent:{agent_id}:activity"
+        ],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "NONE",
+      "description": "Agent execution history and audit envelopes",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "NONE",
+        "trigger_events": []
+      },
+      "name": "agent_activity",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "action": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "agent_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "command_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "duration_ms": {
+            "abi": "v1",
+            "required": false,
+            "type": "integer"
+          },
+          "executed_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "execution_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "required": false,
+            "type": "string"
+          },
+          "intent_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "model_version": {
+            "abi": "v1",
+            "required": false,
+            "type": "string"
+          },
+          "policy_decision_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "resources_changed": {
+            "abi": "v1",
+            "items": {
+              "abi": "v1",
+              "type": "string"
+            },
+            "required": false,
+            "type": "array"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-009",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "agent",
+      "source_events": [
+        "agent.registration.approved",
+        "agent.execution.started",
+        "agent.execution.completed",
+        "agent.execution.failed",
+        "agent.execution.escalated",
+        "agent.capability.bound",
+        "agent.capability.revoked",
+        "agent.quota.exceeded",
+        "agent.concurrency.limit_reached"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "IMMUTABLE_APPEND"
+      }
+    },
+    "audit_timeline": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": false
+      },
+      "conflict_resolution": "NONE",
+      "description": "Complete chronological audit trail across all domains",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "NONE",
+        "trigger_events": []
+      },
+      "name": "audit_timeline",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "actor_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "actor_type": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "capability_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "command_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "event_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "event_name": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "policy_decision_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "retention_class": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "source_domain": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "timestamp": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "triggering_command": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-004",
+      "rebuild_strategy": "FULL_REPLAY_FROM_GENESIS",
+      "source_domain": "ALL",
+      "source_events": "ALL_EVENTS",
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "IMMUTABLE_APPEND"
+      }
+    },
+    "compliance_report": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "compliance:report"
+        ],
+        "ttl_seconds": 600
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Regulatory compliance metrics and violations",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "policy.evaluation.denied",
+          "agent.execution.escalated",
+          "payment.reconciliation.discrepancy"
+        ]
+      },
+      "name": "compliance_report",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "compliance_rate_pct": {
+            "abi": "v1",
+            "precision": 2,
+            "type": "decimal"
+          },
+          "most_common_denial_reasons": {
+            "abi": "v1",
+            "items": {
+              "abi": "v1",
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "total_agent_violations": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "total_escalations": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "total_policy_denials": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "total_reconciliation_discrepancies": {
+            "abi": "v1",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-014",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "ALL",
+      "source_events": "ALL_EVENTS",
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "escrow_account_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          {
+            "abi": "v1",
+            "escrow": {
+              "abi": "v1",
+              "escrow_id": null
+            }
+          }
+        ],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Current state of all escrow accounts",
+      "handler_type": "UPSERT",
+      "idempotency_key": "aggregate_id",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "escrow.account.created",
+          "escrow.account.funded",
+          "escrow.account.released",
+          "escrow.account.cancelled"
+        ]
+      },
+      "name": "escrow_account_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "amount": {
+            "abi": "v1",
+            "type": "decimal"
+          },
+          "asset_type": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "escrow_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "parties": {
+            "abi": "v1",
+            "type": "array"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-016",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "recovery_strategy": "REBUILD_FROM_GENESIS",
+      "replay_strategy": "FULL_REBUILD",
+      "source_domain": "escrow",
+      "source_events": [
+        "escrow.account.created",
+        "escrow.account.funded",
+        "escrow.account.released",
+        "escrow.account.cancelled"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "governance_dashboard": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "governance:dashboard",
+          "governance:escalations"
+        ],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Governance metrics, escalations, and amendments",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "policy.escalation.created",
+          "policy.escalation.resolved",
+          "agent.execution.escalated",
+          "payment.reconciliation.discrepancy"
+        ]
+      },
+      "name": "governance_dashboard",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "active_discrepancies": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "active_escalations": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "active_reorgs": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "agent_escalations_today": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "average_resolution_time_ms": {
+            "abi": "v1",
+            "required": false,
+            "type": "integer"
+          },
+          "pending_resolutions": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "resolved_today": {
+            "abi": "v1",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-010",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "governance",
+      "source_events": [
+        "policy.escalation.created",
+        "policy.escalation.resolved",
+        "agent.execution.escalated",
+        "payment.reconciliation.discrepancy",
+        "hybrid.reorg.detected",
+        "hybrid.reorg.resolved"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "identity_directory": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "identity:directory",
+          "identity:{identity_id}:state"
+        ],
+        "ttl_seconds": 300
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Active identities, trust levels, and credentials",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "identity.actor.verified",
+          "identity.actor.suspended",
+          "identity.actor.revoked",
+          "identity.credential.revoked"
+        ]
+      },
+      "name": "identity_directory",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "active_credentials": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "active_delegations": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "active_sessions": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "actor_type": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "identity_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "trust_level": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "verified_at": {
+            "abi": "v1",
+            "required": false,
+            "type": "timestamp"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-013",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "identity",
+      "source_events": [
+        "identity.actor.registered",
+        "identity.actor.verified",
+        "identity.actor.suspended",
+        "identity.actor.revoked",
+        "identity.credential.issued",
+        "identity.credential.expired",
+        "identity.credential.revoked",
+        "identity.delegation.created",
+        "identity.delegation.revoked",
+        "identity.delegation.expired",
+        "identity.session.created",
+        "identity.session.terminated"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "intent_queue": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "intent:queue",
+          "intent:{intent_id}:state"
+        ],
+        "ttl_seconds": 10
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Active intents and their processing states",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "intent.enriching.completed",
+          "intent.validation.completed",
+          "intent.multi_step.completed",
+          "intent.multi_step.failed"
+        ]
+      },
+      "name": "intent_queue",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "actor_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "ambiguity_score": {
+            "abi": "v1",
+            "precision": 4,
+            "required": false,
+            "type": "decimal"
+          },
+          "created_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "current_step": {
+            "abi": "v1",
+            "required": false,
+            "type": "integer"
+          },
+          "enrichment_complete": {
+            "abi": "v1",
+            "required": false,
+            "type": "boolean"
+          },
+          "intent_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "intent_type": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "total_steps": {
+            "abi": "v1",
+            "required": false,
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-007",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "intent",
+      "source_events": [
+        "intent.enriching.started",
+        "intent.enriching.completed",
+        "intent.enriching.failed",
+        "intent.validation.completed",
+        "intent.multi_step.step_completed",
+        "intent.multi_step.completed",
+        "intent.multi_step.failed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "liquidity_position": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "liquidity:position",
+          "liquidity:{currency}:position"
+        ],
+        "ttl_seconds": 30
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Current liquidity state and warnings",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "treasury.liquidity.allocated",
+          "treasury.liquidity.warning",
+          "treasury.transfer.settled"
+        ]
+      },
+      "name": "liquidity_position",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "available_liquidity": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "by_currency": {
+            "abi": "v1",
+            "type": "object"
+          },
+          "coverage_ratio": {
+            "abi": "v1",
+            "precision": 4,
+            "type": "decimal"
+          },
+          "pending_inflows": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "pending_outflows": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "reserved_liquidity": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "total_liquidity": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "warnings_active": {
+            "abi": "v1",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-015",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "treasury",
+      "source_events": [
+        "treasury.liquidity.check",
+        "treasury.liquidity.allocate",
+        "treasury.liquidity.warning",
+        "treasury.transfer.settled",
+        "treasury.transfer.failed",
+        "treasury.settlement.confirmed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "payment_status": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "payment:status",
+          "payment:{payment_request_id}:state",
+          "payment:rail:{rail_type}:status"
+        ],
+        "ttl_seconds": 10
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Payment execution status across all rails",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "payment.execution.completed",
+          "payment.execution.failed",
+          "payment.rail.confirmed",
+          "payment.rail.failed"
+        ]
+      },
+      "name": "payment_status",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "amount": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "created_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "current_phase": {
+            "abi": "v1",
+            "required": false,
+            "type": "string"
+          },
+          "payment_request_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "rail_reference_id": {
+            "abi": "v1",
+            "required": false,
+            "type": "string"
+          },
+          "rail_type": {
+            "abi": "v1",
+            "required": false,
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-011",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "payment",
+      "source_events": [
+        "payment.request.created",
+        "payment.request.cancelled",
+        "payment.execution.planned",
+        "payment.execution.started",
+        "payment.execution.completed",
+        "payment.execution.failed",
+        "payment.rail.prepared",
+        "payment.rail.executed",
+        "payment.rail.confirmed",
+        "payment.rail.failed",
+        "payment.reconciliation.started",
+        "payment.reconciliation.completed",
+        "payment.reconciliation.discrepancy",
+        "payment.receipt.issued",
+        "payment.compensation.started",
+        "payment.compensation.completed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "policy_decisions": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "policy:decisions",
+          "policy:actor:{actor_id}"
+        ],
+        "ttl_seconds": 300
+      },
+      "conflict_resolution": "NONE",
+      "description": "Policy evaluation history and outcomes",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "NONE",
+        "trigger_events": []
+      },
+      "name": "policy_decisions",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "actor_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "command_evaluated": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "decision": {
+            "abi": "v1",
+            "type": "enum",
+            "values": [
+              "ALLOW",
+              "DENY",
+              "ESCALATE",
+              "DEFER"
+            ]
+          },
+          "denied_reasons": {
+            "abi": "v1",
+            "items": {
+              "abi": "v1",
+              "type": "string"
+            },
+            "required": false,
+            "type": "array"
+          },
+          "evaluated_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "policy_decision_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "rules_evaluated": {
+            "abi": "v1",
+            "items": {
+              "abi": "v1",
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-008",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "policy",
+      "source_events": [
+        "policy.evaluation.completed",
+        "policy.evaluation.denied",
+        "policy.evaluation.escalated",
+        "policy.evaluation.deferred",
+        "policy.escalation.created",
+        "policy.escalation.resolved",
+        "policy.rule.activated",
+        "policy.rule.deactivated"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "IMMUTABLE_APPEND"
+      }
+    },
+    "portfolio": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "portfolio:{identity_id}",
+          "vault:{vault_id}:holdings"
+        ],
+        "ttl_seconds": 120
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "All assets held by an identity across all vaults",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "vault.ownership.transferred",
+          "vault.valuation.updated",
+          "vault.reserve.locked",
+          "vault.reserve.released"
+        ]
+      },
+      "name": "portfolio",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "asset_count": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "assets": {
+            "abi": "v1",
+            "items": {
+              "abi": "v1",
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "identity_id": {
+            "abi": "v1",
+            "format": "uuid",
+            "type": "string"
+          },
+          "risk_weighted_value": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "total_collateral_value": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "total_holdings_value": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-002",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "vault",
+      "source_events": [
+        "vault.asset.registered",
+        "vault.asset.verified",
+        "vault.asset.impaired",
+        "vault.asset.write_down",
+        "vault.ownership.transferred",
+        "vault.valuation.updated",
+        "vault.reserve.created",
+        "vault.reserve.locked",
+        "vault.reserve.released",
+        "vault.reserve.expired",
+        "vault.collateral.added",
+        "vault.collateral.released",
+        "vault.collateral.revalued"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "risk_dashboard": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "risk:dashboard",
+          "risk:asset:{asset_id}"
+        ],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "MAX_VALUE",
+      "description": "Risk metrics across all domains",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "vault.asset.impaired",
+          "vault.collateral.margin_call",
+          "vault.collateral.liquidation_initiated",
+          "treasury.liquidity.warning"
+        ]
+      },
+      "name": "risk_dashboard",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "active_margin_calls": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "collateral_coverage_ratio": {
+            "abi": "v1",
+            "precision": 4,
+            "type": "decimal"
+          },
+          "concentration_risk": {
+            "abi": "v1",
+            "type": "object"
+          },
+          "impaired_assets_count": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "impaired_assets_value": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "liquidity_warnings_active": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "total_risk_exposure": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-005",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "vault",
+      "source_events": [
+        "vault.asset.registered",
+        "vault.asset.impaired",
+        "vault.asset.write_down",
+        "vault.valuation.updated",
+        "vault.collateral.valued",
+        "vault.collateral.margin_call",
+        "vault.collateral.liquidation_initiated",
+        "vault.reserve.expired",
+        "treasury.liquidity.warning"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "settlement_summary": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "settlement:summary",
+          "settlement:rail:{rail_type}"
+        ],
+        "ttl_seconds": 120
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Settlement confirmations and failures across rails",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "payment.rail.confirmed",
+          "payment.rail.failed",
+          "payment.reconciliation.discrepancy"
+        ]
+      },
+      "name": "settlement_summary",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "active_discrepancies": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "average_settlement_time_ms": {
+            "abi": "v1",
+            "required": false,
+            "type": "integer"
+          },
+          "pending_reconciliation": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "rail_type": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "total_failed": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "total_fees": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "total_settled": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "total_volume_settled": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-012",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "payment",
+      "source_events": [
+        "payment.rail.confirmed",
+        "payment.rail.failed",
+        "payment.reconciliation.completed",
+        "payment.reconciliation.discrepancy",
+        "payment.receipt.issued",
+        "hybrid.settlement.on_chain.confirmed",
+        "hybrid.settlement.on_chain.failed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "treasury_dashboard": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "treasury:dashboard",
+          "treasury:liquidity"
+        ],
+        "ttl_seconds": 30
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "System-wide treasury state and liquidity metrics",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "treasury.transfer.settled",
+          "treasury.transfer.failed",
+          "treasury.liquidity.warning"
+        ]
+      },
+      "name": "treasury_dashboard",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "active_settlements": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "failed_transfers_today": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "liquidity_position": {
+            "abi": "v1",
+            "type": "object"
+          },
+          "pending_compensations": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "pending_transfers": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "total_transfers_today": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "total_volume_today": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-003",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "treasury",
+      "source_events": [
+        "treasury.transfer.requested",
+        "treasury.transfer.authorized",
+        "treasury.transfer.rejected",
+        "treasury.transfer.settled",
+        "treasury.transfer.failed",
+        "treasury.transfer.expired",
+        "treasury.transfer.compensation_required",
+        "treasury.liquidity.warning",
+        "treasury.liquidity.allocated",
+        "treasury.settlement.confirmed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "vault_holdings": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [
+          "vault:holdings",
+          "vault:{vault_id}:state",
+          "asset:{asset_id}:state"
+        ],
+        "ttl_seconds": 120
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Current vault state, reserves, and collateral",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": [
+          "vault.asset.impaired",
+          "vault.reserve.locked",
+          "vault.reserve.released",
+          "vault.valuation.updated"
+        ]
+      },
+      "name": "vault_holdings",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "assets_by_state": {
+            "abi": "v1",
+            "type": "object"
+          },
+          "assets_by_type": {
+            "abi": "v1",
+            "type": "object"
+          },
+          "custody_proofs_active": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "custody_proofs_expired": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "last_reconciliation_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "total_assets_value": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "total_collateral_held": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          },
+          "total_reserves_locked": {
+            "abi": "v1",
+            "precision": 18,
+            "type": "decimal"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-006",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "vault",
+      "source_events": [
+        "vault.asset.registered",
+        "vault.asset.verified",
+        "vault.asset.rejected",
+        "vault.asset.impaired",
+        "vault.asset.write_down",
+        "vault.reserve.created",
+        "vault.reserve.locked",
+        "vault.reserve.released",
+        "vault.reserve.expired",
+        "vault.custody.attested",
+        "vault.custody.proof_expired",
+        "vault.valuation.updated",
+        "vault.collateral.added",
+        "vault.collateral.released",
+        "vault.collateral.revalued",
+        "vault.reconciliation.completed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    }
+  },
+  "entry_count": 16,
+  "kind": "projections"
+}

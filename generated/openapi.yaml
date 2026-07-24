@@ -1,5 +1,5 @@
 # SOVR GENERATED FILE — DO NOT EDIT
-# Compiler: 0.2.0-kernel-working Protocol: 1.0.0 Hash: a3b552c4495f83e3ee0b5d210080a930154732f494efb63fcc09640a59105ba9
+# Compiler: 0.6.0 Protocol: 1.0.0 Hash: a54949f0773fe0c5ed8cb46a26715fc967a2b3120ff77f4ad6708a20a5979963
 {
   "openapi": "3.1.0",
   "info": {
@@ -324,6 +324,61 @@
           "invariants": []
         },
         "x-capability-required": "agent.governance.override"
+      }
+    },
+    "/api/v1/escrow/escrow_account": {
+      "post": {
+        "operationId": "escrow_escrow_account_release",
+        "summary": "escrow.account.release",
+        "description": "Command escrow.account.release requiring capability escrow.account.release",
+        "tags": [
+          "escrow"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": [
+            "INV-003",
+            "INV-008"
+          ]
+        },
+        "x-capability-required": "escrow.account.release"
       }
     },
     "/api/v1/governance/governance_amendment": {
@@ -2313,7 +2368,7 @@
     },
     "schemas": {}
   },
-  "x-compiler-version": "0.2.0-kernel-working",
-  "x-ir-hash": "6e689fa100324678142f63601f72a1808662b894a9d89fab0859e80ceaecbad1",
+  "x-compiler-version": "0.6.0",
+  "x-ir-hash": "134306ef6913d1571a25e7da7eebd0f8321349ea0417e1ad58c4dc0f70e536f3",
   "x-generated": "SOVR generated file — do not edit"
 }

@@ -42,6 +42,10 @@ protocol:
       - constitutional_compliance
       - dependency_order_check
 
+constitution:
+  lock_hash: 34dfbdc2de193f54f87bb873039603bb5a5502a8448ef6151133f54c77a54ed3
+  status: LOCKED
+
 # ============================================================
 # CONSTITUTIONAL LAYERS
 # ============================================================
@@ -282,6 +286,24 @@ domains:
     build_phase: D
     priority: 6
     answers_the_question: "What does the actor want to do?"
+    defines_atomic_value: false
+
+
+  escrow:
+    name: Escrow
+    description: >
+      Escrow custody and conditional release for multi-party
+      conditional financial workflows.
+    layer: L1
+    entities_defined_in: domains/escrow.yaml
+    contracts_with:
+      - vault
+      - ledger
+      - identity
+      - policy
+    build_phase: C
+    priority: 9
+    answers_the_question: "Can value be conditionally held and released?"
     defines_atomic_value: false
 
 # ============================================================

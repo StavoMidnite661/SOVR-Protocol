@@ -1,0 +1,3523 @@
+{
+  "abi": "v1",
+  "entries": {
+    "agent_agent_instance_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "agent_instance",
+      "domain": "agent",
+      "final_states": [],
+      "id": "state_machine:agent_agent_instance_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.suspend"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "agent.terminated"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "agent.terminated"
+        }
+      ]
+    },
+    "agent_capability_binding_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "capability_binding",
+      "domain": "agent",
+      "final_states": [],
+      "id": "state_machine:agent_capability_binding_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.capability.bind",
+            "agent.capability.revoke"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "agent.capability.bound"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "agent.capability.bound"
+        },
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "agent.capability.revoked"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "agent.capability.revoked"
+        }
+      ]
+    },
+    "agent_execution_lifecycle": {
+      "abi": "v1",
+      "aggregate": "instance",
+      "domain": "agent",
+      "final_states": [
+        "TERMINATED"
+      ],
+      "id": "state_machine:agent_execution_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.execution.execute"
+          ],
+          "description": "Agent ready to execute",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "COMPLETED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.execution.execute"
+          ],
+          "description": "Execution completed successfully",
+          "entry_actions": [
+            "emit agent.execution.completed"
+          ],
+          "exit_actions": []
+        },
+        "ESCALATED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.governance.override",
+            "agent.terminate"
+          ],
+          "description": "Execution escalated to governance",
+          "entry_actions": [
+            "emit agent.execution.escalated"
+          ],
+          "exit_actions": []
+        },
+        "EXECUTING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.governance.override"
+          ],
+          "description": "Agent is executing a command",
+          "entry_actions": [
+            "emit agent.execution.started"
+          ],
+          "exit_actions": []
+        },
+        "FAILED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.execution.execute"
+          ],
+          "description": "Execution failed",
+          "entry_actions": [
+            "emit agent.execution.failed"
+          ],
+          "exit_actions": []
+        },
+        "TERMINATED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Agent terminated",
+          "entry_actions": [
+            "emit agent.terminated"
+          ],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "agent_execution_quota_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "execution_quota",
+      "domain": "agent",
+      "final_states": [],
+      "id": "state_machine:agent_execution_quota_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.quota.update"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "agent_lifecycle": {
+      "abi": "v1",
+      "aggregate": "agent_profile",
+      "domain": "agent",
+      "final_states": [
+        "TERMINATED"
+      ],
+      "id": "state_machine:agent_lifecycle",
+      "initial_state": "REGISTERED",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.suspend",
+            "agent.terminate"
+          ],
+          "description": "Agent is active and may execute commands",
+          "entry_actions": [
+            "emit agent.activated"
+          ],
+          "exit_actions": []
+        },
+        "REGISTERED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.activate",
+            "agent.terminate"
+          ],
+          "description": "Agent is registered but not yet activated",
+          "entry_actions": [
+            "emit agent.registered"
+          ],
+          "exit_actions": []
+        },
+        "SUSPENDED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.activate",
+            "agent.terminate"
+          ],
+          "description": "Agent is temporarily suspended",
+          "entry_actions": [
+            "emit agent.suspended"
+          ],
+          "exit_actions": []
+        },
+        "TERMINATED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Agent has been permanently terminated",
+          "entry_actions": [
+            "emit agent.terminated"
+          ],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "command": "agent.activate",
+          "from": "REGISTERED",
+          "to": "ACTIVE"
+        },
+        {
+          "abi": "v1",
+          "command": "agent.suspend",
+          "from": "ACTIVE",
+          "to": "SUSPENDED"
+        },
+        {
+          "abi": "v1",
+          "command": "agent.activate",
+          "from": "SUSPENDED",
+          "to": "ACTIVE"
+        },
+        {
+          "abi": "v1",
+          "command": "agent.terminate",
+          "from": "ACTIVE",
+          "to": "TERMINATED"
+        },
+        {
+          "abi": "v1",
+          "command": "agent.terminate",
+          "from": "SUSPENDED",
+          "to": "TERMINATED"
+        },
+        {
+          "abi": "v1",
+          "command": "agent.terminate",
+          "from": "REGISTERED",
+          "to": "TERMINATED"
+        }
+      ]
+    },
+    "agent_registration_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "registration",
+      "domain": "agent",
+      "final_states": [],
+      "id": "state_machine:agent_registration_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "agent.register"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "agent.registration.submitted"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "agent.registration.submitted"
+        }
+      ]
+    },
+    "escrow_account_lifecycle": {
+      "abi": "v1",
+      "aggregate": "escrow_account",
+      "domain": "escrow",
+      "final_states": [
+        "RELEASED",
+        "CANCELLED"
+      ],
+      "id": "state_machine:escrow_account_lifecycle",
+      "initial_state": "CREATED",
+      "states": {
+        "CANCELLED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Escrow cancelled and funds returned",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "CREATED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "escrow.account.fund",
+            "escrow.account.cancel"
+          ],
+          "description": "Escrow account created, awaiting funding",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "FUNDED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "escrow.account.release",
+            "escrow.account.cancel"
+          ],
+          "description": "Escrow account funded, awaiting release conditions",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "RELEASED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Funds released to beneficiary",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "CREATED_to_CANCELLED": {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "escrow.account.cancelled"
+          ],
+          "invalid": false,
+          "trigger": "escrow.account.cancelled"
+        },
+        "CREATED_to_FUNDED": {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "escrow.account.funded"
+          ],
+          "invalid": false,
+          "trigger": "escrow.account.funded"
+        },
+        "FUNDED_to_CANCELLED": {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "escrow.account.cancelled"
+          ],
+          "invalid": false,
+          "trigger": "escrow.account.cancelled"
+        },
+        "FUNDED_to_RELEASED": {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "escrow.account.released"
+          ],
+          "invalid": false,
+          "trigger": "escrow.account.released"
+        },
+        "abi": "v1"
+      }
+    },
+    "governance_capability_grant_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "capability_grant",
+      "domain": "governance",
+      "final_states": [],
+      "id": "state_machine:governance_capability_grant_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "governance.capability.grant",
+            "governance.capability.revoke"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "governance.capability.granted"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "governance.capability.granted"
+        },
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "governance.capability.revoked"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "governance.capability.revoked"
+        }
+      ]
+    },
+    "governance_escalation_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "escalation",
+      "domain": "governance",
+      "final_states": [],
+      "id": "state_machine:governance_escalation_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "governance.escalation.resolve"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "governance.escalation.resolved"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "governance.escalation.resolved"
+        }
+      ]
+    },
+    "governance_governance_amendment_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "governance_amendment",
+      "domain": "governance",
+      "final_states": [],
+      "id": "state_machine:governance_governance_amendment_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "governance.amend.propose",
+            "governance.amend.ratify"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "governance.amendment.proposed"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "governance.amendment.proposed"
+        },
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "governance.amendment.ratified"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "governance.amendment.ratified"
+        }
+      ]
+    },
+    "governance_proposal_lifecycle": {
+      "abi": "v1",
+      "aggregate": "governance_proposal",
+      "domain": "governance",
+      "final_states": [
+        "REJECTED",
+        "EXPIRED",
+        "CANCELLED",
+        "IMPLEMENTED"
+      ],
+      "id": "state_machine:governance_proposal_lifecycle",
+      "initial_state": "DRAFT",
+      "states": {
+        "APPROVED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "governance.proposal.implement"
+          ],
+          "description": "Proposal has received required approvals",
+          "entry_actions": [
+            "emit governance.proposal.approved"
+          ],
+          "exit_actions": []
+        },
+        "CANCELLED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Proposal was cancelled by proposer",
+          "entry_actions": [
+            "emit governance.proposal.cancelled"
+          ],
+          "exit_actions": []
+        },
+        "DRAFT": {
+          "abi": "v1",
+          "allowed_commands": [
+            "governance.proposal.submit"
+          ],
+          "description": "Proposal is being composed",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "EXPIRED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Proposal expired before reaching required approvals",
+          "entry_actions": [
+            "emit governance.proposal.expired"
+          ],
+          "exit_actions": []
+        },
+        "IMPLEMENTED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Proposal has been implemented",
+          "entry_actions": [
+            "emit governance.proposal.implemented"
+          ],
+          "exit_actions": []
+        },
+        "PENDING_REVIEW": {
+          "abi": "v1",
+          "allowed_commands": [
+            "governance.proposal.approve",
+            "governance.proposal.reject"
+          ],
+          "description": "Proposal is under review by governance actors",
+          "entry_actions": [
+            "emit governance.proposal.submitted"
+          ],
+          "exit_actions": []
+        },
+        "REJECTED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Proposal was rejected",
+          "entry_actions": [
+            "emit governance.proposal.rejected"
+          ],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "command": "governance.proposal.submit",
+          "from": "DRAFT",
+          "to": "PENDING_REVIEW"
+        },
+        {
+          "abi": "v1",
+          "command": "governance.proposal.approve",
+          "from": "PENDING_REVIEW",
+          "guard": "required_approvals_reached",
+          "to": "APPROVED"
+        },
+        {
+          "abi": "v1",
+          "command": "governance.proposal.reject",
+          "from": "PENDING_REVIEW",
+          "to": "REJECTED"
+        },
+        {
+          "abi": "v1",
+          "event": "governance.proposal.expired",
+          "from": "PENDING_REVIEW",
+          "guard": "expiration_reached",
+          "to": "EXPIRED"
+        },
+        {
+          "abi": "v1",
+          "command": "governance.proposal.cancel",
+          "from": "PENDING_REVIEW",
+          "to": "CANCELLED"
+        },
+        {
+          "abi": "v1",
+          "command": "governance.proposal.implement",
+          "from": "APPROVED",
+          "to": "IMPLEMENTED"
+        },
+        {
+          "abi": "v1",
+          "command": "governance.proposal.cancel",
+          "from": "DRAFT",
+          "to": "CANCELLED"
+        }
+      ]
+    },
+    "governance_proposal_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "proposal",
+      "domain": "governance",
+      "final_states": [],
+      "id": "state_machine:governance_proposal_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "governance.proposal.implement",
+            "governance.proposal.cancel"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "governance.proposal.approved"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "governance.proposal.approved"
+        },
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "governance.proposal.rejected"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "governance.proposal.rejected"
+        }
+      ]
+    },
+    "identity_actor_lifecycle": {
+      "abi": "v1",
+      "aggregate": "actor",
+      "domain": "identity",
+      "final_states": [
+        "REVOKED",
+        "ARCHIVED"
+      ],
+      "id": "state_machine:identity_actor_lifecycle",
+      "initial_state": "PENDING_VERIFICATION",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.actor.suspend",
+            "identity.actor.revoke",
+            "identity.credential.issue",
+            "identity.session.create",
+            "identity.delegation.create"
+          ],
+          "description": "Actor is fully verified and operational",
+          "entry_actions": [
+            "emit identity.actor.verified"
+          ],
+          "exit_actions": []
+        },
+        "ARCHIVED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Actor record archived (final)",
+          "entry_actions": [
+            "emit identity.actor.archived"
+          ],
+          "exit_actions": []
+        },
+        "PENDING_VERIFICATION": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.actor.verify",
+            "identity.actor.revoke"
+          ],
+          "description": "Actor registered but not yet verified",
+          "entry_actions": [
+            "emit identity.actor.registered"
+          ],
+          "exit_actions": []
+        },
+        "REVOKED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.actor.archive"
+          ],
+          "description": "Actor permanently revoked",
+          "entry_actions": [
+            "emit identity.actor.revoked"
+          ],
+          "exit_actions": []
+        },
+        "SUSPENDED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.actor.revoke",
+            "identity.actor.verify"
+          ],
+          "description": "Actor temporarily suspended",
+          "entry_actions": [
+            "emit identity.actor.suspended"
+          ],
+          "exit_actions": []
+        },
+        "VERIFYING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.actor.verify",
+            "identity.actor.revoke"
+          ],
+          "description": "Verification in progress (governance review)",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "identity_credential_lifecycle": {
+      "abi": "v1",
+      "aggregate": "credential",
+      "domain": "identity",
+      "final_states": [
+        "REVOKED",
+        "ROTATED"
+      ],
+      "id": "state_machine:identity_credential_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.credential.revoke"
+          ],
+          "description": "Credential is valid and usable",
+          "entry_actions": [
+            "emit identity.credential.issued"
+          ],
+          "exit_actions": []
+        },
+        "EXPIRED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Credential has passed its expiration time",
+          "entry_actions": [
+            "emit identity.credential.expired"
+          ],
+          "exit_actions": []
+        },
+        "REVOKED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Credential has been revoked before expiration",
+          "entry_actions": [
+            "emit identity.credential.revoked"
+          ],
+          "exit_actions": []
+        },
+        "ROTATED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Credential has been replaced by a new one",
+          "entry_actions": [
+            "emit identity.credential.revoked",
+            "emit identity.credential.issued"
+          ],
+          "exit_actions": []
+        },
+        "SUSPENDED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.credential.revoke"
+          ],
+          "description": "Credential temporarily suspended",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "identity_delegation_lifecycle": {
+      "abi": "v1",
+      "aggregate": "delegation",
+      "domain": "identity",
+      "final_states": [
+        "EXPIRED",
+        "REVOKED"
+      ],
+      "id": "state_machine:identity_delegation_lifecycle",
+      "initial_state": "PENDING_ACCEPTANCE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.delegation.revoke"
+          ],
+          "description": "Delegation is active and being used",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "EXPIRED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Delegation has passed its valid_until time",
+          "entry_actions": [
+            "emit identity.delegation.expired"
+          ],
+          "exit_actions": []
+        },
+        "PENDING_ACCEPTANCE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.delegation.revoke"
+          ],
+          "description": "Delegation proposed, awaiting delegate acceptance",
+          "entry_actions": [
+            "emit identity.delegation.created"
+          ],
+          "exit_actions": []
+        },
+        "REVOKED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Delegation revoked by delegator or governance",
+          "entry_actions": [
+            "emit identity.delegation.revoked"
+          ],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "identity_session_lifecycle": {
+      "abi": "v1",
+      "aggregate": "session",
+      "domain": "identity",
+      "final_states": [
+        "EXPIRED",
+        "REVOKED",
+        "TERMINATED"
+      ],
+      "id": "state_machine:identity_session_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.session.terminate"
+          ],
+          "description": "Session is live and can be used for authentication",
+          "entry_actions": [
+            "emit identity.session.created",
+            "emit identity.authentication.succeeded"
+          ],
+          "exit_actions": []
+        },
+        "EXPIRED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Session has passed its TTL",
+          "entry_actions": [
+            "emit identity.session.expired"
+          ],
+          "exit_actions": []
+        },
+        "REVOKED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Session revoked (e.g., credential revoked upstream)",
+          "entry_actions": [
+            "emit identity.session.terminated"
+          ],
+          "exit_actions": []
+        },
+        "TERMINATED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Session explicitly terminated by actor or system",
+          "entry_actions": [
+            "emit identity.session.terminated"
+          ],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "identity_trust_anchor_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "trust_anchor",
+      "domain": "identity",
+      "final_states": [],
+      "id": "state_machine:identity_trust_anchor_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "identity.trust_anchor.register"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "identity.trust_anchor.registered"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "identity.trust_anchor.registered"
+        }
+      ]
+    },
+    "intent_lifecycle": {
+      "abi": "v1",
+      "aggregate": "intent",
+      "domain": "intent",
+      "final_states": [
+        "ARCHIVED",
+        "FAILED",
+        "CANCELLED",
+        "EXPIRED"
+      ],
+      "id": "state_machine:intent_lifecycle",
+      "initial_state": "RECEIVED",
+      "states": {
+        "ARCHIVED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Intent record archived",
+          "entry_actions": [
+            "emit intent.archived"
+          ],
+          "exit_actions": []
+        },
+        "CANCELLED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "intent.archive"
+          ],
+          "description": "Intent was cancelled by actor or governance",
+          "entry_actions": [
+            "emit intent.cancelled"
+          ],
+          "exit_actions": []
+        },
+        "CONVERTED_TO_COMMAND": {
+          "abi": "v1",
+          "allowed_commands": [
+            "intent.archive"
+          ],
+          "description": "Intent has been converted to an executable command",
+          "entry_actions": [
+            "emit intent.converted_to_command"
+          ],
+          "exit_actions": []
+        },
+        "ENRICHING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "intent.enrich",
+            "intent.cancel"
+          ],
+          "description": "Intent is being enriched (missing fields resolved)",
+          "entry_actions": [
+            "emit intent.enriching.started"
+          ],
+          "exit_actions": []
+        },
+        "EXPIRED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "intent.archive"
+          ],
+          "description": "Intent passed its expiration time",
+          "entry_actions": [
+            "emit intent.expired"
+          ],
+          "exit_actions": []
+        },
+        "FAILED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "intent.archive"
+          ],
+          "description": "Intent processing failed",
+          "entry_actions": [
+            "emit intent.failed"
+          ],
+          "exit_actions": []
+        },
+        "READY": {
+          "abi": "v1",
+          "allowed_commands": [
+            "intent.convert_to_command",
+            "intent.cancel"
+          ],
+          "description": "Intent is validated and ready for command conversion",
+          "entry_actions": [
+            "emit intent.validation.completed",
+            "emit intent.validated"
+          ],
+          "exit_actions": []
+        },
+        "RECEIVED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "intent.enrich",
+            "intent.cancel"
+          ],
+          "description": "Intent submitted, awaiting enrichment",
+          "entry_actions": [
+            "emit intent.received"
+          ],
+          "exit_actions": []
+        },
+        "VALIDATING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "intent.validate",
+            "intent.cancel"
+          ],
+          "description": "Intent is being validated against business rules",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "ledger_account_lifecycle": {
+      "abi": "v1",
+      "aggregate": "account",
+      "domain": "ledger",
+      "final_states": [
+        "FROZEN",
+        "CLOSED"
+      ],
+      "id": "state_machine:ledger_account_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "ledger.account.freeze"
+          ],
+          "description": "Account is active and accepting postings",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "CLOSED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Account is closed — period ended",
+          "entry_actions": [
+            "emit ledger.account.closed"
+          ],
+          "exit_actions": []
+        },
+        "FROZEN": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Account is frozen — no new postings allowed",
+          "entry_actions": [
+            "emit ledger.account.frozen"
+          ],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "command": "ledger.account.freeze",
+          "from": "ACTIVE",
+          "to": "FROZEN"
+        },
+        {
+          "abi": "v1",
+          "command": "ledger.period.close",
+          "from": "ACTIVE",
+          "to": "CLOSED"
+        }
+      ]
+    },
+    "ledger_accounting_period_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "accounting_period",
+      "domain": "ledger",
+      "final_states": [],
+      "id": "state_machine:ledger_accounting_period_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "ledger.period.close"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "ledger.period.closing"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "ledger.period.closing"
+        },
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "ledger.entry.posted"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "ledger.entry.posted"
+        },
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "ledger.period.closed"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "ledger.period.closed"
+        }
+      ]
+    },
+    "ledger_journal_lifecycle": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "domain": "ledger",
+      "final_states": [
+        "REJECTED"
+      ],
+      "id": "state_machine:ledger_journal_lifecycle",
+      "initial_state": "CREATED",
+      "states": {
+        "CREATED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "system begins validation"
+          ],
+          "description": "Entry has been created but not yet validated",
+          "on_timeout": "REJECTED",
+          "time_limit": "300s"
+        },
+        "POSTED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "ledger.entry.reverse",
+            "ledger.entry.correct"
+          ],
+          "description": "Entry has passed validation and been appended to the journal",
+          "entry_actions": [
+            "update account balance projections",
+            "emit ledger.entry.posted event"
+          ]
+        },
+        "RECONCILED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "ledger.entry.reverse",
+            "ledger.entry.correct"
+          ],
+          "description": "Entry has been verified against external source",
+          "entry_actions": [
+            "mark as reconciled in projections"
+          ]
+        },
+        "REJECTED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Entry failed validation and was not posted",
+          "entry_actions": [
+            "emit ledger.entry.rejected event",
+            "notify source domain"
+          ]
+        },
+        "SETTLED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "ledger.entry.reverse",
+            "ledger.entry.correct"
+          ],
+          "description": "Entry has been confirmed by the originating domain",
+          "entry_actions": [
+            "mark as settled in projections"
+          ]
+        },
+        "VALIDATING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Entry is passing through the validation pipeline",
+          "on_timeout": "REJECTED",
+          "time_limit": "600s"
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "CREATED_to_REJECTED": {
+          "abi": "v1",
+          "condition": "creation_timeout_exceeded",
+          "emitted_events": [
+            "ledger.entry.rejected"
+          ],
+          "invalid": false,
+          "trigger": "timeout"
+        },
+        "CREATED_to_VALIDATING": {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "validation_started"
+        },
+        "POSTED_to_RECONCILED": {
+          "abi": "v1",
+          "condition": "reconciliation_passed_without_settlement",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "reconciliation_confirms"
+        },
+        "POSTED_to_SETTLED": {
+          "abi": "v1",
+          "condition": "settlement_event_received",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "originating_domain_confirms"
+        },
+        "SETTLED_to_RECONCILED": {
+          "abi": "v1",
+          "condition": "reconciliation_passed",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "reconciliation_confirms"
+        },
+        "VALIDATING_to_POSTED": {
+          "abi": "v1",
+          "condition": "all_validation_steps_passed",
+          "emitted_events": [
+            "ledger.entry.posted"
+          ],
+          "invalid": false,
+          "trigger": "validation_passed"
+        },
+        "VALIDATING_to_REJECTED": {
+          "abi": "v1",
+          "condition": "any_validation_step_failed",
+          "emitted_events": [
+            "ledger.entry.rejected"
+          ],
+          "invalid": false,
+          "trigger": "validation_failed"
+        },
+        "abi": "v1",
+        "invalid_transitions": [
+          {
+            "abi": "v1",
+            "from": "REJECTED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "RECONCILED",
+            "to": "POSTED"
+          },
+          {
+            "abi": "v1",
+            "from": "SETTLED",
+            "to": "CREATED"
+          },
+          {
+            "abi": "v1",
+            "from": "VALIDATING",
+            "to": "POSTED"
+          }
+        ]
+      }
+    },
+    "ledger_journal_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "journal",
+      "domain": "ledger",
+      "final_states": [],
+      "id": "state_machine:ledger_journal_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "ledger.journal.create"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "ledger.journal.created"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "ledger.journal.created"
+        }
+      ]
+    },
+    "ledger_reconciliation_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "domain": "ledger",
+      "final_states": [],
+      "id": "state_machine:ledger_reconciliation_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "ledger.reconciliation.start",
+            "ledger.reconciliation.resolve"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "ledger.reconciliation.started"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "ledger.reconciliation.started"
+        },
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "ledger.reconciliation.completed"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "ledger.reconciliation.completed"
+        }
+      ]
+    },
+    "payment_adapter_lifecycle": {
+      "abi": "v1",
+      "aggregate": "rail_adapter",
+      "domain": "payment",
+      "final_states": [
+        "DISABLED"
+      ],
+      "id": "state_machine:payment_adapter_lifecycle",
+      "initial_state": "ENABLED",
+      "states": {
+        "DISABLED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Adapter is disabled — no executions allowed",
+          "entry_actions": [
+            "emit payment.adapter.disabled"
+          ],
+          "exit_actions": []
+        },
+        "ENABLED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Adapter is enabled and available for execution",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "EXECUTING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Adapter is executing a payment",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "PREPARING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Adapter is preparing an execution",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "command": "payment.execution.prepare",
+          "from": "ENABLED",
+          "to": "PREPARING"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.execution.execute",
+          "from": "PREPARING",
+          "to": "EXECUTING"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.execution.settled",
+          "from": "EXECUTING",
+          "to": "ENABLED"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.adapter.disable",
+          "from": "ENABLED",
+          "to": "DISABLED"
+        }
+      ]
+    },
+    "payment_execution_plan_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "execution_plan",
+      "domain": "payment",
+      "final_states": [],
+      "id": "state_machine:payment_execution_plan_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.execution.plan"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "payment.execution.planned"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "payment.execution.planned"
+        }
+      ]
+    },
+    "payment_execution_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "execution",
+      "domain": "payment",
+      "final_states": [],
+      "id": "state_machine:payment_execution_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.execution.prepare"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "payment.execution.planned"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "payment.execution.planned"
+        }
+      ]
+    },
+    "payment_reconciliation_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "domain": "payment",
+      "final_states": [],
+      "id": "state_machine:payment_reconciliation_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.reconciliation.start",
+            "payment.reconciliation.complete"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "payment.reconciliation.started"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "payment.reconciliation.started"
+        },
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "payment.reconciliation.completed"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "payment.reconciliation.completed"
+        }
+      ]
+    },
+    "payment_request_lifecycle": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "domain": "payment",
+      "final_states": [
+        "SETTLED",
+        "REVERSED",
+        "CANCELLED"
+      ],
+      "id": "state_machine:payment_request_lifecycle",
+      "initial_state": "RECEIVED",
+      "states": {
+        "CANCELLED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Payment was cancelled before execution",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": null
+        },
+        "COMPENSATING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Compensation is in progress",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": 300000,
+          "timeout_transition": "FAILED"
+        },
+        "CONFIRMING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.execution.confirm",
+            "payment.reconciliation.start",
+            "payment.execution.compensate"
+          ],
+          "description": "Awaiting confirmation from external rail",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": 86400000,
+          "timeout_transition": "FAILED"
+        },
+        "EXECUTING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.execution.confirm",
+            "payment.execution.compensate"
+          ],
+          "description": "Rail adapter is executing the transaction",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": 300000,
+          "timeout_transition": "FAILED"
+        },
+        "FAILED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.execution.compensate"
+          ],
+          "description": "Payment failed at some stage",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": null
+        },
+        "PLANNING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.request.cancel"
+          ],
+          "description": "Routing engine is evaluating available rails",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": 30000,
+          "timeout_transition": "FAILED"
+        },
+        "PREPARING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.execution.execute"
+          ],
+          "description": "Rail adapter is preparing the transaction",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": 30000,
+          "timeout_transition": "FAILED"
+        },
+        "RECEIVED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.execution.plan",
+            "payment.request.cancel"
+          ],
+          "description": "Payment request has been created and is awaiting planning",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": null
+        },
+        "RECONCILING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.reconciliation.complete",
+            "payment.receipt.issue"
+          ],
+          "description": "Comparing external settlement with internal records",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": 172800000,
+          "timeout_transition": "SETTLED"
+        },
+        "REVERSED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Payment has been fully reversed through compensation",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": null
+        },
+        "ROUTING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.execution.execute",
+            "payment.request.cancel"
+          ],
+          "description": "Execution plan has been created, rail selected",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": 15000,
+          "timeout_transition": "FAILED"
+        },
+        "SETTLED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "payment.receipt.issue"
+          ],
+          "description": "Payment is fully settled and receipted",
+          "entry_actions": [],
+          "exit_actions": [],
+          "timeout_ms": null
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "command": "payment.execution.plan",
+          "from": "RECEIVED",
+          "guard": "execution_plan_does_not_exist",
+          "to": "PLANNING"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.request.cancel",
+          "from": "RECEIVED",
+          "to": "CANCELLED"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.execution.planned",
+          "from": "PLANNING",
+          "guard": "plan_approved",
+          "to": "ROUTING"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.execution.planning_failed",
+          "from": "PLANNING",
+          "to": "FAILED"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.request.cancel",
+          "from": "PLANNING",
+          "to": "CANCELLED"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.execution.execute",
+          "from": "ROUTING",
+          "guard": "adapter_registered",
+          "to": "PREPARING"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.execution.start_failed",
+          "from": "ROUTING",
+          "to": "FAILED"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.request.cancel",
+          "from": "ROUTING",
+          "to": "CANCELLED"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.rail.prepared",
+          "from": "PREPARING",
+          "guard": "preparation_successful",
+          "to": "EXECUTING"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.rail.prepare_timed_out",
+          "from": "PREPARING",
+          "to": "FAILED"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.rail.executed",
+          "from": "EXECUTING",
+          "guard": "execution_submitted",
+          "to": "CONFIRMING"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.rail.execution_timed_out",
+          "from": "EXECUTING",
+          "to": "FAILED"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.rail.failed",
+          "from": "EXECUTING",
+          "guard": "not_retryable",
+          "to": "FAILED"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.execution.compensate",
+          "from": "EXECUTING",
+          "to": "COMPENSATING"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.rail.confirmed",
+          "from": "CONFIRMING",
+          "guard": "confirmation_positive",
+          "to": "RECONCILING"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.rail.failed",
+          "from": "CONFIRMING",
+          "to": "FAILED"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.execution.compensate",
+          "from": "CONFIRMING",
+          "to": "COMPENSATING"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.reconciliation.completed",
+          "from": "RECONCILING",
+          "guard": "reconciliation_matched",
+          "to": "SETTLED"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.receipt.issue",
+          "from": "RECONCILING",
+          "guard": "reconciliation_bypassed",
+          "to": "SETTLED"
+        },
+        {
+          "abi": "v1",
+          "command": "payment.execution.compensate",
+          "from": "FAILED",
+          "to": "COMPENSATING"
+        },
+        {
+          "abi": "v1",
+          "event": "payment.compensation.completed",
+          "from": "COMPENSATING",
+          "guard": "compensation_successful",
+          "to": "REVERSED"
+        }
+      ]
+    },
+    "policy_compliance_requirement_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "compliance_requirement",
+      "domain": "policy",
+      "final_states": [],
+      "id": "state_machine:policy_compliance_requirement_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "policy.compliance.requirement.register"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "policy.compliance.requirement.registered"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "policy.compliance.requirement.registered"
+        }
+      ]
+    },
+    "policy_escalation_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "escalation",
+      "domain": "policy",
+      "final_states": [],
+      "id": "state_machine:policy_escalation_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "policy.escalation.resolve"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "policy.escalation.resolved"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "policy.escalation.resolved"
+        }
+      ]
+    },
+    "policy_evaluation_lifecycle": {
+      "abi": "v1",
+      "aggregate": "evaluation",
+      "domain": "policy",
+      "final_states": [
+        "ARCHIVED"
+      ],
+      "id": "state_machine:policy_evaluation_lifecycle",
+      "initial_state": "IDLE",
+      "states": {
+        "ARCHIVED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Evaluation record archived",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "COMPUTING_DECISION": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Calculating composite decision from rule results",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "DECISION_RENDERED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "policy.escalation.resolve"
+          ],
+          "description": "Final decision computed and ready",
+          "entry_actions": [
+            "emit policy.evaluation.completed"
+          ],
+          "exit_actions": []
+        },
+        "EVALUATING_RULES": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Running policy rules in deterministic order",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "GATHERING_CONTEXT": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Collecting identity, vault, treasury, governance context",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "IDLE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "policy.set.evaluate"
+          ],
+          "description": "No evaluation in progress",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "policy_rule_lifecycle": {
+      "abi": "v1",
+      "aggregate": "rule",
+      "domain": "policy",
+      "final_states": [
+        "ARCHIVED"
+      ],
+      "id": "state_machine:policy_rule_lifecycle",
+      "initial_state": "DRAFT",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "policy.rule.deactivate",
+            "policy.rule.update"
+          ],
+          "description": "Rule is live and being evaluated",
+          "entry_actions": [
+            "emit policy.rule.activated"
+          ],
+          "exit_actions": []
+        },
+        "ARCHIVED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Rule is permanently archived",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "DRAFT": {
+          "abi": "v1",
+          "allowed_commands": [
+            "policy.rule.activate",
+            "policy.rule.update"
+          ],
+          "description": "Rule is being written",
+          "entry_actions": [
+            "emit policy.rule.created"
+          ],
+          "exit_actions": []
+        },
+        "INACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "policy.rule.activate",
+            "policy.rule.update"
+          ],
+          "description": "Rule is disabled but not deleted",
+          "entry_actions": [
+            "emit policy.rule.deactivated"
+          ],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "policy_set_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "set",
+      "domain": "policy",
+      "final_states": [],
+      "id": "state_machine:policy_set_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "policy.set.create"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "policy.evaluation.completed"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "policy.evaluation.completed"
+        }
+      ]
+    },
+    "saga_lifecycle": {
+      "abi": "v1",
+      "aggregate": "saga_instance",
+      "domain": "kernel",
+      "final_states": [
+        "COMPLETED",
+        "FAILED",
+        "COMPENSATED"
+      ],
+      "id": "state_machine:saga_lifecycle",
+      "initial_state": "PENDING",
+      "states": {
+        "COMPENSATED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Saga compensation completed",
+          "entry_actions": [
+            "emit saga.compensated"
+          ],
+          "exit_actions": []
+        },
+        "COMPENSATING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Saga is executing compensation path",
+          "entry_actions": [
+            "emit saga.compensating"
+          ],
+          "exit_actions": []
+        },
+        "COMPLETED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Saga completed successfully",
+          "entry_actions": [
+            "emit saga.completed"
+          ],
+          "exit_actions": []
+        },
+        "FAILED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Saga failed — compensation may be required",
+          "entry_actions": [
+            "emit saga.failed"
+          ],
+          "exit_actions": []
+        },
+        "PENDING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Saga is pending execution",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "RUNNING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Saga is currently executing",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "event": "saga.started",
+          "from": "PENDING",
+          "to": "RUNNING"
+        },
+        {
+          "abi": "v1",
+          "event": "saga.completed",
+          "from": "RUNNING",
+          "to": "COMPLETED"
+        },
+        {
+          "abi": "v1",
+          "event": "saga.failed",
+          "from": "RUNNING",
+          "to": "FAILED"
+        },
+        {
+          "abi": "v1",
+          "command": "saga.compensate",
+          "from": "FAILED",
+          "to": "COMPENSATING"
+        },
+        {
+          "abi": "v1",
+          "event": "saga.compensated",
+          "from": "COMPENSATING",
+          "to": "COMPENSATED"
+        }
+      ]
+    },
+    "system_health_lifecycle": {
+      "abi": "v1",
+      "aggregate": "system_health",
+      "domain": "kernel",
+      "final_states": [
+        "HALTED"
+      ],
+      "id": "state_machine:system_health_lifecycle",
+      "initial_state": "HEALTHY",
+      "states": {
+        "DEGRADED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "System is operating with reduced capacity",
+          "entry_actions": [
+            "emit system.health.degraded"
+          ],
+          "exit_actions": []
+        },
+        "HALTED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "System is halted — no commands accepted",
+          "entry_actions": [
+            "emit system.health.halted"
+          ],
+          "exit_actions": []
+        },
+        "HEALTHY": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "System is operating normally",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "UNKNOWN": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "System health cannot be determined",
+          "entry_actions": [
+            "emit system.health.unknown"
+          ],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "event": "system.health.degraded",
+          "from": "HEALTHY",
+          "to": "DEGRADED"
+        },
+        {
+          "abi": "v1",
+          "event": "system.health.restored",
+          "from": "DEGRADED",
+          "to": "HEALTHY"
+        },
+        {
+          "abi": "v1",
+          "command": "governance.emergency.halt",
+          "from": "HEALTHY",
+          "to": "HALTED"
+        },
+        {
+          "abi": "v1",
+          "command": "governance.emergency.halt",
+          "from": "DEGRADED",
+          "to": "HALTED"
+        },
+        {
+          "abi": "v1",
+          "event": "system.health.unknown",
+          "from": "HEALTHY",
+          "to": "UNKNOWN"
+        },
+        {
+          "abi": "v1",
+          "event": "system.health.restored",
+          "from": "UNKNOWN",
+          "to": "HEALTHY"
+        }
+      ]
+    },
+    "treasury_liquidity_position_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "liquidity_position",
+      "domain": "treasury",
+      "final_states": [],
+      "id": "state_machine:treasury_liquidity_position_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "treasury.liquidity.allocate"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "abi": "v1"
+      }
+    },
+    "treasury_transfer_lifecycle": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "domain": "treasury",
+      "final_states": [
+        "SETTLED",
+        "REJECTED",
+        "EXPIRED"
+      ],
+      "id": "state_machine:treasury_transfer_lifecycle",
+      "initial_state": "REQUESTED",
+      "states": {
+        "AUTHORIZED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "treasury.transfer.reserve",
+            "treasury.transfer.cancel"
+          ],
+          "description": "Transfer has passed identity, capability, and policy gates",
+          "on_timeout": "REJECTED",
+          "time_limit": "300s"
+        },
+        "COMPENSATION_REQUIRED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "treasury.transfer.compensate"
+          ],
+          "description": "A compensation saga has been initiated"
+        },
+        "EXECUTING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Transfer execution has begun (external payment rail engaged)",
+          "time_limit": "none"
+        },
+        "EXPIRED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Transfer timed out without completing"
+        },
+        "FAILED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "treasury.transfer.compensate"
+          ],
+          "description": "Transfer execution or settlement failed"
+        },
+        "PENDING_SETTLEMENT": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Execution completed, awaiting settlement confirmation",
+          "time_limit": "none"
+        },
+        "REJECTED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Transfer was rejected at any stage"
+        },
+        "REQUESTED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "treasury.transfer.authorize",
+            "treasury.transfer.cancel"
+          ],
+          "description": "Transfer has been requested but not yet authorized",
+          "on_timeout": "EXPIRED",
+          "time_limit": "3600s"
+        },
+        "RESERVED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "treasury.transfer.execute",
+            "treasury.transfer.cancel"
+          ],
+          "description": "Vault reservation is locked for this transfer",
+          "time_limit": "none"
+        },
+        "SETTLED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Transfer has been confirmed as settled"
+        },
+        "UNKNOWN_EXTERNAL_STATE": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "External system returned unknown or no response"
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "AUTHORIZED_to_REJECTED": {
+          "abi": "v1",
+          "condition": "policy evaluation returned DENY",
+          "emitted_events": [
+            "treasury.transfer.rejected"
+          ],
+          "invalid": false,
+          "trigger": "policy denied"
+        },
+        "AUTHORIZED_to_RESERVED": {
+          "abi": "v1",
+          "condition": "vault confirms reservation in ACTIVE state",
+          "emitted_events": [
+            "treasury.transfer.reserved"
+          ],
+          "invalid": false,
+          "trigger": "vault reservation locked"
+        },
+        "EXECUTING_to_FAILED": {
+          "abi": "v1",
+          "condition": "payment rail returned failure",
+          "emitted_events": [
+            "treasury.transfer.failed"
+          ],
+          "invalid": false,
+          "trigger": "execution error"
+        },
+        "EXECUTING_to_PENDING_SETTLEMENT": {
+          "abi": "v1",
+          "condition": "payment rail reports execution complete",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "execution completed, awaiting confirmation"
+        },
+        "EXECUTING_to_SETTLED": {
+          "abi": "v1",
+          "condition": "execution and settlement confirmed atomically",
+          "emitted_events": [
+            "treasury.transfer.settled",
+            "treasury.settlement.confirmed"
+          ],
+          "invalid": false,
+          "trigger": "internal settlement confirmed directly"
+        },
+        "EXECUTING_to_UNKNOWN_EXTERNAL_STATE": {
+          "abi": "v1",
+          "condition": "payment rail did not respond within execution SLA",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "external timeout"
+        },
+        "FAILED_to_COMPENSATION_REQUIRED": {
+          "abi": "v1",
+          "condition": "governance or automated compensation triggered",
+          "emitted_events": [
+            "treasury.transfer.compensation_required"
+          ],
+          "invalid": false,
+          "trigger": "compensation saga initiated"
+        },
+        "PENDING_SETTLEMENT_to_FAILED": {
+          "abi": "v1",
+          "condition": "settlement confirmation returned failure",
+          "emitted_events": [
+            "treasury.transfer.failed"
+          ],
+          "invalid": false,
+          "trigger": "settlement failed"
+        },
+        "PENDING_SETTLEMENT_to_SETTLED": {
+          "abi": "v1",
+          "condition": "settlement confirmation received from rail",
+          "emitted_events": [
+            "treasury.transfer.settled",
+            "treasury.settlement.confirmed"
+          ],
+          "invalid": false,
+          "trigger": "settlement confirmed"
+        },
+        "PENDING_SETTLEMENT_to_UNKNOWN_EXTERNAL_STATE": {
+          "abi": "v1",
+          "condition": "no response received within SLA or response unparseable",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "timeout or unknown response"
+        },
+        "REQUESTED_to_AUTHORIZED": {
+          "abi": "v1",
+          "condition": "all authorization gates passed",
+          "emitted_events": [
+            "treasury.transfer.authorized"
+          ],
+          "invalid": false,
+          "trigger": "identity+capability+policy passed"
+        },
+        "REQUESTED_to_EXPIRED": {
+          "abi": "v1",
+          "condition": "3600s elapsed without authorization",
+          "emitted_events": [
+            "treasury.transfer.expired"
+          ],
+          "invalid": false,
+          "trigger": "timeout"
+        },
+        "REQUESTED_to_REJECTED": {
+          "abi": "v1",
+          "condition": "request payload fails validation",
+          "emitted_events": [
+            "treasury.transfer.rejected"
+          ],
+          "invalid": false,
+          "trigger": "validation failed"
+        },
+        "RESERVED_to_EXECUTING": {
+          "abi": "v1",
+          "condition": "payment rail accepts instruction",
+          "emitted_events": [
+            "treasury.transfer.executing"
+          ],
+          "invalid": false,
+          "trigger": "execution begins"
+        },
+        "RESERVED_to_EXPIRED": {
+          "abi": "v1",
+          "condition": "vault reservation reached expiry",
+          "emitted_events": [
+            "treasury.transfer.expired"
+          ],
+          "invalid": false,
+          "trigger": "vault reservation expired"
+        },
+        "UNKNOWN_EXTERNAL_STATE_to_COMPENSATION_REQUIRED": {
+          "abi": "v1",
+          "condition": "governance determines compensation necessary",
+          "emitted_events": [
+            "treasury.transfer.compensation_required"
+          ],
+          "invalid": false,
+          "trigger": "governance orders compensation"
+        },
+        "UNKNOWN_EXTERNAL_STATE_to_FAILED": {
+          "abi": "v1",
+          "condition": "late failure received after unknown period",
+          "emitted_events": [
+            "treasury.transfer.failed"
+          ],
+          "invalid": false,
+          "trigger": "failure confirmed"
+        },
+        "UNKNOWN_EXTERNAL_STATE_to_SETTLED": {
+          "abi": "v1",
+          "condition": "settlement confirmed after unknown period",
+          "emitted_events": [
+            "treasury.transfer.settled",
+            "treasury.settlement.confirmed"
+          ],
+          "invalid": false,
+          "trigger": "late confirmation received"
+        },
+        "abi": "v1"
+      }
+    },
+    "vault_asset_lifecycle": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "domain": "vault",
+      "final_states": [
+        "REJECTED",
+        "IMPAIRED"
+      ],
+      "id": "state_machine:vault_asset_lifecycle",
+      "initial_state": "REGISTERED",
+      "states": {
+        "AVAILABLE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.reserve.create",
+            "vault.valuation.update",
+            "vault.asset.reconcile",
+            "vault.collateral.add",
+            "vault.ownership.transfer"
+          ],
+          "description": "Asset is verified and available for financial operations",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "CONSUMED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Reservation was consumed by a completed financial operation",
+          "entry_actions": [
+            "recalculate available_balance"
+          ],
+          "exit_actions": []
+        },
+        "IMPAIRED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.asset.write_down",
+            "vault.asset.reconcile"
+          ],
+          "description": "Asset has suffered significant value loss",
+          "entry_actions": [
+            "restrict new operations",
+            "notify governance"
+          ],
+          "exit_actions": []
+        },
+        "LOCKED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.reserve.release",
+            "vault.valuation.update"
+          ],
+          "description": "Reservation is hard-locked, awaiting consuming transaction",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "RECONCILIATION_REQUIRED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.asset.reconcile"
+          ],
+          "description": "Vault state may be inconsistent with external reality",
+          "entry_actions": [
+            "emit governance notification if severity >= medium"
+          ],
+          "exit_actions": []
+        },
+        "REGISTERED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.asset.verify",
+            "vault.asset.reject"
+          ],
+          "description": "Asset has been registered but not yet verified",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "REJECTED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Asset failed verification or was explicitly rejected",
+          "entry_actions": [
+            "restrict all operations"
+          ],
+          "exit_actions": []
+        },
+        "RELEASED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Reserved value has been returned to available pool",
+          "entry_actions": [
+            "recalculate available_balance"
+          ],
+          "exit_actions": []
+        },
+        "RESERVED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.reserve.lock",
+            "vault.reserve.release",
+            "vault.valuation.update",
+            "vault.asset.reconcile"
+          ],
+          "description": "Portion of asset value is reserved for a pending operation",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "VERIFIED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.reserve.create",
+            "vault.valuation.update",
+            "vault.asset.reconcile",
+            "vault.asset.reject"
+          ],
+          "description": "Asset existence has been confirmed through attestation",
+          "entry_actions": [
+            "emit vault.custody.attested"
+          ],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "AVAILABLE_to_IMPAIRED": {
+          "abi": "v1",
+          "condition": "significant_value_decline",
+          "emitted_events": [
+            "vault.asset.impaired"
+          ],
+          "invalid": false,
+          "trigger": "vault.asset.impaired"
+        },
+        "AVAILABLE_to_RESERVED": {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "vault.reserve.created"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.created"
+        },
+        "CONSUMED_to_AVAILABLE": {
+          "abi": "v1",
+          "condition": "balance_recalculated",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "automatic"
+        },
+        "IMPAIRED_to_AVAILABLE": {
+          "abi": "v1",
+          "condition": "value_recovered_and_reconciliation_passed",
+          "emitted_events": [
+            "vault.valuation.updated",
+            "vault.reconciliation.completed"
+          ],
+          "invalid": false,
+          "trigger": "vault.valuation.updated"
+        },
+        "LOCKED_to_AVAILABLE": {
+          "abi": "v1",
+          "condition": "consuming_transaction_failed",
+          "emitted_events": [
+            "vault.reserve.released"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.released"
+        },
+        "LOCKED_to_CONSUMED": {
+          "abi": "v1",
+          "condition": "consuming_transaction_completed",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "treasury.transfer.settled"
+        },
+        "RECONCILIATION_REQUIRED_to_AVAILABLE": {
+          "abi": "v1",
+          "condition": "no_discrepancy_or_discrepancy_resolved",
+          "emitted_events": [
+            "vault.reconciliation.completed"
+          ],
+          "invalid": false,
+          "trigger": "vault.reconciliation.completed"
+        },
+        "RECONCILIATION_REQUIRED_to_LOCKED": {
+          "abi": "v1",
+          "condition": "active_reservation_confirmed_valid",
+          "emitted_events": [
+            "vault.reconciliation.completed"
+          ],
+          "invalid": false,
+          "trigger": "vault.reconciliation.completed"
+        },
+        "RECONCILIATION_REQUIRED_to_VERIFIED": {
+          "abi": "v1",
+          "condition": "asset_downgraded_during_reconciliation",
+          "emitted_events": [
+            "vault.reconciliation.completed"
+          ],
+          "invalid": false,
+          "trigger": "vault.reconciliation.completed"
+        },
+        "REGISTERED_to_REJECTED": {
+          "abi": "v1",
+          "condition": "verification_failed",
+          "emitted_events": [
+            "vault.asset.rejected"
+          ],
+          "invalid": false,
+          "trigger": "vault.asset.rejected"
+        },
+        "REGISTERED_to_VERIFIED": {
+          "abi": "v1",
+          "condition": "attestation_valid",
+          "emitted_events": [
+            "vault.asset.verified"
+          ],
+          "invalid": false,
+          "trigger": "vault.asset.verified"
+        },
+        "RELEASED_to_AVAILABLE": {
+          "abi": "v1",
+          "condition": "balance_recalculated",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "automatic"
+        },
+        "RESERVED_to_AVAILABLE": {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "vault.reserve.released"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.released"
+        },
+        "RESERVED_to_IMPAIRED": {
+          "abi": "v1",
+          "condition": "significant_value_decline",
+          "emitted_events": [
+            "vault.asset.impaired"
+          ],
+          "invalid": false,
+          "trigger": "vault.asset.impaired"
+        },
+        "RESERVED_to_LOCKED": {
+          "abi": "v1",
+          "condition": "reservation_not_expired",
+          "emitted_events": [
+            "vault.reserve.locked"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.locked"
+        },
+        "RESERVED_to_RECONCILIATION_REQUIRED": {
+          "abi": "v1",
+          "condition": "discrepancy_detected",
+          "emitted_events": [
+            "vault.reconciliation.discrepancy_found"
+          ],
+          "invalid": false,
+          "trigger": "vault.reconciliation.discrepancy_found"
+        },
+        "VERIFIED_to_AVAILABLE": {
+          "abi": "v1",
+          "condition": "asset_ready_for_operations",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "vault.reserve.created"
+        },
+        "VERIFIED_to_RECONCILIATION_REQUIRED": {
+          "abi": "v1",
+          "condition": "discrepancy_detected",
+          "emitted_events": [
+            "vault.reconciliation.discrepancy_found"
+          ],
+          "invalid": false,
+          "trigger": "vault.reconciliation.discrepancy_found"
+        },
+        "VERIFIED_to_REJECTED": {
+          "abi": "v1",
+          "condition": "post_verification_rejection",
+          "emitted_events": [
+            "vault.asset.rejected"
+          ],
+          "invalid": false,
+          "trigger": "vault.asset.rejected"
+        },
+        "abi": "v1",
+        "invalid_transitions": [
+          {
+            "abi": "v1",
+            "from": "REJECTED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "REGISTERED",
+            "to": "AVAILABLE"
+          },
+          {
+            "abi": "v1",
+            "from": "REGISTERED",
+            "to": "RESERVED"
+          },
+          {
+            "abi": "v1",
+            "from": "REGISTERED",
+            "to": "LOCKED"
+          },
+          {
+            "abi": "v1",
+            "from": "AVAILABLE",
+            "to": "REGISTERED"
+          },
+          {
+            "abi": "v1",
+            "from": "AVAILABLE",
+            "to": "VERIFIED"
+          },
+          {
+            "abi": "v1",
+            "from": "LOCKED",
+            "to": "RESERVED"
+          },
+          {
+            "abi": "v1",
+            "from": "CONSUMED",
+            "to": "LOCKED"
+          }
+        ]
+      }
+    },
+    "vault_collateral_lifecycle": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "domain": "vault",
+      "final_states": [
+        "RELEASED",
+        "LIQUIDATED"
+      ],
+      "id": "state_machine:vault_collateral_lifecycle",
+      "initial_state": "PROPOSED",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.collateral.remove",
+            "vault.collateral.revalue"
+          ],
+          "description": "Collateral is securing an obligation",
+          "time_limit": "none"
+        },
+        "LIQUIDATED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Collateral has been liquidated"
+        },
+        "LIQUIDATING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Collateral is being liquidated to cover obligation",
+          "on_timeout": "escalate_to_governance",
+          "time_limit": "604800s"
+        },
+        "MARGIN_CALL": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.collateral.remove",
+            "vault.collateral.revalue"
+          ],
+          "description": "Margin ratio has fallen below maintenance threshold",
+          "on_timeout": "LIQUIDATING",
+          "time_limit": "86400s"
+        },
+        "PROPOSED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.collateral.add"
+          ],
+          "description": "Collateral has been proposed but not yet activated"
+        },
+        "RELEASED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Collateral has been released"
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "ACTIVE_to_MARGIN_CALL": {
+          "abi": "v1",
+          "condition": "margin_ratio_below_maintenance",
+          "emitted_events": [
+            "vault.collateral.margin_call"
+          ],
+          "invalid": false,
+          "trigger": "vault.collateral.margin_call"
+        },
+        "ACTIVE_to_RELEASED": {
+          "abi": "v1",
+          "condition": "obligation_satisfied_or_reduced",
+          "emitted_events": [
+            "vault.collateral.released"
+          ],
+          "invalid": false,
+          "trigger": "vault.collateral.released"
+        },
+        "LIQUIDATING_to_LIQUIDATED": {
+          "abi": "v1",
+          "condition": "proceeds_applied_to_obligation",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "liquidation_completed"
+        },
+        "LIQUIDATING_to_RELEASED": {
+          "abi": "v1",
+          "condition": "governance_overrides_liquidation",
+          "emitted_events": [
+            "vault.collateral.released"
+          ],
+          "invalid": false,
+          "trigger": "liquidation_cancelled"
+        },
+        "MARGIN_CALL_to_ACTIVE": {
+          "abi": "v1",
+          "condition": "margin_ratio_restored_above_initial",
+          "emitted_events": [
+            "vault.collateral.revalued"
+          ],
+          "invalid": false,
+          "trigger": "vault.collateral.revalued"
+        },
+        "MARGIN_CALL_to_LIQUIDATING": {
+          "abi": "v1",
+          "condition": "unresolved_past_deadline",
+          "emitted_events": [
+            "vault.collateral.liquidation_initiated"
+          ],
+          "invalid": false,
+          "trigger": "margin_call_timeout"
+        },
+        "MARGIN_CALL_to_RELEASED": {
+          "abi": "v1",
+          "condition": "obligation_satisfied_despite_margin_call",
+          "emitted_events": [
+            "vault.collateral.released"
+          ],
+          "invalid": false,
+          "trigger": "vault.collateral.released"
+        },
+        "PROPOSED_to_ACTIVE": {
+          "abi": "v1",
+          "condition": "eligibility_and_concentration_checks_passed",
+          "emitted_events": [
+            "vault.collateral.added",
+            "vault.collateral.valued"
+          ],
+          "invalid": false,
+          "trigger": "vault.collateral.added"
+        },
+        "PROPOSED_to_FAILED": {
+          "abi": "v1",
+          "condition": "validation_failed",
+          "emitted_events": [
+            "vault.collateral.addition_failed"
+          ],
+          "invalid": false,
+          "trigger": "vault.collateral.addition_failed"
+        },
+        "abi": "v1",
+        "invalid_transitions": [
+          {
+            "abi": "v1",
+            "from": "RELEASED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "LIQUIDATED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "LIQUIDATING",
+            "to": "ACTIVE"
+          },
+          {
+            "abi": "v1",
+            "from": "LIQUIDATING",
+            "to": "PROPOSED"
+          },
+          {
+            "abi": "v1",
+            "from": "MARGIN_CALL",
+            "to": "PROPOSED"
+          }
+        ]
+      }
+    },
+    "vault_reconciliation_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "domain": "vault",
+      "final_states": [],
+      "id": "state_machine:vault_reconciliation_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.asset.reconcile"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "vault.reconciliation.started"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "vault.reconciliation.started"
+        }
+      ]
+    },
+    "vault_reservation_lifecycle": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "domain": "vault",
+      "final_states": [
+        "EXPIRED",
+        "FAILED"
+      ],
+      "id": "state_machine:vault_reservation_lifecycle",
+      "initial_state": "PENDING",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.reserve.release"
+          ],
+          "description": "Reservation locked, value committed",
+          "on_timeout": "EXPIRED",
+          "time_limit": "86400s"
+        },
+        "CONSUMED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Reservation consumed by a completed transaction"
+        },
+        "EXPIRED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Reservation expired without being consumed"
+        },
+        "FAILED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Reservation failed during creation or locking"
+        },
+        "PENDING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.reserve.lock",
+            "vault.reserve.release"
+          ],
+          "description": "Reservation created, awaiting lock",
+          "on_timeout": "EXPIRED",
+          "time_limit": "86400s"
+        },
+        "RELEASED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Reservation explicitly released"
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "ACTIVE_to_CONSUMED": {
+          "abi": "v1",
+          "condition": "consuming_event_received",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "consuming_transaction_completed"
+        },
+        "ACTIVE_to_EXPIRED": {
+          "abi": "v1",
+          "condition": "expiration_time_passed",
+          "emitted_events": [
+            "vault.reserve.expired"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.expired"
+        },
+        "ACTIVE_to_RELEASED": {
+          "abi": "v1",
+          "condition": "consuming_transaction_failed",
+          "emitted_events": [
+            "vault.reserve.released"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.released"
+        },
+        "PENDING_to_ACTIVE": {
+          "abi": "v1",
+          "condition": "balance_sufficient",
+          "emitted_events": [
+            "vault.reserve.locked"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.locked"
+        },
+        "PENDING_to_EXPIRED": {
+          "abi": "v1",
+          "condition": "expiration_time_passed",
+          "emitted_events": [
+            "vault.reserve.expired"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.expired"
+        },
+        "PENDING_to_FAILED": {
+          "abi": "v1",
+          "condition": "validation_failed",
+          "emitted_events": [
+            "vault.reserve.creation_failed"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.creation_failed"
+        },
+        "PENDING_to_RELEASED": {
+          "abi": "v1",
+          "condition": "actor_requests_release",
+          "emitted_events": [
+            "vault.reserve.released"
+          ],
+          "invalid": false,
+          "trigger": "vault.reserve.released"
+        },
+        "abi": "v1",
+        "invalid_transitions": [
+          {
+            "abi": "v1",
+            "from": "CONSUMED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "EXPIRED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "RELEASED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "FAILED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "ACTIVE",
+            "to": "PENDING"
+          },
+          {
+            "abi": "v1",
+            "from": "CONSUMED",
+            "to": "ACTIVE"
+          }
+        ]
+      }
+    },
+    "vault_transaction_lifecycle": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "domain": "vault",
+      "final_states": [
+        "CLOSED",
+        "FAILED"
+      ],
+      "id": "state_machine:vault_transaction_lifecycle",
+      "initial_state": "CREATED",
+      "states": {
+        "CLOSED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Transaction is complete and closed",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "CREATED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.transaction.fund",
+            "vault.transaction.cancel"
+          ],
+          "description": "Transaction record created, awaiting funding",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "DISBURSED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Value has been disbursed from vault",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "FAILED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Transaction failed at some stage",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "FUNDED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.transaction.authorize_release",
+            "vault.transfer.request"
+          ],
+          "description": "Funding confirmed, value available for disbursement",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "FUNDING_PENDING": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "Funding is in transit or being confirmed",
+          "on_timeout": "FAILED",
+          "time_limit": "86400s"
+        },
+        "FUNDING_REQUESTED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.transaction.cancel"
+          ],
+          "description": "Funding has been requested from external source",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "RELEASE_AUTHORIZED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.transaction.disburse",
+            "vault.transaction.cancel"
+          ],
+          "description": "Disbursement has been authorized",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "RELEASE_PENDING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.transaction.authorize_release",
+            "vault.transaction.cancel"
+          ],
+          "description": "Disbursement authorization pending",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "CREATED_to_FAILED": {
+          "abi": "v1",
+          "condition": "cancellation_requested",
+          "emitted_events": [
+            "vault.transaction.failed"
+          ],
+          "invalid": false,
+          "trigger": "vault.transaction.cancel"
+        },
+        "CREATED_to_FUNDING_REQUESTED": {
+          "abi": "v1",
+          "condition": "funding_source_valid",
+          "emitted_events": [
+            "vault.transaction.funding_requested"
+          ],
+          "invalid": false,
+          "trigger": "vault.transaction.fund"
+        },
+        "DISBURSED_to_CLOSED": {
+          "abi": "v1",
+          "condition": "reconciliation_complete",
+          "emitted_events": [
+            "vault.transaction.closed"
+          ],
+          "invalid": false,
+          "trigger": "automatic"
+        },
+        "FUNDED_to_RELEASE_PENDING": {
+          "abi": "v1",
+          "condition": "authorization_valid",
+          "emitted_events": [
+            "vault.transaction.release_pending"
+          ],
+          "invalid": false,
+          "trigger": "vault.transaction.authorize_release"
+        },
+        "FUNDING_PENDING_to_FAILED": {
+          "abi": "v1",
+          "condition": "funding_not_confirmed_within_timeout",
+          "emitted_events": [
+            "vault.transaction.failed"
+          ],
+          "invalid": false,
+          "trigger": "timeout"
+        },
+        "FUNDING_PENDING_to_FUNDED": {
+          "abi": "v1",
+          "condition": "settlement_verified",
+          "emitted_events": [
+            "vault.transaction.funded"
+          ],
+          "invalid": false,
+          "trigger": "funding_settlement_confirmed"
+        },
+        "FUNDING_REQUESTED_to_FAILED": {
+          "abi": "v1",
+          "condition": "cancellation_before_funding",
+          "emitted_events": [
+            "vault.transaction.failed"
+          ],
+          "invalid": false,
+          "trigger": "vault.transaction.cancel"
+        },
+        "FUNDING_REQUESTED_to_FUNDING_PENDING": {
+          "abi": "v1",
+          "condition": "confirmation_received",
+          "emitted_events": [],
+          "invalid": false,
+          "trigger": "external_funding_confirmed"
+        },
+        "RELEASE_AUTHORIZED_to_DISBURSED": {
+          "abi": "v1",
+          "condition": "disbursement_completed",
+          "emitted_events": [
+            "vault.transaction.disbursed"
+          ],
+          "invalid": false,
+          "trigger": "vault.transaction.disburse"
+        },
+        "RELEASE_PENDING_to_FAILED": {
+          "abi": "v1",
+          "condition": "cancellation_before_disbursement",
+          "emitted_events": [
+            "vault.transaction.failed"
+          ],
+          "invalid": false,
+          "trigger": "vault.transaction.cancel"
+        },
+        "RELEASE_PENDING_to_RELEASE_AUTHORIZED": {
+          "abi": "v1",
+          "condition": "governance_approved_or_policy_met",
+          "emitted_events": [
+            "vault.transaction.release_authorized"
+          ],
+          "invalid": false,
+          "trigger": "vault.transaction.authorize_release"
+        },
+        "abi": "v1",
+        "invalid_transitions": [
+          {
+            "abi": "v1",
+            "from": "CLOSED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "FAILED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "DISBURSED",
+            "to": "FUNDED"
+          },
+          {
+            "abi": "v1",
+            "from": "FUNDED",
+            "to": "CREATED"
+          }
+        ]
+      }
+    },
+    "vault_valuation_v06_lifecycle": {
+      "abi": "v1",
+      "aggregate": "valuation",
+      "domain": "vault",
+      "final_states": [],
+      "id": "state_machine:vault_valuation_v06_lifecycle",
+      "initial_state": "ACTIVE",
+      "states": {
+        "ACTIVE": {
+          "abi": "v1",
+          "allowed_commands": [
+            "vault.valuation.update"
+          ],
+          "description": "Aggregate accepts covered lifecycle commands",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": [
+        {
+          "abi": "v1",
+          "condition": "none",
+          "emitted_events": [
+            "vault.valuation.updated"
+          ],
+          "from": "ACTIVE",
+          "invalid": false,
+          "to": "ACTIVE",
+          "trigger": "vault.valuation.updated"
+        }
+      ]
+    }
+  },
+  "entry_count": 43,
+  "kind": "machines"
+}

@@ -1,7 +1,7 @@
 // SOVR GENERATED — AGENT GOVERNOR SANDBOX — DO NOT EDIT
-// hash 51121c99e8ee2a527650d070aa6b49a31460afc74d1328b7ff13acb0bce00839
+// hash 58ad987220aa43acd60f62dcc8be623dd359ab7e40fbe3939d309982c2eaacc3
 // SOVR GENERATED — AI-Agent "Governor Sandbox" & Intent SDK
-// Compiler: 0.2.0-kernel-working Protocol: 1.0.0
+// Compiler: 0.6.0 Protocol: 1.0.0
 // Implements AI-agent safety wrappers, prompt hashing, budget quotas, and human-in-the-loop escalations
 
 export interface AgentExecutionEnvelope {

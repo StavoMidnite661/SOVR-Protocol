@@ -1,4 +1,5 @@
 import { SOVR_IR, Diagnostic } from './ir/types.js';
+export * from './pipeline/pass-runner.js';
 export interface CompilerOutput {
     ir: SOVR_IR;
     files: Array<{
@@ -28,5 +29,7 @@ export declare class CompilerRuntime {
     constructor(rootDir: string);
     execute(): Promise<CompilerOutput>;
     writeOutput(outDir: string, output: CompilerOutput): void;
+    private writeRegistryManifest;
+    private writeCompilerCertification;
 }
 export declare function compile(rootDir: string, outDir: string): Promise<CompilerOutput>;

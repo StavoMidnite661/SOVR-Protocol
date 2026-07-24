@@ -11,7 +11,6 @@ export function generateTLA(ir: SOVR_IR): GeneratedFile[] {
   const compilerVersion = ir.meta.compilerVersion;
   const files: GeneratedFile[] = [];
 
-  // Group state machines
   const stateMachines = ir.nodes.filter(n => n.type === 'state_machine' || n.sourceRef.includes('state_machine'));
 
   for (const sm of stateMachines) {
@@ -19,31 +18,39 @@ export function generateTLA(ir: SOVR_IR): GeneratedFile[] {
     const cleanName = smName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase();
 
     const states: string[] = [];
-    const transitions: Array<{ from: string; to: string; trigger: string }> = [];
+    const transitions: Array<{ op: string; from: string; to: string; trigger: string }> = [];
 
-    // Derive mock states/transitions based on our IR
     const statesMap = (sm as any).states || {};
-    for (const [sName, sDef] of Object.entries(statesMap)) {
+    for (const sName of Object.keys(statesMap).sort()) {
       states.push(sName.toUpperCase());
-      const transitionsList = (sDef as any).transitions || [];
-      for (const t of transitionsList) {
-        transitions.push({
-          from: sName.toUpperCase(),
-          to: (t as any).target.toUpperCase(),
-          trigger: (t as any).command ? (t as any).command.replace(/\./g, '_').toUpperCase() : 'TRANSITION'
-        });
-      }
+    }
+
+    const transitionsMap = (sm as any).transitions || {};
+    for (const [transitionName, transitionDef] of Object.entries(transitionsMap as any)) {
+      const endpoints = transitionEndpoints(transitionName, transitionDef as any);
+      if (!endpoints) continue;
+      transitions.push({
+        op: transitionName.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase(),
+        from: endpoints.from.toUpperCase(),
+        to: endpoints.to.toUpperCase(),
+        trigger: String((transitionDef as any).trigger ?? (transitionDef as any).command ?? transitionName).replace(/\./g, '_').toUpperCase(),
+      });
     }
 
     if (states.length === 0) {
-      // Fallback fallback defaults if nested structure isn't populated
       states.push('INIT', 'ACTIVE', 'COMPLETED', 'FAILED');
+    }
+    if (transitions.length === 0) {
       transitions.push(
-        { from: 'INIT', to: 'ACTIVE', trigger: 'ACTIVATE' },
-        { from: 'ACTIVE', to: 'COMPLETED', trigger: 'COMPLETE' },
-        { from: 'ACTIVE', to: 'FAILED', trigger: 'FAIL' }
+        { op: 'INIT_TO_ACTIVE', from: 'INIT', to: 'ACTIVE', trigger: 'ACTIVATE' },
+        { op: 'ACTIVE_TO_COMPLETED', from: 'ACTIVE', to: 'COMPLETED', trigger: 'COMPLETE' },
+        { op: 'ACTIVE_TO_FAILED', from: 'ACTIVE', to: 'FAILED', trigger: 'FAIL' }
       );
     }
+
+    transitions.sort((a, b) => a.op.localeCompare(b.op));
+
+    const initialState = String((sm as any).initial_state ?? (sm as any).initialState ?? states[0]).toUpperCase();
 
     const lines: string[] = [];
     lines.push(`---------------- MODULE ${cleanName} ----------------`);
@@ -58,25 +65,24 @@ export function generateTLA(ir: SOVR_IR): GeneratedFile[] {
     lines.push(`States == {${states.map(s => `"${s}"`).join(', ')}}`);
     lines.push('');
     lines.push('Init == ');
-    lines.push(`    /\\ state = "${states[0]}"`);
+    lines.push(`    /\\ state = "${initialState}"`);
     lines.push('    /\\ ledger_balanced = TRUE');
     lines.push('    /\\ authority_validated = TRUE');
     lines.push('');
 
-    // Transitions
-    for (let i = 0; i < transitions.length; i++) {
-      const t = transitions[i];
-      lines.push(`${t.trigger} == `);
+    for (const t of transitions) {
+      lines.push(`${t.op} == `);
       lines.push(`    /\\ state = "${t.from}"`);
       lines.push(`    /\\ ledger_balanced = TRUE`);
       lines.push(`    /\\ authority_validated = TRUE`);
       lines.push(`    /\\ state' = "${t.to}"`);
       lines.push(`    /\\ UNCHANGED <<ledger_balanced, authority_validated>>`);
+      lines.push(`\* Trigger: ${t.trigger}`);
       lines.push('');
     }
 
     lines.push('Next == ');
-    lines.push(`    ${transitions.map(t => t.trigger).join(' \\/ ')}`);
+    lines.push(`    ${transitions.map(t => t.op).join(' \\/ ')}`);
     lines.push('');
     lines.push(`\* Invariant 1: State must always be in defined States`);
     lines.push('TypeOK == state \\in States');
@@ -102,4 +108,12 @@ export function generateTLA(ir: SOVR_IR): GeneratedFile[] {
   }
 
   return files;
+}
+
+function transitionEndpoints(name: string, transition: any): { from: string; to: string } | undefined {
+  if (transition?.from && transition?.to) return { from: String(transition.from), to: String(transition.to) };
+  const marker = '_to_';
+  const idx = name.indexOf(marker);
+  if (idx === -1) return undefined;
+  return { from: name.slice(0, idx), to: name.slice(idx + marker.length) };
 }
