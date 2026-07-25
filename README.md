@@ -169,8 +169,8 @@ npm run protocol:runtime-audit
 | Metric | Value | Verified |
 |---|---|---|
 | Protocol Specification | v1.0.0 FROZEN | ✅ |
-| Compiler Version | 0.8.0 | ✅ |
-| Runtime Version | 0.8.0 | ✅ |
+| Compiler Version | 0.9.0 | ✅ |
+| Runtime Version | 0.9.0 | ✅ |
 | Registry ABI | v1 | ✅ |
 | YAML files | 244/244 valid | ✅ |
 | Commands | 105 | ✅ |
@@ -187,7 +187,7 @@ npm run protocol:runtime-audit
 | Boot self-test | 7/7 PASS | ✅ |
 | Integration tests | 16/16 PASS | ✅ |
 | Purity violations | 0 | ✅ |
-| Build hash | `b7d8221b0d7359a7733791d00cf32622df7b707ff4171c0c1b541d91d7568492` | ✅ |
+| Build hash | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` | ✅ |
 | Byte-identical reproducibility | Verified | ✅ |
 | Constitutional proof | XV3-ESCROW-PROOF | ✅ |
 | Manual runtime bridges | 0 | ✅ |
@@ -689,7 +689,7 @@ Output: `generated/src/sdk/agent-sandbox.ts`
 
 | Boundary | Current Status |
 |---|---|
-| Event log tamper resistance | In-process only — JSON file mutable at filesystem level |
+| Event log tamper resistance | PostgreSQL: immutable triggers (UPDATE/DELETE blocked at DB level). JSON file (CI/dev default): in-process enforcement only. |
 | Capability grant durability | In-memory only — not persistent across restarts |
 | Key management | Not implemented |
 | Multi-party authorization | Specified — not implemented |
@@ -788,7 +788,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | R9 | Byte-identical manifest — `build_hash = sha256(sorted(input_hashes) + ir_hash + sorted(output_hashes) + compiler_version + registry_versions)` |
 | R10 | Environmental isolation — compile in clean environment |
 
-**Verified build hash:** `b7d8221b0d7359a7733791d00cf32622df7b707ff4171c0c1b541d91d7568492`
+**Verified build hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`
 
 Identical YAML inputs produce identical build hashes. This is verified. This is the unfakeable proof of protocol integrity.
 
@@ -951,7 +951,7 @@ bash scripts/demo.sh
 
 ### Expected Output
 ```
-✅ Build hash: b7d8221b...
+✅ Build hash: d27fdbe6...
 ✅ System HEALTHY
 ✅ Attestation chain intact
 ✅ Session created with RS256 JWT
@@ -1009,7 +1009,7 @@ node packages/compiler/dist/cli.js compile
 
 # Verify byte-identical reproducibility
 node packages/compiler/dist/cli.js verify
-# ✓ Reproducible build verified: b7d8221b...
+# ✓ Reproducible build verified: d27fdbe6...
 
 # Boot kernel (8 runlevels + attestation)
 node packages/compiler/dist/cli.js boot
@@ -1087,7 +1087,7 @@ if (health.final_health !== 'HEALTHY') {
 // Verify unfakeable build hash chain
 const manifest = await fetch('http://localhost:3001/api/v1/manifest').then(r => r.json())
 const attestation = await fetch('http://localhost:3001/api/v1/boot-attestation').then(r => r.json())
-// manifest.build_hash === attestation.build_hash === b7d8221b...
+// manifest.build_hash === attestation.build_hash === d27fdbe6...
 
 const client = new SOVRClient({
   apiUrl: 'http://localhost:3001/api/v1',
@@ -1141,6 +1141,18 @@ const client = new SOVRClient({
 | Generated TypeScript type consumption | v0.6.0 | Generated domain types/routes used directly by runtime handlers |
 | Strict lifecycle expansion | v1.0.0 | 8 lifecycle-exempt commands need first-class lifecycle machines or durable exemptions |
 | Production saga command payload orchestration | v1.0.0 | Saga interpreter exists; live domain payload mapping needs hardening |
+
+## Completed (v0.9.0)
+
+| Capability | Completed | Verified |
+|---|---|---|
+| Production-durable PostgreSQL event store | v0.9.0 | Immutable triggers verified (XIX.4.B Q7-Q8) |
+| RS256 asymmetric JWT | v0.9.0 | Algorithm confusion blocked (XIX.4.B Q4) |
+| Rate limiting (@fastify/rate-limit v11) | v0.9.0 | Identity-sovereign buckets (XIX.4.B Q10) |
+| Pre-audit security self-test | v0.9.0 | 14/14 PASS — 0 open findings |
+| External audit package | v0.9.0 | docs/audit/ — 4 documents |
+| Institution deployment package | v0.9.0 | docs/deployment/ — 5 documents |
+| Operational runbook | v0.9.0 | docs/operations/RUNBOOK.md |
 
 ### Roadmap
 
@@ -1276,7 +1288,7 @@ SOVR-Protocol/
 | Generated behavior | 100% | ✅ |
 | Registry ABI | v1 | ✅ |
 | Constitutional proof | XV3-ESCROW-PROOF | ✅ |
-| Build hash | `b7d8221b0d7359a7733791d00cf32622df7b707ff4171c0c1b541d91d7568492` | ✅ |
+| Build hash | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` | ✅ |
 | Byte-identical reproducibility | Verified | ✅ |
 | Compiler diagnostics | 0 errors, 71 warnings | ✅ |
 
@@ -1352,8 +1364,8 @@ Proprietary — All rights reserved.
 | Component | Version | Status |
 |---|---|---|
 | Protocol Specification | `1.0.0` | Frozen |
-| Compiler | `0.8.0` | Active development |
-| Runtime | `0.8.0` | Active development |
+| Compiler | `0.9.0` | Active development |
+| Runtime | `0.9.0` | Active development |
 
 ---
 
