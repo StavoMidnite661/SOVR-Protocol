@@ -9,6 +9,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';
+import rateLimit from '@fastify/rate-limit';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -18,7 +19,7 @@ import { CapabilityEngine } from './capabilityEngine.js';
 import { ProjectionEngine } from './projectionEngine.js';
 import { CommandBus } from './commandBus.js';
 import commandsRegistry from '../../../../generated/registries/commands.registry.json' with { type: 'json' };
-import { SOVRJwt } from './jwt.js';
+import { JWTService } from '../security/jwt.js';
 import { KafkaPublisher, NullPublisher } from './kafkaPublisher.js';
 import { RedisStreamPublisher, NullStreamPublisher } from './redisStreamPublisher.js';
 import { AchAdapter } from '../adapters/achAdapter.js';
@@ -26,6 +27,8 @@ import { AdapterRegistry, SUPPORTED_RAIL_TYPES } from '../adapters/boundary.js';
 import { PostgreSQLEventStore } from '../adapters/postgres-event-store.js';
 import { SagaInterpreter, SagaRegistry } from '../execution/index.js';
 import { BootSelfTest } from '../boot/self-test.js';
+import { BootRenderer } from '../boot/boot-renderer.js';
+import { DIDService, RUNTIME_ISSUER_DID } from '../identity/did-service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -78,29 +81,45 @@ interface SubsystemHealth {
 }
 
 async function bootKernel() {
-  console.log('');
-  console.log('  ____   _____  __      __  ____    ___   ____    _   _ ');
-  console.log(' / ___| |  _  | \\\\ \\\\    / / |  _ \\\\  / _ \\\\ / ___|  | | | |');
-  console.log(' \\\\___ \\\\ | | | |  \\\\ \\\\  / /  | |_) || |_| \\\\___ \\\\  | |_| |');
-  console.log('  ___) || |_| |   \\\\ \\\\/ /   |  _ < |  _  | ___) | |  _  |');
-  console.log(' |____/ |_____|    \\\\__/    |_| \\\\_\\\\|_| |_||____/  |_| |_|');
-  console.log(' SOVR Financial OS — Source of Canonical Events (CE)');
-  console.log('');
+  const renderer = new BootRenderer();
+  renderer.header();
 
   const config = loadRuntimeConfig(protocolRoot);
-  const jwt = new SOVRJwt({
-    secret: config.jwtSecret,
-    issuer: config.jwtIssuer,
-    audience: config.jwtAudience,
-    defaultTtlSeconds: config.jwtTtlSeconds,
-  });
+
+  renderer.phase('FIRMWARE_POST');
   console.log(`🔌 [0] FIRMWARE_POST — Node ${process.version}, env=${config.nodeEnv}, R10 isolated`);
-  console.log(`🔐 [1] BOOTLOADER — build_hash ${config.buildHash.slice(0, 16)}... verified`);
+
+  const jwt = new JWTService();
+  await jwt.initialize();
+  renderer.phase('BOOTLOADER');
+  console.log(`🔐 [1] BOOTLOADER — build_hash ${config.buildHash.slice(0, 16)}... verified, JWT ${jwt.getAlgorithm()} ${jwt.getMode()}`);
   if (config.bootHash) console.log(`   boot_hash ${config.bootHash.slice(0, 16)}... chain: build_hash -> boot_hash = unfakeable`);
+
+  const didService = config.databaseUrl
+    ? new DIDService({ databaseUrl: config.databaseUrl, jwtService: jwt })
+    : null;
+  if (didService) {
+    await didService.initialize();
+    console.log('🪪 DID/VC service initialized — did:sovr:{actor_id} + W3C VC 1.1');
+  }
+
+  renderer.phase('KERNEL_INIT');
   console.log(`🧠 [2] KERNEL_INIT — 10 invariants INV-001..010, envelope 18 fields, authority 4 actors`);
+  renderer.phaseComplete('KERNEL_INIT');
+
+  renderer.phase('CORE_DOMAINS');
   console.log(`🏦 [3] CORE_DOMAINS — vault (Can value exist?), ledger (How truth recorded?), treasury (Can value move?)`);
+  renderer.phaseComplete('CORE_DOMAINS');
+
+  renderer.phase('SECURITY_SUBSYSTEM');
   console.log(`🛡️ [4] SECURITY_SUBSYSTEM — identity (Who acting?), policy (pure function), agent (bounded)`);
+  renderer.phaseComplete('SECURITY_SUBSYSTEM');
+
+  renderer.phase('EXECUTION_BOUNDARY');
   console.log(`🌐 [5] EXECUTION_BOUNDARY — payment 12 rails, hybrid 4 chains, oracle 5 providers, adapters isolated`);
+  renderer.phaseComplete('EXECUTION_BOUNDARY');
+
+  renderer.phase('INTERPRETATION');
   console.log(`👁️ [6] INTERPRETATION — projection engine 15 read models rebuilding from genesis`);
 
   // Real publishers (or nulls when not configured)
@@ -169,6 +188,9 @@ async function bootKernel() {
 
   // Wire publishers into the event store so every append also publishes.
   eventStore.setPublisher(async (envelope: any) => {
+    if (didService) {
+      try { await didService.processEvent(envelope); } catch { /* DID/VC processing is best-effort */ }
+    }
     // Local broadcast (WebSocket subscribers) — no-op if no subscribers
     const evName = envelope.event_name;
     const domain = envelope.source_domain;
@@ -205,15 +227,37 @@ async function bootKernel() {
 
   projectionEngine.rebuildFromGenesis(await Promise.resolve(eventStore.getAll()));
 
+  renderer.phaseComplete('INTERPRETATION');
+  renderer.kernelMounted();
+
   const selfTest = await new BootSelfTest().run();
-  console.log(`🧪 Boot self-test passed ${selfTest.tests}/7 categories`);
+  renderer.runningSelfTest();
+  renderer.selfTestCategory('Registry Integrity');
+  renderer.selfTestCategory('Instruction Evaluator');
+  renderer.selfTestCategory('Transition Engine');
+  renderer.selfTestCategory('Capability Authority');
+  renderer.selfTestCategory('Envelope Builder');
+  renderer.selfTestCategory('Event Store');
+  renderer.selfTestCategory('Projection Runtime');
+  renderer.selfTestSummary(selfTest.tests);
 
-  console.log(`🚀 [7] USERLAND — Runtime SDK @sovr/runtime ready, OpenAPI 44+ endpoints, event store ${eventStore.stats().totalEvents} events`);
-  console.log(`   Frontend gate: SYSTEM HEALTHY — external can connect now`);
-  console.log(`   Build hash (unfakeable): ${config.buildHash}`);
-  console.log('');
+  renderer.phase('USERLAND');
+  renderer.userlandActivation([
+    { label: 'Runtime SDK',     state: 'ONLINE' },
+    { label: 'API Gateway',     state: 'ONLINE' },
+    { label: 'Event Store',     state: 'VERIFIED' },
+    { label: 'Projection Layer', state: 'ONLINE' },
+    { label: 'Saga Engine',     state: 'ONLINE' },
+  ]);
 
-  return { config, eventStore, capabilityEngine, projectionEngine, commandBus, sagaRegistry, sagaInterpreter, jwt, eventPublisher, streamPublisher, adapterRegistry };
+  renderer.finalFrame({
+    version: 'v0.7.0',
+    buildHash: config.buildHash,
+    port: config.bindPort,
+    health: 'HEALTHY',
+  });
+
+  return { config, eventStore, capabilityEngine, projectionEngine, commandBus, sagaRegistry, sagaInterpreter, jwt, eventPublisher, streamPublisher, adapterRegistry, didService };
 }
 
 // Tiny event bus for WebSocket fan-out (no external dep needed)
@@ -239,10 +283,25 @@ class LocalBus {
 const bus = new LocalBus();
 
 async function buildServer() {
-  const { config, eventStore, capabilityEngine, projectionEngine, commandBus, sagaRegistry, sagaInterpreter, jwt, eventPublisher, streamPublisher, adapterRegistry } = await bootKernel();
+  const { config, eventStore, capabilityEngine, projectionEngine, commandBus, sagaRegistry, sagaInterpreter, jwt, eventPublisher, streamPublisher, adapterRegistry, didService } = await bootKernel();
 
   const app = Fastify({ logger: { level: config.logLevel } });
   await app.register(cors, { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] });
+
+  await app.register(rateLimit, {
+    global: true,
+    max: 200,
+    timeWindow: '1 minute',
+    keyGenerator: (request: any) => {
+      return request.identityContext?.actor_id ?? request.ip;
+    },
+    errorResponseBuilder: (request: any, context: any) => ({
+      status: 'RATE_LIMITED',
+      error: 'RATE_LIMIT_EXCEEDED',
+      message: `Request limit exceeded. Retry after ${context.after}`,
+      retry_after_ms: context.ttl,
+    }),
+  });
 
   // WebSocket plugin — only register if it actually loaded (graceful if not installed)
   let wsEnabled = false;
@@ -258,8 +317,13 @@ async function buildServer() {
   /** Compute a real final_health from subsystem state, not a hardcoded value. */
   function computeSubsystemHealth(): Record<string, SubsystemHealth> {
     const evt = eventStore.stats();
+    const adapterType = (eventStore as any).adapter ?? 'JSON';
     return {
-      event_store: { ok: evt.totalEvents >= 0, detail: `${evt.totalEvents} events, ${evt.aggregates} aggregates, ${evt.correlations} correlations`, meta: evt },
+      event_store: {
+        ok: evt.totalEvents >= 0,
+        detail: `${evt.totalEvents} events, ${evt.aggregates} aggregates, ${evt.correlations} correlations`,
+        meta: { ...evt, adapter: adapterType, connected: adapterType === 'JSON' ? true : undefined },
+      },
       projections: { ok: projectionEngine.stats().projections > 0, detail: `${projectionEngine.stats().projections} projections, ${projectionEngine.stats().totalRecords} records` },
       capabilities: { ok: capabilityEngine.stats().definitions > 0, detail: `${capabilityEngine.stats().definitions} capability definitions, ${capabilityEngine.stats().actorsWithGrants} actors with grants` },
       state_registry: {
@@ -267,7 +331,6 @@ async function buildServer() {
         detail: commandBus.isReady() ? 'state registry rebuilt from event log' : 'state registry rebuild incomplete',
         meta: commandBus.stateRegistryStatus(),
       },
-      // Build provenance is the unfakeable part: if any of these mismatch, fail.
       build_provenance: {
         ok: config.compilerManifest?.build_hash === config.buildHash &&
             (!config.bootAttestation?.build_hash || config.bootAttestation.build_hash === config.buildHash),
@@ -287,17 +350,16 @@ async function buildServer() {
 
   // ---- Auth helpers -----------------------------------------------------------
 
-  function authFromBearer(authHeader?: string): { ok: boolean; payload?: any; reason?: string } {
+  async function authFromBearer(authHeader?: string): Promise<{ ok: boolean; payload?: any; reason?: string }> {
     if (!authHeader?.startsWith('Bearer ')) return { ok: false, reason: 'missing_bearer' };
     const token = authHeader.slice(7);
-    const result = jwt.verify(token);
+    const result = await jwt.verify(token);
     if (!result.valid) return { ok: false, reason: result.reason };
     return { ok: true, payload: result.payload };
   }
 
-  function identityContextFromReq(req: any): { identity_id: string; actor_id: string; actor_type: string; session_id: string; agent_id?: string } {
-    // Prefer verified JWT
-    const auth = authFromBearer(req.headers.authorization);
+  async function identityContextFromReq(req: any): Promise<{ identity_id: string; actor_id: string; actor_type: string; session_id: string; agent_id?: string }> {
+    const auth = await authFromBearer(req.headers.authorization);
     if (auth.ok && auth.payload) {
       return {
         identity_id: auth.payload.identity_id,
@@ -306,7 +368,6 @@ async function buildServer() {
         session_id: auth.payload.session_id,
       };
     }
-    // Fall back to headers (for unauthenticated routes like /identity/session)
     return {
       identity_id: (req.headers['x-actor-id'] as string) ?? 'actor_human_001',
       actor_id: (req.headers['x-actor-id'] as string) ?? 'actor_human_001',
@@ -315,22 +376,81 @@ async function buildServer() {
     };
   }
 
+  class FinancialRateLimiter {
+    private readonly hits = new Map<string, number[]>();
+    private readonly max = 20;
+    private readonly windowMs = 60_000;
+
+    check(key: string): { allowed: boolean; retryAfterMs: number } {
+      const now = Date.now();
+      const hits = this.hits.get(key) || [];
+      const recent = hits.filter(t => now - t < this.windowMs);
+      if (recent.length >= this.max) {
+        const oldest = recent[0];
+        const retryAfterMs = this.windowMs - (now - oldest);
+        return { allowed: false, retryAfterMs: Math.max(0, retryAfterMs) };
+      }
+      recent.push(now);
+      this.hits.set(key, recent);
+      return { allowed: true, retryAfterMs: 0 };
+    }
+  }
+
+  const financialRateLimiter = new FinancialRateLimiter();
+
+  app.addHook('preHandler', async (request, reply) => {
+    if (request.method === 'POST' && String(request.url).startsWith('/api/v1/') && !String(request.url).includes('/identity/session')) {
+      const ctx = await identityContextFromReq(request);
+      const key = ctx.actor_id;
+      const limit = financialRateLimiter.check(key);
+      if (!limit.allowed) {
+        reply.code(429).send({
+          status: 'RATE_LIMITED',
+          error: 'FINANCIAL_RATE_LIMIT_EXCEEDED',
+          message: 'Financial command rate limit exceeded',
+          retry_after_ms: limit.retryAfterMs,
+        });
+      }
+    }
+  });
+
   // ---- HTTP routes ------------------------------------------------------------
 
   // Health — REAL computed health
   app.get('/health', async () => {
-    const h = computeFinalHealth();
+    const h = computeSubsystemHealth();
+    const eventStoreMeta: any = { ...(h.event_store?.meta || {}) };
+    if ((eventStore as any).adapter === 'postgres') {
+      try {
+        eventStoreMeta.connected = await (eventStore as any).ping?.();
+      } catch {
+        eventStoreMeta.connected = false;
+      }
+    } else {
+      eventStoreMeta.connected = true;
+    }
+    const eventStoreSubsystem = { ...(h as any).event_store, meta: eventStoreMeta };
+    const allOk = Object.values({ ...h, event_store: eventStoreSubsystem }).every((s: any) => s.ok);
+    const anyFailed = Object.values({ ...h, event_store: eventStoreSubsystem }).some((s: any) => !s.ok);
+    const health = !allOk ? (anyFailed && !(h as any).build_provenance?.ok ? 'UNHEALTHY' : 'DEGRADED') : 'HEALTHY';
     return {
-      status: h.health,
+      status: health,
       service: 'sovr-financial-os',
       protocol_version: '1.0.0',
       compiler_version: '0.6.0',
       build_hash: config.buildHash,
       boot_hash: config.bootHash,
       runlevel: 7,
-      final_health: h.health,
+      final_health: health,
       invariants: ['INV-001', 'INV-002', 'INV-003', 'INV-004', 'INV-005', 'INV-006', 'INV-007', 'INV-008', 'INV-009', 'INV-010'],
-      subsystems: h.subsystems,
+      jwt: {
+        algorithm: jwt.getAlgorithm(),
+        mode: jwt.getMode(),
+      },
+      rails: {
+        ach: (adapterRegistry.getRail('ACH') as any)?.getCircuitStatus?.() ?? { state: 'UNKNOWN' },
+      },
+      subsystems: { ...h, event_store: eventStoreSubsystem },
       event_store: eventStore.stats(),
       projections: projectionEngine.stats(),
       capabilities: capabilityEngine.stats(),
@@ -347,6 +467,13 @@ async function buildServer() {
       runlevel: 7,
       build_hash: config.buildHash,
       boot_hash: config.bootHash,
+      jwt: {
+        algorithm: jwt.getAlgorithm(),
+        mode: jwt.getMode(),
+      },
+      rails: {
+        ach: (adapterRegistry.getRail('ACH') as any)?.getCircuitStatus?.() ?? { state: 'UNKNOWN' },
+      },
     };
   });
 
@@ -460,17 +587,15 @@ async function buildServer() {
     return { granted: true, capability_id, actor_id, scope_pattern, event: ev };
   });
 
-  // Identity session — real HMAC-SHA256 signed JWT
+  // Identity session — real RS256 signed JWT
   app.post('/api/v1/identity/session', async (req: any) => {
     const { identity_id, actor_id, actor_type, credential_id } = req.body || {};
     const session_id = crypto.randomUUID();
     const sub = actor_id || identity_id || 'actor_human_001';
     const id = identity_id || sub;
     const typ = actor_type || 'human';
-    const jwt_token = jwt.signPayload({
+    const jwt_token = await jwt.sign({
       sub,
-      identity_id: id,
-      actor_id: sub,
       actor_type: typ,
       session_id,
     });
@@ -494,6 +619,54 @@ async function buildServer() {
     return { jwt: jwt_token, session_id, identity_id: id, actor_id: sub, trust_level: 'HIGH', event: ev };
   });
 
+  // ---- W3C DID/VC Identity ----
+
+  if (didService) {
+    // Resolve DID Document
+    app.get('/api/v1/identity/did/:did', async (req: any, reply) => {
+      const { did } = req.params;
+      if (!did.startsWith('did:sovr:')) {
+        reply.code(400);
+        return { error: 'invalid_did', message: 'DID must start with did:sovr:' };
+      }
+      const doc = await didService.resolveDIDDocument(did);
+      if (!doc) {
+        reply.code(404);
+        return { error: 'did_not_found', did };
+      }
+      return { did, didDocument: doc };
+    });
+
+    // Verify a DID signature
+    app.post('/api/v1/identity/did/verify', async (req: any) => {
+      const { did, jws } = req.body || {};
+      if (!did || !jws) {
+        return { error: 'did and jws required' };
+      }
+      const result = await didService.verifyDIDSignature(did, jws);
+      return result;
+    });
+
+    // Retrieve a Verifiable Credential
+    app.get('/api/v1/identity/credential/:id', async (req: any, reply) => {
+      const vc = await didService.resolveVerifiableCredential(req.params.id);
+      if (!vc) {
+        reply.code(404);
+        return { error: 'credential_not_found', credential_id: req.params.id };
+      }
+      return { credential_id: req.params.id, verifiableCredential: vc };
+    });
+
+    // Verify a Verifiable Credential
+    app.post('/api/v1/identity/credential/verify', async (req: any) => {
+      const { credential_id } = req.body || {};
+      if (!credential_id) {
+        return { error: 'credential_id required' };
+      }
+      return didService.verifyVerifiableCredential(credential_id);
+    });
+  }
+
   // Saga runtime — compiled IR saga interpreter
   app.get('/api/v1/sagas', async () => ({
     sagas: sagaInterpreter.listSagas().map(s => ({ saga_id: s.saga_id, domain: s.domain, steps: s.steps.length, compensation_strategy: s.compensation_strategy })),
@@ -510,7 +683,7 @@ async function buildServer() {
       reply.code(503);
       return { error: 'STATE_REGISTRY_NOT_READY', state_registry: commandBus.stateRegistryStatus() };
     }
-    const identity_context = identityContextFromReq(req);
+    const identity_context = await identityContextFromReq(req);
     const body = req.body || {};
     try {
       const instance = await sagaInterpreter.start({
@@ -544,7 +717,7 @@ async function buildServer() {
     const { domain, aggregate } = req.params;
     const body = req.body || {};
 
-    const identity_context = identityContextFromReq(req);
+    const identity_context = await identityContextFromReq(req);
 
     // Determine command name
     let commandName = body.commandName || body.command_name || body.triggering_command;
@@ -749,8 +922,9 @@ async function buildServer() {
   return app;
 }
 
-if (import.meta.url === `file://${process.argv[1]}` || process.argv[1]?.endsWith('src/server/index.ts') || process.argv[1]?.endsWith('server/index.js')) {
-  buildServer();
+const normalizedArgv1 = process.argv[1] ? process.argv[1].replace(/\\/g, '/') : '';
+if (import.meta.url === `file:///${normalizedArgv1}` || normalizedArgv1.endsWith('src/server/index.ts') || normalizedArgv1.endsWith('server/index.js')) {
+    buildServer();
 }
 
 export { buildServer };

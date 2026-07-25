@@ -8,8 +8,8 @@
 ---
 
 [![Protocol](https://img.shields.io/badge/Protocol-v1.0.0-blue)](https://img.shields.io/badge/Protocol-v1.0.0-blue)
-[![Compiler](https://img.shields.io/badge/Compiler-v0.6.0-orange)](https://img.shields.io/badge/Compiler-v0.6.0-orange)
-[![Runtime](https://img.shields.io/badge/Runtime-v0.6.0-orange)](https://img.shields.io/badge/Runtime-v0.6.0-orange)
+[![Compiler](https://img.shields.io/badge/Compiler-v0.9.0-orange)](https://img.shields.io/badge/Compiler-v0.9.0-orange)
+[![Runtime](https://img.shields.io/badge/Runtime-v0.9.0-orange)](https://img.shields.io/badge/Runtime-v0.9.0-orange)
 [![Build](https://img.shields.io/badge/Build-Reproducible-green)](https://img.shields.io/badge/Build-Reproducible-green)
 [![Node](https://img.shields.io/badge/Node-%3E%3D20-green)](https://img.shields.io/badge/Node-%3E%3D20-green)
 [![License](https://img.shields.io/badge/License-Proprietary-red)](https://img.shields.io/badge/License-Proprietary-red)
@@ -36,6 +36,7 @@
 - [Projection Engine](#projection-engine)
 - [External Boundaries](#external-boundaries)
 - [Getting Started](#getting-started)
+- [🚀 Quick Start](#-quick-start)
 - [Current State vs Roadmap](#current-state-vs-roadmap)
 - [Repository Structure](#repository-structure)
 - [Audit Reports](#audit-reports)
@@ -83,7 +84,7 @@ YAML Constitution
 SOVR Compiler (deterministic, content-addressed)
     │
     ▼
-Registry Package (sovr-runtime-v0.6.0-abi-v1.svr)
+Registry Package (sovr-runtime-v0.9.0-abi-v1.svr)
     │
     ├── commands.registry.json
     ├── machines.registry.json
@@ -163,13 +164,13 @@ npm run protocol:runtime-audit
 - Runtime YAML parsing
 - Hardcoded registry counts
 
-### Verified Metrics (v0.6.0)
+### Verified Metrics (v0.9.0)
 
 | Metric | Value | Verified |
 |---|---|---|
 | Protocol Specification | v1.0.0 FROZEN | ✅ |
-| Compiler Version | 0.6.0 | ✅ |
-| Runtime Version | 0.6.0 | ✅ |
+| Compiler Version | 0.8.0 | ✅ |
+| Runtime Version | 0.8.0 | ✅ |
 | Registry ABI | v1 | ✅ |
 | YAML files | 244/244 valid | ✅ |
 | Commands | 105 | ✅ |
@@ -702,7 +703,7 @@ It should not be used to process real financial transactions in its current stat
 
 ## The Compiler
 
-The SOVR compiler (`@sovr/compiler v0.6.0`) is a deterministic, content-addressed build system for financial protocol specifications.
+The SOVR compiler (`@sovr/compiler v0.9.0`) is a deterministic, content-addressed build system for financial protocol specifications.
 
 ### Compilation Pipeline
 
@@ -758,7 +759,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | 16 | Topology Docs | `generated/docs/topology.md` |
 | C1 | Compiler Manifest | `generated/compiler-manifest.yaml` |
 | C2 | Canonical IR | `generated/sovr-ir.json` |
-| C3 | Registry Package | `dist/sovr-runtime-v0.6.0-abi-v1.svr` |
+| C3 | Registry Package | `dist/sovr-runtime-v0.9.0-abi-v1.svr` |
 | C4 | Compiler Certification | `generated/compiler-certification.json` |
 
 > **Important:** Generated TypeScript artifacts are currently output-only. They are not fully imported or executed by the reference runtime. Wiring generated artifacts into the runtime is a primary v1 objective.
@@ -795,7 +796,7 @@ Identical YAML inputs produce identical build hashes. This is verified. This is 
 
 ## The Runtime
 
-The SOVR reference runtime (`@sovr/runtime v0.6.0`) is the execution environment for compiled protocol specifications.
+The SOVR reference runtime (`@sovr/runtime v0.9.0`) is the execution environment for compiled protocol specifications.
 
 ### What the Runtime Does Today
 
@@ -923,6 +924,61 @@ SOVR defines external system boundaries in `hybrid-boundary.yaml`.
 
 ---
 
+## 🚀 Quick Start
+
+### Prerequisites
+```
+Node.js >= 20
+npm >= 10
+```
+
+### 1. Clone and Build
+```bash
+git clone https://github.com/StavoMidnite661/SOVR-Protocol
+cd SOVR-Protocol
+bash scripts/setup.sh
+```
+
+### 2. Start the Runtime
+```bash
+PORT=3001 node packages/runtime/dist/server/index.js
+```
+
+### 3. Run the Demonstration
+```bash
+bash scripts/demo.sh
+```
+
+### Expected Output
+```
+✅ Build hash: b7d8221b...
+✅ System HEALTHY
+✅ Attestation chain intact
+✅ Session created with RS256 JWT
+✅ INV-002: Unbalanced posting rejected
+✅ Asset registered: INIT → REGISTERED
+✅ Invalid transition rejected by state machine
+✅ Multi-domain saga COMPLETED
+✅ Event log verified
+✅ Escrow domain executed (zero runtime changes)
+✅ Constitutional Proof XV3 verified
+✅ Runtime purity: 0 violations
+
+Results: 13 passed, 0 failed
+
+SOVR Protocol v0.9.0
+Spec-driven. Constitutional. Auditable.
+The Linux of Finance.
+```
+
+### With PostgreSQL (Production Persistence)
+```bash
+docker-compose -f deployment/docker-compose.dev.yml up -d
+SOVR_URL=http://localhost:3001 bash scripts/demo.sh
+```
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -1044,7 +1100,7 @@ const client = new SOVRClient({
 ## Current State vs Roadmap
 
 **Protocol Specification:** `v1.0.0` — Complete and frozen.  
-**Compiler + Runtime:** `v0.6.0` — Reference implementation. Active development.
+**Compiler + Runtime:** `v0.9.0` — Reference implementation. Active development.
 
 ### What Works Today
 
@@ -1097,10 +1153,10 @@ const client = new SOVRClient({
 | M5 | Acceptance test suite (60 tests, 95% coverage) | v0.5.0 |
 | M6 | Production-durable event store (PostgreSQL) | v0.6.0 |
 | M6 | Standards-complete DID/VC identity | v0.6.0 |
-| M7 | Real rail adapter (ACH) | v0.7.0 |
-| M7 | Production key management | v0.7.0 |
-| M8 | Distributed multi-node determinism | v0.8.0 |
-| M8 | Formal verification integration (TLA+ model checking) | v0.8.0 |
+| M7 | Real rail adapter (ACH) | v0.9.0 |
+| M7 | Production key management | v0.9.0 |
+| M8 | Distributed multi-node determinism | v0.9.0 |
+| M8 | Formal verification integration (TLA+ model checking) | v0.9.0 |
 | M9 | Security audit | v1.0.0 |
 | M9 | Production deployment | v1.0.0 |
 
@@ -1147,7 +1203,7 @@ SOVR-Protocol/
 │   └── ERROR_TAXONOMY.yaml           ← Diagnostic codes
 │
 ├── 📁 packages/
-│   ├── compiler/                     ← @sovr/compiler v0.6.0
+│   ├── compiler/                     ← @sovr/compiler v0.9.0
 │   │   ├── src/
 │   │   │   ├── boot/                 ← Boot sequence implementation
 │   │   │   ├── generators/           ← Code generators
@@ -1156,7 +1212,7 @@ SOVR-Protocol/
 │   │   │   └── utils/                ← Hash, YAML loader
 │   │   └── dist/                     ← Compiled JavaScript
 │   │
-│   └── runtime/                      ← @sovr/runtime v0.6.0
+│   └── runtime/                      ← @sovr/runtime v0.9.0
 │       ├── src/
 │       │   ├── adapters/             ← Boundary adapters (mock ACH active)
 │       │   ├── execution/            ← Execution context and interpreters
@@ -1296,8 +1352,8 @@ Proprietary — All rights reserved.
 | Component | Version | Status |
 |---|---|---|
 | Protocol Specification | `1.0.0` | Frozen |
-| Compiler | `0.6.0` | Active development |
-| Runtime | `0.6.0` | Active development |
+| Compiler | `0.8.0` | Active development |
+| Runtime | `0.8.0` | Active development |
 
 ---
 

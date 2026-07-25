@@ -137,7 +137,7 @@ export class KernelExecutor {
     const machineEntry = Object.values((machinesRegistry as any).entries ?? {}).find((m: any) => m.domain === domain && m.aggregate === aggregate) as any;
     if (!machineEntry) return undefined;
 
-    const hasState = this.stateRegistry.hasState(aggregate, aggregateId, domain);
+    const hasState = await this.stateRegistry.hasState(aggregate, aggregateId, domain);
     if (!hasState) {
       return {
         machineId: machineEntry.id,

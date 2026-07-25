@@ -1,6 +1,6 @@
 {
   "name": "@sovr/runtime",
-  "version": "0.6.0",
+  "version": "0.9.0",
   "description": "SOVR Financial OS Runtime — Linux kernel of finance, machine-readable, unfakeable",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,25 +12,29 @@
     "boot": "node dist/server/index.js",
     "test": "vitest run",
     "test:integration": "vitest run test/integration.test.ts",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "protocol:formal-verify": "bash scripts/formal-verify.sh"
   },
   "dependencies": {
-    "@fastify/cors": "^9.0.1",
-    "@fastify/websocket": "^10.0.1",
+    "@fastify/cors": "^10.1.0",
+    "@fastify/rate-limit": "^11.1.0",
+    "@fastify/websocket": "^11.3.0",
+    "@sovr/shared": "file:../shared",
+    "fastify": "^5.10.0",
     "ioredis": "^5.0.0",
+    "jose": "^6.2.4",
     "js-yaml": "^4.1.0",
     "kafkajs": "^2.2.4",
     "pg": "^8.22.0",
     "ws": "^8.18.0",
-    "zod": "^3.22.0",
-    "@sovr/shared": "file:../shared"
+    "zod": "^3.22.0"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
     "@types/ws": "^8.5.10",
-    "fastify": "^4.28.1",
+    "@vitest/coverage-v8": "^2.1.9",
     "typescript": "^5.0.0",
-    "vitest": "^1.6.0"
+    "vitest": "^2.1.9"
   }
 }
