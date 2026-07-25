@@ -1,0 +1,46 @@
+[Unit]
+Description=SOVR Protocol API Service
+Documentation=https://github.com/StavoMidnite661/SOVR-Protocol
+After=network.target postgresql.service redis.service
+Wants=postgresql.service redis.service
+
+[Service]
+Type=simple
+User=sovr
+Group=sovr
+WorkingDirectory=/opt/sovr/protocol
+
+Environment=NODE_ENV=production
+Environment=DATABASE_URL=postgresql://sovr:${DB_PASSWORD}@localhost:5432/sovr
+Environment=KAFKA_BROKERS=localhost:9092
+Environment=REDIS_URL=redis://localhost:6379
+EnvironmentFile=/opt/sovr/.env
+
+ExecStart=/usr/bin/node dist/server/index.js
+ExecReload=/bin/kill -SIGUSR1 $MAINPID
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sovr-api
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/opt/sovr/data /opt/sovr/logs
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

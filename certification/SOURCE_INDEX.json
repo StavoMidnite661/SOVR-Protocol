@@ -1,0 +1,523 @@
+{
+  "generated_at": "2026-07-25T03:11:13-07:00",
+  "build_hash": "d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512",
+  "index": {
+    "compiler": {
+      "path": "packages/compiler/src",
+      "files": [
+        {
+          "path": "src/boot/bootloader.ts",
+          "language": "TypeScript",
+          "purpose": "Boot sequence loader",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/boot/kernel-init.ts",
+          "language": "TypeScript",
+          "purpose": "Kernel initialization",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/boot/post.ts",
+          "language": "TypeScript",
+          "purpose": "Post-boot verification",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/cli.ts",
+          "language": "TypeScript",
+          "purpose": "CLI entry point",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/generators/agents.ts",
+          "language": "TypeScript",
+          "purpose": "Agent code generator",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/generators/capability.ts",
+          "language": "TypeScript",
+          "purpose": "Capability generator",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/generators/execution.ts",
+          "language": "TypeScript",
+          "purpose": "Execution context generator",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/generators/guardrails.ts",
+          "language": "TypeScript",
+          "purpose": "Guardrail bus generator",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/generators/kafka.ts",
+          "language": "TypeScript",
+          "purpose": "Kafka config generator",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/generators/openapi.ts",
+          "language": "TypeScript",
+          "purpose": "OpenAPI spec generator",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/generators/prisma.ts",
+          "language": "TypeScript",
+          "purpose": "Prisma schema generator",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/generators/registries.ts",
+          "language": "TypeScript",
+          "purpose": "Registry package generator",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/generators/tla.ts",
+          "language": "TypeScript",
+          "purpose": "TLA+ model generator",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/generators/topology.ts",
+          "language": "TypeScript",
+          "purpose": "Topology docs generator",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/generators/typescript.ts",
+          "language": "TypeScript",
+          "purpose": "TypeScript types generator",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/generators/vel.ts",
+          "language": "TypeScript",
+          "purpose": "VEL evaluator generator",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/ir/builder.ts",
+          "language": "TypeScript",
+          "purpose": "IR construction",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/ir/types.ts",
+          "language": "TypeScript",
+          "purpose": "IR type definitions",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/pipeline/parse.ts",
+          "language": "TypeScript",
+          "purpose": "YAML parsing",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/pipeline/validate.ts",
+          "language": "TypeScript",
+          "purpose": "Validation pipeline",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/pipeline/passes/pass-008.ts",
+          "language": "TypeScript",
+          "purpose": "Guard validation pass",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/utils/hash.ts",
+          "language": "TypeScript",
+          "purpose": "SHA-256 hashing",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/utils/yaml-loader.ts",
+          "language": "TypeScript",
+          "purpose": "YAML loading utility",
+          "constitutional": true,
+          "generated": false
+        }
+      ]
+    },
+    "runtime": {
+      "path": "packages/runtime/src",
+      "files": [
+        {
+          "path": "src/adapters/achAdapter.ts",
+          "language": "TypeScript",
+          "purpose": "ACH boundary adapter",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/adapters/boundary.ts",
+          "language": "TypeScript",
+          "purpose": "Hybrid boundary",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/adapters/circuit-breaker.ts",
+          "language": "TypeScript",
+          "purpose": "Circuit breaker",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/adapters/postgres-event-store.ts",
+          "language": "TypeScript",
+          "purpose": "PostgreSQL event store",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/boot/assertion-registry.ts",
+          "language": "TypeScript",
+          "purpose": "Boot assertions",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/boot/boot-renderer.ts",
+          "language": "TypeScript",
+          "purpose": "Boot log renderer",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/boot/self-test.ts",
+          "language": "TypeScript",
+          "purpose": "Self-test suite",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/atomic-commit.ts",
+          "language": "TypeScript",
+          "purpose": "Atomic commit",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/event-factory.ts",
+          "language": "TypeScript",
+          "purpose": "Event factory",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/event-store.ts",
+          "language": "TypeScript",
+          "purpose": "Event store interface",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/instruction-evaluator.ts",
+          "language": "TypeScript",
+          "purpose": "VEL instruction evaluator",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/kernel-executor.ts",
+          "language": "TypeScript",
+          "purpose": "Kernel executor",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/saga-interpreter.ts",
+          "language": "TypeScript",
+          "purpose": "Saga interpreter",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/saga-payload-mapper.ts",
+          "language": "TypeScript",
+          "purpose": "Saga payload mapping",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/saga-registry.ts",
+          "language": "TypeScript",
+          "purpose": "Saga registry",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/state-machine-interpreter.ts",
+          "language": "TypeScript",
+          "purpose": "State machine interpreter",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/state-registry.ts",
+          "language": "TypeScript",
+          "purpose": "State registry",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/execution/vel-ast-evaluator.ts",
+          "language": "TypeScript",
+          "purpose": "VEL AST evaluator",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/identity/did-service.ts",
+          "language": "TypeScript",
+          "purpose": "DID service",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/projection/projection-runtime.ts",
+          "language": "TypeScript",
+          "purpose": "Projection engine",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/sdk/agent-sandbox.ts",
+          "language": "TypeScript",
+          "purpose": "Agent sandbox",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/sdk/client.ts",
+          "language": "TypeScript",
+          "purpose": "SDK client",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/security/jwt.ts",
+          "language": "TypeScript",
+          "purpose": "JWT security",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/server/capabilityEngine.ts",
+          "language": "TypeScript",
+          "purpose": "Capability engine",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/server/commandBus.ts",
+          "language": "TypeScript",
+          "purpose": "Command bus",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/server/config.ts",
+          "language": "TypeScript",
+          "purpose": "Server config",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/server/eventStore.ts",
+          "language": "TypeScript",
+          "purpose": "Server event store",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/server/index.ts",
+          "language": "TypeScript",
+          "purpose": "HTTP server",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/server/jwt.ts",
+          "language": "TypeScript",
+          "purpose": "JWT handler",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/server/kafkaPublisher.ts",
+          "language": "TypeScript",
+          "purpose": "Kafka publisher",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/server/projectionEngine.ts",
+          "language": "TypeScript",
+          "purpose": "Projection engine",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/server/redisStreamPublisher.ts",
+          "language": "TypeScript",
+          "purpose": "Redis publisher",
+          "constitutional": false,
+          "generated": false
+        }
+      ]
+    },
+    "shared": {
+      "path": "packages/shared/src",
+      "files": [
+        {
+          "path": "src/index.ts",
+          "language": "TypeScript",
+          "purpose": "Package exports",
+          "constitutional": false,
+          "generated": false
+        },
+        {
+          "path": "src/vel/index.ts",
+          "language": "TypeScript",
+          "purpose": "VEL runtime",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/vel/vel-ast.types.ts",
+          "language": "TypeScript",
+          "purpose": "VEL AST types",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/vel/vel-grammar.ts",
+          "language": "TypeScript",
+          "purpose": "VEL grammar",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "src/vel/vel-parser.ts",
+          "language": "TypeScript",
+          "purpose": "VEL parser",
+          "constitutional": true,
+          "generated": false
+        }
+      ]
+    },
+    "constitutional_spec": {
+      "path": ".",
+      "files": [
+        {
+          "path": "00_protocol-manifest.yaml",
+          "language": "YAML",
+          "purpose": "Protocol manifest",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "01_constitution.yaml",
+          "language": "YAML",
+          "purpose": "Constitution",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "02_domain-model.yaml",
+          "language": "YAML",
+          "purpose": "Domain model",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "03_command-catalog.yaml",
+          "language": "YAML",
+          "purpose": "Command catalog",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "04_event-catalog.yaml",
+          "language": "YAML",
+          "purpose": "Event catalog",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "05_state-machines.yaml",
+          "language": "YAML",
+          "purpose": "State machines",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "08_security-capabilities.yaml",
+          "language": "YAML",
+          "purpose": "Security capabilities",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "09_saga-orchestration.yaml",
+          "language": "YAML",
+          "purpose": "Saga orchestration",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "11_governance-amendments.yaml",
+          "language": "YAML",
+          "purpose": "Governance amendments",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "12_domain-contracts.yaml",
+          "language": "YAML",
+          "purpose": "Domain contracts",
+          "constitutional": true,
+          "generated": false
+        },
+        {
+          "path": "13_compiler-adr.yaml",
+          "language": "YAML",
+          "purpose": "Compiler ADRs",
+          "constitutional": true,
+          "generated": false
+        }
+      ]
+    }
+  }
+}

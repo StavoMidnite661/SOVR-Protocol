@@ -1,0 +1,206 @@
+{
+  "generated_at": "2026-07-25T03:11:13-07:00",
+  "build_hash": "d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512",
+  "protocol_version": "1.0.0",
+  "compiler_version": "0.9.0",
+  "runtime_version": "0.9.0",
+  "manifest": {
+    "repository_root": "D:\\sovr-financial-os-protocol-v1.0.0\\SOVR-Protocol",
+    "total_files": 6774,
+    "project_files": 306,
+    "excluded_patterns": [
+      "node_modules",
+      "dist",
+      ".git",
+      "_tmp_*",
+      "*.map",
+      "*.node"
+    ]
+  },
+  "classification_counts": {
+    "Source": 486,
+    "Generated": 114,
+    "Documentation": 55,
+    "Certification": 45,
+    "Test": 21,
+    "Script": 5,
+    "Configuration": 12,
+    "Infrastructure": 45,
+    "Evidence": 35,
+    "Archive": 21
+  },
+  "language_counts": {
+    "JavaScript": 2647,
+    "TypeScript": 1804,
+    "JSON": 382,
+    "Markdown": 369,
+    "YAML": 354,
+    "CommonJS": 245,
+    "TLA+": 43,
+    "Mermaid": 5,
+    "SQL": 3,
+    "Shell": 7,
+    "PowerShell": 19,
+    "Other": 28
+  },
+  "directory_counts": {
+    "packages": 240,
+    "generated": 114,
+    "docs": 55,
+    "containers": 45,
+    "certification": 45,
+    "snapshots": 35,
+    "_archive": 21,
+    "management": 12,
+    "domains": 10,
+    "governance": 9,
+    "knowledge": 9,
+    "compiler": 7,
+    "protocol": 6,
+    "scripts": 5,
+    "deployment": 4,
+    ".github": 3,
+    "example-frontend": 3,
+    "migrations": 2
+  },
+  "source_breakdown": {
+    "packages/compiler/src": {
+      "files": 23,
+      "loc_approx": 4260,
+      "constitutional": true
+    },
+    "packages/runtime/src": {
+      "files": 33,
+      "loc_approx": 5948,
+      "constitutional": true
+    },
+    "packages/shared/src": {
+      "files": 5,
+      "loc_approx": 750,
+      "constitutional": false
+    },
+    "generated/src": {
+      "files": 42,
+      "loc_approx": 8500,
+      "constitutional": true,
+      "generated": true
+    },
+    "docs": {
+      "files": 55,
+      "loc_approx": 15000,
+      "constitutional": false
+    },
+    "certification": {
+      "files": 45,
+      "loc_approx": 12000,
+      "constitutional": false
+    }
+  },
+  "key_artifacts": {
+    "compiler_manifest": "generated/compiler-manifest.yaml",
+    "canonical_ir": "generated/sovr-ir.json",
+    "boot_attestation": "generated/boot-attestation.json",
+    "registry_package": "generated/registries/registry.manifest.json",
+    "constitution": "01_constitution.yaml",
+    "domain_model": "02_domain-model.yaml",
+    "command_catalog": "03_command-catalog.yaml",
+    "event_catalog": "04_event-catalog.yaml",
+    "state_machines": "05_state-machines.yaml",
+    "security_capabilities": "08_security-capabilities.yaml",
+    "saga_orchestration": "09_saga-orchestration.yaml"
+  },
+  "constitutional_layers": {
+    "L0_Governance": {
+      "files": 7,
+      "paths": [
+        "00_protocol-manifest.yaml",
+        "01_constitution.yaml",
+        "01_constitution.yaml"
+      ]
+    },
+    "L1_Shared_Language": {
+      "files": 2,
+      "paths": [
+        "02_domain-model.yaml",
+        "03_command-catalog.yaml"
+      ]
+    },
+    "L2_Execution": {
+      "files": 5,
+      "paths": [
+        "04_event-catalog.yaml",
+        "05_state-machines.yaml",
+        "09_saga-orchestration.yaml"
+      ]
+    },
+    "L3_Authority": {
+      "files": 1,
+      "paths": [
+        "08_security-capabilities.yaml"
+      ]
+    },
+    "L4_Interpretation": {
+      "files": 1,
+      "paths": [
+        "projection-engine.yaml"
+      ]
+    },
+    "L5_Integration": {
+      "files": 1,
+      "paths": [
+        "12_domain-contracts.yaml"
+      ]
+    },
+    "L6_Boundary": {
+      "files": 1,
+      "paths": [
+        "hybrid-boundary.yaml"
+      ]
+    },
+    "L7_Production": {
+      "files": 3,
+      "paths": [
+        "compiler.yaml",
+        "acceptance-tests.yaml",
+        "13_compiler-adr.yaml"
+      ]
+    }
+  },
+  "test_coverage": {
+    "integration_tests": {
+      "total": 16,
+      "passed": 16,
+      "failed": 0
+    },
+    "unit_tests": {
+      "total": 0,
+      "passed": 0,
+      "failed": 0
+    },
+    "acceptance_tests": {
+      "total": 60,
+      "implemented": 0,
+      "passed": 0
+    },
+    "demo_script": {
+      "total": 13,
+      "passed": 13,
+      "failed": 0
+    },
+    "self_test": {
+      "total": 14,
+      "passed": 14,
+      "failed": 0
+    }
+  },
+  "security_posture": {
+    "high_vulnerabilities": 0,
+    "critical_vulnerabilities": 0,
+    "open_findings": 0,
+    "remediated_findings": 1,
+    "jwt_algorithm": "RS256",
+    "rate_limiting": "Identity-sovereign",
+    "event_store": "PostgreSQL with immutable triggers",
+    "boot_attestation": "SHA-256 chain verified"
+  }
+}

@@ -1,0 +1,167 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sovr
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: sovr-config
+  namespace: sovr
+data:
+  NODE_ENV: production
+  DATABASE_URL: postgresql://sovr:${DB_PASSWORD}@postgres:5432/sovr
+  KAFKA_BROKERS: kafka:9092
+  REDIS_URL: redis://redis:6379
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: sovr-secrets
+  namespace: sovr
+type: Opaque
+stringData:
+  DB_PASSWORD: ${DB_PASSWORD}
+  REDIS_PASSWORD: ${REDIS_PASSWORD}
+  JWT_PRIVATE_KEY: |
+    ${JWT_PRIVATE_KEY}
+  JWT_PUBLIC_KEY: |
+    ${JWT_PUBLIC_KEY}
+  SOVR_JWT_SECRET: ${SOVR_JWT_SECRET}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sovr-api
+  namespace: sovr
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: sovr-api
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: sovr-api
+    spec:
+      serviceAccountName: sovr-api
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: sovr-api
+          image: sovr/protocol:0.9.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3001
+              name: http
+          envFrom:
+            - configMapRef:
+                name: sovr-config
+            - secretRef:
+                name: sovr-secrets
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: sovr-data
+              mountPath: /app/generated/data
+            - name: sovr-logs
+              mountPath: /app/generated/logs
+      volumes:
+        - name: sovr-data
+          persistentVolumeClaim:
+            claimName: sovr-data-pvc
+        - name: sovr-logs
+          persistentVolumeClaim:
+            claimName: sovr-logs-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sovr-api
+  namespace: sovr
+spec:
+  type: ClusterIP
+  selector:
+    app: sovr-api
+  ports:
+    - port: 3001
+      targetPort: 3001
+      protocol: TCP
+      name: http
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: sovr-api
+  namespace: sovr
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: sovr-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: sovr-api
+  namespace: sovr
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: sovr-api

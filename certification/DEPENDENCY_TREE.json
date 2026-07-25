@@ -1,0 +1,168 @@
+{
+  "generated_at": "2026-07-25T03:11:13-07:00",
+  "build_hash": "d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512",
+  "packages": {
+    "compiler": {
+      "name": "@sovr/compiler",
+      "version": "0.9.0",
+      "path": "packages/compiler",
+      "dependencies": {
+        "yaml": "^2.3.0",
+        "jose": "^6.2.0",
+        "fast-glob": "^3.3.0",
+        "crypto": "builtin"
+      },
+      "devDependencies": {
+        "typescript": "^5.0.0",
+        "vitest": "^2.0.0"
+      },
+      "entryPoints": [
+        "src/cli.ts",
+        "src/index.ts"
+      ],
+      "outputs": [
+        "dist/cli.js",
+        "dist/index.js",
+        "generated/**/*"
+      ],
+      "constitutional": true,
+      "deterministic": true
+    },
+    "runtime": {
+      "name": "@sovr/runtime",
+      "version": "0.9.0",
+      "path": "packages/runtime",
+      "dependencies": {
+        "fastify": "^5.0.0",
+        "@fastify/cors": "^10.0.0",
+        "@fastify/rate-limit": "^11.0.0",
+        "@fastify/websocket": "^11.0.0",
+        "@fastify/jwt": "^9.0.0",
+        "jose": "^6.2.0",
+        "pg": "^8.11.0",
+        "kafkajs": "^2.2.0",
+        "ioredis": "^5.3.0"
+      },
+      "devDependencies": {
+        "typescript": "^5.0.0",
+        "vitest": "^2.0.0"
+      },
+      "entryPoints": [
+        "src/index.ts",
+        "src/server/index.ts"
+      ],
+      "outputs": [
+        "dist/server/index.js",
+        "dist/index.js"
+      ],
+      "constitutional": true,
+      "deterministic": true
+    },
+    "shared": {
+      "name": "@sovr/shared",
+      "version": "0.9.0",
+      "path": "packages/shared",
+      "dependencies": {},
+      "devDependencies": {
+        "typescript": "^5.0.0"
+      },
+      "entryPoints": [
+        "src/index.ts"
+      ],
+      "outputs": [
+        "index.js",
+        "index.d.ts"
+      ],
+      "constitutional": false,
+      "deterministic": true
+    }
+  },
+  "dependency_graph": {
+    "runtime": {
+      "depends_on": [
+        "compiler",
+        "shared"
+      ],
+      "imports": [
+        "generated/registries/*",
+        "generated/src/**/*",
+        "packages/shared"
+      ]
+    },
+    "compiler": {
+      "depends_on": [
+        "shared"
+      ],
+      "imports": [
+        "packages/shared"
+      ]
+    },
+    "shared": {
+      "depends_on": [],
+      "imports": []
+    }
+  },
+  "external_dependencies": {
+    "fastify": {
+      "version": "^5.0.0",
+      "purpose": "HTTP server framework",
+      "security_critical": true,
+      "vulnerability_history": "0 HIGH/CRITICAL in v5.x"
+    },
+    "@fastify/cors": {
+      "version": "^10.0.0",
+      "purpose": "CORS middleware",
+      "security_critical": true
+    },
+    "@fastify/rate-limit": {
+      "version": "^11.0.0",
+      "purpose": "Rate limiting middleware",
+      "security_critical": true
+    },
+    "@fastify/websocket": {
+      "version": "^11.0.0",
+      "purpose": "WebSocket support",
+      "security_critical": false
+    },
+    "@fastify/jwt": {
+      "version": "^9.0.0",
+      "purpose": "JWT authentication",
+      "security_critical": true
+    },
+    "jose": {
+      "version": "^6.2.0",
+      "purpose": "JWT/JWS/JWE library",
+      "security_critical": true,
+      "notes": "RS256 asymmetric JWT support"
+    },
+    "pg": {
+      "version": "^8.11.0",
+      "purpose": "PostgreSQL client",
+      "security_critical": false
+    },
+    "kafkajs": {
+      "version": "^2.2.0",
+      "purpose": "Kafka client",
+      "security_critical": false
+    },
+    "ioredis": {
+      "version": "^5.3.0",
+      "purpose": "Redis client",
+      "security_critical": false
+    }
+  },
+  "npm_workspace": {
+    "workspaces": [
+      "packages/compiler",
+      "packages/runtime",
+      "packages/shared"
+    ],
+    "root_package": "package.json",
+    "lockfiles": [
+      "package-lock.json",
+      "packages/compiler/package-lock.json",
+      "packages/runtime/package-lock.json",
+      "packages/shared/package-lock.json"
+    ]
+  }
+}
