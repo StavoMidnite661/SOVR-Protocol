@@ -1,6 +1,6 @@
 {
   "name": "@sovr/compiler",
-  "version": "0.6.0",
+  "version": "0.9.0",
   "description": "SOVR Protocol Compiler — deterministic, unfakeable, machine-readable kernel compiler",
   "type": "module",
   "main": "./dist/index.js",

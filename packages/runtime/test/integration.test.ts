@@ -11,17 +11,20 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import WebSocket from 'ws';
 import { SOVRClient, SOVRApiError } from '../src/sdk/client.js';
-import { SOVRJwt } from '../src/server/jwt.js';
+import { JWTService } from '../src/security/jwt.js';
+import { exportPKCS8, exportSPKI, generateKeyPair } from 'jose';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const SERVER_ENTRY = path.resolve(__dirname, '../dist/server/index.js');
 const SOVR_PROTOCOL_ROOT = REPO_ROOT;
 const TEST_PORT = 3399 + Math.floor(Math.random() * 100);
-const JWT_SECRET = 'integration-test-secret-32-bytes-min-padding-aaaaaaaaaaa';
 
 let server: ChildProcess;
 let client: SOVRClient;
+let testJwt: JWTService;
+let TEST_PRIVATE_KEY_PEM: string;
+let TEST_PUBLIC_KEY_PEM: string;
 
 async function waitForHealth(url: string, maxMs = 30_000) {
   const deadline = Date.now() + maxMs;
@@ -40,12 +43,20 @@ async function waitForHealth(url: string, maxMs = 30_000) {
 }
 
 beforeAll(async () => {
+  const { privateKey, publicKey } = await generateKeyPair('RS256', { modulusLength: 2048, extractable: true });
+  TEST_PRIVATE_KEY_PEM = await exportPKCS8(privateKey, 'RS256');
+  TEST_PUBLIC_KEY_PEM = await exportSPKI(publicKey, 'RS256');
+
+  testJwt = new JWTService();
+  await testJwt.initialize({ privateKeyPem: TEST_PRIVATE_KEY_PEM, publicKeyPem: TEST_PUBLIC_KEY_PEM });
+
   server = spawn(process.execPath, [SERVER_ENTRY], {
     env: {
       ...process.env,
       PORT: String(TEST_PORT),
       NODE_ENV: 'test',
-      SOVR_JWT_SECRET: JWT_SECRET,
+      JWT_PRIVATE_KEY: TEST_PRIVATE_KEY_PEM,
+      JWT_PUBLIC_KEY: TEST_PUBLIC_KEY_PEM,
       SOVR_DEV_AUTO_GRANT: 'true',
       SOVR_PROTOCOL_ROOT: SOVR_PROTOCOL_ROOT,
     },
@@ -100,8 +111,8 @@ describe('health and provenance', () => {
 // JWT
 // ----------------------------------------------------------------------------
 
-describe('JWT (real HMAC-SHA256)', () => {
-  it('produces a 3-part JWT with valid HS256 signature', async () => {
+describe('JWT (real RS256)', () => {
+  it('produces a 3-part JWT with valid RS256 signature', async () => {
     const r: any = await (await fetch(`http://localhost:${TEST_PORT}/api/v1/identity/session`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -111,40 +122,41 @@ describe('JWT (real HMAC-SHA256)', () => {
     expect(r.jwt.split('.').length).toBe(3);
     const [h, p] = r.jwt.split('.');
     const header = JSON.parse(Buffer.from(h, 'base64url').toString());
-    expect(header.alg).toBe('HS256');
+    expect(header.alg).toBe('RS256');
     expect(header.typ).toBe('JWT');
-    const jwt = new SOVRJwt({ secret: JWT_SECRET });
-    const result = jwt.verify(r.jwt);
+    const result = await testJwt.verify(r.jwt);
     expect(result.valid).toBe(true);
     expect(result.payload?.actor_id).toBe('jwt_test');
   });
 
-  it('rejects a tampered JWT (bad signature)', () => {
-    const jwt = new SOVRJwt({ secret: JWT_SECRET });
-    const token = jwt.signPayload({ sub: 'x', identity_id: 'x', actor_id: 'x', actor_type: 'human', session_id: 's' });
+  it('rejects a tampered JWT (bad signature)', async () => {
+    const token = await testJwt.sign({ sub: 'x', actor_type: 'human', session_id: 's' });
     const parts = token.split('.');
     parts[2] = parts[2].slice(0, -2) + (parts[2].endsWith('a') ? 'bb' : 'aa');
     const tampered = parts.join('.');
-    const result = jwt.verify(tampered);
+    const result = await testJwt.verify(tampered);
     expect(result.valid).toBe(false);
     expect(result.reason).toBe('bad_signature');
   });
 
-  it('rejects a JWT signed with a different secret', () => {
-    const jwtA = new SOVRJwt({ secret: 'secret-A-32-bytes-padding-padding-padding-pad' });
-    const jwtB = new SOVRJwt({ secret: 'secret-B-32-bytes-padding-padding-padding-pad' });
-    const token = jwtA.signPayload({ sub: 'x', identity_id: 'x', actor_id: 'x', actor_type: 'human', session_id: 's' });
-    const result = jwtB.verify(token);
+  it('rejects a JWT signed with a different key pair', async () => {
+    const { privateKey: otherPrivate, publicKey: otherPublic } = await generateKeyPair('RS256', { modulusLength: 2048, extractable: true });
+    const otherPrivatePem = await exportPKCS8(otherPrivate, 'RS256');
+    const otherPublicPem = await exportSPKI(otherPublic, 'RS256');
+    const otherJwt = new JWTService();
+    await otherJwt.initialize();
+    const token = await otherJwt.sign({ sub: 'x', actor_type: 'human', session_id: 's' });
+    const result = await testJwt.verify(token);
     expect(result.valid).toBe(false);
     expect(result.reason).toBe('bad_signature');
   });
 
-  it('rejects an expired JWT (no clock skew)', async () => {
-    const jwt = new SOVRJwt({ secret: JWT_SECRET, defaultTtlSeconds: 0 });
-    const token = jwt.signPayload({ sub: 'x', identity_id: 'x', actor_id: 'x', actor_type: 'human', session_id: 's' });
-    // Wait long enough for clock to advance past the 0-TTL expiration window
-    await delay(1100);
-    const result = jwt.verify(token, { clockSkewSeconds: 0 });
+  it('rejects an expired JWT', async () => {
+    const ephemeralJwt = new JWTService();
+    await ephemeralJwt.initialize();
+    const token = await ephemeralJwt.sign({ sub: 'x', actor_type: 'human', session_id: 's' }, { ttlSeconds: 1 });
+    await delay(2000);
+    const result = await ephemeralJwt.verify(token);
     expect(result.valid).toBe(false);
     expect(result.reason).toBe('expired');
   });

@@ -1,0 +1,59 @@
+name: Formal Verification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '05_state-machines.yaml'
+      - '09_saga-orchestration.yaml'
+      - 'generated/verification/tla/**'
+  pull_request:
+    paths:
+      - '05_state-machines.yaml'
+      - '09_saga-orchestration.yaml'
+      - 'generated/verification/tla/**'
+  workflow_dispatch:
+
+jobs:
+  tla-model-check:
+    runs-on: ubuntu-latest
+    name: TLA+ Model Checking
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install TLC
+        run: |
+          wget -q \
+            https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar \
+            -O tla2tools.jar
+          echo "TLC_JAR=$PWD/tla2tools.jar" >> $GITHUB_ENV
+
+      - name: Install compiler dependencies
+        run: |
+          cd packages/compiler
+          npm install
+          npm run build
+          cd ../..
+
+      - name: Compile protocol (generate TLA+ files)
+        run: |
+          node packages/compiler/dist/cli.js compile
+          node packages/compiler/dist/cli.js verify
+
+      - name: Run TLA+ model checking
+        run: bash scripts/formal-verify.sh
+
+      - name: Upload verification reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tlc-verification-reports
+          path: generated/verification/reports/
+          retention-days: 30

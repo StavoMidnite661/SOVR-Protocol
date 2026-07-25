@@ -73,7 +73,8 @@ export class AtomicCommit {
       const key = `${update.domain ?? '*'}:${update.aggregate}:${update.id}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      const previousState = params.stateRegistry.hasState(update.aggregate, update.id, update.domain)
+      const has = await params.stateRegistry.hasState(update.aggregate, update.id, update.domain);
+      const previousState = has
         ? await params.stateRegistry.getState(update.aggregate, update.id, update.domain)
         : undefined;
       prepared.push({ ...update, previousState });

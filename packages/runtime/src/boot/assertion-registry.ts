@@ -23,7 +23,7 @@ export function registerAssertionHandlers(
     const aggregate = ctx.command?.aggregate ?? 'asset';
     const id = ctx.command?.payload?.asset_id ?? ctx.payload?.asset_id;
     if (!id) return false;
-    const hasState = stateRegistry.hasState(aggregate, String(id), ctx.command?.source_domain);
+    const hasState = await stateRegistry.hasState(aggregate, String(id), ctx.command?.source_domain);
     if (!hasState) return true;
     const state = await stateRegistry.getState(aggregate, String(id), ctx.command?.source_domain);
     return state === 'INIT' || state === 'UNKNOWN';
@@ -34,7 +34,7 @@ export function registerAssertionHandlers(
     const actor = ctx.command?.identity_context?.actor_id;
     if (!issuer) return false;
     if (issuer === actor) return true;
-    const hasState = stateRegistry.hasState('actor', String(issuer), 'identity');
+    const hasState = await stateRegistry.hasState('actor', String(issuer), 'identity');
     if (!hasState) return true; // dev bootstrap: no durable identity registry yet
     const state = await stateRegistry.getState('actor', String(issuer), 'identity');
     return state === 'VERIFIED' || state === 'ACTIVE';
@@ -45,7 +45,7 @@ export function registerAssertionHandlers(
     const actor = ctx.command?.identity_context?.actor_id;
     if (!owner) return false;
     if (owner === actor) return true;
-    const hasState = stateRegistry.hasState('actor', String(owner), 'identity');
+    const hasState = await stateRegistry.hasState('actor', String(owner), 'identity');
     if (!hasState) return true;
     const state = await stateRegistry.getState('actor', String(owner), 'identity');
     return state === 'VERIFIED' || state === 'ACTIVE';

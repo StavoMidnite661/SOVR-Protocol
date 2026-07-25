@@ -27,6 +27,7 @@ import {
   TransitionResult,
 } from '../execution/index.js';
 import { registerAssertionHandlers } from '../boot/assertion-registry.js';
+import { PostgreSQLEventStore } from '../adapters/postgres-event-store.js';
 import fs from 'fs';
 import path from 'path';
 import yaml from 'js-yaml';
@@ -149,9 +150,12 @@ export class CommandBus {
     this.stateMachineInterpreter = StateMachineInterpreter.fromFiles(
       path.join(this.protocolRoot, 'generated', 'sovr-ir.json'),
     );
-    this.stateRegistry = new StateRegistry((domain, aggregate) => {
+    this.stateRegistry = new StateRegistry((domain: any, aggregate: any) => {
       const machine = domain ? this.stateMachineInterpreter.getMachineFor(domain, aggregate) : undefined;
       return machine?.initialState;
+    }, {
+      usePostgres: this.eventStore instanceof PostgreSQLEventStore,
+      databaseUrl: this.eventStore instanceof PostgreSQLEventStore ? (this.eventStore as any).databaseUrl : undefined,
     });
     await this.stateRegistry.rebuildFromEventLog(this.eventStore);
     this.eventFactory = new EventFactory(this.eventCatalog);
@@ -431,7 +435,8 @@ export class CommandBus {
 
     const primaryMachine = this.stateMachineInterpreter.getMachineFor(sourceDomain, aggregate);
     if (primaryMachine) {
-      if (this.stateRegistry.hasState(aggregate, aggregateId, sourceDomain)) {
+      const hasState = await this.stateRegistry.hasState(aggregate, aggregateId, sourceDomain);
+      if (hasState) {
         const currentState = await this.stateRegistry.getState(aggregate, aggregateId, sourceDomain);
         const result = this.stateMachineInterpreter.execute({
           domain: sourceDomain,
@@ -455,7 +460,8 @@ export class CommandBus {
       if (!this.hasTransitionTrigger(machine, eventName)) continue;
       const relatedId = this.resolveMachineAggregateId(cmd, machine.aggregate);
       if (!relatedId) continue;
-      if (!this.stateRegistry.hasState(machine.aggregate, relatedId, sourceDomain)) {
+      const hasRelatedState = await this.stateRegistry.hasState(machine.aggregate, relatedId, sourceDomain);
+      if (!hasRelatedState) {
         continue;
       }
       const currentState = await this.stateRegistry.getState(machine.aggregate, relatedId, sourceDomain);

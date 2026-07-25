@@ -22,6 +22,7 @@ export class PostgreSQLEventStore implements IEventStore {
   async migrate(): Promise<void> {
     const pool = await this.poolPromise;
     await pool.query(MIGRATION_SQL);
+    await pool.query(MIGRATION_STATES_SQL);
     this.cachedCount = await this.count();
   }
 
@@ -138,7 +139,29 @@ export class PostgreSQLEventStore implements IEventStore {
     } catch (error) {
       throw new Error('PostgreSQLEventStore requires optional dependency "pg". Install it in production runtime before setting DATABASE_URL.');
     }
-    return new pg.Pool({ connectionString: databaseUrl });
+    return new pg.Pool({
+      connectionString: databaseUrl,
+      max: 10,
+      min: 2,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+      allowExitOnIdle: false,
+    });
+  }
+
+  async ping(): Promise<boolean> {
+    try {
+      const pool = await this.poolPromise;
+      const client = await pool.connect();
+      try {
+        await client.query('SELECT 1');
+        return true;
+      } finally {
+        client.release?.();
+      }
+    } catch {
+      return false;
+    }
   }
 }
 
@@ -179,8 +202,35 @@ CREATE INDEX IF NOT EXISTS idx_sovr_events_aggregate ON sovr_events(aggregate, a
 CREATE INDEX IF NOT EXISTS idx_sovr_events_domain ON sovr_events(source_domain);
 CREATE INDEX IF NOT EXISTS idx_sovr_events_timestamp ON sovr_events(timestamp);
 CREATE INDEX IF NOT EXISTS idx_sovr_events_correlation ON sovr_events(correlation_id);
-CREATE OR REPLACE RULE no_update_sovr_events AS ON UPDATE TO sovr_events DO INSTEAD NOTHING;
-CREATE OR REPLACE RULE no_delete_sovr_events AS ON DELETE TO sovr_events DO INSTEAD NOTHING;
+
+DROP TRIGGER IF EXISTS sovr_events_prevent_update_delete ON sovr_events;
+DROP FUNCTION IF EXISTS prevent_sovr_events_modification();
+CREATE OR REPLACE FUNCTION prevent_sovr_events_modification() RETURNS trigger AS $$
+BEGIN
+  RAISE EXCEPTION 'sovr_events is immutable: UPDATE/DELETE not allowed';
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER sovr_events_prevent_update_delete BEFORE UPDATE OR DELETE ON sovr_events FOR EACH ROW EXECUTE FUNCTION prevent_sovr_events_modification();
+`;
+
+export const MIGRATION_STATES_SQL = `
+CREATE TABLE IF NOT EXISTS sovr_aggregate_states (
+  aggregate       VARCHAR(255) NOT NULL,
+  aggregate_id    VARCHAR(255) NOT NULL,
+  current_state   VARCHAR(255) NOT NULL,
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (aggregate, aggregate_id)
+);
+CREATE INDEX IF NOT EXISTS idx_sovr_aggregate_states_aggregate ON sovr_aggregate_states(aggregate);
+
+DROP TRIGGER IF EXISTS sovr_aggregate_states_prevent_update_delete ON sovr_aggregate_states;
+DROP FUNCTION IF EXISTS prevent_sovr_states_modification();
+CREATE OR REPLACE FUNCTION prevent_sovr_states_modification() RETURNS trigger AS $$
+BEGIN
+  RAISE EXCEPTION 'sovr_aggregate_states is immutable: UPDATE/DELETE not allowed';
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER sovr_aggregate_states_prevent_update_delete BEFORE UPDATE OR DELETE ON sovr_aggregate_states FOR EACH ROW EXECUTE FUNCTION prevent_sovr_states_modification();
 `;
 
 function buildEnvelope(input: AppendInput): EventEnvelope {
