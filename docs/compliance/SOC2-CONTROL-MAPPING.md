@@ -135,13 +135,14 @@ curl -X POST http://localhost:3001/api/v1/vault/asset \
 **SOVR Implementation:**
 
 1. **Health Endpoint:** `/health` returns computed health of all subsystems (event store, projections, capabilities, state registry, build provenance).
-2. **Circuit Breaker State:** ACH adapter circuit breaker state visible in health response.
+2. **Circuit Breaker State:** Rail driver circuit breaker states visible in health response (`rails.{railId}.state`).
 3. **Event Log:** Append-only event log with 21-field envelope — every financial action is auditable.
 4. **Boot Attestation:** Cryptographic boot hash chain proves kernel started from exact frozen YAML.
 
 **Evidence Locations:**
 - `packages/runtime/src/server/index.ts` — `computeSubsystemHealth()`, `/health` endpoint
-- `packages/runtime/src/adapters/circuit-breaker.ts` — circuit state tracking
+- `packages/runtime/src/adapters/base/BaseRailDriver.ts` — circuit breaker, retry, timeout, audit
+- `packages/runtime/src/adapters/RailDriverRegistry.ts` — rail registration
 - `packages/runtime/src/execution/event-store.ts` — append-only event store
 - `generated/boot-attestation.json` — boot hash chain
 
@@ -152,8 +153,8 @@ curl http://localhost:3001/health
 # Expected: HEALTHY with subsystem breakdown
 
 # 2. Verify circuit breaker visible
-curl http://localhost:3001/health | jq '.subsystems.rails.ach'
-# Expected: circuit state (CLOSED/OPEN/HALF_OPEN)
+curl http://localhost:3001/health | jq '.rails'
+# Expected: all registered rails show circuit state (CLOSED/OPEN/HALF_OPEN)
 
 # 3. Verify event log completeness
 curl http://localhost:3001/api/v1/audit/{correlation_id}
@@ -219,13 +220,13 @@ node packages/compiler/dist/cli.js compile
 **SOVR Implementation:**
 
 1. **Rate Limiting:** Global (200/min) and financial (20/min) rate limits prevent abuse.
-2. **Circuit Breaker:** ACH adapter circuit breaker opens after 5 failures in 60s, preventing cascade failures.
+2. **Circuit Breaker:** Rail driver circuit breakers (configurable per rail) prevent cascade failures across all registered rails.
 3. **Fail-Closed Kernel:** Constitutional violations halt execution (ERROR/FATAL in compiler, 422 in runtime).
 4. **Guardrail Bus:** Pre-execution checks for INV-001 (event immutability) and INV-002 (double-entry balance).
 
 **Evidence Locations:**
 - `packages/runtime/src/server/index.ts` — `FinancialRateLimiter` class
-- `packages/runtime/src/adapters/circuit-breaker.ts` — circuit state machine
+- `packages/runtime/src/adapters/base/BaseRailDriver.ts` — circuit breaker, retry, timeout per rail
 - `packages/runtime/src/execution/index.ts` — `GuardrailCommandBus`
 - Integration tests: rate limit test, circuit breaker test, invariant enforcement test
 
@@ -236,8 +237,8 @@ node packages/compiler/dist/cli.js compile
 # Expected: 429 on 21st request
 
 # 2. Circuit breaker
-# (send 6 failing ACH prepare requests)
-# Expected: 5xx on 6th request, circuit OPEN
+# (send failing requests to any registered rail)
+# Expected: rail circuit opens after threshold, subsequent requests rejected
 
 # 3. Invariant enforcement
 # (send unbalanced ledger entry)
@@ -245,7 +246,7 @@ node packages/compiler/dist/cli.js compile
 ```
 
 **Current Gaps:**
-- Circuit breaker only on ACH adapter (not on all external dependencies)
+- Circuit breaker only on ACH adapter (not on all external dependencies) — ✅ FIXED: all rails inherit `BaseRailDriver` circuit breaker
 - No distributed rate limiting (in-process only)
 - No automatic recovery from circuit open (manual intervention required)
 

@@ -119,9 +119,9 @@ If `final_health: "DEGRADED"`:
 
 2. Check circuit breaker state
    ```bash
-   curl -s http://localhost:3001/health | jq '.subsystems.rails.ach'
+   curl -s http://localhost:3001/health | jq '.rails'
    ```
-   - If `state: "OPEN"`: ACH provider is down or SOVR is erroring. Wait for auto-recovery (60s) or investigate adapter logs.
+   - If any rail `state: "OPEN"`: That rail's provider is down or SOVR is erroring. Wait for auto-recovery (half-open probe) or investigate adapter logs.
 
 3. Check build provenance
    ```bash
@@ -222,17 +222,16 @@ curl http://localhost:3001/health | jq '.jwt.mode'
 7. Document timeline and findings
 8. Resume only after security team sign-off
 
-### P2 — Circuit Breaker OPEN
+### P2 — Rail Circuit Breaker OPEN
 
 **Symptoms:**
-- `rails.ach.state = "OPEN"` in health response
+- Any `rails.{railId}.state = "OPEN"` in health response
 - Payment commands failing with 503
-- ACH adapter not responding
 
 **Response:**
-1. Check ACH provider status page
-2. If provider down: Document outage start time. Wait for auto-recovery (60s half-open).
-3. If SOVR error: Check adapter logs for stack traces
+1. Check affected rail provider status page
+2. If provider down: Document outage start time. Wait for auto-recovery (half-open probe).
+3. If SOVR error: Check rail driver logs for stack traces
 4. If SOVR bug: Rollback to last known good deployment
 5. Notify stakeholders of payment delay
 
@@ -461,8 +460,8 @@ psql -U sovr -d sovr
 # Check event count
 psql -U sovr -d sovr -c "SELECT COUNT(*) FROM sovr_events;"
 
-# Check circuit breaker state
-curl -s http://localhost:3001/health | jq '.rails.ach'
+# Check circuit breaker state across all rails
+curl -s http://localhost:3001/health | jq '.rails'
 
 # Kill runtime (graceful)
 kill -SIGTERM $(cat runtime.pid)

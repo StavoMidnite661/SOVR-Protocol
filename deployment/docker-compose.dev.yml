@@ -53,6 +53,25 @@ services:
       timeout: 5s
       retries: 10
 
+  tigerbeetle:
+    image: ghcr.io/tigerbeetle/tigerbeetle:latest
+    command: >
+      start
+      --cluster-id=0
+      --addresses=0.0.0.0:3000
+      /data/0_0.tigerbeetle
+    ports:
+      - "3000:3000"
+    volumes:
+      - tigerbeetle_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 3000 || exit 1"]
+      interval: 10s
+      timeout:  5s
+      retries:  5
+      start_period: 5s
+    restart: unless-stopped
+
   sovr-api:
     build:
       context: ..
@@ -84,3 +103,4 @@ services:
 
 volumes:
   postgres_data:
+  tigerbeetle_data:

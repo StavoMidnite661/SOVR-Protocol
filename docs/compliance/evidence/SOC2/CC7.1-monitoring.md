@@ -19,7 +19,7 @@ The entity monitors system components and the operation of security controls to 
 SOVR provides system monitoring through:
 
 1. **Health Endpoint:** `/health` returns computed health of all subsystems.
-2. **Circuit Breaker State:** ACH adapter circuit breaker state visible in health.
+2. **Circuit Breaker State:** Rail driver circuit breaker states visible in health (`rails.{railId}.state`).
 3. **Event Log:** Append-only event log — every action auditable.
 4. **Boot Attestation:** Cryptographic proof of kernel integrity.
 
@@ -52,7 +52,7 @@ SOVR provides system monitoring through:
   "runlevel": 7,
   "final_health": "HEALTHY",
   "jwt": { "algorithm": "RS256", "mode": "development" },
-  "rails": { "ach": { "state": "CLOSED", "failures": 0 } },
+  "rails": { "sovr-private-ledger": { "state": "CLOSED", "failures": 0 }, "ach": { "state": "CLOSED", "failures": 0 } },
   "subsystems": { ... },
   "event_store": { "totalEvents": 13, "adapter": "JSON" },
   "projections": { "projections": 16, "totalRecords": 0 },
@@ -66,23 +66,24 @@ SOVR provides system monitoring through:
 
 ### Evidence 2: Circuit Breaker State
 
-**File:** `packages/runtime/src/adapters/circuit-breaker.ts`  
-**File:** `packages/runtime/src/adapters/achAdapter.ts`
+**File:** `packages/runtime/src/adapters/base/BaseRailDriver.ts`  
+**File:** `packages/runtime/src/adapters/RailDriverRegistry.ts`
 
 **States:**
 - `CLOSED` — normal operation
 - `OPEN` — failures exceed threshold, calls rejected
 - `HALF_OPEN` — recovery attempt
 
-**Configuration:**
-- Failure threshold: 5 failures in 60s
-- Success threshold: 2 successes to close
-- Timeout: 60s
+**Configuration (per rail):**
+- Circuit breaker threshold: configurable per driver
+- Circuit breaker reset: configurable ms before HALF_OPEN
+- Retry: configurable maxRetries with exponential backoff
+- Timeout: configurable per rail
 
 **Verification:**
 ```bash
-curl http://localhost:3001/health | jq '.rails.ach'
-# Expected: {"state":"CLOSED","failures":0}
+curl http://localhost:3001/health | jq '.rails'
+# Expected: {"sovr-private-ledger":{"state":"CLOSED",...},...}
 ```
 
 ---
@@ -151,7 +152,7 @@ curl http://localhost:3001/api/v1/boot-attestation | grep build_hash
 
 1. Start runtime: `PORT=3001 node dist/server/index.js`
 2. `curl http://localhost:3001/health` — verify HEALTHY
-3. `curl http://localhost:3001/health | jq '.rails.ach'` — verify circuit state
+3. `curl http://localhost:3001/health | jq '.rails'` — verify all registered rails show circuit state
 4. Run demo: `bash scripts/demo.sh`
 5. `curl http://localhost:3001/api/v1/audit/{correlation_id}` — verify complete trail
 6. `curl http://localhost:3001/api/v1/boot-attestation` — verify boot hash chain

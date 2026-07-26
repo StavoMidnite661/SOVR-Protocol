@@ -12,6 +12,8 @@ import type { AtomicCommit } from './atomic-commit.js';
 import type { CapabilityEngine } from '../server/capabilityEngine.js';
 import type { CommandEnvelope } from '../server/commandBus.js';
 import type { AppendInput, EventEnvelope } from '../server/eventStore.js';
+import { AuthorityBoundaryEnforcer, ExecutionGateEnforcer } from './index.js';
+
 
 export interface KernelExecutionResult {
   status: 'ACCEPTED' | 'REJECTED';
@@ -23,6 +25,11 @@ export interface KernelExecutionResult {
   transitions: any[];
   error?: string;
   error_type?: string;
+  rejectionCode?: string;
+  rejectionReason?: string;
+  violation?: string;
+  failedGate?: string;
+  failedGateType?: string;
 }
 
 export class KernelValidationError extends Error { constructor(readonly code: string, message: string) { super(message); this.name = 'KernelValidationError'; } }
@@ -31,19 +38,84 @@ export class KernelIdentityViolationError extends Error { constructor(message: s
 export class InvalidStateTransitionError extends Error { constructor(message: string) { super(message); this.name = 'InvalidStateTransitionError'; } }
 
 export class KernelExecutor {
+  private readonly authorityEnforcer: AuthorityBoundaryEnforcer
+  private readonly gateEnforcer: ExecutionGateEnforcer
+
   constructor(
     private evaluator: InstructionEvaluator,
     private stateRegistry: StateRegistry,
     private atomicCommit: AtomicCommit,
     private capabilityStore: CapabilityEngine,
     private eventStore: any,
-  ) {}
+    authorityEnforcer: AuthorityBoundaryEnforcer,
+    gateEnforcer: ExecutionGateEnforcer,
+  ) {
+    this.authorityEnforcer = authorityEnforcer
+    this.gateEnforcer = gateEnforcer
+  }
 
   async execute(request: CommandEnvelope): Promise<KernelExecutionResult> {
     const commandDef = (commandsRegistry as any).entries?.[request.command_name];
     if (!commandDef) throw new KernelValidationError('UNKNOWN_COMMAND', `Unknown command ${request.command_name}`);
 
     await this.identityCheck(request, commandDef);
+
+    const requiredCapability = commandDef.authorization_requirements?.capability ?? commandDef.issuer?.minimum_capability ?? request.capability_id;
+    const aggregateId = this.resolveAggregateId(request, commandDef, commandDef.aggregate ?? request.command_name.split('.')[1] ?? 'command');
+
+    const authorityResult = await this.authorityEnforcer.check({
+      actorId:            request.identity_context.actor_id,
+      commandName:        request.command_name,
+      aggregateId:        aggregateId,
+      requiredCapability: requiredCapability,
+      payload:            request.payload,
+      correlationId:      request.correlation_id,
+      commandId:          request.command_id
+    });
+
+    if (!authorityResult.granted) {
+      return {
+        status:          'REJECTED',
+        commandId:       request.command_id,
+        correlationId:   request.correlation_id,
+        events:          [],
+        eventsEmitted:   0,
+        transitions:     [],
+        rejectionCode:   'AUTHORITY_BOUNDARY_VIOLATION',
+        rejectionReason: authorityResult.reason ?? 'Authority boundary violated',
+        violation:       authorityResult.violation,
+        error:           authorityResult.reason ?? 'Authority boundary violated',
+        error_type:      'AuthorityBoundaryViolation',
+      };
+    }
+
+    const gateResult = await this.gateEnforcer.check({
+      commandName:   request.command_name,
+      commandId:     request.command_id,
+      correlationId: request.correlation_id,
+      aggregateId:   aggregateId,
+      actorId:       request.identity_context.actor_id,
+      payload:       request.payload,
+      gates:         (commandDef.execution_gates ?? []) as any,
+    });
+
+    if (!gateResult.passed) {
+      return {
+        status:          'REJECTED',
+        commandId:       request.command_id,
+        correlationId:   request.correlation_id,
+        events:          [],
+        eventsEmitted:   0,
+        transitions:     [],
+        rejectionCode:   'EXECUTION_GATE_FAILED',
+        rejectionReason: gateResult.reason ?? 'Execution gate condition not satisfied',
+        failedGate:      gateResult.failedGate,
+        failedGateType:  gateResult.failedType,
+        error:           gateResult.reason ?? 'Execution gate condition not satisfied',
+        error_type:      'ExecutionGateFailed',
+      };
+    }
+
     await this.capabilityCheck(request, commandDef);
     await this.evaluateInstructions(request);
 

@@ -416,18 +416,24 @@ Out of scope for this document:
 **Attack Vector:** Compromised adapter endpoint, MITM on adapter communication, malicious adapter implementation.
 
 **Current Mitigations:**
-- Circuit breaker — 5 failures in 60s opens circuit, stopping all calls
+- Circuit breaker — configurable threshold per rail; opens after N failures, stopping all calls
+- Retry with exponential backoff — transient failures retried up to `maxRetries`
+- Timeout — every rail call bounded by configurable `timeout` ms
 - Adapter isolation — adapters cannot mutate constitutional state (INV-001/005)
-- Mock adapters in development — no live institution contact
-- Payment events are auditable — every rail call emits an event
-- Adapter registry — adapters are registered explicitly, not dynamically loaded
+- Credential validation at boot — only rails with valid credentials are registered
+- Fail-silent registration — bad credentials skip, log, continue
+- Rail isolation — failure in one rail does not affect others
+- Payment events are auditable — every rail call emits pre/post/retry/circuit events
+- TigerBeetle financial database — double-entry enforcement at storage layer (INV-002)
 
-**Residual Risk:** Medium. Mock ACH adapter does not contact live institutions. Production adapters would need TLS, mutual auth, and adapter-level audit logs. Circuit breaker prevents cascade failures but not fraudulent instructions from a compromised adapter.
+**Residual Risk:** Medium. Rail drivers are scaffold implementations for external providers. Production adapters would need TLS, mutual auth, adapter-level audit logs, and secrets-manager-backed credentials. Circuit breaker prevents cascade failures but not fraudulent instructions from a compromised adapter.
 
 **Audit Evidence:**
-- `packages/runtime/src/adapters/achAdapter.ts` — circuit breaker integration
-- `packages/runtime/src/adapters/circuit-breaker.ts` — failure threshold logic
-- `hybrid-boundary.yaml` — declared rails, none live in v0.8.0
+- `packages/runtime/src/adapters/base/BaseRailDriver.ts` — circuit breaker, retry, audit, timeout
+- `packages/runtime/src/adapters/RailDriverRegistry.ts` — credential-validated boot registration
+- `packages/runtime/src/adapters/BoundaryEventBus.ts` — constitutional bridge from external events → CommandBus
+- `packages/runtime/src/adapters/tigerbeetle/TigerBeetleDriver.ts` — financial database driver
+- `hybrid-boundary.yaml` — declared rails
 
 ---
 

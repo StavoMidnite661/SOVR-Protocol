@@ -23,9 +23,14 @@
 - [ ] Disable unnecessary endpoints in production build
 
 ### 4. Adapters & External
-- [ ] Only register approved rail adapters
-- [ ] All adapters must emit events only
-- [ ] Timeout + compensation policies per rail
+- [x] Rail driver framework implemented (`BaseRailDriver`, `RailDriverRegistry`, `BoundaryEventBus`)
+- [x] All 12 external rails have scaffold drivers
+- [x] TigerBeetle financial database driver implemented
+- [x] All adapters emit events only — cannot mutate constitutional state
+- [x] Timeout + retry + circuit breaker + audit enforced at `BaseRailDriver`
+- [ ] TLS enforcement for live institution contact
+- [ ] Mutual authentication for external rail APIs
+- [ ] Secrets manager integration for rail credentials
 
 ### 5. Observability & Auditing
 - [ ] Enable Kafka/Redis in production
@@ -49,9 +54,9 @@
 - Automated capability review reports
 - Periodic full event store Merkle verification
 
-**Current Gaps (2026-07-22):**
+**Current Gaps (2026-07-25):**
 - No Merkle root yet
 - Causation is still fail-open by default
-- Limited rail adapters implemented
+- Rail drivers are scaffold implementations; production wiring (TLS, mutual auth, secrets manager) remains
 
 Update this checklist as features are added.

@@ -121,9 +121,25 @@
 
 | File | Language | LOC | Purpose | Constitutional |
 |---|---|---|---|---|
-| src/adapters/achAdapter.ts | TypeScript | 180 | ACH boundary adapter | No |
-| src/adapters/boundary.ts | TypeScript | 150 | Hybrid boundary | No |
-| src/adapters/circuit-breaker.ts | TypeScript | 90 | Circuit breaker | No |
+| src/adapters/base/BaseRailDriver.ts | TypeScript | ~220 | Rail driver base class (circuit breaker, retry, audit, timeout) | No |
+| src/adapters/RailDriverRegistry.ts | TypeScript | ~120 | Credential-validated rail driver bootstrap | No |
+| src/adapters/BoundaryEventBus.ts | TypeScript | ~80 | Constitutional bridge external events → CommandBus | No |
+| src/adapters/tigerbeetle/TigerBeetleDriver.ts | TypeScript | ~220 | TigerBeetle financial database driver | No |
+| src/adapters/tigerbeetle/TigerBeetleAccountManager.ts | TypeScript | ~120 | SOVR account → TigerBeetle mapping | No |
+| src/adapters/tigerbeetle/TigerBeetleTransferBuilder.ts | TypeScript | ~180 | Journal entry / escrow / compensation builders | No |
+| src/adapters/private-ledger/SovrLedgerDriver.ts | TypeScript | ~80 | Native SOVR kernel execution path | No |
+| src/adapters/ach/AchDriver.ts | TypeScript | ~150 | ACH rail (Dwolla, Modern Treasury, Column) | No |
+| src/adapters/fednow/FedNowDriver.ts | TypeScript | ~120 | FedNow ISO 20022 scaffold | No |
+| src/adapters/wire/FedwireDriver.ts | TypeScript | ~120 | Fedwire operating-hours scaffold | No |
+| src/adapters/rtp/RtpDriver.ts | TypeScript | ~100 | RTP TCH scaffold | No |
+| src/adapters/swift/SwiftDriver.ts | TypeScript | ~120 | SWIFT gpi scaffold | No |
+| src/adapters/sepa/SepaDriver.ts | TypeScript | ~120 | SEPA IBAN/pain.001 scaffold | No |
+| src/adapters/card/CardNetworkDriver.ts | TypeScript | ~120 | Card network scaffold | No |
+| src/adapters/blockchain/EvmDriver.ts | TypeScript | ~120 | EVM blockchain scaffold | No |
+| src/adapters/stablecoin/StablecoinDriver.ts | TypeScript | ~120 | Stablecoin scaffold | No |
+| src/adapters/oracle/PriceOracleDriver.ts | TypeScript | ~120 | Price oracle scaffold | No |
+| src/adapters/boundary.ts | TypeScript | 150 | Superseded by RailDriverRegistry + BoundaryEventBus | No |
+| src/adapters/circuit-breaker.ts | TypeScript | 90 | Superseded by BaseRailDriver circuit logic | No |
 | src/adapters/postgres-event-store.ts | TypeScript | 250 | PostgreSQL event store | Yes |
 | src/boot/assertion-registry.ts | TypeScript | 150 | Boot assertions | Yes |
 | src/boot/boot-renderer.ts | TypeScript | 160 | Boot log renderer | No |

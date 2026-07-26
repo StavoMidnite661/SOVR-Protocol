@@ -233,25 +233,19 @@ await client.subscribeToEvents('treasury', (event) => {
 Kafka topics per `compiler.yaml`: `sovr.{domain}.{aggregate}.{event_type}` partition_key aggregate_id, retention PERMANENT for financial/audit, replication 3, min_in_sync 2, compaction true.
 Redis streams: `sovr:stream:{domain}:{aggregate}` consumer_group `sovr-{service_name}` max_length 100k ack_timeout 30s.
 
-### 5. Connect external infra via adapters (hybrid-boundary)
+### 5. Connect external infra via rail drivers (Directive XXI)
 
 ```ts
-import { AdapterRegistry } from '@sovr/runtime/adapters/boundary';
+import { RailDriverRegistry, BoundaryEventBus } from '@sovr/runtime/adapters';
 
-const registry = new AdapterRegistry();
-registry.registerChain({
-  chainId: 1,
-  chainType: 'EVM',
-  finalityModel: 'PROBABILISTIC',
-  // ... prepare/submit/confirm/rollback per hybrid-boundary.yaml
-});
-registry.registerRail({
-  railType: 'ACH',
-  // ... prepare/execute/confirm/compensate
-});
+const registry = new RailDriverRegistry();
+await registry.registerFromEnv(); // loads all drivers from SOVR_* env vars
+
+const bus = new BoundaryEventBus(commandBus);
+bus.subscribeToRailEvents(); // wire rail events → constitutional commands
 ```
 
-Prohibition: `ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE` — adapters emit events only, never mutate vault/ledger directly.
+Prohibition: `ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE` — all drivers emit events only, never mutate vault/ledger directly. Circuit breaker, retry, audit, and timeout are enforced at `BaseRailDriver`.
 
 ### 6. Verify unfakeable provenance
 
@@ -313,7 +307,22 @@ packages/
     src/
       execution/               ← ExecutionContext, CommandHandler, mockExecutionContext
       sdk/client.ts            ← SOVRClient typed SDK
-      adapters/boundary.ts    ← ChainAdapter, PaymentRailAdapter, AdapterRegistry
+      adapters/
+        base/BaseRailDriver.ts ← Circuit breaker, retry, audit, timeout base
+        RailDriverRegistry.ts  ← Credential-validated boot registration
+        BoundaryEventBus.ts    ← External rail events → CommandBus
+        tigerbeetle/           ← TigerBeetleDriver, AccountManager, TransferBuilder
+        private-ledger/        ← SovrLedgerDriver
+        ach/                   ← AchDriver (Dwolla, Modern Treasury, Column)
+        fednow/                 ← FedNowDriver
+        wire/                   ← FedwireDriver
+        rtp/                    ← RtpDriver
+        swift/                  ← SwiftDriver
+        sepa/                   ← SepaDriver
+        card/                   ← CardNetworkDriver
+        blockchain/             ← EvmDriver
+        stablecoin/             ← StablecoinDriver
+        oracle/                 ← PriceOracleDriver
 
 example-frontend/
   src/App.ts                   ← Example using generated types + SDK

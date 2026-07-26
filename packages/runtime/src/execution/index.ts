@@ -10,6 +10,18 @@ export * from './event-store.js';
 export * from './instruction-evaluator.js';
 export * from './kernel-executor.js';
 
+export * from './types.js';
+export * from './AuthorityBoundaryEnforcer.js';
+export * from './ExecutionGateEnforcer.js';
+export * from './GateEvaluators/BalanceGate.js';
+export * from './GateEvaluators/StateGate.js';
+export * from './GateEvaluators/AuthorizationLimitGate.js';
+export * from './GateEvaluators/TimeWindowGate.js';
+export * from './GateEvaluators/ApprovalQuorumGate.js';
+export * from './GateEvaluators/ComplianceHoldGate.js';
+export * from './GateEvaluators/AccountActiveGate.js';
+export * from './GateEvaluators/AmountWithinLimitGate.js';
+
 // ExecutionContext — the single object handlers receive per ADR-009
 // This eliminates 20+ param injection and makes replay/audit trivial
 

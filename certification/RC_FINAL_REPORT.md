@@ -146,7 +146,7 @@ SOVR Protocol v0.9.0-rc is a **spec-first, compiled financial protocol** ready f
 
 ### Medium-term (v1.1.0)
 1. Multi-node distributed execution
-2. Real payment rail adapters
+2. Production rail wiring (TLS, mutual auth, secrets manager) for all 12 rails + TigerBeetle
 3. Standards-complete DID/VC identity
 4. Formal load testing
 

@@ -71,8 +71,8 @@ The following exports were identified but require deeper static analysis to conf
 |---|---|---|
 | `packages/runtime/src/execution/index.ts` | `GuardrailCommandBus` | May be unused in runtime |
 | `packages/runtime/src/execution/index.ts` | `mockExecutionContext` | Test utility only |
-| `packages/runtime/src/adapters/circuit-breaker.ts` | `CircuitBreaker` | Not wired into server |
-| `packages/runtime/src/adapters/boundary.ts` | `ChainAdapter` | Interface defined, not implemented |
+| `packages/runtime/src/adapters/circuit-breaker.ts` | `CircuitBreaker` | Superseded by `BaseRailDriver` circuit logic |
+| `packages/runtime/src/adapters/boundary.ts` | `ChainAdapter`, `PaymentRailAdapter`, `AdapterRegistry` | Superseded by `RailDriverRegistry` + `BoundaryEventBus` + `BaseRailDriver` |
 | `packages/runtime/src/identity/did-service.ts` | `DIDService` | Implemented but not fully integrated |
 
 **Note:** A full dead code analysis requires `ts-prune` or similar static analysis tool. This report identifies candidates only.

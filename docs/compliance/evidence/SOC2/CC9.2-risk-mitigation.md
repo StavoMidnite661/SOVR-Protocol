@@ -19,7 +19,7 @@ The entity identifies, assesses, and manages risks to the achievement of its obj
 SOVR mitigates risks through:
 
 1. **Rate Limiting:** Global (200/min) and financial (20/min) rate limits.
-2. **Circuit Breaker:** ACH adapter circuit breaker prevents cascade failures.
+2. **Circuit Breaker:** Rail driver circuit breakers prevent cascade failures across all registered rails.
 3. **Fail-Closed Kernel:** Constitutional violations halt execution.
 4. **Guardrail Bus:** Pre-execution checks for INV-001 and INV-002.
 
@@ -49,8 +49,8 @@ SOVR mitigates risks through:
 
 ### Evidence 2: Circuit Breaker
 
-**File:** `packages/runtime/src/adapters/circuit-breaker.ts`  
-**File:** `packages/runtime/src/adapters/achAdapter.ts`
+**File:** `packages/runtime/src/adapters/base/BaseRailDriver.ts`  
+**File:** `packages/runtime/src/adapters/RailDriverRegistry.ts`
 
 **Configuration:**
 - Failure threshold: 5 failures
@@ -65,8 +65,8 @@ SOVR mitigates risks through:
 
 **Verification:**
 ```bash
-# Send 6 failing ACH prepare requests
-# Expected: 5th failure opens circuit, 6th returns CircuitOpenError
+# Send failing requests to any registered rail until circuit opens
+# Expected: circuit opens after threshold, subsequent requests return CircuitOpenError
 ```
 
 ---
@@ -128,7 +128,7 @@ curl -X POST http://localhost:3001/api/v1/ledger/entry \
 ## Current Gaps
 
 1. **Distributed Rate Limiting:** In-process only. Not effective in multi-node deployment.
-2. **Multi-Adapter Circuit Breaker:** Only ACH adapter has circuit breaker. Other adapters not protected.
+2. **Multi-Adapter Circuit Breaker:** ✅ FIXED — all rails inherit circuit breaker, retry, and timeout from `BaseRailDriver`.
 3. **Full Invariant Enforcement:** INV-001, INV-002, INV-003, INV-004 partially enforced. INV-005 through INV-010 specified but not fully wired.
 
 ---

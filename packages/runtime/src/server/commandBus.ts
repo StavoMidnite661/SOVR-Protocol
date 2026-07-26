@@ -25,6 +25,10 @@ import {
   KernelExecutor,
   TransactionEffects,
   TransitionResult,
+  AuthorityBoundaryEnforcer,
+  ExecutionGateEnforcer,
+  TimeWindowGate,
+  AmountWithinLimitGate,
 } from '../execution/index.js';
 import { registerAssertionHandlers } from '../boot/assertion-registry.js';
 import { PostgreSQLEventStore } from '../adapters/postgres-event-store.js';
@@ -162,7 +166,46 @@ export class CommandBus {
     this.atomicCommit = new AtomicCommit();
     this.instructionEvaluator = new InstructionEvaluator();
     registerAssertionHandlers(this.instructionEvaluator, this.stateRegistry, this.eventStore, this.capabilityEngine);
-    this.kernelExecutor = new KernelExecutor(this.instructionEvaluator, this.stateRegistry, this.atomicCommit, this.capabilityEngine, this.eventStore);
+
+    const authorityEnforcer = new AuthorityBoundaryEnforcer(
+      {
+        getActorCapabilities: async (actorId: string) => {
+          const grants = await this.capabilityEngine.listGrants(actorId);
+          return grants.map((g: any) => ({
+            grantId: g.capability_id,
+            actorId: g.actor_id,
+            capability: g.capability_id,
+            scope: g.scope_pattern,
+            grantedBy: g.granted_by,
+            grantedAt: Date.now(),
+            expiresAt: g.expires_at ? new Date(g.expires_at).getTime() : undefined,
+            revokedAt: g.revoked_at ? new Date(g.revoked_at).getTime() : undefined,
+            constraints: g.conditions?.constraints,
+          }));
+        },
+        isSystemActor: (actorId: string) => ['system'].includes(actorId),
+      },
+      {
+        append: async (evt: any) => {
+          const result = await this.eventStore.append(evt);
+          return { eventId: result.event_id };
+        },
+      }
+    );
+
+    const evaluators: any[] = [];
+    if (process.env.SOVR_TEST_XXIII_GATES === 'true') {
+      evaluators.push(new TimeWindowGate(), new AmountWithinLimitGate());
+    }
+
+    const gateEnforcer = new ExecutionGateEnforcer(evaluators, {
+      append: async (evt: any) => {
+        const result = await this.eventStore.append(evt);
+        return { eventId: result.event_id };
+      },
+    });
+
+    this.kernelExecutor = new KernelExecutor(this.instructionEvaluator, this.stateRegistry, this.atomicCommit, this.capabilityEngine, this.eventStore, authorityEnforcer, gateEnforcer);
     this.commandCoverage = this.buildCommandCoverage();
     this.initialized = true;
   }

@@ -561,12 +561,12 @@ async function buildServer() {
   }));
 
   app.post('/api/v1/capabilities/grant', async (req: any) => {
-    const { capability_id, actor_id, scope_pattern, expires_at } = req.body || {};
+    const { capability_id, actor_id, scope_pattern, expires_at, conditions } = req.body || {};
     if (!capability_id || !actor_id || !scope_pattern) {
       return { error: 'capability_id, actor_id, scope_pattern required' };
     }
     const requester = req.headers['x-actor-id'] || 'governance';
-    capabilityEngine.grant({ capability_id, actor_id, scope_pattern, granted_by: requester, expires_at });
+    capabilityEngine.grant({ capability_id, actor_id, scope_pattern, granted_by: requester, expires_at, conditions });
     const ev = await eventStore.append({
       event_name: 'governance.capability.granted',
       aggregate: 'capability_grant',
@@ -580,11 +580,21 @@ async function buildServer() {
       identity_context: { identity_id: requester, actor_type: 'governance' },
       policy_decision_id: crypto.randomUUID(),
       capability_id: 'governance.capability.grant',
-      payload: { capability_id, actor_id, scope_pattern },
+      payload: { capability_id, actor_id, scope_pattern, conditions },
       projection_effect: { target: 'none', operation: 'no_op' },
       audit: { constitutional_rules_referenced: ['INV-003', 'INV-004'], retention_class: 'permanent' },
     });
     return { granted: true, capability_id, actor_id, scope_pattern, event: ev };
+  });
+
+  app.delete('/api/v1/capabilities/grant', async (req: any) => {
+    const { capability_id, actor_id } = req.body || {};
+    if (!capability_id || !actor_id) {
+      return { error: 'capability_id and actor_id required' };
+    }
+    const requester = req.headers['x-actor-id'] || 'governance';
+    capabilityEngine.revoke(actor_id, capability_id);
+    return { revoked: true, capability_id, actor_id, revoked_by: requester };
   });
 
   // Identity session — real RS256 signed JWT

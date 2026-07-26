@@ -471,9 +471,17 @@ Agent types: `FINANCIAL_ANALYST` `TREASURY_OPERATOR` `COMPLIANCE_MONITOR` `RECON
 
 12 external rails declared: `ACH` `FEDNOW` `WIRE` `RTP` `CARD` `BLOCKCHAIN` `INTERNAL_TRANSFER` `STABLECOIN` `SWIFT` `SEPA` `CASH_SETTLEMENT` `FUTURE_ADAPTER`
 
-> **Current status:** Mock ACH adapter implemented.  
-> 11 rails are boundary-defined in spec.  
-> None contact a live financial institution in this version.
+> **Current status:** Full rail driver framework implemented under `packages/runtime/src/adapters/`.
+> - `BaseRailDriver` — circuit breaker, retry, audit, timeout
+> - `SovrLedgerDriver` — native kernel execution path
+> - `TigerBeetleDriver` + `TigerBeetleAccountManager` + `TigerBeetleTransferBuilder` — financial database layer
+> - `AchDriver` — 3 providers (Dwolla, Modern Treasury, Column)
+> - `FedNowDriver` — ISO 20022 pacs.008/pacs.002
+> - `FedwireDriver` — operating-hours enforcement
+> - `RtpDriver`, `SwiftDriver`, `SepaDriver`, `CardNetworkDriver`, `EvmDriver`, `StablecoinDriver`, `PriceOracleDriver` — scaffold implementations
+> - `RailDriverRegistry` — credential-validated boot registration
+> - `BoundaryEventBus` — constitutional bridge from external events → CommandBus
+> All drivers emit events only; no direct state mutation (INV-001/INV-005).
 
 ### Governance Domain
 
@@ -815,6 +823,10 @@ The SOVR reference runtime (`@sovr/runtime v0.9.0`) is the execution environment
 ✅ Routes catalog commands through GuardrailBus before event persistence
 ✅ Uses compiled-IR state machine definitions for initial and event-triggered transitions
 ✅ Persists state-machine emitted events through EventFactory → EventStore
+✅ Loads rail driver registry at EXECUTION_BOUNDARY (Runlevel 5)
+✅ Validates driver credentials before registration (fail-silent)
+✅ Routes external rail submissions through BaseRailDriver (circuit breaker, retry, audit)
+✅ Translates rail results to constitutional commands via BoundaryEventBus
 ```
 
 ### What the Runtime Does Not Do Yet
@@ -909,18 +921,20 @@ SOVR defines external system boundaries in `hybrid-boundary.yaml`.
 
 | Rail / System | Declared | Implemented |
 |---|---|---|
-| ACH | ✅ | 🔧 Mock adapter — does not contact live institution |
-| FedNow | ✅ | 📋 Not implemented |
-| Wire | ✅ | 📋 Not implemented |
-| RTP | ✅ | 📋 Not implemented |
-| Card Networks | ✅ | 📋 Not implemented |
-| Blockchain (ETH/Base/Polygon) | ✅ | 📋 Not implemented |
-| Stablecoin | ✅ | 📋 Not implemented |
-| SWIFT | ✅ | 📋 Not implemented |
-| SEPA | ✅ | 📋 Not implemented |
-| Price Oracles | ✅ | 📋 Not implemented |
+| SOVR Private Ledger | ✅ | ✅ Native kernel path (`SovrLedgerDriver`) |
+| TigerBeetle | ✅ | ✅ Financial database driver (`TigerBeetleDriver`) |
+| ACH | ✅ | ✅ 3 providers (Dwolla, Modern Treasury, Column) |
+| FedNow | ✅ | ✅ ISO 20022 scaffold |
+| Fedwire | ✅ | ✅ Operating-hours enforcement scaffold |
+| RTP | ✅ | ✅ TCH scaffold |
+| Card Networks | ✅ | ✅ Marqeta/Stripe/Lithic scaffold |
+| Blockchain (EVM) | ✅ | ✅ ethers.js/viem hook scaffold |
+| Stablecoin | ✅ | ✅ Circle API wired |
+| SWIFT | ✅ | ✅ SWIFT gpi scaffold |
+| SEPA | ✅ | ✅ IBAN/pain.001 scaffold |
+| Price Oracle | ✅ | ✅ READ-ONLY scaffold (Chainlink/Band/internal) |
 
-**Key rule:** Boundary adapters emit events only. They cannot mutate constitutional state.
+**Key rule:** Boundary adapters emit events only. They cannot mutate constitutional state. All external state changes enter through `BoundaryEventBus → CommandBus → KernelExecutor`.
 
 ---
 
@@ -974,6 +988,7 @@ The Linux of Finance.
 ### With PostgreSQL (Production Persistence)
 ```bash
 docker-compose -f deployment/docker-compose.dev.yml up -d
+bash scripts/tigerbeetle-init.sh
 SOVR_URL=http://localhost:3001 bash scripts/demo.sh
 ```
 
@@ -1130,7 +1145,10 @@ const client = new SOVRClient({
 | Saga IR enrichment | ✅ | 16 saga definitions embedded with steps, compensation, timeouts |
 | Saga live CommandBus execution | ✅ | `internal_transfer_saga` executes Vault + Ledger steps through CommandBus and compensates via Vault release on failure |
 | Demo flow (session → capability → asset → ledger → event) | ✅ | End-to-end verified |
-| Mock ACH adapter | ✅ | Does not contact live institution |
+| Rail driver framework | ✅ | 12 external rail drivers + TigerBeetle + SOVR private ledger; circuit breaker, retry, audit, credential validation |
+| TigerBeetle financial database | ✅ | Account management, transfers, two-phase commit/void, reconciliation, health check |
+| Rail driver registry bootstrap | ✅ | Environment-driven credential validation; fail-silent registration |
+| Boundary event bus | ✅ | Constitutional bridge from external rail events → CommandBus |
 
 ### In Progress
 
@@ -1224,13 +1242,28 @@ SOVR-Protocol/
 │   │   │   └── utils/                ← Hash, YAML loader
 │   │   └── dist/                     ← Compiled JavaScript
 │   │
-│   └── runtime/                      ← @sovr/runtime v0.9.0
-│       ├── src/
-│       │   ├── adapters/             ← Boundary adapters (mock ACH active)
-│       │   ├── execution/            ← Execution context and interpreters
-│       │   ├── server/               ← Fastify HTTP server
-│       │   └── sdk/                  ← SOVRClient SDK
-│       └── generated/                ← Runtime generated manifests
+│       └── runtime/                      ← @sovr/runtime v0.9.0
+│           ├── src/
+│           │   ├── adapters/             ← Rail driver framework + boundary adapters
+│           │   │   ├── base/BaseRailDriver.ts
+│           │   │   ├── tigerbeetle/       ← TigerBeetleDriver, AccountManager, TransferBuilder
+│           │   │   ├── private-ledger/SovrLedgerDriver.ts
+│           │   │   ├── ach/AchDriver.ts   ← Dwolla, Modern Treasury, Column
+│           │   │   ├── fednow/FedNowDriver.ts
+│           │   │   ├── wire/FedwireDriver.ts
+│           │   │   ├── rtp/RtpDriver.ts
+│           │   │   ├── swift/SwiftDriver.ts
+│           │   │   ├── sepa/SepaDriver.ts
+│           │   │   ├── card/CardNetworkDriver.ts
+│           │   │   ├── blockchain/EvmDriver.ts
+│           │   │   ├── stablecoin/StablecoinDriver.ts
+│           │   │   ├── oracle/PriceOracleDriver.ts
+│           │   │   ├── RailDriverRegistry.ts
+│           │   │   └── BoundaryEventBus.ts
+│           │   ├── execution/            ← Execution context and interpreters
+│           │   ├── server/               ← Fastify HTTP server
+│           │   └── sdk/                  ← SOVRClient SDK
+│           └── generated/                ← Runtime generated manifests
 │
 ├── 📁 generated/                     ← Compiler output artifacts
 │   ├── sovr-ir.json                  ← Canonical IR (592 nodes, 459 edges)

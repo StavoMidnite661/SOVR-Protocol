@@ -320,9 +320,19 @@ This document inventories all security-relevant surfaces in the SOVR Protocol. E
 
 | Property | Value |
 |---|---|
-| **ACH** | Mock adapter (`packages/runtime/src/adapters/achAdapter.ts`) |
-| **Blockchain** | Boundary-defined only (`hybrid-boundary.yaml`) |
-| **Oracles** | Boundary-defined only |
+| **Rail Driver Framework** | `packages/runtime/src/adapters/` — `BaseRailDriver`, `RailDriverRegistry`, `BoundaryEventBus`, plus 12 rail drivers |
+| **Financial Database** | TigerBeetle (`TigerBeetleDriver`, `TigerBeetleAccountManager`, `TigerBeetleTransferBuilder`) |
+| **Private Ledger** | `SovrLedgerDriver` — native kernel path |
+| **ACH** | `AchDriver` — 3 providers (Dwolla, Modern Treasury, Column) |
+| **FedNow** | `FedNowDriver` — ISO 20022 scaffold |
+| **Fedwire** | `FedwireDriver` — operating-hours scaffold |
+| **RTP** | `RtpDriver` — TCH scaffold |
+| **Card Networks** | `CardNetworkDriver` — Marqeta/Stripe/Lithic scaffold |
+| **Blockchain (EVM)** | `EvmDriver` — ethers.js/viem hook scaffold |
+| **Stablecoin** | `StablecoinDriver` — Circle API wired |
+| **SWIFT** | `SwiftDriver` — SWIFT gpi scaffold |
+| **SEPA** | `SepaDriver` — IBAN/pain.001 scaffold |
+| **Price Oracle** | `PriceOracleDriver` — READ-ONLY scaffold (Chainlink/Band/internal) |
 
 **Trust Boundary:** SOVR → External system
 
@@ -331,14 +341,19 @@ This document inventories all security-relevant surfaces in the SOVR Protocol. E
 - Data exfiltration
 - Replay attacks
 - Man-in-the-middle
+- Credential leakage at boot
 
 **Mitigations:**
-- Adapters emit events only — cannot mutate constitutional state
-- Circuit breaker pattern
+- All adapters emit events only — cannot mutate constitutional state (INV-001/INV-005)
+- Circuit breaker + retry + timeout enforced at `BaseRailDriver`
+- Credential validation at boot — only valid rails registered
+- Fail-silent registration — bad credentials skip, log, continue
+- Rail isolation — failure in one rail does not affect others
+- TigerBeetle provides double-entry enforcement at storage layer (INV-002)
 - TLS for external connections (production)
 - Event envelope includes timestamp and causation chain
 
-**Remaining Risk:** Mock ACH adapter does not contact live institutions. Production adapters require TLS, mutual authentication, and audit logging.
+**Remaining Risk:** Rail drivers are scaffold implementations for external providers. Production adapters require TLS, mutual authentication, audit logging, and secrets-manager-backed credentials.
 
 ---
 

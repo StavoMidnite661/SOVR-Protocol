@@ -481,8 +481,8 @@ This is the update log of what changed to take the kernel from "demo with mocks"
 | Envelope had 18 fields, spec called for 21 | Now emits all 21: `event_id, event_name, event_version, schema_version, aggregate, aggregate_id, source_domain, command_id, triggering_command, causation_id, correlation_id, actor_id, identity_context, policy_decision_id, capability_id, timestamp, payload, projection_effect, audit, retention_metadata, actor_chain` | `eventStore.ts:96-122` |
 | Event load() didn't backfill new fields | `load()` backfills `schema_version`, `actor_chain`, `retention_metadata` on legacy envelopes so old `sovr-events.json` files still pass the 21-field test | `eventStore.ts:74-79` |
 | Projection engine had loose `startsWith()` dispatch (events leaking across projections) | Tightened to ONLY match explicit `sourceEvents` subscription OR `projection_effect.target` | `projectionEngine.ts:152-167` |
-| Payment rail type had 10 unions, spec has 12 | Extended to all 12: `ACH, FEDNOW, WIRE, RTP, CARD, BLOCKCHAIN, INTERNAL_TRANSFER, STABLECOIN, SWIFT, SEPA, CASH_SETTLEMENT, FUTURE_ADAPTER` | `adapters/boundary.ts:24-34` |
-| Boundary adapters were empty interfaces | Real `AchAdapter` (mock bank) — `prepare`, `execute`, `confirm`, `compensate` all emit real `payment.rail.*` and `payment.compensation.*` envelopes. Proves `ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE` is enforceable | `packages/runtime/src/adapters/achAdapter.ts` + `index.ts:498-548` |
+| Payment rail type had 10 unions, spec has 12 | Extended to all 12: `ACH, FEDNOW, WIRE, RTP, CARD, BLOCKCHAIN, INTERNAL_TRANSFER, STABLECOIN, SWIFT, SEPA, CASH_SETTLEMENT, FUTURE_ADAPTER` | `packages/runtime/src/adapters/RailDriverRegistry.ts` |
+| Boundary adapters were empty interfaces | Full rail driver framework — `BaseRailDriver`, `RailDriverRegistry`, `BoundaryEventBus`, plus 12 rail drivers (ACH, FedNow, Fedwire, RTP, Card, EVM, Stablecoin, SWIFT, SEPA, Price Oracle) and TigerBeetle financial database integration. All drivers emit events only; circuit breaker + retry + audit enforced at base class. | `packages/runtime/src/adapters/` |
 | `example-frontend` App.ts used wrong build hash (`20c57cfb...`) and only printed things | Real HTTP flow: polls `/api/v1/health`, fetches live `/api/v1/manifest`, verifies `build_hash`, calls `createSession` + `grantCapability` + `registerAsset` + `listEvents` + `queryProjection` | `example-frontend/src/App.ts` |
 | `BootScreen.waitForHealthyBoot()` was `setTimeout(1000)` | Real polling of `/api/v1/health` every 500ms until `final_health === 'HEALTHY'`, with timeout | `example-frontend/src/BootScreen.ts` |
 
@@ -491,11 +491,8 @@ This is the update log of what changed to take the kernel from "demo with mocks"
 | Method | Path | Purpose |
 |---|---|---|
 | WS | `/api/v1/events/stream?domain=&aggregate=&actor_id=` | Real-time event stream. Each connection gets a `hello` frame then `event` frames for every matching envelope |
-| POST | `/api/v1/payment/rail/ACH/prepare` | Allocate ACH preparation. Emits `payment.rail.prepared` |
-| POST | `/api/v1/payment/rail/ACH/execute` | Submit to (mock) ACH. Emits `payment.rail.executed` |
-| POST | `/api/v1/payment/rail/ACH/confirm` | Confirm with (mock) ACH. Emits `payment.rail.confirmed` |
-| POST | `/api/v1/payment/rail/ACH/compensate` | Reverse a failed rail. Emits `payment.compensation.started` |
-| GET | `/api/v1/payment/rails` | List supported rail types + which are registered |
+| GET | `/api/v1/payment/rails` | List registered rail driver IDs + circuit states |
+| POST | `/api/v1/payment/rail/:railId/submit` | Submit payment to registered rail via `BoundaryEventBus` (Directive XXI driver framework) |
 
 ## New env vars
 
@@ -535,7 +532,7 @@ See `.env.example` at the repo root for a copy-paste template.
 - `7-stage pipeline (real flow)`: rejects unknown command with `system.command.unknown` event; rejects missing required_payload; rejects ai_agent on governance grant (INV-004); accepts valid register end-to-end with event log + projection round-trip.
 - `INV-002 double-entry (live)`: accepts balanced postings, rejects unbalanced with `INV-002 VIOLATION`.
 - `WebSocket event stream`: real `hello` frame, real `event` frame on append, domain filter works.
-- `ACH boundary adapter (real)`: prepare → execute → confirm emits 3 events with 18-field envelope (21 leaf fields including audit); unknown rail returns 404 with `unknown_rail` and `supported` list.
+- `Rail driver framework (Directive XXI)`: submit to any registered rail via `POST /api/v1/payment/rail/:railId/submit`; emits rail-specific events with 21-field envelope; unknown rail returns 404 with `unknown_rail` and `supported` list; circuit breaker + retry + timeout enforced at `BaseRailDriver`.
 - `SDK error surfacing`: `SOVRApiError` on 4xx with parsed body.
 
 ## Operating the stack

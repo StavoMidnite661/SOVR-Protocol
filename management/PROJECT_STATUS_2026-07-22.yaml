@@ -5,6 +5,12 @@
 # Status: FROZEN (Phase J) — Runtime Live + Auditable
 # Build Hash (verified): 20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e
 # ============================================================
+# DIRECTIVE XXI UPDATE (2026-07-25): Rail driver framework added.
+# All 12 external rails now have scaffold drivers under
+# packages/runtime/src/adapters/. TigerBeetle financial database
+# and SOVR private ledger drivers are fully implemented.
+# Historical record retained below.
+# ============================================================
 # This is the SINGLE SOURCE OF TRUTH for current state.
 # All prior DOMAIN_STATUS_MATRIX, MILESTONES, container STATUS,
 # and PROJECT_CONTROL_BOARD references to old phases (XI, XII, etc.)
@@ -94,8 +100,8 @@ domains:
     certification: conditional
     documentation: complete
     production: conditional
-    live_features: ["ACH adapter (real prepare/execute/confirm/compensate)", "12 rails declared"]
-    notes: "ACH proof-of-concept live. Full rail adapters partial."
+    live_features: ["Full rail driver framework (BaseRailDriver + RailDriverRegistry + BoundaryEventBus)", "TigerBeetle financial database driver", "SOVR private ledger driver", "12 external rail scaffold drivers", "Credential-validated boot registration"]
+    notes: "Directive XXI: All 12 external rails have scaffold drivers. TigerBeetle + SOVR private ledger fully implemented. Circuit breaker, retry, audit, timeout enforced at BaseRailDriver."
 
   identity:
     specification: complete
@@ -201,9 +207,11 @@ live_verification_2026-07-22:
     - "18-field envelope (21 leaf) (matches spec)"
     - "INV-001 enforcement in code"
   boundary_adapters:
-    - "AchAdapter fully implemented and registered"
-    - "AdapterRegistry + SUPPORTED_RAIL_TYPES"
-    - "HTTP rail endpoints live: /payment/rail/:railType/{prepare,execute,confirm,compensate}"
+    - "RailDriverRegistry bootstraps all drivers from env; credential-validated"
+    - "BoundaryEventBus translates external rail events → constitutional CommandBus"
+    - "BaseRailDriver enforces circuit breaker, retry, audit, timeout"
+    - "HTTP rail endpoint live: POST /api/v1/payment/rail/:railId/submit"
+    - "GET /api/v1/payment/rails lists registered rails + circuit states"
 
 stale_references_removed:
   - "All Phase XI, Phase XII, Phase XIII, Phase XIV references superseded"
@@ -240,7 +248,7 @@ server_auditability:
   limitations:
     - "Causation is currently fail-open (warns) — production should enable strictCausation"
     - "State machine transitions are spec-only (TLA+ generated) — not yet runtime-enforced"
-    - "Full 12-rail coverage requires additional adapter implementations"
+    - "Full 12-rail scaffold implementations are complete; production wiring (TLS, mutual auth, secrets manager) remains"
   recommendations:
     - "Add strictCausation: true in production EventStore"
     - "Wire real Kafka/Redis in prod (SOVR_KAFKA_ENABLED=true)"
@@ -335,16 +343,22 @@ integration_surfaces:
 
     - name: "Boundary Adapters (External Rails & Chains)"
       type: "isolated_execution"
-      status: "partial_but_extensible"
+      status: "framework_complete"
       prohibition: "ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE"
       supported:
-        - "Payment rails (12 declared): ACH (fully implemented + live), FEDNOW, WIRE, RTP, CARD, BLOCKCHAIN, STABLECOIN, SWIFT, SEPA, CASH_SETTLEMENT, INTERNAL_TRANSFER, FUTURE_ADAPTER"
-        - "Hybrid chains: ethereum, base, polygon, future_chain (interfaces ready)"
+        - "Payment rails (12 declared): ACH, FEDNOW, WIRE, RTP, CARD, BLOCKCHAIN, STABLECOIN, SWIFT, SEPA, CASH_SETTLEMENT, INTERNAL_TRANSFER, FUTURE_ADAPTER"
+        - "Financial database: TigerBeetle (TigerBeetleDriver, TigerBeetleAccountManager, TigerBeetleTransferBuilder)"
+        - "Private ledger: SovrLedgerDriver (native kernel path)"
+        - "Hybrid chains: ethereum, base, polygon, future_chain (scaffold)"
+        - "Oracles: Chainlink, Band, internal (scaffold)"
       live_implementation:
-        - "AchAdapter (prepare/execute/confirm/compensate)"
-        - "HTTP endpoints: /api/v1/payment/rail/ACH/{prepare,execute,confirm,compensate}"
-        - "AdapterRegistry for easy extension"
-      how_to_extend: "Implement PaymentRailAdapter or ChainAdapter and register in AdapterRegistry"
+        - "RailDriverRegistry — credential-validated boot registration"
+        - "BoundaryEventBus — constitutional bridge external events → CommandBus"
+        - "BaseRailDriver — circuit breaker, retry, audit, timeout base class"
+        - "12 rail scaffold drivers under packages/runtime/src/adapters/"
+        - "HTTP endpoint: POST /api/v1/payment/rail/:railId/submit"
+        - "GET /api/v1/payment/rails — list registered rails + circuit states"
+      how_to_extend: "Implement BaseRailDriver subclass, register in RailDriverRegistry with env credentials"
 
     - name: "Projections / Read Models (Query Surface)"
       type: "read_only"
@@ -395,7 +409,7 @@ integration_surfaces:
     rest_universal: "PRODUCTION_READY"
     sdk: "PRODUCTION_READY"
     event_streaming: "READY (requires env enablement)"
-    adapters: "ACH ready; others interface-complete"
+    adapters: "Framework complete; all 12 rails scaffolded + TigerBeetle + private ledger"
     overall_third_party_integration: "HIGH — ready for external apps today via REST"
 
   example_third_party_flow:
@@ -588,7 +602,7 @@ future_enhancements:
 
   remaining_high_value:
     - "State machine runtime executor (beyond spec + TLA+)"
-    - "Full 12-rail adapter implementations (or clear extension guide)"
+    - "Production rail wiring (TLS, mutual auth, secrets manager) for all 12 rails + TigerBeetle"
     - "Strict causation mode enabled by default in production config (partially documented)"
     - "Active continuous TLC model checking in CI"
     - "Prometheus + Grafana templates (ready for implementation)"

@@ -77,7 +77,7 @@ This document catalogs all known technical debt in the SOVR Protocol reference i
 | TD-023 | Rust runtime implementation | High | 12 months | Medium | 📋 Future |
 | TD-024 | WASM runtime implementation | Medium | 6 months | Medium | 📋 Future |
 | TD-025 | Standards-complete DID/VC identity | Medium | 3 months | Medium | 📋 v1.0.0 |
-| TD-026 | Real payment rail adapters | High | 6 months | High | 📋 v1.0.0+ |
+| TD-026 | Production rail wiring (TLS, mutual auth, secrets manager) for all 12 rails + TigerBeetle | High | 6 months | High | 📋 v1.0.0+ |
 
 ---
 

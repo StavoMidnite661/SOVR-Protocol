@@ -116,11 +116,8 @@ Response:
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/api/v1/payment/rail/:railType/prepare` | Prepare rail execution |
-| POST | `/api/v1/payment/rail/:railType/execute` | Execute prepared rail |
-| POST | `/api/v1/payment/rail/:railType/confirm` | Confirm rail execution |
-| POST | `/api/v1/payment/rail/:railType/compensate` | Compensate rail execution |
-| GET | `/api/v1/payment/rails` | List supported rail types |
+| POST | `/api/v1/payment/rail/:railId/submit` | Submit payment to registered rail via `BoundaryEventBus` |
+| GET | `/api/v1/payment/rails` | List registered rail driver IDs + circuit states |
 
 ### Discovery
 

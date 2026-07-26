@@ -111,6 +111,7 @@ export class EventStore {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           for (const envelope of parsed) {
+            if (!envelope?.event_name) continue;
             if (envelope.schema_version === undefined) envelope.schema_version = '1.0.0';
             if (envelope.actor_chain === undefined) envelope.actor_chain = [];
             if (envelope.retention_metadata === undefined) envelope.retention_metadata = { legal_hold: envelope.audit?.retention_class === 'permanent' || false };

@@ -203,8 +203,8 @@ generated/boot-attestation.json (boot proof)
 | L2 | `04_event-catalog.yaml`, `05_state-machines.yaml`, `09_saga-orchestration.yaml` | `events.registry.json`, `machines.registry.json`, `execution-plans.registry.json` | `state-machine-interpreter.ts`, `saga-interpreter.ts` |
 | L3 | `08_security-capabilities.yaml` | `capabilities.registry.json`, `validation.registry.json` | `capabilityEngine.ts`, `jwt.ts` |
 | L4 | `projection-engine.yaml` | `projections.registry.json` | `projectionEngine.ts` |
-| L5 | `12_domain-contracts.yaml` | `contracts.registry.json` | `boundary.ts` |
-| L6 | `hybrid-boundary.yaml` | `envelopes.registry.json` | `achAdapter.ts` |
+| L5 | `12_domain-contracts.yaml` | `contracts.registry.json` | `RailDriverRegistry.ts`, `BoundaryEventBus.ts` |
+| L6 | `hybrid-boundary.yaml` | `envelopes.registry.json` | `BoundaryEventBus.ts` + `RailDriverRegistry.ts` + `base/BaseRailDriver.ts` |
 | L7 | `compiler.yaml`, `acceptance-tests.yaml`, `13_compiler-adr.yaml` | `compiler-manifest.yaml`, `compiler-certification.json` | `boot-renderer.ts` |
 
 ---
