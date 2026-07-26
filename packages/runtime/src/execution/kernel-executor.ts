@@ -12,7 +12,16 @@ import type { AtomicCommit } from './atomic-commit.js';
 import type { CapabilityEngine } from '../server/capabilityEngine.js';
 import type { CommandEnvelope } from '../server/commandBus.js';
 import type { AppendInput, EventEnvelope } from '../server/eventStore.js';
-import { AuthorityBoundaryEnforcer, ExecutionGateEnforcer } from './index.js';
+import {
+  AuthorityBoundaryEnforcer,
+  ExecutionGateEnforcer,
+  CapabilityBoundaryEnforcer,
+  AuditTrailEnforcer,
+  StateSovereigntyEnforcer,
+  EventOrderingEnforcer,
+  ConstitutionalSupremacyEnforcer,
+  SagaCompensationEnforcer
+} from './index.js';
 
 
 export interface KernelExecutionResult {
@@ -40,6 +49,10 @@ export class InvalidStateTransitionError extends Error { constructor(message: st
 export class KernelExecutor {
   private readonly authorityEnforcer: AuthorityBoundaryEnforcer
   private readonly gateEnforcer: ExecutionGateEnforcer
+  private readonly capabilityBoundaryEnforcer: CapabilityBoundaryEnforcer
+  private readonly stateSovereigntyEnforcer: StateSovereigntyEnforcer
+  private readonly constitutionalSupremacyEnforcer: ConstitutionalSupremacyEnforcer
+  private readonly sagaCompensationEnforcer: SagaCompensationEnforcer
 
   constructor(
     private evaluator: InstructionEvaluator,
@@ -49,9 +62,17 @@ export class KernelExecutor {
     private eventStore: any,
     authorityEnforcer: AuthorityBoundaryEnforcer,
     gateEnforcer: ExecutionGateEnforcer,
+    capabilityBoundaryEnforcer?: CapabilityBoundaryEnforcer,
+    stateSovereigntyEnforcer?: StateSovereigntyEnforcer,
+    constitutionalSupremacyEnforcer?: ConstitutionalSupremacyEnforcer,
+    sagaCompensationEnforcer?: SagaCompensationEnforcer,
   ) {
     this.authorityEnforcer = authorityEnforcer
     this.gateEnforcer = gateEnforcer
+    this.capabilityBoundaryEnforcer = capabilityBoundaryEnforcer || new CapabilityBoundaryEnforcer(this.capabilityStore as any, this.eventStore as any)
+    this.stateSovereigntyEnforcer = stateSovereigntyEnforcer || new StateSovereigntyEnforcer(this.stateRegistry)
+    this.constitutionalSupremacyEnforcer = constitutionalSupremacyEnforcer || new ConstitutionalSupremacyEnforcer()
+    this.sagaCompensationEnforcer = sagaCompensationEnforcer || new SagaCompensationEnforcer()
   }
 
   async execute(request: CommandEnvelope): Promise<KernelExecutionResult> {
@@ -89,6 +110,52 @@ export class KernelExecutor {
       };
     }
 
+    // INV-004: Capability boundary (agent prohibition)
+    if (this.capabilityBoundaryEnforcer) {
+      const inv004 = await this.capabilityBoundaryEnforcer.enforce({
+        actorId: request.identity_context.actor_id,
+        actorType: request.identity_context.actor_type,
+        operation: 'GRANT', // context is command execution
+        commandId: request.command_id,
+        correlationId: request.correlation_id
+      });
+      if (!inv004.allowed) {
+        return {
+          status: 'REJECTED',
+          commandId: request.command_id,
+          correlationId: request.correlation_id,
+          events: [],
+          eventsEmitted: 0,
+          transitions: [],
+          rejectionCode: 'INVARIANT_VIOLATION',
+          rejectionReason: inv004.reason,
+          violation: 'INV-004',
+          error: inv004.reason,
+          error_type: 'InvariantViolation',
+        };
+      }
+    }
+
+    // INV-010: Constitutional supremacy
+    if (this.constitutionalSupremacyEnforcer) {
+      const inv010 = this.constitutionalSupremacyEnforcer.enforceCommand(request.command_name);
+      if (!inv010.allowed) {
+        return {
+          status: 'REJECTED',
+          commandId: request.command_id,
+          correlationId: request.correlation_id,
+          events: [],
+          eventsEmitted: 0,
+          transitions: [],
+          rejectionCode: 'INVARIANT_VIOLATION',
+          rejectionReason: inv010.reason,
+          violation: 'INV-010',
+          error: inv010.reason,
+          error_type: 'InvariantViolation',
+        };
+      }
+    }
+
     const gateResult = await this.gateEnforcer.check({
       commandName:   request.command_name,
       commandId:     request.command_id,
@@ -114,6 +181,39 @@ export class KernelExecutor {
         error:           gateResult.reason ?? 'Execution gate condition not satisfied',
         error_type:      'ExecutionGateFailed',
       };
+    }
+
+    // INV-006: State sovereignty (pre-transition)
+    if (this.stateSovereigntyEnforcer?.enforce) {
+      const current = await this.stateRegistry.getState(aggregateId, aggregateId, commandDef.domain || 'default').catch(() => 'INIT');
+      const inv006 = this.stateSovereigntyEnforcer.enforce({
+        aggregate: commandDef.aggregate || 'default',
+        aggregateId,
+        domain: commandDef.domain || 'default',
+        fromState: current || 'INIT',
+        toState: 'PENDING',
+        trigger: request.command_name
+      });
+      if (!inv006.allowed) {
+        return {
+          status: 'REJECTED',
+          commandId: request.command_id,
+          correlationId: request.correlation_id,
+          events: [],
+          eventsEmitted: 0,
+          transitions: [],
+          rejectionCode: 'INVARIANT_VIOLATION',
+          rejectionReason: inv006.reason,
+          violation: 'INV-006',
+          error: inv006.reason,
+          error_type: 'InvariantViolation',
+        };
+      }
+    }
+
+    // INV-009 (saga compensation) — best effort, non-blocking for now
+    if (this.sagaCompensationEnforcer) {
+      // In real use, pass saga context; here we skip for non-saga commands
     }
 
     await this.capabilityCheck(request, commandDef);

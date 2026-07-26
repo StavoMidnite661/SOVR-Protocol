@@ -29,6 +29,12 @@ import {
   ExecutionGateEnforcer,
   TimeWindowGate,
   AmountWithinLimitGate,
+  CapabilityBoundaryEnforcer,
+  AuditTrailEnforcer,
+  StateSovereigntyEnforcer,
+  EventOrderingEnforcer,
+  SagaCompensationEnforcer,
+  ConstitutionalSupremacyEnforcer,
 } from '../execution/index.js';
 import { registerAssertionHandlers } from '../boot/assertion-registry.js';
 import { PostgreSQLEventStore } from '../adapters/postgres-event-store.js';
@@ -205,7 +211,26 @@ export class CommandBus {
       },
     });
 
-    this.kernelExecutor = new KernelExecutor(this.instructionEvaluator, this.stateRegistry, this.atomicCommit, this.capabilityEngine, this.eventStore, authorityEnforcer, gateEnforcer);
+    const capBoundary = new CapabilityBoundaryEnforcer(this.capabilityEngine as any, {
+      append: async (e: any) => { const r = await this.eventStore.append(e); return { eventId: r.event_id }; }
+    });
+    const stateSov = new StateSovereigntyEnforcer(this.stateRegistry);
+    const constSup = new ConstitutionalSupremacyEnforcer();
+    const sagaComp = new SagaCompensationEnforcer();
+
+    this.kernelExecutor = new KernelExecutor(
+      this.instructionEvaluator,
+      this.stateRegistry,
+      this.atomicCommit,
+      this.capabilityEngine,
+      this.eventStore,
+      authorityEnforcer,
+      gateEnforcer,
+      capBoundary,
+      stateSov,
+      constSup,
+      sagaComp
+    );
     this.commandCoverage = this.buildCommandCoverage();
     this.initialized = true;
   }
