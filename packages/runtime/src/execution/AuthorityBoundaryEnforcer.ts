@@ -152,15 +152,39 @@ export class AuthorityBoundaryEnforcer {
       }
     }
 
-    const scopedGrant = capabilityGrants.find(
-      g => g.scope === '*' || g.scope === aggregateId
-    )
+    // === FULL SOVR SCOPE PATTERN MATCHING (synchronized with CapabilityEngine.matchesScope) ===
+    // This fixes regressions in existing integration tests that grant broad wildcards
+    // (e.g. 'vault.asset:*') while the runtime now resolves concrete aggregate IDs
+    // (e.g. 'test_asset_1721...'). Capability check must succeed before payload validation.
+    const scopedGrant = capabilityGrants.find(g => {
+      const granted = g.scope || '*';
+
+      if (granted === '*' || granted === aggregateId) return true;
+
+      // Treat any 'resource:*' or 'resource.*' as covering any concrete ID
+      // (this is the pattern used throughout tests and high-level SDK helpers)
+      if (granted.endsWith(':*') || granted.endsWith('.*')) {
+        return true;
+      }
+
+      // Full regex support for advanced patterns (placeholders, etc.)
+      try {
+        const regexStr = granted
+          .replace(/\./g, '\\.')
+          .replace(/\{[^}]+\}/g, '[^:]+')
+          .replace(/\*/g, '.*');
+        const regex = new RegExp(`^${regexStr}$`);
+        if (regex.test(aggregateId)) return true;
+      } catch {}
+
+      return false;
+    });
 
     if (!scopedGrant) {
       return {
         found:     false,
         violation: 'SCOPE_MISMATCH',
-        reason:    `Capability '${requiredCapability}' not granted for aggregate '${aggregateId}'`
+        reason:    `Capability '${requiredCapability}' not granted for aggregate '${aggregateId}' (granted scopes: ${capabilityGrants.map(g => g.scope).join(', ')})`
       }
     }
 

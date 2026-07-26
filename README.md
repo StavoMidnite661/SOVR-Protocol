@@ -8,8 +8,8 @@
 ---
 
 [![Protocol](https://img.shields.io/badge/Protocol-v1.0.0-blue)](https://img.shields.io/badge/Protocol-v1.0.0-blue)
-[![Compiler](https://img.shields.io/badge/Compiler-v0.9.0-orange)](https://img.shields.io/badge/Compiler-v0.9.0-orange)
-[![Runtime](https://img.shields.io/badge/Runtime-v0.9.0-orange)](https://img.shields.io/badge/Runtime-v0.9.0-orange)
+[![Compiler](https://img.shields.io/badge/Compiler-v1.0.0-rc-orange)](https://img.shields.io/badge/Compiler-v1.0.0-rc-orange)
+[![Runtime](https://img.shields.io/badge/Runtime-v1.0.0-rc-orange)](https://img.shields.io/badge/Runtime-v1.0.0-rc-orange)
 [![Build](https://img.shields.io/badge/Build-Reproducible-green)](https://img.shields.io/badge/Build-Reproducible-green)
 [![Node](https://img.shields.io/badge/Node-%3E%3D20-green)](https://img.shields.io/badge/Node-%3E%3D20-green)
 [![License](https://img.shields.io/badge/License-Proprietary-red)](https://img.shields.io/badge/License-Proprietary-red)
@@ -84,7 +84,7 @@ YAML Constitution
 SOVR Compiler (deterministic, content-addressed)
     │
     ▼
-Registry Package (sovr-runtime-v0.9.0-abi-v1.svr)
+Registry Package (sovr-runtime-v1.0.0-rc-abi-v1.svr)
     │
     ├── commands.registry.json
     ├── machines.registry.json
@@ -164,7 +164,7 @@ npm run protocol:runtime-audit
 - Runtime YAML parsing
 - Hardcoded registry counts
 
-### Verified Metrics (v0.9.0)
+### Verified Metrics (v1.0.0-rc)
 
 | Metric | Value | Verified |
 |---|---|---|
@@ -711,7 +711,7 @@ It should not be used to process real financial transactions in its current stat
 
 ## The Compiler
 
-The SOVR compiler (`@sovr/compiler v0.9.0`) is a deterministic, content-addressed build system for financial protocol specifications.
+The SOVR compiler (`@sovr/compiler v1.0.0-rc`) is a deterministic, content-addressed build system for financial protocol specifications.
 
 ### Compilation Pipeline
 
@@ -767,7 +767,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | 16 | Topology Docs | `generated/docs/topology.md` |
 | C1 | Compiler Manifest | `generated/compiler-manifest.yaml` |
 | C2 | Canonical IR | `generated/sovr-ir.json` |
-| C3 | Registry Package | `dist/sovr-runtime-v0.9.0-abi-v1.svr` |
+| C3 | Registry Package | `dist/sovr-runtime-v1.0.0-rc-abi-v1.svr` |
 | C4 | Compiler Certification | `generated/compiler-certification.json` |
 
 > **Important:** Generated TypeScript artifacts are currently output-only. They are not fully imported or executed by the reference runtime. Wiring generated artifacts into the runtime is a primary v1 objective.
@@ -804,7 +804,7 @@ Identical YAML inputs produce identical build hashes. This is verified. This is 
 
 ## The Runtime
 
-The SOVR reference runtime (`@sovr/runtime v0.9.0`) is the execution environment for compiled protocol specifications.
+The SOVR reference runtime (`@sovr/runtime v1.0.0-rc`) is the execution environment for compiled protocol specifications.
 
 ### What the Runtime Does Today
 
@@ -980,7 +980,7 @@ bash scripts/demo.sh
 
 Results: 13 passed, 0 failed
 
-SOVR Protocol v0.9.0
+SOVR Protocol v1.0.0-rc
 Spec-driven. Constitutional. Auditable.
 The Linux of Finance.
 ```
@@ -1115,7 +1115,7 @@ const client = new SOVRClient({
 ## Current State vs Roadmap
 
 **Protocol Specification:** `v1.0.0` — Complete and frozen.  
-**Compiler + Runtime:** `v0.9.0` — Reference implementation. Active development.
+**Compiler + Runtime:** `v1.0.0-rc` — Reference implementation. Active development.
 
 ### What Works Today
 
@@ -1160,17 +1160,17 @@ const client = new SOVRClient({
 | Strict lifecycle expansion | v1.0.0 | 8 lifecycle-exempt commands need first-class lifecycle machines or durable exemptions |
 | Production saga command payload orchestration | v1.0.0 | Saga interpreter exists; live domain payload mapping needs hardening |
 
-## Completed (v0.9.0)
+## Completed (v1.0.0-rc)
 
 | Capability | Completed | Verified |
 |---|---|---|
-| Production-durable PostgreSQL event store | v0.9.0 | Immutable triggers verified (XIX.4.B Q7-Q8) |
-| RS256 asymmetric JWT | v0.9.0 | Algorithm confusion blocked (XIX.4.B Q4) |
-| Rate limiting (@fastify/rate-limit v11) | v0.9.0 | Identity-sovereign buckets (XIX.4.B Q10) |
-| Pre-audit security self-test | v0.9.0 | 14/14 PASS — 0 open findings |
-| External audit package | v0.9.0 | docs/audit/ — 4 documents |
-| Institution deployment package | v0.9.0 | docs/deployment/ — 5 documents |
-| Operational runbook | v0.9.0 | docs/operations/RUNBOOK.md |
+| Production-durable PostgreSQL event store | v1.0.0-rc | Immutable triggers verified (XIX.4.B Q7-Q8) |
+| RS256 asymmetric JWT | v1.0.0-rc | Algorithm confusion blocked (XIX.4.B Q4) |
+| Rate limiting (@fastify/rate-limit v11) | v1.0.0-rc | Identity-sovereign buckets (XIX.4.B Q10) |
+| Pre-audit security self-test | v1.0.0-rc | 14/14 PASS — 0 open findings |
+| External audit package | v1.0.0-rc | docs/audit/ — 4 documents |
+| Institution deployment package | v1.0.0-rc | docs/deployment/ — 5 documents |
+| Operational runbook | v1.0.0-rc | docs/operations/RUNBOOK.md |
 
 ### Roadmap
 
@@ -1183,10 +1183,10 @@ const client = new SOVRClient({
 | M5 | Acceptance test suite (60 tests, 95% coverage) | v0.5.0 |
 | M6 | Production-durable event store (PostgreSQL) | v0.6.0 |
 | M6 | Standards-complete DID/VC identity | v0.6.0 |
-| M7 | Real rail adapter (ACH) | v0.9.0 |
-| M7 | Production key management | v0.9.0 |
-| M8 | Distributed multi-node determinism | v0.9.0 |
-| M8 | Formal verification integration (TLA+ model checking) | v0.9.0 |
+| M7 | Real rail adapter (ACH) | v1.0.0-rc |
+| M7 | Production key management | v1.0.0-rc |
+| M8 | Distributed multi-node determinism | v1.0.0-rc |
+| M8 | Formal verification integration (TLA+ model checking) | v1.0.0-rc |
 | M9 | Security audit | v1.0.0 |
 | M9 | Production deployment | v1.0.0 |
 
@@ -1233,7 +1233,7 @@ SOVR-Protocol/
 │   └── ERROR_TAXONOMY.yaml           ← Diagnostic codes
 │
 ├── 📁 packages/
-│   ├── compiler/                     ← @sovr/compiler v0.9.0
+│   ├── compiler/                     ← @sovr/compiler v1.0.0-rc
 │   │   ├── src/
 │   │   │   ├── boot/                 ← Boot sequence implementation
 │   │   │   ├── generators/           ← Code generators
@@ -1242,7 +1242,7 @@ SOVR-Protocol/
 │   │   │   └── utils/                ← Hash, YAML loader
 │   │   └── dist/                     ← Compiled JavaScript
 │   │
-│       └── runtime/                      ← @sovr/runtime v0.9.0
+│       └── runtime/                      ← @sovr/runtime v1.0.0-rc
 │           ├── src/
 │           │   ├── adapters/             ← Rail driver framework + boundary adapters
 │           │   │   ├── base/BaseRailDriver.ts

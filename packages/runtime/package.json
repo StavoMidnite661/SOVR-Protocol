@@ -1,6 +1,6 @@
 {
   "name": "@sovr/runtime",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "description": "SOVR Financial OS Runtime — Linux kernel of finance, machine-readable, unfakeable",
   "type": "module",
   "main": "./dist/index.js",
@@ -16,6 +16,7 @@
     "protocol:formal-verify": "bash scripts/formal-verify.sh"
   },
   "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.600.0",
     "@fastify/cors": "^10.1.0",
     "@fastify/rate-limit": "^11.1.0",
     "@fastify/websocket": "^11.3.0",

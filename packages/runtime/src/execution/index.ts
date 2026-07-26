@@ -13,6 +13,13 @@ export * from './kernel-executor.js';
 export * from './types.js';
 export * from './AuthorityBoundaryEnforcer.js';
 export * from './ExecutionGateEnforcer.js';
+export * from './CapabilityBoundaryEnforcer.js';
+export * from './AuditTrailEnforcer.js';
+export * from './StateSovereigntyEnforcer.js';
+export * from './EventOrderingEnforcer.js';
+export * from './SagaCompensationEnforcer.js';
+export * from './ConstitutionalSupremacyEnforcer.js';
+
 export * from './GateEvaluators/BalanceGate.js';
 export * from './GateEvaluators/StateGate.js';
 export * from './GateEvaluators/AuthorizationLimitGate.js';

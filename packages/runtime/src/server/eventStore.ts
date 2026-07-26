@@ -72,6 +72,7 @@ export interface AppendInput {
 }
 
 export type EventPublisher = (envelope: EventEnvelope) => Promise<void>;
+export type IEventStore = EventStore;
 
 type EventStoreSnapshot = {
   events: EventEnvelope[];

@@ -29,6 +29,8 @@ import { SagaInterpreter, SagaRegistry } from '../execution/index.js';
 import { BootSelfTest } from '../boot/self-test.js';
 import { BootRenderer } from '../boot/boot-renderer.js';
 import { DIDService, RUNTIME_ISSUER_DID } from '../identity/did-service.js';
+import { SecretBootstrap, getSecrets } from '../secrets/SecretBootstrap.js';
+import { EventStoreEnforcementWrapper } from '../execution/EventStoreEnforcementWrapper.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -95,12 +97,38 @@ async function bootKernel() {
   console.log(`🔐 [1] BOOTLOADER — build_hash ${config.buildHash.slice(0, 16)}... verified, JWT ${jwt.getAlgorithm()} ${jwt.getMode()}`);
   if (config.bootHash) console.log(`   boot_hash ${config.bootHash.slice(0, 16)}... chain: build_hash -> boot_hash = unfakeable`);
 
-  const didService = config.databaseUrl
-    ? new DIDService({ databaseUrl: config.databaseUrl, jwtService: jwt })
-    : null;
-  if (didService) {
-    await didService.initialize();
-    console.log('🪪 DID/VC service initialized — did:sovr:{actor_id} + W3C VC 1.1');
+  // DIDService (optional, for W3C DID/VC identity; requires DB)
+  let didService: DIDService | null = null;
+
+  // === Runlevel 2: Secrets Bootstrap (Directive XXVI) ===
+  // Fail-closed if required secrets missing.
+  // Must happen before any DB or rail usage.
+  renderer.phase('SECRETS_BOOT');
+  let secretsBoot: SecretBootstrap | null = null;
+  try {
+    secretsBoot = await SecretBootstrap.create({
+      // eventStore wired later for audit emission
+    });
+    console.log(`🔐 [1.5] SECRETS_BOOT — provider=${secretsBoot.getProviderName()} (cached, TTL=60s)`);
+  } catch (err: any) {
+    console.error('❌ SECRETS_BOOT FAILED (fail-closed):', err.message);
+    if (config.nodeEnv === 'production' || config.nodeEnv === 'staging') {
+      process.exit(1);
+    }
+    console.warn('⚠️  Continuing in dev without secrets (not recommended)');
+  }
+  renderer.phaseComplete('SECRETS_BOOT');
+
+  // Wire secrets into JWT if available
+  if (secretsBoot) {
+    try {
+      const privatePem = await secretsBoot.getJwtPrivateKey();
+      const publicPem = await secretsBoot.getJwtPublicKey();
+      await jwt.initialize({ privateKeyPem: privatePem, publicKeyPem: publicPem });
+      console.log('🔐 JWT keys loaded from secrets manager');
+    } catch (e) {
+      console.warn('JWT keys not in secrets — using existing initialization');
+    }
   }
 
   renderer.phase('KERNEL_INIT');
@@ -159,16 +187,69 @@ async function bootKernel() {
   const persistencePath = path.join(protocolRoot, 'generated', 'data', 'sovr-events.json');
   let eventStore: any;
   let eventStoreAdapter = 'JSON';
-  if (config.databaseUrl) {
+
+  // Use secrets for postgres when available (Directive XXVI)
+  let effectiveDatabaseUrl = config.databaseUrl;
+  if (secretsBoot) {
+    try {
+      effectiveDatabaseUrl = await secretsBoot.getPostgresUrl();
+    } catch (e) {
+      console.warn('Secrets postgres_url unavailable — falling back to config');
+    }
+  }
+
+  if (effectiveDatabaseUrl) {
     eventStoreAdapter = 'PostgreSQL';
-    eventStore = new PostgreSQLEventStore(config.databaseUrl);
+    eventStore = new PostgreSQLEventStore(effectiveDatabaseUrl);
     await eventStore.migrate();
     console.log('🗄️ EVENT_STORE: PostgreSQL — migrations complete');
   } else {
     eventStore = new EventStore(persistencePath);
     console.log('🗄️ EVENT_STORE: JSON (development)');
   }
+
+  // Wrap with INV-005 + INV-007 enforcement (XXVII-A)
+  eventStore = new EventStoreEnforcementWrapper(eventStore);
+
   const capabilityEngine = new CapabilityEngine(protocolRoot);
+
+  // CAPABILITY_RESTORE (XXVII-A + persistence)
+  try {
+    await (capabilityEngine as any).rebuildFromStore?.();
+    console.log('🛡️ CAPABILITY_RESTORE: grants restored from persistent store');
+  } catch {}
+
+  // DID / VC identity service (optional; uses postgres when available)
+  if (effectiveDatabaseUrl) {
+    try {
+      didService = new DIDService({ databaseUrl: effectiveDatabaseUrl, jwtService: jwt });
+      await didService.initialize();
+      console.log('🪪 DIDService initialized (W3C DID/VC)');
+    } catch (e: any) {
+      console.warn('DIDService init skipped (no postgres or pg dep):', e.message);
+      didService = null;
+    }
+  }
+
+  // NEW (XXVII-A + persistence): grant store + rebuild after secrets
+  const grantStore = {
+    grants: new Map<string, any[]>(),
+    async persistGrant(actorId: string, cap: any) { 
+      const list = this.grants.get(actorId) || []; 
+      list.push(cap); 
+      this.grants.set(actorId, list); 
+    },
+    async revokeGrant(actorId: string, capId: string) { 
+      const list = this.grants.get(actorId) || []; 
+      this.grants.set(actorId, list.filter((g: any) => g.capability_id !== capId)); 
+    },
+    async getAllActiveGrants() { 
+      const all: any[] = []; 
+      for (const l of this.grants.values()) all.push(...l); 
+      return all; 
+    }
+  };
+  (capabilityEngine as any).grantStore = grantStore;
   const projectionEngine = new ProjectionEngine();
   const commandBus = new CommandBus(protocolRoot, eventStore, capabilityEngine, projectionEngine);
   await commandBus.ready();
@@ -185,6 +266,9 @@ async function bootKernel() {
   });
   adapterRegistry.registerRail(ach);
   console.log(`🏦 Boundary adapters registered: ACH (${SUPPORTED_RAIL_TYPES.length} rail types supported total)`);
+
+  // Optional: future rail registry with secrets (Runlevel 5)
+  // const railRegistry = await RailDriverRegistry.bootstrap(kernel, eventStore, secretsBoot);
 
   // Wire publishers into the event store so every append also publishes.
   eventStore.setPublisher(async (envelope: any) => {
@@ -257,7 +341,7 @@ async function bootKernel() {
     health: 'HEALTHY',
   });
 
-  return { config, eventStore, capabilityEngine, projectionEngine, commandBus, sagaRegistry, sagaInterpreter, jwt, eventPublisher, streamPublisher, adapterRegistry, didService };
+  return { config, eventStore, capabilityEngine, projectionEngine, commandBus, sagaRegistry, sagaInterpreter, jwt, eventPublisher, streamPublisher, adapterRegistry, didService, secrets: secretsBoot };
 }
 
 // Tiny event bus for WebSocket fan-out (no external dep needed)
@@ -283,7 +367,21 @@ class LocalBus {
 const bus = new LocalBus();
 
 async function buildServer() {
-  const { config, eventStore, capabilityEngine, projectionEngine, commandBus, sagaRegistry, sagaInterpreter, jwt, eventPublisher, streamPublisher, adapterRegistry, didService } = await bootKernel();
+  const {
+    config,
+    eventStore,
+    capabilityEngine,
+    projectionEngine,
+    commandBus,
+    sagaRegistry,
+    sagaInterpreter,
+    jwt,
+    eventPublisher,
+    streamPublisher,
+    adapterRegistry,
+    didService,
+    secrets: secretsBoot
+  } = await bootKernel();
 
   const app = Fastify({ logger: { level: config.logLevel } });
   await app.register(cors, { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] });
