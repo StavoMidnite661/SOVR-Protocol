@@ -3,7 +3,18 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "protocol:runtime-audit": "node scripts/runtime-audit.mjs"
+    "build": "npm run build --prefix packages/compiler && npm run build --prefix packages/runtime",
+    "typecheck": "npm run --prefix packages/compiler build -- --noEmit && npm run --prefix packages/runtime build -- --noEmit",
+    "lint": "npm run typecheck",
+    "compile": "node packages/compiler/dist/cli.js compile",
+    "test": "npm run test:genesis && npm run test:integration",
+    "test:genesis": "node packages/compiler/scripts/verify-spec.mjs genesis",
+    "test:fault": "node packages/compiler/scripts/verify-spec.mjs fault",
+    "test:stress": "node packages/compiler/scripts/verify-spec.mjs stress",
+    "test:integration": "npm run test --prefix packages/runtime",
+    "protocol:runtime-audit": "node scripts/runtime-audit.mjs",
+    "protocol:formal-verify": "bash scripts/formal-verify.sh",
+    "certify:production": "node scripts/certify-production.mjs"
   },
   "version": "1.0.0"
 }

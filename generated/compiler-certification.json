@@ -1,9 +1,9 @@
 {
-  "build_hash": "b7d8221b0d7359a7733791d00cf32622df7b707ff4171c0c1b541d91d7568492",
+  "build_hash": "2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd",
   "deterministic_proof": {
     "identical": true,
-    "run_1_hash": "99bd329a865405d6fb066367dbd687e20a2f880eacae538a933b4473977f2eb6",
-    "run_2_hash": "99bd329a865405d6fb066367dbd687e20a2f880eacae538a933b4473977f2eb6"
+    "run_1_hash": "2775c5417996a9d686df18ccf49416f2f5d1b13d39bed69c6ddc0fb6ec14e79d",
+    "run_2_hash": "2775c5417996a9d686df18ccf49416f2f5d1b13d39bed69c6ddc0fb6ec14e79d"
   },
   "input_hashes": {
     "00_protocol-manifest.yaml": "2071a48e70f463d4080f461ed65214c3d70c65946d87181b28de450157651e49",

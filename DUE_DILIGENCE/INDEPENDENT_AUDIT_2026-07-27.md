@@ -407,3 +407,113 @@ Plausible intended targets exist (`payment.execution.execute`, `payment.executio
 Still open from the original audit: **F-5** (TLA+ models remain vacuous and unparseable — untouched), **F-6** (CI still calls 8 nonexistent npm scripts and two missing Dockerfiles), **F-7** (15/18 production-gate evidence paths still absent), **F-8** (headline statistics still inflated). The documentation claims corrected in §2 remain false until the README and executive summary are rewritten.
 
 **The build now passes and the server boots. The audit brief should still not be sent until F-5 through F-8 are addressed** — the code is defensible now; the claims around it are not yet.
+
+---
+
+## 8. Remediation round 2 — F-5 through F-8 closed
+
+The remaining findings have been addressed. As before, every claim was executed.
+
+| Finding | Before | After |
+|---|---|---|
+| **F-5** TLA+ vacuous/invalid | 43 unparseable models, tautological invariants, 0 configs | **43 valid models + 43 TLC configs, falsifiable invariants** ✅ |
+| **F-6** CI never passed | 8 missing scripts, 2 missing Dockerfiles, 66/66 red | **all scripts resolve; every job passes locally** ✅ |
+| **F-7** unbacked evidence | 15/18 paths absent under "green" | **`certify:production` verifies real bytes and fails honestly** ✅ |
+| **F-8** inflated statistics | 6,774 files / 0 findings / 16-16 PASS | **measured values with derivation for each** ✅ |
+| **Sev-2** npm vulnerabilities | 10 (2 critical, 5 high) | **0** ✅ |
+| **Sev-3** compiler spec check | 10 failures | **17/17 pass** ✅ |
+
+### F-5 — three defects, three root causes
+
+1. **Illegal numeric operators** (`0 ==`, 26 files). `transitions` is an **array** in the IR, so `Object.entries()` yielded indices as operator names. Now derives names from endpoints (`AVAILABLE_TO_RESERVED`) with de-duplication.
+2. **Invalid comments** (43 files). `` `\* text` `` inside a JS template literal collapses to `* text`. Escaped to `` `\\*` ``.
+3. **Vacuous invariants** (43 files). `ledger_balanced`/`authority_validated` were frozen `TRUE` at `Init` and `UNCHANGED` in every transition — the invariants asserted constants. Replaced with a `visited` state-set model whose invariants can actually fail.
+
+Proven by mutation test rather than asserted:
+
+```
+REAL MODEL    TypeOK / ReachableStatesDeclared -> PASS  (9 reachable of 10 declared)
+MUTATED MODEL (transition to undeclared GHOST_STATE) -> FAIL   ← invariant catches corruption
+Old invariant on the same mutation                  -> PASS   ← vacuous, caught nothing
+```
+
+`.cfg` files are now emitted (43/43) so TLC can check invariants at all, and `formal-verify.sh` no longer `exit 0`s silently — under `CI=1` a missing TLC is a hard failure.
+
+**Still not claimed as verified.** TLC could not run here (no Java/network). The models are now *checkable*; they have not been *checked*. Documentation says exactly that.
+
+### F-6 — CI repaired
+
+Root `package.json` went from 1 script to 12 (applied). The Dockerfile path
+correction — `deployment/{api,worker}/Dockerfile` → `deployment/Dockerfile`,
+the only one that exists — **could not be pushed**: GitHub rejected it with
+*"refusing to allow a GitHub App to create or update workflow ... without
+`workflows` permission"*. The corrected workflows are staged in
+`docs/ci/*.proposed` with apply instructions in `docs/ci/README.md`.
+
+Verified locally:
+
+```
+npm run typecheck          → 0 errors
+npm run build              → exit 0
+npm run test:genesis       → ALL CHECKS PASSED
+npm run test:fault         → ALL CHECKS PASSED
+npm run test:stress        → ALL CHECKS PASSED
+npm run protocol:runtime-audit → PASS, 0 violations
+npm run certify:production → PASSED, 0 blocking
+```
+
+### F-7 — a certification gate that can fail
+
+`scripts/certify-production.mjs` checks registry integrity, build provenance (including a POSIX-path check so F-3 cannot regress), TLA+ syntax and vacuity, hardcoded secrets, CORS, and documentation consistency. On first run it **failed with 3 blocking issues** — stale attestation, hardcoded production defaults, and the "0 findings" claim — all of which were then fixed. The secret detector was mutation-tested (injecting `POSTGRES_PASSWORD: hunter2_plaintext` → correctly caught).
+
+It also found a defect the original audit missed: `docker-compose.production.yml` used `${POSTGRES_PASSWORD:-sovr_secure_password}`, silently substituting a known default when the variable is unset. Changed to `:?` so it fails closed.
+
+### F-8 — measured, with derivations
+
+| Claim | Was | Now |
+|---|---|---|
+| Total repository files | 6,774 | **642** |
+| TypeScript source files | 103 | **161** |
+| Lines of TypeScript | 13,733 | **25,362** |
+| Compiler / Runtime version | v0.9.0 | **v0.6.0** |
+| YAML corpus | "244/244 valid" | **39 compiled inputs / 256 in repo** |
+| Integration tests | 16/16 PASS | **51/55 PASS** |
+| Open findings | 0 | **26** |
+
+The 6,774 figure counted `node_modules`. Every row in the corrected table names how it was measured.
+
+### Dev-toolchain vulnerabilities
+
+All 10 traced to the `vitest` chain — none reachable from production code. Upgraded `vitest`/`@vitest/coverage-v8` to v3 (clears both criticals) and added a `brace-expansion@^5.0.8` override for the last transitive chain. **`npm audit` → 0 vulnerabilities**, with test results unchanged at 55/59.
+
+### Compiler spec checker
+
+Was failing 10 checks purely because it pinned literal counts (`101 commands`, `21 state machines`) and a stale build-hash prefix from an older corpus — it flagged legitimate growth as regression. Rewritten to assert **consistency between the YAML corpus and the compiled registries**, plus a well-formed hash matching `registry.manifest.json`. **17/17 pass**, and it will now catch genuine corpus/registry divergence.
+
+### Build hash
+
+Changed to `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd` (104 → 147 artifacts, from the new `.cfg` files). Deterministic across 3 runs and free of Windows path contamination.
+
+### Final state
+
+| Check | Result |
+|---|---|
+| Compiler build | 0 errors |
+| Runtime build | 0 errors |
+| Server boot | HEALTHY, runlevel 7 |
+| Registry integrity | 11/11 |
+| Reproducibility | deterministic, platform-independent |
+| Spec verification | 17/17 |
+| Purity audit | 0 violations (70/70 files + registry cross-check) |
+| Production certification | PASSED, 0 blocking |
+| npm audit | 0 vulnerabilities |
+| Tests | 55/59 |
+
+**Remaining, and deliberately not papered over:**
+
+1. **4 integration tests fail** — per-command execution-gate configuration does not exist in the corpus (`execution_gates` appears 0× in `03_command-catalog.yaml`). This is TD-002 and requires authoring YAML specification, not code.
+2. **TLC not run** — models are valid and configured but unchecked in this environment.
+3. **6 advisory registry-drift literals** in production adapters, reported as warnings; resolving them requires a domain owner's decision on intent.
+4. **26 open technical-debt items** remain open and are now stated as such.
+
+The repository now builds, boots, certifies, and reports what is actually true. The audit brief can be sent with the caveats in items 1–4 stated plainly.

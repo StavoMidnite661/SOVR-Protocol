@@ -1,63 +1,61 @@
 ---------------- MODULE ESCROW_ACCOUNT_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: escrow_account_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: escrow_account_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"CANCELLED", "CREATED", "FUNDED", "RELEASED"}
 
+FinalStates == {"CANCELLED", "RELEASED"}
+
 Init == 
     /\ state = "CREATED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"CREATED"}
 
 CREATED_TO_CANCELLED == 
     /\ state = "CREATED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "CANCELLED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: ESCROW_ACCOUNT_CANCELLED
+    /\ visited' = visited \cup {"CANCELLED"}
+\* Trigger: ESCROW_ACCOUNT_CANCELLED
 
 CREATED_TO_FUNDED == 
     /\ state = "CREATED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "FUNDED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: ESCROW_ACCOUNT_FUNDED
+    /\ visited' = visited \cup {"FUNDED"}
+\* Trigger: ESCROW_ACCOUNT_FUNDED
 
 FUNDED_TO_CANCELLED == 
     /\ state = "FUNDED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "CANCELLED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: ESCROW_ACCOUNT_CANCELLED
+    /\ visited' = visited \cup {"CANCELLED"}
+\* Trigger: ESCROW_ACCOUNT_CANCELLED
 
 FUNDED_TO_RELEASED == 
     /\ state = "FUNDED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "RELEASED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: ESCROW_ACCOUNT_RELEASED
+    /\ visited' = visited \cup {"RELEASED"}
+\* Trigger: ESCROW_ACCOUNT_RELEASED
+
+Terminated == 
+    /\ state \in FinalStates
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    CREATED_TO_CANCELLED \/ CREATED_TO_FUNDED \/ FUNDED_TO_CANCELLED \/ FUNDED_TO_RELEASED
+    CREATED_TO_CANCELLED \/ CREATED_TO_FUNDED \/ FUNDED_TO_CANCELLED \/ FUNDED_TO_RELEASED \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == <>(state \in FinalStates)
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================

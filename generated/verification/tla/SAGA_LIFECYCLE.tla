@@ -1,71 +1,67 @@
 ---------------- MODULE SAGA_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: saga_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: saga_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"COMPENSATED", "COMPENSATING", "COMPLETED", "FAILED", "PENDING", "RUNNING"}
 
+FinalStates == {"COMPENSATED", "COMPLETED", "FAILED"}
+
 Init == 
     /\ state = "PENDING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"PENDING"}
 
-0 == 
-    /\ state = "PENDING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "RUNNING"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 0
-
-1 == 
-    /\ state = "RUNNING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "COMPLETED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 1
-
-2 == 
-    /\ state = "RUNNING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "FAILED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 2
-
-3 == 
-    /\ state = "FAILED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "COMPENSATING"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: SAGA_COMPENSATE
-
-4 == 
+COMPENSATING_TO_COMPENSATED == 
     /\ state = "COMPENSATING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "COMPENSATED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 4
+    /\ visited' = visited \cup {"COMPENSATED"}
+\* Trigger: 4
+
+FAILED_TO_COMPENSATING == 
+    /\ state = "FAILED"
+    /\ state' = "COMPENSATING"
+    /\ visited' = visited \cup {"COMPENSATING"}
+\* Trigger: SAGA_COMPENSATE
+
+PENDING_TO_RUNNING == 
+    /\ state = "PENDING"
+    /\ state' = "RUNNING"
+    /\ visited' = visited \cup {"RUNNING"}
+\* Trigger: 0
+
+RUNNING_TO_COMPLETED == 
+    /\ state = "RUNNING"
+    /\ state' = "COMPLETED"
+    /\ visited' = visited \cup {"COMPLETED"}
+\* Trigger: 1
+
+RUNNING_TO_FAILED == 
+    /\ state = "RUNNING"
+    /\ state' = "FAILED"
+    /\ visited' = visited \cup {"FAILED"}
+\* Trigger: 2
+
+Terminated == 
+    /\ state \in FinalStates
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    0 \/ 1 \/ 2 \/ 3 \/ 4
+    COMPENSATING_TO_COMPENSATED \/ FAILED_TO_COMPENSATING \/ PENDING_TO_RUNNING \/ RUNNING_TO_COMPLETED \/ RUNNING_TO_FAILED \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == <>(state \in FinalStates)
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================

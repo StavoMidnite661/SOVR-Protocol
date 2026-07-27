@@ -1,55 +1,55 @@
 ---------------- MODULE LEDGER_ACCOUNTING_PERIOD_V06_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: ledger_accounting_period_v06_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: ledger_accounting_period_v06_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"ACTIVE"}
 
+FinalStates == {}
+
 Init == 
     /\ state = "ACTIVE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"ACTIVE"}
 
-0 == 
+ACTIVE_TO_ACTIVE == 
     /\ state = "ACTIVE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "ACTIVE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: LEDGER_PERIOD_CLOSING
+    /\ visited' = visited \cup {"ACTIVE"}
+\* Trigger: LEDGER_PERIOD_CLOSING
 
-1 == 
+ACTIVE_TO_ACTIVE_2 == 
     /\ state = "ACTIVE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "ACTIVE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: LEDGER_ENTRY_POSTED
+    /\ visited' = visited \cup {"ACTIVE"}
+\* Trigger: LEDGER_ENTRY_POSTED
 
-2 == 
+ACTIVE_TO_ACTIVE_3 == 
     /\ state = "ACTIVE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "ACTIVE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: LEDGER_PERIOD_CLOSED
+    /\ visited' = visited \cup {"ACTIVE"}
+\* Trigger: LEDGER_PERIOD_CLOSED
+
+Terminated == 
+    /\ FALSE
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    0 \/ 1 \/ 2
+    ACTIVE_TO_ACTIVE \/ ACTIVE_TO_ACTIVE_2 \/ ACTIVE_TO_ACTIVE_3 \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == TRUE
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================

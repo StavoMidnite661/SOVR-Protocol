@@ -1,79 +1,73 @@
 ---------------- MODULE SYSTEM_HEALTH_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: system_health_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: system_health_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"DEGRADED", "HALTED", "HEALTHY", "UNKNOWN"}
 
+FinalStates == {"HALTED"}
+
 Init == 
     /\ state = "HEALTHY"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"HEALTHY"}
 
-0 == 
+DEGRADED_TO_HALTED == 
+    /\ state = "DEGRADED"
+    /\ state' = "HALTED"
+    /\ visited' = visited \cup {"HALTED"}
+\* Trigger: GOVERNANCE_EMERGENCY_HALT
+
+DEGRADED_TO_HEALTHY == 
+    /\ state = "DEGRADED"
+    /\ state' = "HEALTHY"
+    /\ visited' = visited \cup {"HEALTHY"}
+\* Trigger: 1
+
+HEALTHY_TO_DEGRADED == 
     /\ state = "HEALTHY"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "DEGRADED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 0
+    /\ visited' = visited \cup {"DEGRADED"}
+\* Trigger: 0
 
-1 == 
-    /\ state = "DEGRADED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "HEALTHY"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 1
-
-2 == 
+HEALTHY_TO_HALTED == 
     /\ state = "HEALTHY"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "HALTED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: GOVERNANCE_EMERGENCY_HALT
+    /\ visited' = visited \cup {"HALTED"}
+\* Trigger: GOVERNANCE_EMERGENCY_HALT
 
-3 == 
-    /\ state = "DEGRADED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "HALTED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: GOVERNANCE_EMERGENCY_HALT
-
-4 == 
+HEALTHY_TO_UNKNOWN == 
     /\ state = "HEALTHY"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "UNKNOWN"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 4
+    /\ visited' = visited \cup {"UNKNOWN"}
+\* Trigger: 4
 
-5 == 
+UNKNOWN_TO_HEALTHY == 
     /\ state = "UNKNOWN"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "HEALTHY"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 5
+    /\ visited' = visited \cup {"HEALTHY"}
+\* Trigger: 5
+
+Terminated == 
+    /\ state \in FinalStates
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    0 \/ 1 \/ 2 \/ 3 \/ 4 \/ 5
+    DEGRADED_TO_HALTED \/ DEGRADED_TO_HEALTHY \/ HEALTHY_TO_DEGRADED \/ HEALTHY_TO_HALTED \/ HEALTHY_TO_UNKNOWN \/ UNKNOWN_TO_HEALTHY \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == <>(state \in FinalStates)
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================

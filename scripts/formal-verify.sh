@@ -30,6 +30,13 @@ if [ ! -f "$TLC_JAR" ]; then
   echo "  → Local install:"
   echo "     wget https://github.com/tlaplus/tlaplus/releases/download/v1.8.0/tla2tools.jar"
   echo ""
+  # Silently exiting 0 here would let CI report "formally verified" without
+  # running a single check (audit finding F-5). In CI this is a hard failure.
+  if [ -n "${CI:-}" ]; then
+    echo "  ❌ TLC is required in CI — refusing to report success without model checking"
+    exit 1
+  fi
+  echo "  (local run: skipping — set CI=1 to enforce)"
   exit 0
 fi
 
@@ -45,11 +52,13 @@ for machine in "${CRITICAL_MACHINES[@]}"; do
   echo "  Checking $machine..."
   REPORT="$REPORT_DIR/${machine}-$(date +%Y%m%d).txt"
 
-  if java -jar "$TLC_JAR" \
-    -modelcheck \
-    -deadlock \
-    -workers auto \
-    "$TLA_FILE" > "$REPORT" 2>&1; then
+  CFG_FILE="$TLA_DIR/${machine}.cfg"
+  TLC_ARGS=(-modelcheck -workers auto)
+  if [ -f "$CFG_FILE" ]; then
+    TLC_ARGS+=(-config "$CFG_FILE")
+  fi
+
+  if java -jar "$TLC_JAR" "${TLC_ARGS[@]}" "$TLA_FILE" > "$REPORT" 2>&1; then
 
     if grep -q "No error" "$REPORT" || \
        grep -q "Model checking completed" "$REPORT"; then
