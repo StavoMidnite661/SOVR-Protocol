@@ -384,7 +384,17 @@ async function buildServer() {
   } = await bootKernel();
 
   const app = Fastify({ logger: { level: config.logLevel } });
-  await app.register(cors, { origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] });
+  // CORS — never wildcard. Allowed origins come from CORS_ORIGIN (comma-separated).
+  // Production/staging fail closed if unset rather than falling back to a permissive default.
+  const corsOrigins = process.env.CORS_ORIGIN?.split(',').map((o) => o.trim()).filter(Boolean);
+  const isProdLike = config.nodeEnv === 'production' || config.nodeEnv === 'staging';
+  if (isProdLike && (!corsOrigins || corsOrigins.length === 0)) {
+    throw new Error('CORS_ORIGIN must be set in production/staging — refusing to start with permissive CORS');
+  }
+  await app.register(cors, {
+    origin: corsOrigins ?? ['http://localhost:3000'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  });
 
   await app.register(rateLimit, {
     global: true,

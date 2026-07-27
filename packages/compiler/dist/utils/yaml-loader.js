@@ -1,5 +1,5 @@
 import { readFileSync, readdirSync } from 'fs';
-import { join, relative } from 'path';
+import { join, relative, sep } from 'path';
 import yaml from 'js-yaml';
 import { hashFileContent } from './hash.js';
 export function loadYamlFile(fullPath, rootDir) {
@@ -14,7 +14,10 @@ export function loadYamlFile(fullPath, rootDir) {
     }
     return {
         path: fullPath,
-        relativePath: relative(rootDir, fullPath),
+        // Normalize to POSIX separators. relativePath is hashed into build_hash,
+        // so a raw Windows '\' would make the build hash platform-dependent and
+        // break cross-platform reproducibility (audit finding F-3).
+        relativePath: relative(rootDir, fullPath).split(sep).join('/'),
         content,
         parsed,
         sha256: hash,
