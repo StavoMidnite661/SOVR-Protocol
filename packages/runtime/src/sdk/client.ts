@@ -207,7 +207,10 @@ export class SOVRClient {
     const causationId = payload.causationId ?? correlationId;
     return this.executeCommand('ledger', 'journal_entry', {
       commandName: 'ledger.entry.post',
-      capability_id: 'ledger.journal_entry.create',
+      // Must match the capability the compiled command requires
+      // (commands.registry.json → ledger.entry.post). The former value
+      // 'ledger.journal_entry.create' is not a registered capability.
+      capability_id: 'ledger.entry.post',
       scope: 'ledger.journal_entry:*',
       payload: {
         journal_id: payload.journalId,

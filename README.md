@@ -141,7 +141,7 @@ escrow.account.fund    → ACCEPTED  (CREATED → FUNDED)
 escrow.account.release → ACCEPTED  (FUNDED → RELEASED)
 
 Purity audit:        PASS — 0 violations
-Integration tests:   16/16 PASS
+Integration tests:   51/55 PASS (4 blocked on TD-002 gate config)
 Boot self-test:      7/7 PASS
 ```
 
@@ -164,34 +164,46 @@ npm run protocol:runtime-audit
 - Runtime YAML parsing
 - Hardcoded registry counts
 
-### Verified Metrics (v1.0.0-rc)
+### Measured Metrics
 
-| Metric | Value | Verified |
+> Measured from this repository at build hash
+> `2ae816fa…`. Verified by `npm run certify:production`.
+> Corrected 2026-07-27 following independent audit — see
+> `DUE_DILIGENCE/INDEPENDENT_AUDIT_2026-07-27.md`.
+
+| Metric | Value | Status |
 |---|---|---|
 | Protocol Specification | v1.0.0 FROZEN | ✅ |
-| Compiler Version | 0.9.0 | ✅ |
-| Runtime Version | 0.9.0 | ✅ |
+| Compiler Version | 0.6.0 | ✅ |
+| Runtime Version | 0.6.0 | ✅ |
 | Registry ABI | v1 | ✅ |
-| YAML files | 244/244 valid | ✅ |
+| Protocol YAML inputs (compiled) | 39 | ✅ |
 | Commands | 105 | ✅ |
 | Events | 259 | ✅ |
 | State Machines | 43 | ✅ |
 | Capabilities | 111 | ✅ |
 | Projections | 16 | ✅ |
-| IR nodes | 592 | ✅ |
-| IR edges | 459 | ✅ |
-| Generated artifacts | 104 | ✅ |
-| TLA+ models | 43 | ✅ |
+| IR nodes / edges | 592 / 459 | ✅ |
+| Generated artifacts | 147 | ✅ |
 | Registry JSON files | 11 | ✅ |
-| Boot runlevels | 8/8 HEALTHY | ✅ |
-| Boot self-test | 7/7 PASS | ✅ |
-| Integration tests | 16/16 PASS | ✅ |
+| Registry integrity | 11/11 match manifest | ✅ |
+| Build hash | `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd` | ✅ |
+| Reproducibility | Byte-identical, platform-independent | ✅ |
+| Runtime build | `tsc` 0 errors | ✅ |
+| Server boot | HEALTHY at runlevel 7 | ✅ |
+| Unit tests | 29/29 PASS | ✅ |
+| Acceptance suites | 3/3 PASS | ✅ |
+| Integration tests | 51/55 PASS | ⚠️ |
 | Purity violations | 0 | ✅ |
-| Build hash | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` | ✅ |
-| Byte-identical reproducibility | Verified | ✅ |
 | Constitutional proof | XV3-ESCROW-PROOF | ✅ |
-| Manual runtime bridges | 0 | ✅ |
-| Generated behavior | 100% | ✅ |
+| TLA+ models | 43 generated + 43 TLC configs | ⚠️ not model-checked |
+| Open findings | 26 (see `certification/TECHNICAL_DEBT.md`) | ⚠️ |
+
+**Known gaps.** 4 integration tests fail because per-command execution-gate
+configuration does not yet exist in the corpus (`execution_gates` appears 0
+times in `03_command-catalog.yaml`); this is tracked as TD-002. TLA+ models are
+generated and syntactically valid but TLC is not yet run in CI — they are
+*specified*, not *verified*.
 
 ---
 
@@ -796,7 +808,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | R9 | Byte-identical manifest — `build_hash = sha256(sorted(input_hashes) + ir_hash + sorted(output_hashes) + compiler_version + registry_versions)` |
 | R10 | Environmental isolation — compile in clean environment |
 
-**Verified build hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`
+**Verified build hash:** `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd`
 
 Identical YAML inputs produce identical build hashes. This is verified. This is the unfakeable proof of protocol integrity.
 
@@ -965,7 +977,7 @@ bash scripts/demo.sh
 
 ### Expected Output
 ```
-✅ Build hash: d27fdbe6...
+✅ Build hash: 2ae816fa...
 ✅ System HEALTHY
 ✅ Attestation chain intact
 ✅ Session created with RS256 JWT
@@ -1024,7 +1036,7 @@ node packages/compiler/dist/cli.js compile
 
 # Verify byte-identical reproducibility
 node packages/compiler/dist/cli.js verify
-# ✓ Reproducible build verified: d27fdbe6...
+# ✓ Reproducible build verified: 2ae816fa...
 
 # Boot kernel (8 runlevels + attestation)
 node packages/compiler/dist/cli.js boot
@@ -1102,7 +1114,7 @@ if (health.final_health !== 'HEALTHY') {
 // Verify unfakeable build hash chain
 const manifest = await fetch('http://localhost:3001/api/v1/manifest').then(r => r.json())
 const attestation = await fetch('http://localhost:3001/api/v1/boot-attestation').then(r => r.json())
-// manifest.build_hash === attestation.build_hash === d27fdbe6...
+// manifest.build_hash === attestation.build_hash === 2ae816fa...
 
 const client = new SOVRClient({
   apiUrl: 'http://localhost:3001/api/v1',
@@ -1121,7 +1133,7 @@ const client = new SOVRClient({
 
 | Capability | Status | Notes |
 |---|---|---|
-| YAML corpus compilation (244 files) | ✅ | 100% valid |
+| YAML corpus compilation (39 protocol inputs) | ✅ | 100% valid |
 | Deterministic SHA-256 build hash | ✅ | Verified byte-identical |
 | Canonical IR (592 nodes, 459 edges) | ✅ | Human-readable JSON |
 | Generated artifacts | ✅ | Output types generated |
@@ -1297,7 +1309,7 @@ SOVR-Protocol/
 
 | Metric | Value | Verified |
 |---|---|---|
-| YAML files parsing | 244/244 (100%) | ✅ |
+| Protocol YAML inputs compiled | 39/39 (100%) | ✅ |
 | Protocol YAML inputs | 39 | ✅ |
 | Commands | 105 | ✅ |
 | Events | 259 | ✅ |
@@ -1315,13 +1327,13 @@ SOVR-Protocol/
 | OpenAPI paths | 44 | ✅ |
 | Boot runlevels | 8/8 HEALTHY | ✅ |
 | Boot self-test | 7/7 PASS | ✅ |
-| Integration tests | 16/16 PASS | ✅ |
+| Integration tests | 51/55 PASS | ⚠️ |
 | Purity violations | 0 | ✅ |
 | Manual runtime bridges | 0 | ✅ |
 | Generated behavior | 100% | ✅ |
 | Registry ABI | v1 | ✅ |
 | Constitutional proof | XV3-ESCROW-PROOF | ✅ |
-| Build hash | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` | ✅ |
+| Build hash | `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd` | ✅ |
 | Byte-identical reproducibility | Verified | ✅ |
 | Compiler diagnostics | 0 errors, 71 warnings | ✅ |
 

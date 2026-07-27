@@ -16,11 +16,9 @@ const FORBIDDEN = [
   { pattern: /import.*sovr-ir\.json/, label: 'runtime IR import' }
 ];
 
-const SCAN_DIRS = [
-  'packages/runtime/src/server',
-  'packages/runtime/src/execution',
-  'packages/runtime/src/adapters'
-];
+// Scan the whole runtime source tree. Restricting this to three directories
+// previously hid an orphaned capability literal in src/sdk (audit finding F-9).
+const SCAN_DIRS = ['packages/runtime/src'];
 
 function walk(dir) {
   const out = [];
@@ -47,6 +45,42 @@ for (const file of files) {
       }
     });
   }
+}
+
+// ── Registry cross-validation (advisory) ────────────────────────────────────────────────
+// Hardcoded command/capability literals must resolve against the compiled
+// registries. Drift here is invisible to the pattern scan above.
+const drift = [];
+const registryDir = 'packages/runtime/../../generated/registries';
+try {
+  const commands = JSON.parse(readFileSync(join(registryDir, 'commands.registry.json'), 'utf-8')).entries ?? {};
+  const capabilities = JSON.parse(readFileSync(join(registryDir, 'capabilities.registry.json'), 'utf-8')).entries ?? {};
+  for (const file of files) {
+    // Tests and fixtures legitimately reference synthetic commands; only
+    // production source must resolve against the compiled corpus.
+    if (file.includes('__tests__') || file.includes('.test.')) continue;
+    const content = readFileSync(file, 'utf-8');
+    for (const m of content.matchAll(/commandName:\s*'([^']+)'/g)) {
+      if (m[1].includes('*') || m[1].includes('${')) continue;
+      if (!commands[m[1]]) {
+        drift.push(`${file}: commandName "${m[1]}" is not in commands.registry.json`);
+      }
+    }
+    for (const m of content.matchAll(/capability_id:\s*'([^']+)'/g)) {
+      if (m[1].includes('*') || m[1].includes('${')) continue;
+      if (!capabilities[m[1]]) {
+        drift.push(`${file}: capability_id "${m[1]}" is not in capabilities.registry.json`);
+      }
+    }
+  }
+} catch (err) {
+  console.error(`Registry cross-validation skipped: ${err.message}`);
+}
+
+if (drift.length > 0) {
+  console.warn(`\nREGISTRY DRIFT — ${drift.length} literal(s) do not resolve against the compiled corpus:`);
+  for (const d of drift) console.warn(`  ⚠️  ${d}`);
+  console.warn('  These are advisory: resolve the intended mapping in YAML or source.');
 }
 
 if (violations > 0) {

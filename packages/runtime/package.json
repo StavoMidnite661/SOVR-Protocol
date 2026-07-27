@@ -1,7 +1,7 @@
 {
   "name": "@sovr/runtime",
   "version": "1.0.0",
-  "description": "SOVR Financial OS Runtime — Linux kernel of finance, machine-readable, unfakeable",
+  "description": "SOVR Financial OS Runtime \u2014 Linux kernel of finance, machine-readable, unfakeable",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
@@ -35,8 +35,11 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^20.0.0",
     "@types/ws": "^8.5.10",
-    "@vitest/coverage-v8": "^2.1.9",
+    "@vitest/coverage-v8": "^3.2.7",
     "typescript": "^5.0.0",
-    "vitest": "^2.1.9"
+    "vitest": "^3.2.7"
+  },
+  "overrides": {
+    "brace-expansion": "^5.0.8"
   }
 }

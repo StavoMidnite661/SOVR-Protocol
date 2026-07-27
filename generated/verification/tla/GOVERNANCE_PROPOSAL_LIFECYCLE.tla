@@ -1,87 +1,79 @@
 ---------------- MODULE GOVERNANCE_PROPOSAL_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: governance_proposal_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: governance_proposal_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"APPROVED", "CANCELLED", "DRAFT", "EXPIRED", "IMPLEMENTED", "PENDING_REVIEW", "REJECTED"}
 
+FinalStates == {"CANCELLED", "EXPIRED", "IMPLEMENTED", "REJECTED"}
+
 Init == 
     /\ state = "DRAFT"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"DRAFT"}
 
-0 == 
-    /\ state = "DRAFT"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "PENDING_REVIEW"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: GOVERNANCE_PROPOSAL_SUBMIT
-
-1 == 
-    /\ state = "PENDING_REVIEW"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "APPROVED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: GOVERNANCE_PROPOSAL_APPROVE
-
-2 == 
-    /\ state = "PENDING_REVIEW"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "REJECTED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: GOVERNANCE_PROPOSAL_REJECT
-
-3 == 
-    /\ state = "PENDING_REVIEW"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "EXPIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 3
-
-4 == 
-    /\ state = "PENDING_REVIEW"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "CANCELLED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: GOVERNANCE_PROPOSAL_CANCEL
-
-5 == 
+APPROVED_TO_IMPLEMENTED == 
     /\ state = "APPROVED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "IMPLEMENTED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: GOVERNANCE_PROPOSAL_IMPLEMENT
+    /\ visited' = visited \cup {"IMPLEMENTED"}
+\* Trigger: GOVERNANCE_PROPOSAL_IMPLEMENT
 
-6 == 
+DRAFT_TO_CANCELLED == 
     /\ state = "DRAFT"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "CANCELLED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: GOVERNANCE_PROPOSAL_CANCEL
+    /\ visited' = visited \cup {"CANCELLED"}
+\* Trigger: GOVERNANCE_PROPOSAL_CANCEL
+
+DRAFT_TO_PENDING_REVIEW == 
+    /\ state = "DRAFT"
+    /\ state' = "PENDING_REVIEW"
+    /\ visited' = visited \cup {"PENDING_REVIEW"}
+\* Trigger: GOVERNANCE_PROPOSAL_SUBMIT
+
+PENDING_REVIEW_TO_APPROVED == 
+    /\ state = "PENDING_REVIEW"
+    /\ state' = "APPROVED"
+    /\ visited' = visited \cup {"APPROVED"}
+\* Trigger: GOVERNANCE_PROPOSAL_APPROVE
+
+PENDING_REVIEW_TO_CANCELLED == 
+    /\ state = "PENDING_REVIEW"
+    /\ state' = "CANCELLED"
+    /\ visited' = visited \cup {"CANCELLED"}
+\* Trigger: GOVERNANCE_PROPOSAL_CANCEL
+
+PENDING_REVIEW_TO_EXPIRED == 
+    /\ state = "PENDING_REVIEW"
+    /\ state' = "EXPIRED"
+    /\ visited' = visited \cup {"EXPIRED"}
+\* Trigger: 3
+
+PENDING_REVIEW_TO_REJECTED == 
+    /\ state = "PENDING_REVIEW"
+    /\ state' = "REJECTED"
+    /\ visited' = visited \cup {"REJECTED"}
+\* Trigger: GOVERNANCE_PROPOSAL_REJECT
+
+Terminated == 
+    /\ state \in FinalStates
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    0 \/ 1 \/ 2 \/ 3 \/ 4 \/ 5 \/ 6
+    APPROVED_TO_IMPLEMENTED \/ DRAFT_TO_CANCELLED \/ DRAFT_TO_PENDING_REVIEW \/ PENDING_REVIEW_TO_APPROVED \/ PENDING_REVIEW_TO_CANCELLED \/ PENDING_REVIEW_TO_EXPIRED \/ PENDING_REVIEW_TO_REJECTED \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == <>(state \in FinalStates)
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================

@@ -2,7 +2,7 @@
 
 **Version:** v0.9.0-rc  
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd`  
 
 ---
 
@@ -16,25 +16,33 @@ SOVR is a **spec-first, compiled financial protocol** with a reference compiler 
 
 ## Key Metrics
 
-| Metric | Value |
-|---|---|
-| Protocol Version | v1.0.0 (FROZEN) |
-| Compiler Version | v0.9.0 |
-| Runtime Version | v0.9.0 |
-| Constitutional YAML Files | 136 |
-| TypeScript Source Files | 103 |
-| Total Repository Files | 6,774 |
-| Lines of Code (approx.) | 13,733 |
-| Domains | 10 |
-| Commands | 105 |
-| Events | 259 |
-| State Machines | 43 |
-| Capabilities | 111 |
-| TLA+ Formal Models | 43 |
-| Integration Tests | 16/16 PASS |
-| Self-Test | 14/14 PASS |
-| Open Findings | 0 |
-| Build Hash | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` |
+> **All figures below are measured from the repository at the stated build
+> hash.** Earlier revisions of this document reported unverified counts; those
+> were corrected following the independent audit of 2026-07-27
+> (`DUE_DILIGENCE/INDEPENDENT_AUDIT_2026-07-27.md`).
+
+| Metric | Value | How measured |
+|---|---|---|
+| Protocol Version | v1.0.0 (FROZEN) | `00_protocol-manifest.yaml` |
+| Compiler Version | v0.6.0 | `packages/compiler/src/index.ts` |
+| Runtime Version | v0.6.0 | compiled manifest |
+| Protocol YAML inputs (compiled) | 39 | `compiler-manifest.input_hashes` |
+| YAML files in repository | 256 | `find -name '*.yaml' -o -name '*.yml'` |
+| TypeScript source files | 161 | excludes `.d.ts`, `dist/`, `node_modules/` |
+| Total repository files | 642 | excludes `.git/`, `node_modules/`, `dist/` |
+| Lines of TypeScript | 25,362 | `cat *.ts \| wc -l` |
+| Domains | 10 | `domains/*.yaml` |
+| Commands | 105 | `commands.registry.json` |
+| Events | 259 | `events.registry.json` |
+| State Machines | 43 | `machines.registry.json` |
+| Capabilities | 111 | `capabilities.registry.json` |
+| Generated artifacts | 147 | compiler output |
+| TLA+ models | 43 (generated, **not** model-checked) | `generated/verification/tla` |
+| Unit tests | 29/29 PASS | `vitest run` |
+| Acceptance suites | 3/3 PASS | `vitest run src/__tests__/acceptance` |
+| Integration tests | 51/55 PASS | 4 fail on unimplemented gate config (TD-002) |
+| Open findings | **26** | `certification/TECHNICAL_DEBT.md` |
+| Build Hash | `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd` |
 
 ---
 
@@ -45,7 +53,9 @@ SOVR is a **spec-first, compiled financial protocol** with a reference compiler 
 - **Event Store:** PostgreSQL (production), JSON (CI/dev)
 - **Authentication:** RS256 asymmetric JWT (jose v6.2)
 - **Authorization:** Capability-based access control
-- **Formal Verification:** TLA+ model checking (43 models)
+- **Formal Verification:** 43 TLA+ models generated with TLC configs. Models
+  are syntactically valid and carry falsifiable invariants, but **TLC has not
+  been run in CI** — treat as "specified", not "verified".
 - **Boot Sequence:** 8-runlevel attestation chain (SHA-256)
 
 ---
@@ -61,9 +71,9 @@ SOVR is a **spec-first, compiled financial protocol** with a reference compiler 
 
 **Competitive Advantage:**
 1. **Spec-first architecture** — Single YAML source of truth
-2. **Deterministic compilation** — Byte-identical builds, unfakeable proof
+2. **Deterministic compilation** — Byte-identical, platform-independent builds
 3. **Constitutional enforcement** — 10 immutable invariants
-4. **Formal verification** — TLA+ model checking
+4. **Formal specification** — TLA+ models generated from the same corpus
 5. **Audit-ready** — Complete evidence package
 6. **Language-neutral** — Protocol defined in YAML, runtime in any language
 

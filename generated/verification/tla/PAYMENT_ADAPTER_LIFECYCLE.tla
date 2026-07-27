@@ -1,63 +1,61 @@
 ---------------- MODULE PAYMENT_ADAPTER_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: payment_adapter_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: payment_adapter_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"DISABLED", "ENABLED", "EXECUTING", "PREPARING"}
 
+FinalStates == {"DISABLED"}
+
 Init == 
     /\ state = "ENABLED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"ENABLED"}
 
-0 == 
+ENABLED_TO_DISABLED == 
     /\ state = "ENABLED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "PREPARING"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: PAYMENT_EXECUTION_PREPARE
-
-1 == 
-    /\ state = "PREPARING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "EXECUTING"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: PAYMENT_EXECUTION_EXECUTE
-
-2 == 
-    /\ state = "EXECUTING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "ENABLED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: 2
-
-3 == 
-    /\ state = "ENABLED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "DISABLED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: PAYMENT_ADAPTER_DISABLE
+    /\ visited' = visited \cup {"DISABLED"}
+\* Trigger: PAYMENT_ADAPTER_DISABLE
+
+ENABLED_TO_PREPARING == 
+    /\ state = "ENABLED"
+    /\ state' = "PREPARING"
+    /\ visited' = visited \cup {"PREPARING"}
+\* Trigger: PAYMENT_EXECUTION_PREPARE
+
+EXECUTING_TO_ENABLED == 
+    /\ state = "EXECUTING"
+    /\ state' = "ENABLED"
+    /\ visited' = visited \cup {"ENABLED"}
+\* Trigger: 2
+
+PREPARING_TO_EXECUTING == 
+    /\ state = "PREPARING"
+    /\ state' = "EXECUTING"
+    /\ visited' = visited \cup {"EXECUTING"}
+\* Trigger: PAYMENT_EXECUTION_EXECUTE
+
+Terminated == 
+    /\ state \in FinalStates
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    0 \/ 1 \/ 2 \/ 3
+    ENABLED_TO_DISABLED \/ ENABLED_TO_PREPARING \/ EXECUTING_TO_ENABLED \/ PREPARING_TO_EXECUTING \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == <>(state \in FinalStates)
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================

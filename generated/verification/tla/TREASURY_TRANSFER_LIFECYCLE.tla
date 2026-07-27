@@ -1,175 +1,145 @@
 ---------------- MODULE TREASURY_TRANSFER_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: treasury_transfer_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: treasury_transfer_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"AUTHORIZED", "COMPENSATION_REQUIRED", "EXECUTING", "EXPIRED", "FAILED", "PENDING_SETTLEMENT", "REJECTED", "REQUESTED", "RESERVED", "SETTLED", "UNKNOWN_EXTERNAL_STATE"}
 
+FinalStates == {"EXPIRED", "REJECTED", "SETTLED"}
+
 Init == 
     /\ state = "REQUESTED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"REQUESTED"}
 
 AUTHORIZED_TO_REJECTED == 
     /\ state = "AUTHORIZED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "REJECTED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: POLICY DENIED
+    /\ visited' = visited \cup {"REJECTED"}
+\* Trigger: POLICY_DENIED
 
 AUTHORIZED_TO_RESERVED == 
     /\ state = "AUTHORIZED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "RESERVED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT RESERVATION LOCKED
+    /\ visited' = visited \cup {"RESERVED"}
+\* Trigger: VAULT_RESERVATION_LOCKED
 
 EXECUTING_TO_FAILED == 
     /\ state = "EXECUTING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "FAILED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: EXECUTION ERROR
+    /\ visited' = visited \cup {"FAILED"}
+\* Trigger: EXECUTION_ERROR
 
 EXECUTING_TO_PENDING_SETTLEMENT == 
     /\ state = "EXECUTING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "PENDING_SETTLEMENT"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: EXECUTION COMPLETED, AWAITING CONFIRMATION
+    /\ visited' = visited \cup {"PENDING_SETTLEMENT"}
+\* Trigger: EXECUTION_COMPLETED__AWAITING_CONFIRMATION
 
 EXECUTING_TO_SETTLED == 
     /\ state = "EXECUTING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "SETTLED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: INTERNAL SETTLEMENT CONFIRMED DIRECTLY
+    /\ visited' = visited \cup {"SETTLED"}
+\* Trigger: INTERNAL_SETTLEMENT_CONFIRMED_DIRECTLY
 
 EXECUTING_TO_UNKNOWN_EXTERNAL_STATE == 
     /\ state = "EXECUTING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "UNKNOWN_EXTERNAL_STATE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: EXTERNAL TIMEOUT
+    /\ visited' = visited \cup {"UNKNOWN_EXTERNAL_STATE"}
+\* Trigger: EXTERNAL_TIMEOUT
 
 FAILED_TO_COMPENSATION_REQUIRED == 
     /\ state = "FAILED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "COMPENSATION_REQUIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: COMPENSATION SAGA INITIATED
+    /\ visited' = visited \cup {"COMPENSATION_REQUIRED"}
+\* Trigger: COMPENSATION_SAGA_INITIATED
 
 PENDING_SETTLEMENT_TO_FAILED == 
     /\ state = "PENDING_SETTLEMENT"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "FAILED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: SETTLEMENT FAILED
+    /\ visited' = visited \cup {"FAILED"}
+\* Trigger: SETTLEMENT_FAILED
 
 PENDING_SETTLEMENT_TO_SETTLED == 
     /\ state = "PENDING_SETTLEMENT"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "SETTLED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: SETTLEMENT CONFIRMED
+    /\ visited' = visited \cup {"SETTLED"}
+\* Trigger: SETTLEMENT_CONFIRMED
 
 PENDING_SETTLEMENT_TO_UNKNOWN_EXTERNAL_STATE == 
     /\ state = "PENDING_SETTLEMENT"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "UNKNOWN_EXTERNAL_STATE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: TIMEOUT OR UNKNOWN RESPONSE
+    /\ visited' = visited \cup {"UNKNOWN_EXTERNAL_STATE"}
+\* Trigger: TIMEOUT_OR_UNKNOWN_RESPONSE
 
 REQUESTED_TO_AUTHORIZED == 
     /\ state = "REQUESTED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "AUTHORIZED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: IDENTITY+CAPABILITY+POLICY PASSED
+    /\ visited' = visited \cup {"AUTHORIZED"}
+\* Trigger: IDENTITY_CAPABILITY_POLICY_PASSED
 
 REQUESTED_TO_EXPIRED == 
     /\ state = "REQUESTED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "EXPIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: TIMEOUT
+    /\ visited' = visited \cup {"EXPIRED"}
+\* Trigger: TIMEOUT
 
 REQUESTED_TO_REJECTED == 
     /\ state = "REQUESTED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "REJECTED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VALIDATION FAILED
+    /\ visited' = visited \cup {"REJECTED"}
+\* Trigger: VALIDATION_FAILED
 
 RESERVED_TO_EXECUTING == 
     /\ state = "RESERVED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "EXECUTING"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: EXECUTION BEGINS
+    /\ visited' = visited \cup {"EXECUTING"}
+\* Trigger: EXECUTION_BEGINS
 
 RESERVED_TO_EXPIRED == 
     /\ state = "RESERVED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "EXPIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT RESERVATION EXPIRED
+    /\ visited' = visited \cup {"EXPIRED"}
+\* Trigger: VAULT_RESERVATION_EXPIRED
 
 UNKNOWN_EXTERNAL_STATE_TO_COMPENSATION_REQUIRED == 
     /\ state = "UNKNOWN_EXTERNAL_STATE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "COMPENSATION_REQUIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: GOVERNANCE ORDERS COMPENSATION
+    /\ visited' = visited \cup {"COMPENSATION_REQUIRED"}
+\* Trigger: GOVERNANCE_ORDERS_COMPENSATION
 
 UNKNOWN_EXTERNAL_STATE_TO_FAILED == 
     /\ state = "UNKNOWN_EXTERNAL_STATE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "FAILED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: FAILURE CONFIRMED
+    /\ visited' = visited \cup {"FAILED"}
+\* Trigger: FAILURE_CONFIRMED
 
 UNKNOWN_EXTERNAL_STATE_TO_SETTLED == 
     /\ state = "UNKNOWN_EXTERNAL_STATE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "SETTLED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: LATE CONFIRMATION RECEIVED
+    /\ visited' = visited \cup {"SETTLED"}
+\* Trigger: LATE_CONFIRMATION_RECEIVED
+
+Terminated == 
+    /\ state \in FinalStates
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    AUTHORIZED_TO_REJECTED \/ AUTHORIZED_TO_RESERVED \/ EXECUTING_TO_FAILED \/ EXECUTING_TO_PENDING_SETTLEMENT \/ EXECUTING_TO_SETTLED \/ EXECUTING_TO_UNKNOWN_EXTERNAL_STATE \/ FAILED_TO_COMPENSATION_REQUIRED \/ PENDING_SETTLEMENT_TO_FAILED \/ PENDING_SETTLEMENT_TO_SETTLED \/ PENDING_SETTLEMENT_TO_UNKNOWN_EXTERNAL_STATE \/ REQUESTED_TO_AUTHORIZED \/ REQUESTED_TO_EXPIRED \/ REQUESTED_TO_REJECTED \/ RESERVED_TO_EXECUTING \/ RESERVED_TO_EXPIRED \/ UNKNOWN_EXTERNAL_STATE_TO_COMPENSATION_REQUIRED \/ UNKNOWN_EXTERNAL_STATE_TO_FAILED \/ UNKNOWN_EXTERNAL_STATE_TO_SETTLED
+    AUTHORIZED_TO_REJECTED \/ AUTHORIZED_TO_RESERVED \/ EXECUTING_TO_FAILED \/ EXECUTING_TO_PENDING_SETTLEMENT \/ EXECUTING_TO_SETTLED \/ EXECUTING_TO_UNKNOWN_EXTERNAL_STATE \/ FAILED_TO_COMPENSATION_REQUIRED \/ PENDING_SETTLEMENT_TO_FAILED \/ PENDING_SETTLEMENT_TO_SETTLED \/ PENDING_SETTLEMENT_TO_UNKNOWN_EXTERNAL_STATE \/ REQUESTED_TO_AUTHORIZED \/ REQUESTED_TO_EXPIRED \/ REQUESTED_TO_REJECTED \/ RESERVED_TO_EXECUTING \/ RESERVED_TO_EXPIRED \/ UNKNOWN_EXTERNAL_STATE_TO_COMPENSATION_REQUIRED \/ UNKNOWN_EXTERNAL_STATE_TO_FAILED \/ UNKNOWN_EXTERNAL_STATE_TO_SETTLED \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == <>(state \in FinalStates)
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================

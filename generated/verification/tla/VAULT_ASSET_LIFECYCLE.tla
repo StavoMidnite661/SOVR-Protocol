@@ -1,183 +1,151 @@
 ---------------- MODULE VAULT_ASSET_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: vault_asset_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: vault_asset_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"AVAILABLE", "CONSUMED", "IMPAIRED", "LOCKED", "RECONCILIATION_REQUIRED", "REGISTERED", "REJECTED", "RELEASED", "RESERVED", "VERIFIED"}
 
+FinalStates == {"IMPAIRED", "REJECTED"}
+
 Init == 
     /\ state = "REGISTERED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"REGISTERED"}
 
 AVAILABLE_TO_IMPAIRED == 
     /\ state = "AVAILABLE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "IMPAIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_ASSET_IMPAIRED
+    /\ visited' = visited \cup {"IMPAIRED"}
+\* Trigger: VAULT_ASSET_IMPAIRED
 
 AVAILABLE_TO_RESERVED == 
     /\ state = "AVAILABLE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "RESERVED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_CREATED
+    /\ visited' = visited \cup {"RESERVED"}
+\* Trigger: VAULT_RESERVE_CREATED
 
 CONSUMED_TO_AVAILABLE == 
     /\ state = "CONSUMED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "AVAILABLE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: AUTOMATIC
+    /\ visited' = visited \cup {"AVAILABLE"}
+\* Trigger: AUTOMATIC
 
 IMPAIRED_TO_AVAILABLE == 
     /\ state = "IMPAIRED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "AVAILABLE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_VALUATION_UPDATED
+    /\ visited' = visited \cup {"AVAILABLE"}
+\* Trigger: VAULT_VALUATION_UPDATED
 
 LOCKED_TO_AVAILABLE == 
     /\ state = "LOCKED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "AVAILABLE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_RELEASED
+    /\ visited' = visited \cup {"AVAILABLE"}
+\* Trigger: VAULT_RESERVE_RELEASED
 
 LOCKED_TO_CONSUMED == 
     /\ state = "LOCKED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "CONSUMED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: TREASURY_TRANSFER_SETTLED
+    /\ visited' = visited \cup {"CONSUMED"}
+\* Trigger: TREASURY_TRANSFER_SETTLED
 
 RECONCILIATION_REQUIRED_TO_AVAILABLE == 
     /\ state = "RECONCILIATION_REQUIRED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "AVAILABLE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RECONCILIATION_COMPLETED
+    /\ visited' = visited \cup {"AVAILABLE"}
+\* Trigger: VAULT_RECONCILIATION_COMPLETED
 
 RECONCILIATION_REQUIRED_TO_LOCKED == 
     /\ state = "RECONCILIATION_REQUIRED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "LOCKED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RECONCILIATION_COMPLETED
+    /\ visited' = visited \cup {"LOCKED"}
+\* Trigger: VAULT_RECONCILIATION_COMPLETED
 
 RECONCILIATION_REQUIRED_TO_VERIFIED == 
     /\ state = "RECONCILIATION_REQUIRED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "VERIFIED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RECONCILIATION_COMPLETED
+    /\ visited' = visited \cup {"VERIFIED"}
+\* Trigger: VAULT_RECONCILIATION_COMPLETED
 
 REGISTERED_TO_REJECTED == 
     /\ state = "REGISTERED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "REJECTED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_ASSET_REJECTED
+    /\ visited' = visited \cup {"REJECTED"}
+\* Trigger: VAULT_ASSET_REJECTED
 
 REGISTERED_TO_VERIFIED == 
     /\ state = "REGISTERED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "VERIFIED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_ASSET_VERIFIED
+    /\ visited' = visited \cup {"VERIFIED"}
+\* Trigger: VAULT_ASSET_VERIFIED
 
 RELEASED_TO_AVAILABLE == 
     /\ state = "RELEASED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "AVAILABLE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: AUTOMATIC
+    /\ visited' = visited \cup {"AVAILABLE"}
+\* Trigger: AUTOMATIC
 
 RESERVED_TO_AVAILABLE == 
     /\ state = "RESERVED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "AVAILABLE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_RELEASED
+    /\ visited' = visited \cup {"AVAILABLE"}
+\* Trigger: VAULT_RESERVE_RELEASED
 
 RESERVED_TO_IMPAIRED == 
     /\ state = "RESERVED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "IMPAIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_ASSET_IMPAIRED
+    /\ visited' = visited \cup {"IMPAIRED"}
+\* Trigger: VAULT_ASSET_IMPAIRED
 
 RESERVED_TO_LOCKED == 
     /\ state = "RESERVED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "LOCKED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_LOCKED
+    /\ visited' = visited \cup {"LOCKED"}
+\* Trigger: VAULT_RESERVE_LOCKED
 
 RESERVED_TO_RECONCILIATION_REQUIRED == 
     /\ state = "RESERVED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "RECONCILIATION_REQUIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RECONCILIATION_DISCREPANCY_FOUND
+    /\ visited' = visited \cup {"RECONCILIATION_REQUIRED"}
+\* Trigger: VAULT_RECONCILIATION_DISCREPANCY_FOUND
 
 VERIFIED_TO_AVAILABLE == 
     /\ state = "VERIFIED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "AVAILABLE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_CREATED
+    /\ visited' = visited \cup {"AVAILABLE"}
+\* Trigger: VAULT_RESERVE_CREATED
 
 VERIFIED_TO_RECONCILIATION_REQUIRED == 
     /\ state = "VERIFIED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "RECONCILIATION_REQUIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RECONCILIATION_DISCREPANCY_FOUND
+    /\ visited' = visited \cup {"RECONCILIATION_REQUIRED"}
+\* Trigger: VAULT_RECONCILIATION_DISCREPANCY_FOUND
 
 VERIFIED_TO_REJECTED == 
     /\ state = "VERIFIED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "REJECTED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_ASSET_REJECTED
+    /\ visited' = visited \cup {"REJECTED"}
+\* Trigger: VAULT_ASSET_REJECTED
+
+Terminated == 
+    /\ state \in FinalStates
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    AVAILABLE_TO_IMPAIRED \/ AVAILABLE_TO_RESERVED \/ CONSUMED_TO_AVAILABLE \/ IMPAIRED_TO_AVAILABLE \/ LOCKED_TO_AVAILABLE \/ LOCKED_TO_CONSUMED \/ RECONCILIATION_REQUIRED_TO_AVAILABLE \/ RECONCILIATION_REQUIRED_TO_LOCKED \/ RECONCILIATION_REQUIRED_TO_VERIFIED \/ REGISTERED_TO_REJECTED \/ REGISTERED_TO_VERIFIED \/ RELEASED_TO_AVAILABLE \/ RESERVED_TO_AVAILABLE \/ RESERVED_TO_IMPAIRED \/ RESERVED_TO_LOCKED \/ RESERVED_TO_RECONCILIATION_REQUIRED \/ VERIFIED_TO_AVAILABLE \/ VERIFIED_TO_RECONCILIATION_REQUIRED \/ VERIFIED_TO_REJECTED
+    AVAILABLE_TO_IMPAIRED \/ AVAILABLE_TO_RESERVED \/ CONSUMED_TO_AVAILABLE \/ IMPAIRED_TO_AVAILABLE \/ LOCKED_TO_AVAILABLE \/ LOCKED_TO_CONSUMED \/ RECONCILIATION_REQUIRED_TO_AVAILABLE \/ RECONCILIATION_REQUIRED_TO_LOCKED \/ RECONCILIATION_REQUIRED_TO_VERIFIED \/ REGISTERED_TO_REJECTED \/ REGISTERED_TO_VERIFIED \/ RELEASED_TO_AVAILABLE \/ RESERVED_TO_AVAILABLE \/ RESERVED_TO_IMPAIRED \/ RESERVED_TO_LOCKED \/ RESERVED_TO_RECONCILIATION_REQUIRED \/ VERIFIED_TO_AVAILABLE \/ VERIFIED_TO_RECONCILIATION_REQUIRED \/ VERIFIED_TO_REJECTED \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == <>(state \in FinalStates)
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================

@@ -1,87 +1,79 @@
 ---------------- MODULE VAULT_RESERVATION_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: vault_reservation_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: vault_reservation_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"ACTIVE", "CONSUMED", "EXPIRED", "FAILED", "PENDING", "RELEASED"}
 
+FinalStates == {"EXPIRED", "FAILED"}
+
 Init == 
     /\ state = "PENDING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"PENDING"}
 
 ACTIVE_TO_CONSUMED == 
     /\ state = "ACTIVE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "CONSUMED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: CONSUMING_TRANSACTION_COMPLETED
+    /\ visited' = visited \cup {"CONSUMED"}
+\* Trigger: CONSUMING_TRANSACTION_COMPLETED
 
 ACTIVE_TO_EXPIRED == 
     /\ state = "ACTIVE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "EXPIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_EXPIRED
+    /\ visited' = visited \cup {"EXPIRED"}
+\* Trigger: VAULT_RESERVE_EXPIRED
 
 ACTIVE_TO_RELEASED == 
     /\ state = "ACTIVE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "RELEASED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_RELEASED
+    /\ visited' = visited \cup {"RELEASED"}
+\* Trigger: VAULT_RESERVE_RELEASED
 
 PENDING_TO_ACTIVE == 
     /\ state = "PENDING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "ACTIVE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_LOCKED
+    /\ visited' = visited \cup {"ACTIVE"}
+\* Trigger: VAULT_RESERVE_LOCKED
 
 PENDING_TO_EXPIRED == 
     /\ state = "PENDING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "EXPIRED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_EXPIRED
+    /\ visited' = visited \cup {"EXPIRED"}
+\* Trigger: VAULT_RESERVE_EXPIRED
 
 PENDING_TO_FAILED == 
     /\ state = "PENDING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "FAILED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_CREATION_FAILED
+    /\ visited' = visited \cup {"FAILED"}
+\* Trigger: VAULT_RESERVE_CREATION_FAILED
 
 PENDING_TO_RELEASED == 
     /\ state = "PENDING"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "RELEASED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: VAULT_RESERVE_RELEASED
+    /\ visited' = visited \cup {"RELEASED"}
+\* Trigger: VAULT_RESERVE_RELEASED
+
+Terminated == 
+    /\ state \in FinalStates
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    ACTIVE_TO_CONSUMED \/ ACTIVE_TO_EXPIRED \/ ACTIVE_TO_RELEASED \/ PENDING_TO_ACTIVE \/ PENDING_TO_EXPIRED \/ PENDING_TO_FAILED \/ PENDING_TO_RELEASED
+    ACTIVE_TO_CONSUMED \/ ACTIVE_TO_EXPIRED \/ ACTIVE_TO_RELEASED \/ PENDING_TO_ACTIVE \/ PENDING_TO_EXPIRED \/ PENDING_TO_FAILED \/ PENDING_TO_RELEASED \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == <>(state \in FinalStates)
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================

@@ -1,79 +1,73 @@
 ---------------- MODULE AGENT_LIFECYCLE ----------------
-* SOVR Financial OS — Generated TLA+ Model
-* Compiler: 0.6.0 Protocol: 1.0.0
-* Provenance: agent_lifecycle
+\* SOVR Financial OS — Generated TLA+ Model
+\* Compiler: 0.6.0 Protocol: 1.0.0
+\* Provenance: agent_lifecycle
 
 EXTENDS Naturals, Sequences
 
-VARIABLES state, ledger_balanced, authority_validated
+VARIABLES state, visited
 
 States == {"ACTIVE", "REGISTERED", "SUSPENDED", "TERMINATED"}
 
+FinalStates == {"TERMINATED"}
+
 Init == 
     /\ state = "REGISTERED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ visited = {"REGISTERED"}
 
-0 == 
-    /\ state = "REGISTERED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "ACTIVE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: AGENT_ACTIVATE
-
-1 == 
+ACTIVE_TO_SUSPENDED == 
     /\ state = "ACTIVE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "SUSPENDED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: AGENT_SUSPEND
+    /\ visited' = visited \cup {"SUSPENDED"}
+\* Trigger: AGENT_SUSPEND
 
-2 == 
-    /\ state = "SUSPENDED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "ACTIVE"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: AGENT_ACTIVATE
-
-3 == 
+ACTIVE_TO_TERMINATED == 
     /\ state = "ACTIVE"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
     /\ state' = "TERMINATED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: AGENT_TERMINATE
+    /\ visited' = visited \cup {"TERMINATED"}
+\* Trigger: AGENT_TERMINATE
 
-4 == 
-    /\ state = "SUSPENDED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
-    /\ state' = "TERMINATED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: AGENT_TERMINATE
-
-5 == 
+REGISTERED_TO_ACTIVE == 
     /\ state = "REGISTERED"
-    /\ ledger_balanced = TRUE
-    /\ authority_validated = TRUE
+    /\ state' = "ACTIVE"
+    /\ visited' = visited \cup {"ACTIVE"}
+\* Trigger: AGENT_ACTIVATE
+
+REGISTERED_TO_TERMINATED == 
+    /\ state = "REGISTERED"
     /\ state' = "TERMINATED"
-    /\ UNCHANGED <<ledger_balanced, authority_validated>>
-* Trigger: AGENT_TERMINATE
+    /\ visited' = visited \cup {"TERMINATED"}
+\* Trigger: AGENT_TERMINATE
+
+SUSPENDED_TO_ACTIVE == 
+    /\ state = "SUSPENDED"
+    /\ state' = "ACTIVE"
+    /\ visited' = visited \cup {"ACTIVE"}
+\* Trigger: AGENT_ACTIVATE
+
+SUSPENDED_TO_TERMINATED == 
+    /\ state = "SUSPENDED"
+    /\ state' = "TERMINATED"
+    /\ visited' = visited \cup {"TERMINATED"}
+\* Trigger: AGENT_TERMINATE
+
+Terminated == 
+    /\ state \in FinalStates
+    /\ UNCHANGED <<state, visited>>
 
 Next == 
-    0 \/ 1 \/ 2 \/ 3 \/ 4 \/ 5
+    ACTIVE_TO_SUSPENDED \/ ACTIVE_TO_TERMINATED \/ REGISTERED_TO_ACTIVE \/ REGISTERED_TO_TERMINATED \/ SUSPENDED_TO_ACTIVE \/ SUSPENDED_TO_TERMINATED \/ Terminated
 
-* Invariant 1: State must always be in defined States
+\* INV-006: state is always one the compiled machine declares.
+\* Falsifiable: a transition to an undeclared state breaks this.
 TypeOK == state \in States
 
-* Invariant 2: INV-002 Double Entry balance holds
-DoubleEntryBalance == ledger_balanced = TRUE
+\* INV-006: every visited state is reachable and declared.
+ReachableStatesDeclared == visited \subseteq States
 
-* Invariant 3: INV-003 Actor never exceeds authority
-AuthorityBound == authority_validated = TRUE
+\* Liveness: a terminal state remains reachable from anywhere.
+CanTerminate == <>(state \in FinalStates)
 
-Spec == Init /\ [][Next]_<<state, ledger_balanced, authority_validated>>
+Spec == Init /\ [][Next]_<<state, visited>>
 
 =====================================================
