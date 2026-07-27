@@ -80,8 +80,8 @@ export class CompilerRuntime {
                 }
                 const manifest = loadYamlFile(manifestPath, ctx.rootDir).parsed;
                 const constitution = loadYamlFile(constitutionPath, ctx.rootDir);
-                const expected = manifest?.constitution?.lock_hash;
-                if (manifest?.constitution?.status !== 'LOCKED' || !expected || expected !== constitution.sha256) {
+                const expected = manifest?.protocol?.constitution?.lock_hash;
+                if (manifest?.protocol?.constitution?.status !== 'LOCKED' || !expected || expected !== constitution.sha256) {
                     ctx.diagnostics.push({
                         code: 'CONST-LOCK-002',
                         category: 'CONSTITUTION',
