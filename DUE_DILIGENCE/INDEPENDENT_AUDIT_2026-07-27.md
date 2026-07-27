@@ -448,7 +448,8 @@ correction — `deployment/{api,worker}/Dockerfile` → `deployment/Dockerfile`,
 the only one that exists — **could not be pushed**: GitHub rejected it with
 *"refusing to allow a GitHub App to create or update workflow ... without
 `workflows` permission"*. The corrected workflows are staged in
-`docs/ci/*.proposed` with apply instructions in `docs/ci/README.md`.
+`docs/ci/*.proposed`, with the full handoff (exact 4-line diff, rationale,
+and one open judgement call) in `docs/ci/CI_WORKFLOW_HANDOFF.md`.
 
 Verified locally:
 
