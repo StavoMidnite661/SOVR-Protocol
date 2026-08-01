@@ -1,9 +1,9 @@
 {
-  "build_hash": "bb8e457696bee43c5a7eaccfb501d18de7c65d66bf7772e732d92c3569e7d4df",
+  "build_hash": "b133303a02ae6053e35a4ba352ab1a3411567b7ddf84d194837303609a75148b",
   "deterministic_proof": {
     "identical": true,
-    "run_1_hash": "ec200fb1d3e065b924ccd22d47a7d43d8eb92a2288a68839878c008489a88c59",
-    "run_2_hash": "ec200fb1d3e065b924ccd22d47a7d43d8eb92a2288a68839878c008489a88c59"
+    "run_1_hash": "7501d6b432b68c8498319c22d0606e420ef79e6c9ebd58f1bc8c59eeb0740894",
+    "run_2_hash": "7501d6b432b68c8498319c22d0606e420ef79e6c9ebd58f1bc8c59eeb0740894"
   },
   "input_hashes": {
     "00_protocol-manifest.yaml": "31bbc667f781c4b497eb6eb15f5534cce10f57d53dc14716dba2c0461adfb161",
@@ -12,7 +12,7 @@
     "03_command-catalog.yaml": "35eee26041c18d0dee1adc7bccb230d727eb93f2ace601bff687e6e1c2240ea4",
     "04_event-catalog.yaml": "fac0208e33ca1c2292df577c14abb25203bb1ed92543f1792634158c92a347d8",
     "05_state-machines.yaml": "a29d6766ee3d6bc08c1433b4df0b8376dafc122442651dcd506d24e089d80a3a",
-    "08_security-capabilities.yaml": "6d49894fb42ac086c0b1990652c5670e3b37de2635616acbc8dd6c486a142cae",
+    "08_security-capabilities.yaml": "e86218cfe689392ae4bc0664903f90b92a7d64fe6ada4158807a1485c2e9e942",
     "09_saga-orchestration.yaml": "26872607b0c83d6c4373ad1aae3cf9604a215d1d02dbcda3e91450d09dc8d07e",
     "11_governance-amendments.yaml": "a7d39f9c5ab43f0063bb8be3535312d539e714b07a9f68bca4efe2c45986891f",
     "12_domain-contracts.yaml": "af31b4a0b1be15a0c2772c293943fab93504712ea69833458ac949774c7ee61c",
@@ -46,11 +46,11 @@
     "protocol/DOMAIN_REGISTRY.yaml": "e3ce1dfc95fa6759a34e1c369f6e2615f583726786adde5c5049f2dd9180661a",
     "protocol/METADATA_STANDARD.yaml": "cbb398e2d1d04d7830ce66919a8e4a25f01e75c6b3022b341ff0bb3b6f85ecf3"
   },
-  "ir_hash": "134306ef6913d1571a25e7da7eebd0f8321349ea0417e1ad58c4dc0f70e536f3",
+  "ir_hash": "733904b146cf95e755816d4174e9395ff9988a27c9ea4a112acbe0f349227985",
   "legal_notice": "SOVR Protocol compiler certification artifact. Proprietary — all rights reserved.",
   "registry_hashes": {
     "boot.registry.json": "2716a0701cf94a0fbfb11721cc623d27388533a0a94e121488f98bdb23e8542b",
-    "capabilities.registry.json": "4a9c470ac647e1a2793b4a99668218f14c6d08435ab9c766a4994a9b0524a45c",
+    "capabilities.registry.json": "0238b0ea652f777ddf5abba6bda1dd0185717f99d315d3016a6a1e4b2df9914c",
     "commands.registry.json": "806d58fd5a20f333e4d60d152b4cd50dd181b29f715f91a797f867d9f8cd7fa4",
     "contracts.registry.json": "fdc0db74a32b48cb444cf65fe289af18b0fdb91e789a5fcc97d81b1b9b404bff",
     "envelopes.registry.json": "ec1e1dcb49bbe689621aab76019a41680ab4b818bc80e7929b7e1fe8bbbb9571",

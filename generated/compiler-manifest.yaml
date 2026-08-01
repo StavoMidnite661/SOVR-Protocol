@@ -1,5 +1,5 @@
 {
-  "build_hash": "bb8e457696bee43c5a7eaccfb501d18de7c65d66bf7772e732d92c3569e7d4df",
+  "build_hash": "b133303a02ae6053e35a4ba352ab1a3411567b7ddf84d194837303609a75148b",
   "command_lifecycle_coverage": {
     "covered": [
       {
@@ -1242,7 +1242,7 @@
     "03_command-catalog.yaml": "35eee26041c18d0dee1adc7bccb230d727eb93f2ace601bff687e6e1c2240ea4",
     "04_event-catalog.yaml": "fac0208e33ca1c2292df577c14abb25203bb1ed92543f1792634158c92a347d8",
     "05_state-machines.yaml": "a29d6766ee3d6bc08c1433b4df0b8376dafc122442651dcd506d24e089d80a3a",
-    "08_security-capabilities.yaml": "6d49894fb42ac086c0b1990652c5670e3b37de2635616acbc8dd6c486a142cae",
+    "08_security-capabilities.yaml": "e86218cfe689392ae4bc0664903f90b92a7d64fe6ada4158807a1485c2e9e942",
     "09_saga-orchestration.yaml": "26872607b0c83d6c4373ad1aae3cf9604a215d1d02dbcda3e91450d09dc8d07e",
     "11_governance-amendments.yaml": "a7d39f9c5ab43f0063bb8be3535312d539e714b07a9f68bca4efe2c45986891f",
     "12_domain-contracts.yaml": "af31b4a0b1be15a0c2772c293943fab93504712ea69833458ac949774c7ee61c",
@@ -1276,17 +1276,17 @@
     "protocol/DOMAIN_REGISTRY.yaml": "e3ce1dfc95fa6759a34e1c369f6e2615f583726786adde5c5049f2dd9180661a",
     "protocol/METADATA_STANDARD.yaml": "cbb398e2d1d04d7830ce66919a8e4a25f01e75c6b3022b341ff0bb3b6f85ecf3"
   },
-  "ir_hash": "134306ef6913d1571a25e7da7eebd0f8321349ea0417e1ad58c4dc0f70e536f3",
+  "ir_hash": "733904b146cf95e755816d4174e9395ff9988a27c9ea4a112acbe0f349227985",
   "output_hashes": {
     "COMPILER_RUNTIME_COVERAGE.yaml": "bdfd649406cdd59682589d712adda48f829589a0e94046367c1f0e1bbbacca42",
     "config/kafka/topics.yaml": "40ea9dd8ea2a82fbe178d95a58c796df0815687b521c89464454c3dcf38a5e61",
     "config/redis/streams.yaml": "49bffe1bed1a1485124116e904f1e9f473a12009546c4f866f359e3b984d2c71",
-    "docs/topology.md": "1c29d5744932e34c49a78cc63427c2a066404042002b4b0b315f2d38aa8b318a",
-    "openapi.yaml": "06ac45091222e4cc1aa234835d9af7adc2000284d90e95efd16361858f8a584c",
+    "docs/topology.md": "4d169ae9c83120bed6d4dc479f4ee09aedceff4bd4503444a83d6f6d24f1deeb",
+    "openapi.yaml": "4f20ba8a651ced152cbf455c3d6ee3677da2ee04fdc29e1bbc3cc921e10fbe2c",
     "prisma/schema.prisma": "eff3bb7a95a534250177c460e354701a35224f8ddf013533ae371d34a6e0fccc",
-    "protocol-topology.json": "30061971c4304ec7629a70574665a2c6adf3b06e691640319fc9723457df62fc",
+    "protocol-topology.json": "5cb7aaa2e25afcc9caaa07c9d60eafc9175a5c2aae9b97009a393ca71134629c",
     "registries/boot.registry.json": "2716a0701cf94a0fbfb11721cc623d27388533a0a94e121488f98bdb23e8542b",
-    "registries/capabilities.registry.json": "4a9c470ac647e1a2793b4a99668218f14c6d08435ab9c766a4994a9b0524a45c",
+    "registries/capabilities.registry.json": "0238b0ea652f777ddf5abba6bda1dd0185717f99d315d3016a6a1e4b2df9914c",
     "registries/commands.registry.json": "806d58fd5a20f333e4d60d152b4cd50dd181b29f715f91a797f867d9f8cd7fa4",
     "registries/contracts.registry.json": "fdc0db74a32b48cb444cf65fe289af18b0fdb91e789a5fcc97d81b1b9b404bff",
     "registries/envelopes.registry.json": "ec1e1dcb49bbe689621aab76019a41680ab4b818bc80e7929b7e1fe8bbbb9571",
@@ -1323,7 +1323,7 @@
     "src/policy/engine.ts": "c5fa75396b18fa0f91eaa6e2c3086dffb6b067bb5a8c7acc85bef635d833fd36",
     "src/policy/vel-evaluator.ts": "549f850bef6742ff0b2410ba57d058c5f861d9a5e0b5468efd7e28f59851b7dc",
     "src/sdk/agent-sandbox.ts": "016135ea2c51a730202576031a34541a256b404c1d336e16d6e8bf8421f4cee7",
-    "src/security/capability-engine.ts": "b0b91c3c6a9e6c5c553f8b0d38d0e104199401dc7497678925786d496392a2c6",
+    "src/security/capability-engine.ts": "0f6db33433e396c69dc5aa5b08afbe58bd700c27746245f92184a8d51996e2ee",
     "src/types/agent/agent.types.ts": "169038cb37192544137de1d38a0f05bef249704220dd583e838dc015b0f64d84",
     "src/types/escrow/escrow.types.ts": "aad72b136f4df405f4df31f0798693bc033fc96a2d63d2d4a184d0270ef20b37",
     "src/types/governance/governance.types.ts": "cb08ebff8d0c9e2decb539b99d848376df685285958cf6ce4432e885b4e0f64f",
@@ -1453,7 +1453,7 @@
     "generated_files": 147,
     "input_files": 39,
     "ir_edges": 459,
-    "ir_nodes": 592,
+    "ir_nodes": 594,
     "warnings": 71
   },
   "timestamp_policy": "wall_clock_in_manifest: PROHIBITED — build_hash uses content hashes only"

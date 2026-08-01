@@ -1544,6 +1544,27 @@
       "risk_level": "MEDIUM",
       "scope_pattern": "ledger:{ledger_id}:reconciliation"
     },
+    "payment.compensation.execute": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "payment.compensation.execute",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Execute compensating reversals against external payment rails",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "payment_compensation",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "payment:compensation:{execution_id}:execute"
+    },
     "payment.execution.compensate": {
       "abi": "v1",
       "action": "EXECUTE",
@@ -1677,6 +1698,27 @@
       "resource_type": "payment",
       "risk_level": "CRITICAL",
       "scope_pattern": "payment:*:*"
+    },
+    "payment.rail.execute": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "payment.rail.execute",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Execute payment operations against external rails (prepare, execute, confirm)",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "payment_rail",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "payment:rail:{rail_id}:execute"
     },
     "payment.receipt.issue": {
       "abi": "v1",
@@ -2811,6 +2853,6 @@
       "scope_pattern": "asset:{asset_id}:valuation"
     }
   },
-  "entry_count": 111,
+  "entry_count": 113,
   "kind": "capabilities"
 }

@@ -73,10 +73,13 @@ export class BoundaryEventBus {
       this.auditLog.push(record as RailAuditRecord)
     })
 
-    // Wire circuit breaker events — emit commands
-    registry.on('circuit:open', (e) => {
-      this.onCircuitOpen(e as { railId: string; failures: number })
-    })
+    // Circuit-breaker alerting is intentionally not dispatched as a command.
+    // This previously dispatched 'system.rail.circuit_opened', which is not a
+    // registered command — the system domain declares events only, no command
+    // surface (audit finding D8). Circuit state is operational telemetry, not
+    // a constitutional command; it is already surfaced through the rail audit
+    // log above. If it needs to enter the event log, declare it in
+    // 04_event-catalog.yaml alongside the existing system.health.* events.
   }
 
   // ─── Rail Submission ────────────────────────────────────────────────────────
@@ -214,22 +217,6 @@ export class BoundaryEventBus {
     })
   }
 
-  // ─── Circuit Breaker Events ─────────────────────────────────────────────────
-
-  private async onCircuitOpen(event: {
-    railId:   string
-    failures: number
-  }): Promise<void> {
-    // Circuit open = emit a system alert command
-    await this.commandBus.dispatch({
-      commandName:   'system.rail.circuit_opened',
-      commandId:     `circuit:${event.railId}:${Date.now()}`,
-      correlationId: `circuit:${event.railId}`,
-      actorId:       this.config.systemActorId,
-      aggregateId:   `rail:${event.railId}`,
-      payload:       event
-    })
-  }
 
   // ─── Audit ──────────────────────────────────────────────────────────────────
 

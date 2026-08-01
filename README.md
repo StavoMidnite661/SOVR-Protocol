@@ -185,7 +185,7 @@ npm run protocol:runtime-audit
 ### Measured Metrics
 
 > Measured from this repository at build hash
-> `bb8e4576…`. Verified by `npm run certify:production`.
+> `b133303a…`. Verified by `npm run certify:production`.
 > Corrected 2026-07-27 following independent audit — see
 > `DUE_DILIGENCE/INDEPENDENT_AUDIT_2026-07-27.md`.
 
@@ -205,7 +205,7 @@ npm run protocol:runtime-audit
 | Generated artifacts | 147 | ✅ |
 | Registry JSON files | 11 | ✅ |
 | Registry integrity | 11/11 match manifest | ✅ |
-| Build hash | `bb8e457696bee43c5a7eaccfb501d18de7c65d66bf7772e732d92c3569e7d4df` | ✅ |
+| Build hash | `b133303a02ae6053e35a4ba352ab1a3411567b7ddf84d194837303609a75148b` | ✅ |
 | Reproducibility | Byte-identical, platform-independent | ✅ |
 | Runtime build | `tsc` 0 errors | ✅ |
 | Server boot | HEALTHY at runlevel 7 | ✅ |
@@ -826,7 +826,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | R9 | Byte-identical manifest — `build_hash = sha256(sorted(input_hashes) + ir_hash + sorted(output_hashes) + compiler_version + registry_versions)` |
 | R10 | Environmental isolation — compile in clean environment |
 
-**Verified build hash:** `bb8e457696bee43c5a7eaccfb501d18de7c65d66bf7772e732d92c3569e7d4df`
+**Verified build hash:** `b133303a02ae6053e35a4ba352ab1a3411567b7ddf84d194837303609a75148b`
 
 Identical YAML inputs produce identical build hashes. This is verified. This is the unfakeable proof of protocol integrity.
 
@@ -995,7 +995,7 @@ bash scripts/demo.sh
 
 ### Expected Output
 ```
-✅ Build hash: bb8e4576...
+✅ Build hash: b133303a...
 ✅ System HEALTHY
 ✅ Attestation chain intact
 ✅ Session created with RS256 JWT
@@ -1054,7 +1054,7 @@ node packages/compiler/dist/cli.js compile
 
 # Verify byte-identical reproducibility
 node packages/compiler/dist/cli.js verify
-# ✓ Reproducible build verified: bb8e4576...
+# ✓ Reproducible build verified: b133303a...
 
 # Boot kernel (8 runlevels + attestation)
 node packages/compiler/dist/cli.js boot
@@ -1132,7 +1132,7 @@ if (health.final_health !== 'HEALTHY') {
 // Verify unfakeable build hash chain
 const manifest = await fetch('http://localhost:3001/api/v1/manifest').then(r => r.json())
 const attestation = await fetch('http://localhost:3001/api/v1/boot-attestation').then(r => r.json())
-// manifest.build_hash === attestation.build_hash === bb8e4576...
+// manifest.build_hash === attestation.build_hash === b133303a...
 
 const client = new SOVRClient({
   apiUrl: 'http://localhost:3001/api/v1',
@@ -1351,7 +1351,7 @@ SOVR-Protocol/
 | Generated behavior | 100% | ✅ |
 | Registry ABI | v1 | ✅ |
 | Constitutional proof | XV3-ESCROW-PROOF | ✅ |
-| Build hash | `bb8e457696bee43c5a7eaccfb501d18de7c65d66bf7772e732d92c3569e7d4df` | ✅ |
+| Build hash | `b133303a02ae6053e35a4ba352ab1a3411567b7ddf84d194837303609a75148b` | ✅ |
 | Byte-identical reproducibility | Verified | ✅ |
 | Compiler diagnostics | 0 errors, 71 warnings | ✅ |
 
