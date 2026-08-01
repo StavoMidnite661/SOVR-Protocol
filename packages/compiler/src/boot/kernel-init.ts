@@ -107,7 +107,13 @@ export async function runBootSequence(rootDir: string, ir: SOVR_IR, buildHash: s
   // Level 6 Interpretation
   {
     const start = performance.now();
-    const projections = 15;
+    // Derived from the corpus, never hardcoded (audit finding D6). This was
+    // `const projections = 15`, which silently disagreed with
+    // projections.registry.json (16) once the escrow domain was added: the
+    // registry picked escrow_account_view up, the boot attestation did not.
+    // A boot attestation that reports a count the compiler did not produce is
+    // an unfakeable-provenance claim asserting an unverified number.
+    const projections = countProjections(rootDir);
     // Simulate replay determinism: rebuild projections from genesis
     emitEvent('saga.completed', 6);
     const dur = performance.now() - start;
@@ -175,6 +181,26 @@ export async function runBootSequence(rootDir: string, ir: SOVR_IR, buildHash: s
     events,
     attestation,
   };
+}
+
+/**
+ * Count projections declared in projection-engine.yaml.
+ *
+ * The `projections:` map also carries replay/caching configuration blocks
+ * (full_replay, incremental_replay, snapshot_replay, ttl_by_projection_type,
+ * conflict_resolution_strategies) which are not read models. A real projection
+ * is identified structurally by carrying a source_domain — the same shape the
+ * projections registry generator keys on — so the boot count and
+ * projections.registry.json cannot diverge.
+ */
+function countProjections(rootDir: string): number {
+  const p = join(rootDir, 'projection-engine.yaml');
+  if (!existsSync(p)) return 0;
+  const spec = yaml.load(readFileSync(p, 'utf8')) as any;
+  const entries = spec?.projections ?? {};
+  return Object.values(entries).filter(
+    (v: any) => v && typeof v === 'object' && 'source_domain' in v,
+  ).length;
 }
 
 function defaultRunlevels() {

@@ -148,7 +148,7 @@ async function bootKernel() {
   renderer.phaseComplete('EXECUTION_BOUNDARY');
 
   renderer.phase('INTERPRETATION');
-  console.log(`👁️ [6] INTERPRETATION — projection engine 15 read models rebuilding from genesis`);
+  console.log(`👁️ [6] INTERPRETATION — projection engine rebuilding read models from genesis`);
 
   // Real publishers (or nulls when not configured)
   let eventPublisher: any = new NullPublisher();
