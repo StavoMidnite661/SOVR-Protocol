@@ -1,6 +1,6 @@
 {
   "name": "@sovr/runtime",
-  "version": "1.0.0",
+  "version": "0.6.0",
   "description": "SOVR Financial OS Runtime \u2014 Linux kernel of finance, machine-readable, unfakeable",
   "type": "module",
   "main": "./dist/index.js",

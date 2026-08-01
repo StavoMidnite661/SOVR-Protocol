@@ -1,6 +1,7 @@
 # SOVR Protocol — Executive Summary
 
-**Version:** v0.9.0-rc  
+**Protocol Version:** v1.0.0 (FROZEN)  
+**Compiler / Runtime Version:** v0.6.0  
 **Generated:** 2026-07-25T03:11:13-07:00  
 **Build Hash:** `bb8e457696bee43c5a7eaccfb501d18de7c65d66bf7772e732d92c3569e7d4df`  
 

@@ -8,11 +8,29 @@
 ---
 
 [![Protocol](https://img.shields.io/badge/Protocol-v1.0.0-blue)](https://img.shields.io/badge/Protocol-v1.0.0-blue)
-[![Compiler](https://img.shields.io/badge/Compiler-v1.0.0-rc-orange)](https://img.shields.io/badge/Compiler-v1.0.0-rc-orange)
-[![Runtime](https://img.shields.io/badge/Runtime-v1.0.0-rc-orange)](https://img.shields.io/badge/Runtime-v1.0.0-rc-orange)
+[![Compiler](https://img.shields.io/badge/Compiler-v0.6.0-orange)](https://img.shields.io/badge/Compiler-v0.6.0-orange)
+[![Runtime](https://img.shields.io/badge/Runtime-v0.6.0-orange)](https://img.shields.io/badge/Runtime-v0.6.0-orange)
 [![Build](https://img.shields.io/badge/Build-Reproducible-green)](https://img.shields.io/badge/Build-Reproducible-green)
 [![Node](https://img.shields.io/badge/Node-%3E%3D20-green)](https://img.shields.io/badge/Node-%3E%3D20-green)
 [![License](https://img.shields.io/badge/License-Proprietary-red)](https://img.shields.io/badge/License-Proprietary-red)
+
+---
+
+### Versioning
+
+Two version lines, deliberately independent:
+
+| Line | Version | Applies to |
+|---|---|---|
+| **Protocol** | `v1.0.0` **FROZEN** | The YAML specification corpus — `00_`–`13_`, `domains/`, `protocol/`, `compiler/` contracts |
+| **Implementation** | `v0.6.0` | `@sovr/compiler`, `@sovr/runtime`, and the repository root |
+
+The protocol specification is frozen at v1.0.0. The reference compiler and
+runtime that implement it are at v0.6.0 and remain under active development —
+see [Current State vs Roadmap](#current-state-vs-roadmap).
+
+`@sovr/shared` is an internal utility package and carries its own semver
+(`0.1.0`); it is not part of the release surface described by v0.6.0.
 
 ---
 
@@ -84,7 +102,7 @@ YAML Constitution
 SOVR Compiler (deterministic, content-addressed)
     │
     ▼
-Registry Package (sovr-runtime-v1.0.0-rc-abi-v1.svr)
+Registry Package (sovr-runtime-v0.6.0-abi-v1.svr)
     │
     ├── commands.registry.json
     ├── machines.registry.json
@@ -723,7 +741,7 @@ It should not be used to process real financial transactions in its current stat
 
 ## The Compiler
 
-The SOVR compiler (`@sovr/compiler v1.0.0-rc`) is a deterministic, content-addressed build system for financial protocol specifications.
+The SOVR compiler (`@sovr/compiler v0.6.0`) is a deterministic, content-addressed build system for financial protocol specifications.
 
 ### Compilation Pipeline
 
@@ -779,7 +797,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | 16 | Topology Docs | `generated/docs/topology.md` |
 | C1 | Compiler Manifest | `generated/compiler-manifest.yaml` |
 | C2 | Canonical IR | `generated/sovr-ir.json` |
-| C3 | Registry Package | `dist/sovr-runtime-v1.0.0-rc-abi-v1.svr` |
+| C3 | Registry Package | `dist/sovr-runtime-v0.6.0-abi-v1.svr` |
 | C4 | Compiler Certification | `generated/compiler-certification.json` |
 
 > **Important:** Generated TypeScript artifacts are currently output-only. They are not fully imported or executed by the reference runtime. Wiring generated artifacts into the runtime is a primary v1 objective.
@@ -816,7 +834,7 @@ Identical YAML inputs produce identical build hashes. This is verified. This is 
 
 ## The Runtime
 
-The SOVR reference runtime (`@sovr/runtime v1.0.0-rc`) is the execution environment for compiled protocol specifications.
+The SOVR reference runtime (`@sovr/runtime v0.6.0`) is the execution environment for compiled protocol specifications.
 
 ### What the Runtime Does Today
 
@@ -992,7 +1010,7 @@ bash scripts/demo.sh
 
 Results: 13 passed, 0 failed
 
-SOVR Protocol v1.0.0-rc
+SOVR Protocol v1.0.0 (compiler/runtime v0.6.0)
 Spec-driven. Constitutional. Auditable.
 The Linux of Finance.
 ```
@@ -1127,7 +1145,7 @@ const client = new SOVRClient({
 ## Current State vs Roadmap
 
 **Protocol Specification:** `v1.0.0` — Complete and frozen.  
-**Compiler + Runtime:** `v1.0.0-rc` — Reference implementation. Active development.
+**Compiler + Runtime:** `v0.6.0` — Reference implementation. Active development.
 
 ### What Works Today
 

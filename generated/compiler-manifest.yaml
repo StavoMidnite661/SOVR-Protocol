@@ -1426,7 +1426,7 @@
     "verification/tla/VAULT_VALUATION_V06_LIFECYCLE.cfg": "069099c36bd59ad55c8d86e8138c072f9e3dd436f30f83ddb9a4c88469136f47",
     "verification/tla/VAULT_VALUATION_V06_LIFECYCLE.tla": "11c947bfb33fa9cc42ecd5280f1aae7480c0fc47af5741114cf10b50777fb167"
   },
-  "protocol_target_version": "1.0.1",
+  "protocol_target_version": "1.0.0",
   "protocol_version": "1.0.0",
   "registry_versions": {
     "acceptance_standard": "1.0.0",
