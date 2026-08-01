@@ -2,9 +2,9 @@
   "schema_version": "1.0.0",
   "generated_by": "@sovr/compiler v0.6.0",
   "protocol_version": "1.0.0",
-  "ir_hash": "134306ef6913d1571a25e7da7eebd0f8321349ea0417e1ad58c4dc0f70e536f3",
+  "ir_hash": "733904b146cf95e755816d4174e9395ff9988a27c9ea4a112acbe0f349227985",
   "stats": {
-    "nodes": 592,
+    "nodes": 594,
     "edges": 459
   },
   "nodes": [
@@ -443,6 +443,13 @@
       "properties": {}
     },
     {
+      "id": "capability:payment.compensation.execute",
+      "type": "capability",
+      "name": "payment.compensation.execute",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "capability:payment.execution.compensate",
       "type": "capability",
       "name": "payment.execution.compensate",
@@ -474,6 +481,13 @@
       "id": "capability:payment.initiate",
       "type": "capability",
       "name": "payment.initiate",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:payment.rail.execute",
+      "type": "capability",
+      "name": "payment.rail.execute",
       "version": "1.0.0",
       "properties": {}
     },

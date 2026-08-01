@@ -45,7 +45,7 @@ canonical_authority_model:
       role: deterministic interpreter specification
     - level: 5
       name: Generated Artifacts
-      artifacts: [src/**, schemas/**, openapi.yaml, tests/**, sdk/**]
+      artifacts: [src/**, schemas/**, openapi.json, tests/**, sdk/**]
       wins_over: nothing (derived)
       role: produced by compiler from levels 1-4
     - level: 6

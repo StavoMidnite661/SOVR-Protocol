@@ -136,7 +136,11 @@ export class ProjectionEngine {
   }
 
   private register() {
-    // 15 read models per spec
+    // NOTE (audit finding D6b): these 15 read models are handwritten and share
+    // ZERO names with the 16 projections in projections.registry.json. The
+    // runtime is not serving the compiled projection set — it is serving a
+    // parallel, hand-maintained one. Reconciling the two is tracked separately;
+    // do not add to this list, wire it to the registry instead.
     const list: Projection[] = [
       createVaultAssetView(),
       createBalanceView(),
@@ -157,6 +161,11 @@ export class ProjectionEngine {
 
     for (const p of list) this.projections.set(p.name, p);
     console.log(`👁️ Projection engine registered ${this.projections.size} read models`);
+  }
+
+  /** Number of registered read models — derived, never hardcoded (D6). */
+  count(): number {
+    return this.projections.size;
   }
 
   // INV-006: rebuild from genesis

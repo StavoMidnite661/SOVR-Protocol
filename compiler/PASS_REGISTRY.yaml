@@ -244,7 +244,7 @@ passes:
       phase: GENERATE
       purpose: Generate markdown docs and OpenAPI spec.
       consumes: [optimized_ir]
-      produces: [docs, openapi.yaml]
+      produces: [docs, openapi.json]
       depends_on: [PASS-015]
       deterministic: true
       certification: DOCGEN_PASS

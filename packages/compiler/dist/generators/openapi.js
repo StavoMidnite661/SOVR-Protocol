@@ -45,9 +45,22 @@ export function generateOpenAPI(ir) {
     };
     const body = JSON.stringify(openapi, null, 2);
     const hash = sha256(body);
-    const full = `# SOVR GENERATED FILE — DO NOT EDIT\n# Compiler: ${compilerVersion} Protocol: ${protocolVersion} Hash: ${hash}\n${body}`;
+    // Emitted as .json: the content is a JSON document. It was previously
+    // written to openapi.yaml with a leading '#' comment header, which is not
+    // valid YAML *or* valid JSON — standard parsers on both sides failed
+    // (audit finding D12). The provenance header now lives inside the document
+    // as x-sovr-generated so the artifact parses as strict JSON.
+    const full = JSON.stringify({
+        'x-sovr-generated': {
+            warning: 'SOVR GENERATED FILE — DO NOT EDIT',
+            compiler: compilerVersion,
+            protocol: protocolVersion,
+            hash,
+        },
+        ...openapi,
+    }, null, 2);
     return [{
-            path: 'openapi.yaml',
+            path: 'openapi.json',
             content: full,
             sha256: sha256(full),
             sourceRefs: ir.nodes.filter(n => n.type === 'command').map(n => n.sourceRef),

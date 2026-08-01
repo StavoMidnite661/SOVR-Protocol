@@ -148,7 +148,7 @@ async function bootKernel() {
   renderer.phaseComplete('EXECUTION_BOUNDARY');
 
   renderer.phase('INTERPRETATION');
-  console.log(`👁️ [6] INTERPRETATION — projection engine 15 read models rebuilding from genesis`);
+  console.log(`👁️ [6] INTERPRETATION — projection engine rebuilding read models from genesis`);
 
   // Real publishers (or nulls when not configured)
   let eventPublisher: any = new NullPublisher();
@@ -592,21 +592,26 @@ async function buildServer() {
   app.get('/api/v1/boot-attestation', async () => config.bootAttestation || { build_hash: config.buildHash, boot_hash: config.bootHash });
   app.get('/boot-attestation', async () => config.bootAttestation || { build_hash: config.buildHash });
 
-  // OpenAPI
-  app.get('/openapi.yaml', async (req, reply) => {
-    const openApiPath = path.join(config.generatedDir, 'openapi.yaml');
+  // OpenAPI — the generated artifact is JSON (audit finding D12). It was
+  // previously served from openapi.yaml as text/yaml despite being JSON with a
+  // '#' header, so it parsed as neither format.
+  app.get('/openapi.json', async (req, reply) => {
+    const openApiPath = path.join(config.generatedDir, 'openapi.json');
     if (fs.existsSync(openApiPath)) {
-      reply.type('text/yaml').send(fs.readFileSync(openApiPath, 'utf8'));
+      reply.type('application/json').send(fs.readFileSync(openApiPath, 'utf8'));
     } else {
       const dynamicPaths = buildOpenApiFromCommands();
       reply.send({ openapi: '3.1.0', info: { title: 'SOVR Financial OS', version: '1.0.0' }, paths: dynamicPaths });
     }
   });
 
+  // Back-compat: existing clients pinned to /openapi.yaml keep working.
+  app.get('/openapi.yaml', async (req, reply) => reply.redirect('/openapi.json', 308));
+
   app.get('/api/v1/openapi', async () => {
-    const openApiPath = path.join(config.generatedDir, 'openapi.yaml');
+    const openApiPath = path.join(config.generatedDir, 'openapi.json');
     if (fs.existsSync(openApiPath)) {
-      return { yaml: fs.readFileSync(openApiPath, 'utf8').slice(0, 5000) + '... (full at /openapi.yaml)' };
+      return JSON.parse(fs.readFileSync(openApiPath, 'utf8'));
     }
     return { paths: buildOpenApiFromCommands() };
   });

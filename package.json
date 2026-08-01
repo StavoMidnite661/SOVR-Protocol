@@ -1,6 +1,9 @@
 {
   "name": "sovr-protocol-root",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
   "scripts": {
     "build": "npm run build --prefix packages/compiler && npm run build --prefix packages/runtime",
@@ -16,5 +19,5 @@
     "protocol:formal-verify": "bash scripts/formal-verify.sh",
     "certify:production": "node scripts/certify-production.mjs"
   },
-  "version": "1.0.0"
+  "version": "0.6.0"
 }

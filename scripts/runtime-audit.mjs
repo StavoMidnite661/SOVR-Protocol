@@ -77,14 +77,28 @@ try {
   console.error(`Registry cross-validation skipped: ${err.message}`);
 }
 
+// Registry drift is BLOCKING, not advisory (audit finding D8).
+//
+// The YAML corpus is authoritative for this protocol. A command or capability
+// literal in runtime source that does not resolve against the compiled
+// registries is a constitutional violation: it means the runtime is acting on
+// a vocabulary the spec never granted. Treating that as a warning let a real
+// bug ship — SovrLedgerDriver dispatched 'treasury.transfer.initiate', which
+// kernel-executor rejects with UNKNOWN_COMMAND, so every private-ledger
+// submission would have failed at runtime while the audit printed a warning
+// and exited 0.
 if (drift.length > 0) {
-  console.warn(`\nREGISTRY DRIFT — ${drift.length} literal(s) do not resolve against the compiled corpus:`);
-  for (const d of drift) console.warn(`  ⚠️  ${d}`);
-  console.warn('  These are advisory: resolve the intended mapping in YAML or source.');
+  console.error(`\nREGISTRY DRIFT — ${drift.length} literal(s) do not resolve against the compiled corpus:`);
+  for (const d of drift) console.error(`  ❌ ${d}`);
+  console.error('  The YAML corpus is authoritative: either define these in the spec');
+  console.error('  and recompile, or remove them from the runtime.');
 }
 
-if (violations > 0) {
-  console.error(`\nRUNTIME PURITY AUDIT: FAIL — ${violations} violation(s)`);
+if (violations > 0 || drift.length > 0) {
+  const parts = [];
+  if (violations > 0) parts.push(`${violations} purity violation(s)`);
+  if (drift.length > 0) parts.push(`${drift.length} registry drift literal(s)`);
+  console.error(`\nRUNTIME AUDIT: FAIL — ${parts.join(', ')}`);
   process.exit(1);
 }
-console.log('RUNTIME PURITY AUDIT: PASS — 0 violations');
+console.log('RUNTIME AUDIT: PASS — 0 purity violations, 0 registry drift');

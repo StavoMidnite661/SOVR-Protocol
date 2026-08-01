@@ -307,7 +307,7 @@ outputs:
       - 02_domain-model.yaml
       - 04_event-catalog.yaml
     template: OPENAPI_3_1
-    output_file: "openapi.yaml"
+    output_file: "openapi.json"
     conventions:
       security_scheme: BEARER_JWT
       tag_per_domain: true

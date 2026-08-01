@@ -163,7 +163,7 @@ boot_sequence:
         - types: "generated/src/types/{domain}/* — IAsset, ITransfer, etc"
         - commands: "generated/src/commands/* — VaultAssetRegisterCommand + Zod schemas"
         - events: "generated/src/events/* — Event classes with envelope composition"
-        - openapi: "generated/openapi.yaml — 88 commands → POST /api/v1/{domain}/{aggregate} with bearerAuth + x-constitutional-gates"
+        - openapi: "generated/openapi.json — 88 commands → POST /api/v1/{domain}/{aggregate} with bearerAuth + x-constitutional-gates"
         - execution_context: "src/execution/execution-context.ts — single object handler receives per ADR-009"
         - adapters: "ChainAdapter, PaymentRailAdapter, AdapterRegistry"
         - manifest: "compiler-manifest.yaml build_hash for frontend verification"

@@ -184,7 +184,12 @@ export class SovrLedgerDriver extends BaseRailDriver {
    */
   private buildCommand(payload: RailPayload) {
     return {
-      commandName:   'treasury.transfer.initiate',
+      // 'treasury.transfer.request' is the registered lifecycle entry point in
+      // 03_command-catalog.yaml. This previously read 'treasury.transfer.initiate',
+      // which is not a registered command — kernel-executor throws
+      // UNKNOWN_COMMAND for unregistered names, so every private-ledger
+      // submission would have failed at runtime (audit finding D8).
+      commandName:   'treasury.transfer.request',
       commandId:     payload.commandId,
       correlationId: payload.correlationId,
       actorId:       payload.actorId,

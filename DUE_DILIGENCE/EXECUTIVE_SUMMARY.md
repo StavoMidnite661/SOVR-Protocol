@@ -1,8 +1,9 @@
 # SOVR Protocol — Executive Summary
 
-**Version:** v0.9.0-rc  
+**Protocol Version:** v1.0.0 (FROZEN)  
+**Compiler / Runtime Version:** v0.6.0  
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd`  
+**Build Hash:** `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829`  
 
 ---
 
@@ -42,7 +43,7 @@ SOVR is a **spec-first, compiled financial protocol** with a reference compiler 
 | Acceptance suites | 3/3 PASS | `vitest run src/__tests__/acceptance` |
 | Integration tests | 51/55 PASS | 4 fail on unimplemented gate config (TD-002) |
 | Open findings | **26** | `certification/TECHNICAL_DEBT.md` |
-| Build Hash | `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd` |
+| Build Hash | `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829` |
 
 ---
 

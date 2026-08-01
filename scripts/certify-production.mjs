@@ -166,6 +166,43 @@ for (const f of composeFiles) {
 check(hardcoded === 0, 'no hardcoded secrets in compose files',
   hardcoded ? `(${hardcoded} found)` : `(${composeFiles.length} files scanned)`);
 
+// Audit finding D11: .env was tracked in git. Its credential slots were empty
+// placeholders, so nothing leaked — but the file is NODE_ENV=production and
+// carries real operational values (ACH routing number, TigerBeetle cluster,
+// provider selections). It is exactly the file an operator pastes live
+// credentials into, at which point the next `git commit -a` publishes them
+// irreversibly. Tracking it at all is the hazard, so this fails the build.
+try {
+  const { execSync } = await import('node:child_process');
+  const tracked = execSync('git ls-files .env .env.local .env.*.local', {
+    cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+  }).trim();
+  const offenders = tracked.split('\n').filter(Boolean);
+  check(offenders.length === 0,
+    'no .env file is tracked in git',
+    offenders.length ? `(tracked: ${offenders.join(', ')} — run: git rm --cached ${offenders.join(' ')})` : '');
+} catch {
+  warn('git not available — skipped tracked-.env check');
+}
+
+// Secret scan over .env* files: a populated credential in any committed or
+// on-disk env file is a finding regardless of tracking status.
+const envCandidates = ['.env', '.env.example'].filter(f => existsSync(join(ROOT, f)));
+const populated = [];
+for (const f of envCandidates) {
+  for (const line of readFileSync(join(ROOT, f), 'utf8').split('\n')) {
+    const m = line.match(/^([A-Z0-9_]*(?:API_KEY|SECRET|TOKEN|PASSWORD|PRIVATE_KEY))\s*=\s*(.+)$/);
+    if (!m) continue;
+    const val = m[2].trim().replace(/^["']|["']$/g, '');
+    // Placeholders and PEM headers are not real secrets.
+    if (!val || val.includes('...') || val.includes('BEGIN ') || /^(changeme|xxx+|<.*>|your[-_])/i.test(val)) continue;
+    populated.push(`${f}:${m[1]}`);
+  }
+}
+check(populated.length === 0,
+  'no populated credentials in env files',
+  populated.length ? `(${populated.length}: ${populated.slice(0, 3).join(', ')})` : `(${envCandidates.length} file(s) scanned)`);
+
 const serverIndex = join(ROOT, 'packages/runtime/src/server/index.ts');
 if (existsSync(serverIndex)) {
   const content = readFileSync(serverIndex, 'utf8');
@@ -185,6 +222,56 @@ if (existsSync(debtPath)) {
       'executive summary does not claim 0 findings while debt is open',
       claimsZero && openItems > 0 ? `(claims 0, register lists ${openItems})` : `(${openItems} open)`);
   }
+}
+
+// ── 6. Certification evidence integrity ──────────────────────────────────────
+// Audit finding D7: PRODUCTION_GATE.yaml asserted `green` status for security
+// and authorization while citing 16 evidence paths that do not exist, including
+// "6 tests PASS" for an absent test file. A green status backed by a missing
+// file is worse than no claim at all, so it is now a hard failure.
+console.log('\nCertification evidence integrity:');
+const gatePath = join(ROOT, 'certification', 'PRODUCTION_GATE.yaml');
+if (existsSync(gatePath)) {
+  const lines = readFileSync(gatePath, 'utf8').split('\n');
+  const missing = [];
+  let total = 0;
+  let inEvidence = false;
+  let evidenceIndent = 0;
+
+  for (const raw of lines) {
+    const line = raw.replace(/\s+$/, '');
+    if (!line || line.trimStart().startsWith('#')) continue;
+    const indent = line.length - line.trimStart().length;
+
+    if (/^\s*evidence:\s*$/.test(line)) {
+      inEvidence = true;
+      evidenceIndent = indent;
+      continue;
+    }
+    // Leaving the evidence block: a key at or above its indent level.
+    if (inEvidence && !/^\s*-\s+/.test(line) && indent <= evidenceIndent) {
+      inEvidence = false;
+    }
+    if (!inEvidence) continue;
+
+    const item = line.match(/^\s*-\s+(.*)$/);
+    if (!item) continue;
+
+    // The leading token is the path; trailing prose after " — " or " (" is an
+    // annotation, not part of the path.
+    const token = item[1].split(/\s+—\s+|\s+\(|\s+-\s+/)[0].trim().replace(/^['"]|['"]$/g, '');
+    if (!token || !/[/.]/.test(token)) continue;   // skip prose-only entries
+
+    total++;
+    if (!existsSync(join(ROOT, token))) missing.push(token);
+  }
+
+  check(missing.length === 0,
+    'every PRODUCTION_GATE evidence path resolves',
+    missing.length ? `(${missing.length}/${total} missing: ${missing.slice(0, 3).join(', ')}${missing.length > 3 ? ', …' : ''})`
+                   : `(${total} paths verified)`);
+} else {
+  warn('certification/PRODUCTION_GATE.yaml not present');
 }
 
 // ── Verdict ──────────────────────────────────────────────────────────────────

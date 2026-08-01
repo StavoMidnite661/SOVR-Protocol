@@ -41,9 +41,9 @@ flowchart TD
     capability_ledger_account_read(["CAPABILITY: read"])
   end
   subgraph PAYMENT [PAYMENT Domain]
+    capability_payment_compensation_execute(["CAPABILITY: execute"])
     capability_payment_execution_compensate(["CAPABILITY: compensate"])
     capability_payment_execution_confirm(["CAPABILITY: confirm"])
-    capability_payment_execution_execute(["CAPABILITY: execute"])
   end
   subgraph POLICY [POLICY Domain]
     capability_policy_compliance_create(["CAPABILITY: create"])

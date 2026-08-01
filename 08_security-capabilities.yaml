@@ -1791,6 +1791,51 @@ capabilities:
     delegable: false
     max_delegation_depth: 0
 
+  # ── External rail access (audit finding D8) ──────────────────────────────
+  # The payment.rail.* event lifecycle was already fully declared in
+  # 04_event-catalog.yaml (prepared / executed / confirmed / failed / …), but
+  # no capability authorised it. Rail adapters therefore referenced
+  # payment.rail.execute and payment.compensation.execute as capability_id on
+  # emitted events without those capabilities existing in the corpus — a
+  # runtime literal outside the spec. Defined here to close that gap.
+  #
+  # constitutional_constraint follows the precedent set by the adjacent
+  # payment.execution.compensate and treasury.transfer.compensate, both of
+  # which bind rail-level compensation to INV-003 (authority_boundary).
+  # agent_executable is false: INV-004 forbids agents from reaching external
+  # financial rails.
+  - capability_id: payment.rail.execute
+    description: "Execute payment operations against external rails (prepare, execute, confirm)"
+    domain: PAYMENT
+    resource_type: "payment_rail"
+    action: EXECUTE
+    scope_pattern: "payment:rail:{rail_id}:execute"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: CRITICAL
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
+  - capability_id: payment.compensation.execute
+    description: "Execute compensating reversals against external payment rails"
+    domain: PAYMENT
+    resource_type: "payment_compensation"
+    action: EXECUTE
+    scope_pattern: "payment:compensation:{execution_id}:execute"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: CRITICAL
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
   - capability_id: payment.reconciliation.initiate
     description: "Initiate payment reconciliation process"
     domain: PAYMENT

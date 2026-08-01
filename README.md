@@ -8,11 +8,29 @@
 ---
 
 [![Protocol](https://img.shields.io/badge/Protocol-v1.0.0-blue)](https://img.shields.io/badge/Protocol-v1.0.0-blue)
-[![Compiler](https://img.shields.io/badge/Compiler-v1.0.0-rc-orange)](https://img.shields.io/badge/Compiler-v1.0.0-rc-orange)
-[![Runtime](https://img.shields.io/badge/Runtime-v1.0.0-rc-orange)](https://img.shields.io/badge/Runtime-v1.0.0-rc-orange)
+[![Compiler](https://img.shields.io/badge/Compiler-v0.6.0-orange)](https://img.shields.io/badge/Compiler-v0.6.0-orange)
+[![Runtime](https://img.shields.io/badge/Runtime-v0.6.0-orange)](https://img.shields.io/badge/Runtime-v0.6.0-orange)
 [![Build](https://img.shields.io/badge/Build-Reproducible-green)](https://img.shields.io/badge/Build-Reproducible-green)
 [![Node](https://img.shields.io/badge/Node-%3E%3D20-green)](https://img.shields.io/badge/Node-%3E%3D20-green)
 [![License](https://img.shields.io/badge/License-Proprietary-red)](https://img.shields.io/badge/License-Proprietary-red)
+
+---
+
+### Versioning
+
+Two version lines, deliberately independent:
+
+| Line | Version | Applies to |
+|---|---|---|
+| **Protocol** | `v1.0.0` **FROZEN** | The YAML specification corpus — `00_`–`13_`, `domains/`, `protocol/`, `compiler/` contracts |
+| **Implementation** | `v0.6.0` | `@sovr/compiler`, `@sovr/runtime`, and the repository root |
+
+The protocol specification is frozen at v1.0.0. The reference compiler and
+runtime that implement it are at v0.6.0 and remain under active development —
+see [Current State vs Roadmap](#current-state-vs-roadmap).
+
+`@sovr/shared` is an internal utility package and carries its own semver
+(`0.1.0`); it is not part of the release surface described by v0.6.0.
 
 ---
 
@@ -84,7 +102,7 @@ YAML Constitution
 SOVR Compiler (deterministic, content-addressed)
     │
     ▼
-Registry Package (sovr-runtime-v1.0.0-rc-abi-v1.svr)
+Registry Package (sovr-runtime-v0.6.0-abi-v1.svr)
     │
     ├── commands.registry.json
     ├── machines.registry.json
@@ -167,7 +185,7 @@ npm run protocol:runtime-audit
 ### Measured Metrics
 
 > Measured from this repository at build hash
-> `2ae816fa…`. Verified by `npm run certify:production`.
+> `fa948641…`. Verified by `npm run certify:production`.
 > Corrected 2026-07-27 following independent audit — see
 > `DUE_DILIGENCE/INDEPENDENT_AUDIT_2026-07-27.md`.
 
@@ -187,7 +205,7 @@ npm run protocol:runtime-audit
 | Generated artifacts | 147 | ✅ |
 | Registry JSON files | 11 | ✅ |
 | Registry integrity | 11/11 match manifest | ✅ |
-| Build hash | `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd` | ✅ |
+| Build hash | `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829` | ✅ |
 | Reproducibility | Byte-identical, platform-independent | ✅ |
 | Runtime build | `tsc` 0 errors | ✅ |
 | Server boot | HEALTHY at runlevel 7 | ✅ |
@@ -723,7 +741,7 @@ It should not be used to process real financial transactions in its current stat
 
 ## The Compiler
 
-The SOVR compiler (`@sovr/compiler v1.0.0-rc`) is a deterministic, content-addressed build system for financial protocol specifications.
+The SOVR compiler (`@sovr/compiler v0.6.0`) is a deterministic, content-addressed build system for financial protocol specifications.
 
 ### Compilation Pipeline
 
@@ -764,7 +782,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | 1 | TypeScript Types | `src/types/{domain}/{domain}.types.ts` |
 | 2 | Command Classes | `src/commands/{domain}/{domain}.commands.ts` |
 | 3 | Event Classes | `src/events/{domain}/{domain}.events.ts` |
-| 4 | OpenAPI 3.1 Spec | `generated/openapi.yaml` |
+| 4 | OpenAPI 3.1 Spec | `generated/openapi.json` |
 | 5 | Prisma Schema | `generated/prisma/schema.prisma` |
 | 6 | Kafka Topic Config | `generated/config/kafka/topics.yaml` |
 | 7 | Redis Stream Config | `generated/config/redis/streams.yaml` |
@@ -779,7 +797,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | 16 | Topology Docs | `generated/docs/topology.md` |
 | C1 | Compiler Manifest | `generated/compiler-manifest.yaml` |
 | C2 | Canonical IR | `generated/sovr-ir.json` |
-| C3 | Registry Package | `dist/sovr-runtime-v1.0.0-rc-abi-v1.svr` |
+| C3 | Registry Package | `dist/sovr-runtime-v0.6.0-abi-v1.svr` |
 | C4 | Compiler Certification | `generated/compiler-certification.json` |
 
 > **Important:** Generated TypeScript artifacts are currently output-only. They are not fully imported or executed by the reference runtime. Wiring generated artifacts into the runtime is a primary v1 objective.
@@ -808,7 +826,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | R9 | Byte-identical manifest — `build_hash = sha256(sorted(input_hashes) + ir_hash + sorted(output_hashes) + compiler_version + registry_versions)` |
 | R10 | Environmental isolation — compile in clean environment |
 
-**Verified build hash:** `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd`
+**Verified build hash:** `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829`
 
 Identical YAML inputs produce identical build hashes. This is verified. This is the unfakeable proof of protocol integrity.
 
@@ -816,7 +834,7 @@ Identical YAML inputs produce identical build hashes. This is verified. This is 
 
 ## The Runtime
 
-The SOVR reference runtime (`@sovr/runtime v1.0.0-rc`) is the execution environment for compiled protocol specifications.
+The SOVR reference runtime (`@sovr/runtime v0.6.0`) is the execution environment for compiled protocol specifications.
 
 ### What the Runtime Does Today
 
@@ -977,7 +995,7 @@ bash scripts/demo.sh
 
 ### Expected Output
 ```
-✅ Build hash: 2ae816fa...
+✅ Build hash: fa948641...
 ✅ System HEALTHY
 ✅ Attestation chain intact
 ✅ Session created with RS256 JWT
@@ -992,7 +1010,7 @@ bash scripts/demo.sh
 
 Results: 13 passed, 0 failed
 
-SOVR Protocol v1.0.0-rc
+SOVR Protocol v1.0.0 (compiler/runtime v0.6.0)
 Spec-driven. Constitutional. Auditable.
 The Linux of Finance.
 ```
@@ -1036,7 +1054,7 @@ node packages/compiler/dist/cli.js compile
 
 # Verify byte-identical reproducibility
 node packages/compiler/dist/cli.js verify
-# ✓ Reproducible build verified: 2ae816fa...
+# ✓ Reproducible build verified: fa948641...
 
 # Boot kernel (8 runlevels + attestation)
 node packages/compiler/dist/cli.js boot
@@ -1114,7 +1132,7 @@ if (health.final_health !== 'HEALTHY') {
 // Verify unfakeable build hash chain
 const manifest = await fetch('http://localhost:3001/api/v1/manifest').then(r => r.json())
 const attestation = await fetch('http://localhost:3001/api/v1/boot-attestation').then(r => r.json())
-// manifest.build_hash === attestation.build_hash === 2ae816fa...
+// manifest.build_hash === attestation.build_hash === fa948641...
 
 const client = new SOVRClient({
   apiUrl: 'http://localhost:3001/api/v1',
@@ -1127,7 +1145,7 @@ const client = new SOVRClient({
 ## Current State vs Roadmap
 
 **Protocol Specification:** `v1.0.0` — Complete and frozen.  
-**Compiler + Runtime:** `v1.0.0-rc` — Reference implementation. Active development.
+**Compiler + Runtime:** `v0.6.0` — Reference implementation. Active development.
 
 ### What Works Today
 
@@ -1209,7 +1227,7 @@ const client = new SOVRClient({
 ```text
 SOVR-Protocol/
 │
-├── 📜 PROTOCOL SPECIFICATION (Root YAML — 15 files)
+├── 📜 PROTOCOL SPECIFICATION (Root YAML — 16 files)
 │   ├── 00_protocol-manifest.yaml     ← Entry point: layers, domains, build phases
 │   ├── 01_constitution.yaml          ← Supreme law: 10 invariants, authority, enforcement
 │   ├── 02_domain-model.yaml          ← 48 entities across 10 domains
@@ -1223,11 +1241,13 @@ SOVR-Protocol/
 │   ├── 13_compiler-adr.yaml          ← 12 architectural decision records
 │   ├── compiler.yaml                 ← Compiler specification
 │   ├── hybrid-boundary.yaml          ← Blockchain + oracle boundaries
-│   ├── projection-engine.yaml        ← 15 read model definitions
+│   ├── projection-engine.yaml        ← 16 read model definitions
+│   ├── phase_j_protocol_closure.yaml ← Phase J protocol closure record
 │   └── acceptance-tests.yaml         ← 60 acceptance tests
 │
 ├── 📁 domains/                       ← Per-domain detailed specifications
 │   ├── agent.yaml
+│   ├── escrow.yaml
 │   ├── governance.yaml
 │   ├── identity.yaml
 │   ├── intent.yaml
@@ -1283,7 +1303,7 @@ SOVR-Protocol/
 │   ├── boot.log                      ← Boot sequence log
 │   ├── boot-attestation.json         ← Cryptographic boot proof
 │   ├── boot-manifest.json            ← Boot stage timings and health
-│   ├── openapi.yaml                  ← Generated API contract
+│   ├── openapi.json                  ← Generated API contract (OpenAPI 3.1, JSON)
 │   ├── prisma/schema.prisma          ← Generated data model
 │   ├── config/kafka/topics.yaml      ← Generated event topics
 │   ├── config/redis/streams.yaml     ← Generated stream config
@@ -1333,7 +1353,7 @@ SOVR-Protocol/
 | Generated behavior | 100% | ✅ |
 | Registry ABI | v1 | ✅ |
 | Constitutional proof | XV3-ESCROW-PROOF | ✅ |
-| Build hash | `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd` | ✅ |
+| Build hash | `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829` | ✅ |
 | Byte-identical reproducibility | Verified | ✅ |
 | Compiler diagnostics | 0 errors, 71 warnings | ✅ |
 

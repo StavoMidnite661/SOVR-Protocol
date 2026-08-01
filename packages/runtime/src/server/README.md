@@ -69,7 +69,8 @@ curl http://localhost:3001/api/v1/projections/vault_asset_view
 
 - `eventStore.ts` — append-only, immutable, causation graph, file persistence `generated/data/sovr-events.json`
 - `capabilityEngine.ts` — 107 caps, scope pattern `vault.asset:{id}` with `*`, cache TTL 300s
-- `projectionEngine.ts` — 15 read models, `rebuildFromGenesis()` per INV-006
+- `projectionEngine.ts` — handwritten read models, `rebuildFromGenesis()` per INV-006.
+  NOTE: this set does not match `generated/registries/projections.registry.json` (audit finding D6b).
 - `commandBus.ts` — 7 gates: identity, capability, scope, policy, constitutional, execution, publication
 - `handlers.ts` — DOMAIN_ROUTES 101 commands
 - `config.ts` — loads compiler-manifest + boot-attestation, verifies build_hash chain

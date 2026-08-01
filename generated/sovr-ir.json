@@ -2299,7 +2299,7 @@
   "meta": {
     "compilerVersion": "0.6.0",
     "generatedWithoutWallClock": true,
-    "irHash": "134306ef6913d1571a25e7da7eebd0f8321349ea0417e1ad58c4dc0f70e536f3",
+    "irHash": "733904b146cf95e755816d4174e9395ff9988a27c9ea4a112acbe0f349227985",
     "protocolVersion": "1.0.0"
   },
   "nodes": [
@@ -3267,6 +3267,22 @@
     },
     {
       "action": "EXECUTE",
+      "capabilityId": "payment.compensation.execute",
+      "constitutionalRefs": [
+        "INV-003"
+      ],
+      "domain": "payment",
+      "id": "capability:payment.compensation.execute",
+      "resourceType": "payment_compensation",
+      "riskLevel": "CRITICAL",
+      "scopePattern": "payment:compensation:{execution_id}:execute",
+      "sourceFile": "08_security-capabilities.yaml",
+      "sourceRef": "payment.compensation.execute",
+      "type": "capability",
+      "version": "1.0.0"
+    },
+    {
+      "action": "EXECUTE",
       "capabilityId": "payment.execution.compensate",
       "constitutionalRefs": [
         "INV-003"
@@ -3338,6 +3354,22 @@
       "scopePattern": "payment:*:*",
       "sourceFile": "08_security-capabilities.yaml",
       "sourceRef": "payment.initiate",
+      "type": "capability",
+      "version": "1.0.0"
+    },
+    {
+      "action": "EXECUTE",
+      "capabilityId": "payment.rail.execute",
+      "constitutionalRefs": [
+        "INV-003"
+      ],
+      "domain": "payment",
+      "id": "capability:payment.rail.execute",
+      "resourceType": "payment_rail",
+      "riskLevel": "CRITICAL",
+      "scopePattern": "payment:rail:{rail_id}:execute",
+      "sourceFile": "08_security-capabilities.yaml",
+      "sourceRef": "payment.rail.execute",
       "type": "capability",
       "version": "1.0.0"
     },

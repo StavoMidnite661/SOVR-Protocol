@@ -272,7 +272,10 @@ export class CompilerRuntime {
           schema_version: '1.0.0',
           protocol_version: ir.meta.protocolVersion,
           compiler_version: ctx.compilerVersion,
-          protocol_target_version: '1.0.1',
+          // Protocol is FROZEN at 1.0.0 (00_protocol-manifest.yaml). This
+          // previously emitted '1.0.1', asserting a target version that the
+          // frozen protocol does not declare (audit finding D5).
+          protocol_target_version: ir.meta.protocolVersion,
           input_hashes: inputHashes,
           ir_hash: ir.meta.irHash,
           output_hashes: outputHashes,
