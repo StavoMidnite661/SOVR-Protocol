@@ -156,7 +156,7 @@ function validateIntegration() {
     check('input file count matches manifest', m.stats?.input_files === Object.keys(m.input_hashes || {}).length, `(stats ${m.stats?.input_files}, hashes ${Object.keys(m.input_hashes || {}).length})`);
     check('generated file count matches manifest', m.stats?.generated_files === (m.generation_order || []).length, `(stats ${m.stats?.generated_files}, order ${(m.generation_order || []).length})`);
   }
-  const openapi = join(ROOT, 'generated', 'openapi.yaml');
+  const openapi = join(ROOT, 'generated', 'openapi.json');
   if (existsSync(openapi)) {
     const o = load(openapi);
     const paths = Object.keys(o.paths || {}).length;

@@ -185,7 +185,7 @@ npm run protocol:runtime-audit
 ### Measured Metrics
 
 > Measured from this repository at build hash
-> `b133303a…`. Verified by `npm run certify:production`.
+> `fa948641…`. Verified by `npm run certify:production`.
 > Corrected 2026-07-27 following independent audit — see
 > `DUE_DILIGENCE/INDEPENDENT_AUDIT_2026-07-27.md`.
 
@@ -205,7 +205,7 @@ npm run protocol:runtime-audit
 | Generated artifacts | 147 | ✅ |
 | Registry JSON files | 11 | ✅ |
 | Registry integrity | 11/11 match manifest | ✅ |
-| Build hash | `b133303a02ae6053e35a4ba352ab1a3411567b7ddf84d194837303609a75148b` | ✅ |
+| Build hash | `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829` | ✅ |
 | Reproducibility | Byte-identical, platform-independent | ✅ |
 | Runtime build | `tsc` 0 errors | ✅ |
 | Server boot | HEALTHY at runlevel 7 | ✅ |
@@ -782,7 +782,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | 1 | TypeScript Types | `src/types/{domain}/{domain}.types.ts` |
 | 2 | Command Classes | `src/commands/{domain}/{domain}.commands.ts` |
 | 3 | Event Classes | `src/events/{domain}/{domain}.events.ts` |
-| 4 | OpenAPI 3.1 Spec | `generated/openapi.yaml` |
+| 4 | OpenAPI 3.1 Spec | `generated/openapi.json` |
 | 5 | Prisma Schema | `generated/prisma/schema.prisma` |
 | 6 | Kafka Topic Config | `generated/config/kafka/topics.yaml` |
 | 7 | Redis Stream Config | `generated/config/redis/streams.yaml` |
@@ -826,7 +826,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | R9 | Byte-identical manifest — `build_hash = sha256(sorted(input_hashes) + ir_hash + sorted(output_hashes) + compiler_version + registry_versions)` |
 | R10 | Environmental isolation — compile in clean environment |
 
-**Verified build hash:** `b133303a02ae6053e35a4ba352ab1a3411567b7ddf84d194837303609a75148b`
+**Verified build hash:** `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829`
 
 Identical YAML inputs produce identical build hashes. This is verified. This is the unfakeable proof of protocol integrity.
 
@@ -995,7 +995,7 @@ bash scripts/demo.sh
 
 ### Expected Output
 ```
-✅ Build hash: b133303a...
+✅ Build hash: fa948641...
 ✅ System HEALTHY
 ✅ Attestation chain intact
 ✅ Session created with RS256 JWT
@@ -1054,7 +1054,7 @@ node packages/compiler/dist/cli.js compile
 
 # Verify byte-identical reproducibility
 node packages/compiler/dist/cli.js verify
-# ✓ Reproducible build verified: b133303a...
+# ✓ Reproducible build verified: fa948641...
 
 # Boot kernel (8 runlevels + attestation)
 node packages/compiler/dist/cli.js boot
@@ -1132,7 +1132,7 @@ if (health.final_health !== 'HEALTHY') {
 // Verify unfakeable build hash chain
 const manifest = await fetch('http://localhost:3001/api/v1/manifest').then(r => r.json())
 const attestation = await fetch('http://localhost:3001/api/v1/boot-attestation').then(r => r.json())
-// manifest.build_hash === attestation.build_hash === b133303a...
+// manifest.build_hash === attestation.build_hash === fa948641...
 
 const client = new SOVRClient({
   apiUrl: 'http://localhost:3001/api/v1',
@@ -1227,7 +1227,7 @@ const client = new SOVRClient({
 ```text
 SOVR-Protocol/
 │
-├── 📜 PROTOCOL SPECIFICATION (Root YAML — 15 files)
+├── 📜 PROTOCOL SPECIFICATION (Root YAML — 16 files)
 │   ├── 00_protocol-manifest.yaml     ← Entry point: layers, domains, build phases
 │   ├── 01_constitution.yaml          ← Supreme law: 10 invariants, authority, enforcement
 │   ├── 02_domain-model.yaml          ← 48 entities across 10 domains
@@ -1241,11 +1241,13 @@ SOVR-Protocol/
 │   ├── 13_compiler-adr.yaml          ← 12 architectural decision records
 │   ├── compiler.yaml                 ← Compiler specification
 │   ├── hybrid-boundary.yaml          ← Blockchain + oracle boundaries
-│   ├── projection-engine.yaml        ← 15 read model definitions
+│   ├── projection-engine.yaml        ← 16 read model definitions
+│   ├── phase_j_protocol_closure.yaml ← Phase J protocol closure record
 │   └── acceptance-tests.yaml         ← 60 acceptance tests
 │
 ├── 📁 domains/                       ← Per-domain detailed specifications
 │   ├── agent.yaml
+│   ├── escrow.yaml
 │   ├── governance.yaml
 │   ├── identity.yaml
 │   ├── intent.yaml
@@ -1301,7 +1303,7 @@ SOVR-Protocol/
 │   ├── boot.log                      ← Boot sequence log
 │   ├── boot-attestation.json         ← Cryptographic boot proof
 │   ├── boot-manifest.json            ← Boot stage timings and health
-│   ├── openapi.yaml                  ← Generated API contract
+│   ├── openapi.json                  ← Generated API contract (OpenAPI 3.1, JSON)
 │   ├── prisma/schema.prisma          ← Generated data model
 │   ├── config/kafka/topics.yaml      ← Generated event topics
 │   ├── config/redis/streams.yaml     ← Generated stream config
@@ -1351,7 +1353,7 @@ SOVR-Protocol/
 | Generated behavior | 100% | ✅ |
 | Registry ABI | v1 | ✅ |
 | Constitutional proof | XV3-ESCROW-PROOF | ✅ |
-| Build hash | `b133303a02ae6053e35a4ba352ab1a3411567b7ddf84d194837303609a75148b` | ✅ |
+| Build hash | `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829` | ✅ |
 | Byte-identical reproducibility | Verified | ✅ |
 | Compiler diagnostics | 0 errors, 71 warnings | ✅ |
 

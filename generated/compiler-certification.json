@@ -1,9 +1,9 @@
 {
-  "build_hash": "b133303a02ae6053e35a4ba352ab1a3411567b7ddf84d194837303609a75148b",
+  "build_hash": "fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829",
   "deterministic_proof": {
     "identical": true,
-    "run_1_hash": "7501d6b432b68c8498319c22d0606e420ef79e6c9ebd58f1bc8c59eeb0740894",
-    "run_2_hash": "7501d6b432b68c8498319c22d0606e420ef79e6c9ebd58f1bc8c59eeb0740894"
+    "run_1_hash": "8014883f005d201c3e7c6dec7fa4182c15c7705313dd0473b30a6a4236563322",
+    "run_2_hash": "8014883f005d201c3e7c6dec7fa4182c15c7705313dd0473b30a6a4236563322"
   },
   "input_hashes": {
     "00_protocol-manifest.yaml": "31bbc667f781c4b497eb6eb15f5534cce10f57d53dc14716dba2c0461adfb161",
@@ -16,16 +16,16 @@
     "09_saga-orchestration.yaml": "26872607b0c83d6c4373ad1aae3cf9604a215d1d02dbcda3e91450d09dc8d07e",
     "11_governance-amendments.yaml": "a7d39f9c5ab43f0063bb8be3535312d539e714b07a9f68bca4efe2c45986891f",
     "12_domain-contracts.yaml": "af31b4a0b1be15a0c2772c293943fab93504712ea69833458ac949774c7ee61c",
-    "13_compiler-adr.yaml": "b0d9b2f006170bb7319fe5b6ec566d97fa3119e5bbf6fec0879ef89542a258e8",
+    "13_compiler-adr.yaml": "66042e9523d6d8fc6fee558b6177dee29a99ab443e763cd52c424fcad3c73d79",
     "acceptance-tests.yaml": "0d41e9dd5e82404d9c53228a9e93d75de14ca77e195727f9ecaa34734fff9bd2",
-    "compiler.yaml": "63cecc1dd4f5527faf207e543833632c4867fe83663dd98a42263340de7eda67",
+    "compiler.yaml": "823c31702e19c22e3981d5ffdd2770afff67c726bf649f5a633313cf45bb924a",
     "compiler/BUILD_MANIFEST.yaml": "d0ecd3de23442bcb42e2c8cfa731e555a76c292c1059c51a1c4eb76d79dc5d87",
     "compiler/COMPILER_MANIFEST.yaml": "207362eaa8b4efeb1f2e1316854243cf30b2f505b05f2462be082d3cfdaf39dc",
     "compiler/ERROR_TAXONOMY.yaml": "ef83f7aa5f968a73a1feb843649cae3c7b0264008bc8c451605844b36a0bd209",
-    "compiler/GENERATOR_REGISTRY.yaml": "7a02c83c9d9c45ac67bf22ead326798b860f680f692da6b38535fc3499636270",
-    "compiler/PASS_REGISTRY.yaml": "3df0291787385142f726852943ab5b2fd7f5181cd7c38b688945e6434003d57f",
+    "compiler/GENERATOR_REGISTRY.yaml": "ac40ddffc37112d9c7beb0c0a28477debb463685a95c94fe3e3a39107fc57621",
+    "compiler/PASS_REGISTRY.yaml": "adba62646045a6289e394f8c9b4f3d2ee609e3170d4fdfe88349b911f59bb28a",
     "compiler/SEMANTIC_COMPILER_CONTRACT.yaml": "594bb86f4549a7cef138fe83754782ea8795b3726ea756332b7aa6890f26cd3e",
-    "compiler/compiler.yaml": "63cecc1dd4f5527faf207e543833632c4867fe83663dd98a42263340de7eda67",
+    "compiler/compiler.yaml": "823c31702e19c22e3981d5ffdd2770afff67c726bf649f5a633313cf45bb924a",
     "domains/agent.yaml": "ab6a9146d7d9ac5b71ecfba173e15c5fd23b3e8c9e32819f7f78e7bb0492937e",
     "domains/escrow.yaml": "17d70a7cc5cbc3d5a6994db3922cb3d5f0e1a75255d5eec17429a434324c562a",
     "domains/governance.yaml": "454adeff9af50c99d5e8e818ec8b63d417e823812eac456df2b26fb5e2c6d49f",
@@ -41,8 +41,8 @@
     "projection-engine.yaml": "fdaf0355754738034f4a055be7f701a73c4a6189d741fa1bc7567c80781244ec",
     "protocol/ACCEPTANCE_STANDARD.yaml": "97d7b5d9c0a0351a106b93e88278503474613b927e2fb9518cec39a7c352662c",
     "protocol/AGGREGATE_REGISTRY.yaml": "3def59b44ff06cbae577ace85a15103739af6124854a78f95c8c64441b9a315c",
-    "protocol/BOOT_SEQUENCE.yaml": "936ac488272a129f1aa1924c81e72eebf52f38c23e4ea63f159982537e6ec39c",
-    "protocol/CANONICAL_AUTHORITY_MODEL.yaml": "82d40aaaae5a24a0e09b25b5c273c6a1fdf2a4a7561f59ff47517050aae5e706",
+    "protocol/BOOT_SEQUENCE.yaml": "659fdc8588c5f8c74e7b2b7382b7edf2fb7a44798edfad7b7107b59862139c6c",
+    "protocol/CANONICAL_AUTHORITY_MODEL.yaml": "01c95d3e8fb0522514cb1955324bb44e6558d15924417d9c99253dc36cf84d41",
     "protocol/DOMAIN_REGISTRY.yaml": "e3ce1dfc95fa6759a34e1c369f6e2615f583726786adde5c5049f2dd9180661a",
     "protocol/METADATA_STANDARD.yaml": "cbb398e2d1d04d7830ce66919a8e4a25f01e75c6b3022b341ff0bb3b6f85ecf3"
   },

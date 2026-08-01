@@ -471,7 +471,7 @@ decisions:
             source: "acceptance tests"
           - path: "generated/docs/"
             source: "all sources"
-          - path: "generated/openapi.yaml"
+          - path: "generated/openapi.json"
             source: "OpenAPI spec"
         handwritten_root: "src/"
         separation_enforcement: >

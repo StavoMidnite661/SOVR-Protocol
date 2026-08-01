@@ -115,7 +115,7 @@ reproducibility:
   notes:
     - >-
       Verified 2026-08-01 — LF and CRLF checkouts of the same corpus produce an
-      identical build hash (b133303a02ae…). Platform independence is empirically
+      identical build hash (fa9486412578…). Platform independence is empirically
       demonstrated, not merely asserted.
 
 # ============================================================
