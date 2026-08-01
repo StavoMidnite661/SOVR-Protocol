@@ -166,6 +166,43 @@ for (const f of composeFiles) {
 check(hardcoded === 0, 'no hardcoded secrets in compose files',
   hardcoded ? `(${hardcoded} found)` : `(${composeFiles.length} files scanned)`);
 
+// Audit finding D11: .env was tracked in git. Its credential slots were empty
+// placeholders, so nothing leaked — but the file is NODE_ENV=production and
+// carries real operational values (ACH routing number, TigerBeetle cluster,
+// provider selections). It is exactly the file an operator pastes live
+// credentials into, at which point the next `git commit -a` publishes them
+// irreversibly. Tracking it at all is the hazard, so this fails the build.
+try {
+  const { execSync } = await import('node:child_process');
+  const tracked = execSync('git ls-files .env .env.local .env.*.local', {
+    cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
+  }).trim();
+  const offenders = tracked.split('\n').filter(Boolean);
+  check(offenders.length === 0,
+    'no .env file is tracked in git',
+    offenders.length ? `(tracked: ${offenders.join(', ')} — run: git rm --cached ${offenders.join(' ')})` : '');
+} catch {
+  warn('git not available — skipped tracked-.env check');
+}
+
+// Secret scan over .env* files: a populated credential in any committed or
+// on-disk env file is a finding regardless of tracking status.
+const envCandidates = ['.env', '.env.example'].filter(f => existsSync(join(ROOT, f)));
+const populated = [];
+for (const f of envCandidates) {
+  for (const line of readFileSync(join(ROOT, f), 'utf8').split('\n')) {
+    const m = line.match(/^([A-Z0-9_]*(?:API_KEY|SECRET|TOKEN|PASSWORD|PRIVATE_KEY))\s*=\s*(.+)$/);
+    if (!m) continue;
+    const val = m[2].trim().replace(/^["']|["']$/g, '');
+    // Placeholders and PEM headers are not real secrets.
+    if (!val || val.includes('...') || val.includes('BEGIN ') || /^(changeme|xxx+|<.*>|your[-_])/i.test(val)) continue;
+    populated.push(`${f}:${m[1]}`);
+  }
+}
+check(populated.length === 0,
+  'no populated credentials in env files',
+  populated.length ? `(${populated.length}: ${populated.slice(0, 3).join(', ')})` : `(${envCandidates.length} file(s) scanned)`);
+
 const serverIndex = join(ROOT, 'packages/runtime/src/server/index.ts');
 if (existsSync(serverIndex)) {
   const content = readFileSync(serverIndex, 'utf8');
