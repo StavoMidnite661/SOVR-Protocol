@@ -1,5 +1,5 @@
-[0.000] SOVR POST: crypto OK, env isolated, node v22.22.3, heap 7.6MB — runlevel 0 FIRMWARE_POST passed in 0.5ms
-[0.166s] Bootloader: verified build_hash 2ae816fac5cbe62c... (unfakeable provenance) — 39 inputs hashed, tamper check OK — runlevel 1 BOOTLOADER secure
+[0.000] SOVR POST: crypto OK, env isolated, node v22.22.3, heap 7.8MB — runlevel 0 FIRMWARE_POST passed in 0.5ms
+[0.165s] Bootloader: verified build_hash bb8e457696bee43c... (unfakeable provenance) — 39 inputs hashed, tamper check OK — runlevel 1 BOOTLOADER secure
 [0.000s] Kernel: constitution loaded (10 invariants), envelope 21 fields, authority 4 actors — runlevel 2 KERNEL_INIT
 [0.000s] Core: vault ✓ (95 IR nodes, value conservation), ledger ✓ (60 IR nodes, double_entry), treasury ✓ (9 cmds, atomicity) — runlevel 3 CORE_DOMAINS
 [0.000s] Security: identity ✓ (76 nodes, trust anchors), policy ✓ (111 caps pure function), intent ✓ enrichment, agent ✓ bounded — runlevel 4 SECURITY_SUBSYSTEM

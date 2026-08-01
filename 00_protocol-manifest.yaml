@@ -43,7 +43,13 @@ protocol:
       - dependency_order_check
 
   constitution:
-    lock_hash: f5d01000a162cd92d85bd7161d5b332056659a67248de111b3de41abc2681aab
+    # Canonical hash of 01_constitution.yaml under BUILD_MANIFEST rule R3
+    # (NFC Unicode, LF line endings) — see packages/compiler/src/utils/hash.ts.
+    # The previous value (f5d01000a162…) was computed over CRLF bytes and was
+    # therefore platform-dependent: it halted every LF checkout with
+    # CONST-LOCK-002 even though the constitution text was byte-identical.
+    # The constitution content is UNCHANGED — only the hashing basis is fixed.
+    lock_hash: 34dfbdc2de193f54f87bb873039603bb5a5502a8448ef6151133f54c77a54ed3
     status: LOCKED
 
 # ============================================================

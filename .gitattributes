@@ -1,0 +1,48 @@
+# ============================================================
+# SOVR Protocol — Line Ending Policy
+# ============================================================
+# BUILD_MANIFEST rule R3 requires canonical serialization:
+# NFC Unicode, LF line endings. The compiler now enforces LF
+# normalization in its hash path (packages/compiler/src/utils/hash.ts),
+# so a CRLF working tree no longer changes the build hash.
+#
+# This file is the second layer of defence: it keeps the working
+# tree itself on LF so diffs stay clean and no tool re-introduces
+# CRLF into the protocol corpus.
+#
+# Historical context: the constitution lock_hash was originally
+# computed over CRLF bytes on Windows. Every LF checkout then
+# halted with CONST-LOCK-002 even though the constitution text
+# was byte-identical. See docs/audit/ASSET_INVENTORY_AND_CLAIMS_AUDIT.md
+# ============================================================
+
+# Default: normalize text files to LF in the repository
+* text=auto eol=lf
+
+# Protocol corpus — hashed into build_hash, must never be CRLF
+*.yaml  text eol=lf
+*.yml   text eol=lf
+
+# Source and config
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.mjs   text eol=lf
+*.cjs   text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.sh    text eol=lf
+*.tla   text eol=lf
+*.cfg   text eol=lf
+*.prisma text eol=lf
+*.sql   text eol=lf
+
+# Binary — never normalize
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.svr   binary
+*.tigerbeetle binary

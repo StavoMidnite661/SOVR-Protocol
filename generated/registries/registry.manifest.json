@@ -1,7 +1,7 @@
 {
   "abi_version": "v1",
-  "build_hash": "d0cb2251cd1fbf27a7c78fe408835e5f6428a13b31c7da6f78f7b9aad1cb5fea",
-  "constitution_hash": "f5d01000a162cd92d85bd7161d5b332056659a67248de111b3de41abc2681aab",
+  "build_hash": "bb8e457696bee43c5a7eaccfb501d18de7c65d66bf7772e732d92c3569e7d4df",
+  "constitution_hash": "34dfbdc2de193f54f87bb873039603bb5a5502a8448ef6151133f54c77a54ed3",
   "registries": {
     "boot.registry.json": {
       "entry_count": 1,
