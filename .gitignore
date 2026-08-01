@@ -7,3 +7,6 @@ COMMAND_INVENTORY_FULL.json
 EVENT_INVENTORY_FULL.json
 EVENT_COMMAND_INDEX.json
 FILE_INVENTORY_DETAILED.md
+
+# Nested package node_modules (workspaces hoist to the root)
+packages/*/node_modules/

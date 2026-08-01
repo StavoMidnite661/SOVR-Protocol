@@ -1,6 +1,9 @@
 {
   "name": "sovr-protocol-root",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
   "scripts": {
     "build": "npm run build --prefix packages/compiler && npm run build --prefix packages/runtime",

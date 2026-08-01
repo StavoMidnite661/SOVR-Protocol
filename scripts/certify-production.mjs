@@ -187,6 +187,56 @@ if (existsSync(debtPath)) {
   }
 }
 
+// ── 6. Certification evidence integrity ──────────────────────────────────────
+// Audit finding D7: PRODUCTION_GATE.yaml asserted `green` status for security
+// and authorization while citing 16 evidence paths that do not exist, including
+// "6 tests PASS" for an absent test file. A green status backed by a missing
+// file is worse than no claim at all, so it is now a hard failure.
+console.log('\nCertification evidence integrity:');
+const gatePath = join(ROOT, 'certification', 'PRODUCTION_GATE.yaml');
+if (existsSync(gatePath)) {
+  const lines = readFileSync(gatePath, 'utf8').split('\n');
+  const missing = [];
+  let total = 0;
+  let inEvidence = false;
+  let evidenceIndent = 0;
+
+  for (const raw of lines) {
+    const line = raw.replace(/\s+$/, '');
+    if (!line || line.trimStart().startsWith('#')) continue;
+    const indent = line.length - line.trimStart().length;
+
+    if (/^\s*evidence:\s*$/.test(line)) {
+      inEvidence = true;
+      evidenceIndent = indent;
+      continue;
+    }
+    // Leaving the evidence block: a key at or above its indent level.
+    if (inEvidence && !/^\s*-\s+/.test(line) && indent <= evidenceIndent) {
+      inEvidence = false;
+    }
+    if (!inEvidence) continue;
+
+    const item = line.match(/^\s*-\s+(.*)$/);
+    if (!item) continue;
+
+    // The leading token is the path; trailing prose after " — " or " (" is an
+    // annotation, not part of the path.
+    const token = item[1].split(/\s+—\s+|\s+\(|\s+-\s+/)[0].trim().replace(/^['"]|['"]$/g, '');
+    if (!token || !/[/.]/.test(token)) continue;   // skip prose-only entries
+
+    total++;
+    if (!existsSync(join(ROOT, token))) missing.push(token);
+  }
+
+  check(missing.length === 0,
+    'every PRODUCTION_GATE evidence path resolves',
+    missing.length ? `(${missing.length}/${total} missing: ${missing.slice(0, 3).join(', ')}${missing.length > 3 ? ', …' : ''})`
+                   : `(${total} paths verified)`);
+} else {
+  warn('certification/PRODUCTION_GATE.yaml not present');
+}
+
 // ── Verdict ──────────────────────────────────────────────────────────────────
 console.log('\n' + '\u2501'.repeat(46));
 if (failures > 0) {

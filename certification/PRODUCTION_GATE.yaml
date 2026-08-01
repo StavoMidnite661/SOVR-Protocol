@@ -1,72 +1,173 @@
+# ============================================================
+# SOVR Protocol — Production Gate
+# ============================================================
+# Corrected 2026-08-01 (audit finding D7).
+#
+# The previous revision of this file cited 16 evidence paths that
+# do not exist in this repository — including a `packages/{kernel,
+# security,events,ledger}` + `apps/api` + `tests/` layout that was
+# superseded by `packages/{compiler,runtime,shared}`. Two categories
+# (event_integrity, authorization) were marked `green` on the
+# strength of files that are absent, and cited "6 tests PASS" for a
+# test file that does not exist.
+#
+# RULE: every path listed under `evidence:` MUST resolve in this
+# repository. This is enforced by `npm run certify:production`,
+# which fails the build on any unresolvable evidence path. Prose
+# annotations after a path are permitted; the leading token of each
+# evidence entry is treated as the path.
+#
+# Status vocabulary:
+#   green       — implemented and covered by a resolvable artifact
+#   conditional — partially implemented; gaps named explicitly
+#   partial     — scaffolding exists, primary work outstanding
+#   red         — claimed previously but not substantiated
+# ============================================================
+
+meta:
+  schema_version: "1.1.0"
+  corrected: "2026-08-01"
+  correction_reason: >
+    Audit finding D7 — false-green statuses backed by non-existent
+    evidence files. Statuses downgraded to what the repository can
+    actually substantiate; stale paths remapped onto the current
+    packages/{compiler,runtime,shared} layout.
+  enforcement: scripts/certify-production.mjs (evidence path validator)
+
 security:
   status: conditional
   evidence:
-    - certification/SECURITY_FINAL_AUDIT.md
-    - apps/api/src/index.ts uses real RBAC
-    - packages/security/src/crypto.ts SHA-256 chain
+    - docs/security — security documentation set
+    - packages/runtime/src/server/jwt.ts — RS256 asymmetric JWT verification (jose)
+    - packages/runtime/src/security/jwt.ts — JWT helper used by the runtime
+    - packages/runtime/src/secrets — secret resolution layer
+  gaps:
+    - No consolidated SECURITY_FINAL_AUDIT.md exists (previously cited, absent).
+    - No independent penetration test on record.
 
 database:
   status: conditional
   evidence:
-    - deployment/docker-compose.production.yml
-    - packages/events/src/postgres.ts
-    - packages/events/src/schema.ts
-    - migrations/run.ts
+    - deployment/docker-compose.production.yml — Postgres service definition
+    - packages/runtime/src/adapters/postgres-event-store.ts — Postgres event store adapter
+    - packages/runtime/migrations — SQL migrations
+  gaps:
+    - No migration runner is committed (previously cited migrations/run.ts, absent).
+    - Durable production event store is not yet the default path.
 
 event_integrity:
-  status: green
+  status: conditional   # was: green (unsubstantiated)
   evidence:
-    - packages/kernel/src/integrity/hash-engine.ts
-    - packages/kernel/src/integrity/chain-verifier.ts
-    - tests/security/event-integrity.test.ts (6 tests PASS)
-    - packages/ledger/src/index.ts SHA-256
+    - packages/runtime/src/execution/event-factory.ts — event construction path
+    - packages/runtime/src/boot/self-test.ts — boot-time SHA-256 self test
+    - packages/runtime/src/__tests__/acceptance/suites/INV005_AuditTrailCompleteness.test.ts — INV-005 coverage
+    - generated/boot-attestation.json — build-hash-linked boot attestation
+  gaps:
+    - No dedicated hash-engine / chain-verifier module exists; the previously
+      cited packages/kernel/src/integrity/* files are absent.
+    - The "6 tests PASS" claim referenced tests/security/event-integrity.test.ts,
+      which does not exist. Actual INV-005 coverage is the acceptance suite above.
 
 authorization:
-  status: green
+  status: conditional   # was: green (unsubstantiated)
   evidence:
-    - apps/api/src/index.ts replaces authorize:()=>true
-    - packages/security/src/rbac.ts Role/Permission enforcement
-    - packages/security/src/authz.ts AuthorizationService
+    - packages/runtime/src/execution/CapabilityBoundaryEnforcer.ts — capability enforcement
+    - packages/runtime/src/execution/AuthorityBoundaryEnforcer.ts — authority boundary enforcement
+    - packages/runtime/src/execution/ConstitutionalSupremacyEnforcer.ts — constitutional precedence
+    - packages/runtime/src/execution/GateEvaluators — per-gate evaluators
+    - packages/runtime/src/execution/__tests__/AuthorityBoundaryEnforcer.test.ts — enforcer unit tests
+    - packages/runtime/src/__tests__/acceptance/suites/INV004_CapabilityBoundary.test.ts — INV-004 coverage
+    - generated/registries/capabilities.registry.json — 111 compiled capabilities
+  gaps:
+    - Capability model is enforced in handwritten runtime code, not fully
+      YAML-driven (see certification/HARDCODE_DEVIATION_REPORT.yaml).
+    - Previously cited packages/security/src/{rbac,authz}.ts and apps/api/src/index.ts
+      do not exist in this layout.
 
 performance:
-  status: conditional
+  status: partial
   evidence:
-    - tests/stress/concurrency.test.ts PASS
-    - Prometheus /metrics endpoint pending
+    - docs/performance — performance documentation
+    - certification/PERFORMANCE_CERTIFICATION.md — performance certification record
+  gaps:
+    - No committed stress/concurrency test (previously cited
+      tests/stress/concurrency.test.ts, absent).
+    - Prometheus /metrics endpoint still pending.
 
 governance:
   status: conditional
   evidence:
-    - management/PHASE_XI_CHANGE_MANIFEST.md
-    - governance/STATE_RECONCILIATION_REPORT.md
+    - governance/CONSTITUTIONAL_FINDING_REGISTRY.yaml — finding registry
+    - governance/CONSTITUTIONAL_DRIFT_REPORT_2026-08-01.md — line-ending drift determination
+    - management — phase and change management records
+    - 11_governance-amendments.yaml — amendment process
+  gaps:
+    - Previously cited management/PHASE_XI_CHANGE_MANIFEST.md and
+      governance/STATE_RECONCILIATION_REPORT.md do not exist.
 
+reproducibility:
+  status: green
+  evidence:
+    - packages/compiler/src/utils/hash.ts — R3 canonical hashing (NFC + LF)
+    - .gitattributes — enforces LF so CRLF cannot re-enter the corpus
+    - generated/compiler-certification.json — 39/39 input hashes match
+    - generated/registries/registry.manifest.json — 11/11 registries match
+  notes:
+    - >-
+      Verified 2026-08-01 — LF and CRLF checkouts of the same corpus produce an
+      identical build hash (bb8e457696be…). Platform independence is empirically
+      demonstrated, not merely asserted.
+
+# ============================================================
 # Phase XII — Compiler Authority Verification
+# ============================================================
 phase_xii:
   yaml_authority:
     status: verified
     evidence:
-      - certification/COMPILER_INPUT_TRACE.yaml (28 sources traced)
-      - All protocol YAML parsable and conformant
+      - certification/COMPILER_INPUT_TRACE.yaml — source trace
+      - generated/compiler-certification.json — 39 inputs hashed and certified
+    notes:
+      - Input frontier is 39 entries over 38 distinct files (compiler.yaml is
+        registered at both root and compiler/ with an identical hash).
+
   compiler_executable:
-    status: partial
+    status: verified   # was: partial — the pipeline is now wired and runs end to end
     evidence:
-      - packages/compiler builds clean (tsc -b exit 0)
-      - packages/compiler/runtime builds clean (tsc -b exit 0)
-      - CompilerRuntime.execute() works on programmatic input
-      - CompilerEngine.parse() is STUB — returns empty ParsedProtocol
-      - No YAML-to-artifact pipeline wired
+      - packages/compiler/src/index.ts — CompilerRuntime pass pipeline
+      - packages/compiler/dist/cli.js — compile / verify / boot / package CLI
+      - generated/compiler-manifest.yaml — full build manifest
+    notes:
+      - Verified 2026-08-01 — `compile` completes with 0 errors (71 warnings),
+        producing 592 IR nodes / 459 edges and 147 artifacts; `verify` reports a
+        byte-identical reproducible build.
+      - Supersedes the prior claim that CompilerEngine.parse() is a stub with no
+        YAML-to-artifact pipeline wired. That is no longer accurate.
+      - Previously cited packages/compiler/runtime does not exist.
+
   runtime_derived:
     status: partial
     evidence:
-      - certification/RUNTIME_AUTHORITY_MATRIX.yaml (31 rules traced, 26 YAML-sourced)
-      - certification/HARDCODE_DEVIATION_REPORT.yaml (3 deviations: DEV-001, DEV-002, DEV-006)
+      - certification/RUNTIME_AUTHORITY_MATRIX.yaml — authority rule trace
+      - certification/HARDCODE_DEVIATION_REPORT.yaml — hardcode deviations
+      - scripts/runtime-audit.mjs — purity + registry drift audit
+    gaps:
+      - runtime-audit reports 6 registry-drift literals in runtime source that do
+        not resolve against the compiled corpus (audit finding D8). Currently
+        advisory; should be promoted to blocking.
+
   certification_generated:
     status: partial
     evidence:
-      - certification/COMPILER_EXECUTION_PROOF.yaml
-      - Certification reports still manually authored (not compiler-generated)
+      - certification/COMPILER_EXECUTION_PROOF.yaml — execution proof
+      - scripts/certify-production.mjs — automated gate
+    gaps:
+      - Most certification artifacts under certification/ remain manually
+        authored rather than compiler-generated.
+
   compiler_contract:
     status: governance_draft
     evidence:
-      - certification/SEMANTIC_COMPILER_CONTRACT_ASSESSMENT.yaml
-      - Preconditions SATISFIED but AMD-0002/0004/0005/0009/0010 not RATIFIED
+      - certification/SEMANTIC_COMPILER_CONTRACT_ASSESSMENT.yaml — contract assessment
+    gaps:
+      - AMD-0002 / 0004 / 0005 / 0009 / 0010 not ratified.
