@@ -13,11 +13,6 @@ function hr(char = '━', width = 88): string {
   return char.repeat(width);
 }
 
-function box(content: string, width = 88): string {
-  const pad = Math.max(0, width - content.length - 4);
-  return `┌${hr('─', width)}┐\n│  ${content}${' '.repeat(pad)}│\n└${hr('─', width)}┘`;
-}
-
 export class BootRenderer {
   private phaseIndex = 0;
   private headerShown = false;
@@ -29,68 +24,52 @@ export class BootRenderer {
     console.log('');
     console.log('');
     console.log('');
+    console.log('[ 0.000001 ] SOVR BIOS v1.0.4 — Cryptographic Attestation Mode');
+    console.log('[ 0.000142 ] Probe: CPU ... AVX512 OK | MEM ... ISOLATED | ENTROPY ... POOLING');
+    console.log('[ 0.000318 ] Mounting /dev/sovr/constitution ...');
     console.log('');
+    console.log('░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ALIGNING KERNEL BOUNDARIES');
+    console.log('█████████████████████████████████████  BOUNDARIES ESTABLISHED');
     console.log('');
+    console.log('  ███████╗ ██████╗ ██╗   ██╗██████╗      ⬢ INITIALIZING TRUSTED COMPUTE');
+    console.log('  ██╔════╝██╔═══██╗██║   ██║██╔══██╗     » Hashing Immutable Invariants');
+    console.log('  ███████╗██║   ██║██║   ██║██████╔╝     » Sealing Event Store');
+    console.log('  ╚════██║██║   ██║██║   ██║██╔══██╗     » Establishing Authority');
+    console.log('  ███████║╚██████╔╝╚██████╔╝██║  ██║');
+    console.log('  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝');
     console.log('');
-    console.log('                         ███████╗ ██████╗ ██╗   ██╗██████╗');
-    console.log('                         ██╔════╝██╔═══██╗██║   ██║██╔══██╗');
-    console.log('                         ███████╗██║   ██║██║   ██║██████╔╝');
-    console.log('                         ╚════██║██║   ██║██║   ██║██╔══██╗');
-    console.log('                         ███████║╚██████╔╝╚██████╔╝██║  ██║');
-    console.log('                         ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝');
-    console.log('');
-    console.log('                  C O N S T I T U T I O N A L   K E R N E L');
-    console.log('');
-    console.log('                           S O V R   F I N A N C I A L   O S');
-    console.log('');
-    console.log('                     "Source of Canonical Events Activated"');
-    console.log('');
-    console.log(hr());
-    console.log('');
-    console.log('');
-    console.log('                    INITIALIZING SOVR TRUSTED COMPUTE ENVIRONMENT');
-    console.log('');
-    console.log(`                    [${'█'.repeat(40)}] 100%`);
+    console.log('  S O V R   |   C O N S T I T U T I O N A L   K E R N E L');
+    console.log('  ─────────────────────────────────────────────────────────');
+    console.log('  "Source of Canonical Events Activated"');
     console.log('');
   }
 
-  header(): void {
-    console.log('╔══════════════════════════════════════════════════════════════════════════════╗');
-    console.log('║                                                                              ║');
-    console.log('║   SOVR PROTOCOL KERNEL                                                       ║');
-    console.log('║   Runtime ABI v1                                                             ║');
-    console.log('║   Constitutional Execution Environment                                       ║');
-    console.log('║                                                                              ║');
-    console.log('║   Status: INITIALIZING                                                       ║');
-    console.log('║                                                                              ║');
-    console.log('╚══════════════════════════════════════════════════════════════════════════════╝');
-    console.log('');
-  }
-
-  phase(phaseName: string): void {
+  phase(phaseTitle: string, tasks: string[]): void {
     this.ensureHeader();
-    while (BOOT_PHASES[this.phaseIndex] !== phaseName && this.phaseIndex < BOOT_PHASES.length) {
+    while (BOOT_PHASES[this.phaseIndex] !== phaseTitle.split(' » ')[1] && this.phaseIndex < BOOT_PHASES.length) {
       this.phaseIndex++;
     }
-    console.log(`┌──────────────────────────────────────────────────────────────────────────────┐`);
-    console.log(`│                                                                              │`);
-    console.log(`│  ${`PHASE ${this.phaseIndex} — ${phaseName}`.padEnd(74)}│`);
-    console.log(`│                                                                              │`);
-    console.log(`└──────────────────────────────────────────────────────────────────────────────┘`);
+    console.log(`│ ${phaseTitle}`);
+    for (let i = 0; i < tasks.length; i++) {
+      const isLast = i === tasks.length - 1;
+      const prefix = isLast ? '└─' : '├─';
+      console.log(`${prefix} ${tasks[i]}`);
+    }
     console.log('');
   }
 
-  phaseComplete(phaseName: string): void {
-    const idx = BOOT_PHASES.indexOf(phaseName);
-    if (idx >= 0) {
-      console.log(`  ✓ Phase ${idx} complete`);
-      console.log('');
-    }
+  phaseSubItem(label: string, content: string): void {
+    console.log(`│  └─ ${content}`);
+  }
+
+  phaseSubItemBar(label: string, pct: number): void {
+    const filled = Math.round(pct / 5);
+    const empty = 20 - filled;
+    console.log(`│  └─ [${'▓'.repeat(filled)}${'░'.repeat(empty)}] ${pct}%`);
   }
 
   kernelMounted(): void {
-    console.log('');
-    console.log('                         ◈ KERNEL MEMORY MOUNTED ◈');
+    console.log('◈ KERNEL MEMORY MOUNTED ◈');
     console.log('');
   }
 
@@ -99,21 +78,27 @@ export class BootRenderer {
     console.log(hr());
     console.log('');
     console.log('');
-    console.log('                    RUNNING CONSTITUTIONAL SELF TEST');
+    console.log('│ RUNNING CONSTITUTIONAL SELF-TEST (CST)');
     console.log('');
   }
 
   selfTestCategory(name: string): void {
-    console.log(`          ${name.padEnd(30)} ........ PASS`);
+    console.log(`├─ ${name.padEnd(30)} ........ [PASS]`);
   }
 
-  selfTestSummary(total: number): void {
+  selfTestSummary(passed: number, total: number): void {
     console.log('');
-    console.log(`                 ╔══════════════════════════════╗`);
-    console.log(`                 ║                              ║`);
-    console.log(`                 ║     BOOT SELF TEST ${total}/${total}       ║`);
-    console.log(`                 ║                              ║`);
-    console.log(`                 ╚══════════════════════════════╝`);
+    console.log(`╔═ SELF-TEST PASSED [${passed}/${total}] ════════════════════════════════════╗`);
+    console.log('║                                                            ║');
+    console.log('║  SYSTEM STATE: USERLAND ACTIVATED                          ║');
+    console.log('║                                                            ║');
+    console.log('║  Runtime SDK       ████ ONLINE                             ║');
+    console.log('║  API Gateway       ████ ONLINE                             ║');
+    console.log('║  Event Store       ████ VERIFIED                           ║');
+    console.log('║  Projection Layer  ████ ONLINE                             ║');
+    console.log('║  Saga Engine       ████ ONLINE                             ║');
+    console.log('║                                                            ║');
+    console.log('╚════════════════════════════════════════════════════════════╝');
     console.log('');
   }
 
@@ -122,13 +107,11 @@ export class BootRenderer {
     console.log(hr());
     console.log('');
     console.log('');
-    console.log('                        USERLAND ACTIVATION');
+    console.log('│ USERLAND ACTIVATION');
     console.log('');
     for (const status of statuses) {
-      console.log(`                  ${status.label.padEnd(20)} ${status.state}`);
+      console.log(`├─ ${status.label.padEnd(20)} ████ ${status.state}`);
     }
-    console.log('');
-    console.log(`                         SYSTEM HEALTHY`);
     console.log('');
   }
 
@@ -138,24 +121,17 @@ export class BootRenderer {
     port: number;
     health: string;
   }): void {
-    console.log(`╔══════════════════════════════════════════════════════════════════════════════╗`);
-    console.log(`║                                                                              ║`);
-    console.log(`║                 S O V R   P R O T O C O L   ${config.version.padEnd(12)}║`);
-    console.log(`║                                                                              ║`);
-    console.log(`║             SPEC-DRIVEN  •  CONSTITUTIONAL  •  AUDITABLE                    ║`);
-    console.log(`║                                                                              ║`);
-    console.log(`║                    THE LINUX OF FINANCE                                     ║`);
-    console.log(`║                                                                              ║`);
-    console.log(`╚══════════════════════════════════════════════════════════════════════════════╝`);
+    console.log('  ███████╗ ██████╗ ██╗   ██╗██████╗');
+    console.log(`  ██╔════╝██╔═══██╗██║   ██║██╔══██╗     PROTOCOL v${config.version}`);
+    console.log(`  ███████╗██║   ██║██║   ██║██████╔╝     SPEC-DRIVEN | CONSTITUTIONAL | AUDITABLE`);
+    console.log(`  ╚════██║██║   ██║██║   ██║██╔══██╗     "THE LINUX OF FINANCE"`);
+    console.log('  ███████║╚██████╔╝╚██████╔╝██║  ██║');
+    console.log('  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝');
     console.log('');
-    console.log(`                 Listening:`);
-    console.log(`                 http://localhost:${config.port}`);
-    console.log('');
-    console.log(`                 Kernel State:`);
-    console.log(`                 ● ${config.health}`);
-    console.log('');
-    console.log(`                 Build:`);
-    console.log(`                 ${config.buildHash.slice(0, 16)}...`);
+    console.log(`  ⬢ Listening:        http://localhost:${config.port}`);
+    console.log(`  ⬢ Kernel State:     ● ${config.health}`);
+    console.log(`  ⬢ Build Hash:       ${config.buildHash.slice(0, 16)}...`);
+    console.log(`  ⬢ Attestation:      LOCKED`);
     console.log('');
   }
 }

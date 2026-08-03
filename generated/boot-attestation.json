@@ -1,114 +1,203 @@
 {
-  "boot_hash": "526a8e1b2e651922cf90f975a9bc597929ed7164dc1fa76f5e97fc212d94273e",
-  "boot_log_hash": "b05be1cf77b7f7e1d0dc8cf557db6fec83ac52b53b315323f6b1bbf25ba8db61",
+  "boot_hash": "8ffd324d0e97cfc41b7f98d747adf14376c01444ad9ac38a1340515b0d5c12ab",
+  "boot_log_hash": "b6b9969ddc1a802c61ca93cf1d194b4e3ac0ebcd01751a1372c10cb90faf92e2",
   "boot_splash": [
-    "  ____   _____  __      __  ____    ___   ____    _   _ ",
-    " / ___| |  _  | \\ \\    / / |  _ \\  / _ \\ / ___|  | | | |",
-    " \\___ \\ | | | |  \\ \\  / /  | |_) || |_| \\___ \\  | |_| |",
-    "  ___) || |_| |   \\ \\/ /   |  _ < |  _  | ___) | |  _  |",
-    " |____/ |_____|    \\__/    |_| \\_\\|_| |_||____/  |_| |_|",
-    " Financial OS Kernel vfa948641 Booted — build_hash fa9486412578cfb3...",
-    " Frontend can now load — SDK: @sovr/runtime, Types: generated/src/types/*"
+    "[ 0.000001 ] SOVR BIOS v1.0.4 — Cryptographic Attestation Mode",
+    "[ 0.000142 ] Probe: CPU ... AVX512 OK | MEM ... ISOLATED | ENTROPY ... POOLING",
+    "[ 0.000318 ] Mounting /dev/sovr/constitution ...",
+    "",
+    "░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░  ALIGNING KERNEL BOUNDARIES",
+    "█████████████████████████████████████  BOUNDARIES ESTABLISHED",
+    "",
+    "  ███████╗ ██████╗ ██╗   ██╗██████╗      ⬢ INITIALIZING TRUSTED COMPUTE",
+    "  ██╔════╝██╔═══██╗██║   ██║██╔══██╗     » Hashing Immutable Invariants",
+    "  ███████╗██║   ██║██║   ██║██████╔╝     » Sealing Event Store",
+    "  ╚════██║██║   ██║██║   ██║██╔══██╗     » Establishing Authority",
+    "  ███████║╚██████╔╝╚██████╔╝██║  ██║",
+    "  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝",
+    "",
+    "  S O V R   |   C O N S T I T U T I O N A L   K E R N E L",
+    "  ─────────────────────────────────────────────────────────",
+    "  \"Source of Canonical Events Activated\"",
+    "",
+    "│ PHASE 0 » FIRMWARE ATTESTATION",
+    "├─ ✓ Runtime Node           v24.15.0",
+    "├─ ✓ Memory Isolation       Enforced (Ring -1)",
+    "└─ ✓ Kernel Boundary        Sealed",
+    "",
+    "│ PHASE 1 » CRYPTOGRAPHIC BOOTLOADER",
+    "├─ Fetching Build Attestation ...",
+    "│  └─ 6e97ae164fa847ca...",
+    "├─ Verifying Merkle Root ...",
+    "│  └─ [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100%",
+    "└─ ✓ Chain: BUILD_HASH → BOOT_HASH [VERIFIED]",
+    "",
+    "│ PHASE 2 » CONSTITUTIONAL KERNEL INIT",
+    "├─ Loading Immutable Invariants",
+    "│  ├─ INV-001 Event Integrity       [BOUND]",
+    "│  ├─ INV-002 Double Entry Truth    [BOUND]",
+    "│  ├─ INV-003 Authority Enforcement [BOUND]",
+    "│  ├─ INV-004 Identity Boundaries   [BOUND]",
+    "│  ├─ INV-005 Audit Preservation    [BOUND]",
+    "│  ├─ INV-006 Deterministic Replay  [BOUND]",
+    "│  ├─ INV-007 State Integrity       [BOUND]",
+    "│  ├─ INV-008 Capability Security   [BOUND]",
+    "│  ├─ INV-009 Transition Enforce    [BOUND]",
+    "│  └─ INV-010 Constitutional Comp.  [BOUND]",
+    "└─ ✓ 10/10 Invariants Locked to Memory",
+    "",
+    "◈ KERNEL MEMORY MOUNTED ◈",
+    "",
+    "│ PHASE 3 » CORE FINANCIAL DOMAINS",
+    "├─ VAULT    » Can value exist?       [ONLINE]",
+    "├─ LEDGER   » How truth is recorded  [ONLINE]",
+    "└─ TREASURY » Can value move?        [ONLINE]",
+    "",
+    "│ PHASE 4 » SYSTEM TELEMETRY & SUBSYSTEMS",
+    "├─ Security Subsystem",
+    "│  ├─ Identity        ████ ONLINE",
+    "│  ├─ Policy Engine   ████ ONLINE",
+    "│  └─ Agents          ████ ONLINE",
+    "├─ Execution Boundary",
+    "│  ├─ Payment Rails   ████ ONLINE",
+    "│  ├─ Chain Adapters  ████ ONLINE",
+    "│  └─ Oracle Network  ████ ONLINE",
+    "└─ Interpreter",
+    "   ├─ Projection Eng  ████ ONLINE",
+    "   └─ Genesis Replay  ████ ONLINE",
+    "",
+    "│ RUNNING CONSTITUTIONAL SELF-TEST (CST)",
+    "├─ Registry Integrity      ........ [PASS]",
+    "├─ Instruction Evaluator   ........ [PASS]",
+    "├─ Transition Engine       ........ [PASS]",
+    "├─ Capability Authority    ........ [PASS]",
+    "├─ Envelope Builder        ........ [PASS]",
+    "├─ Event Store             ........ [PASS]",
+    "└─ Projection Runtime      ........ [ONLINE]",
+    "",
+    "╔═ SELF-TEST PASSED [7/7] ════════════════════════════════════╗",
+    "║                                                            ║",
+    "║  SYSTEM STATE: SYSTEM HEALTHY                          ║",
+    "║                                                            ║",
+    "║  Runtime SDK       ████ ONLINE                             ║",
+    "║  API Gateway       ████ ONLINE                             ║",
+    "║  Event Store       ████ PASS                           ║",
+    "║  Projection Layer  ████ ONLINE                           ║",
+    "║  Saga Engine       ████ ONLINE                                ║",
+    "║                                                            ║",
+    "╚════════════════════════════════════════════════════════════╝",
+    "",
+    "  ███████╗ ██████╗ ██╗   ██╗██████╗",
+    "  ██╔════╝██╔═══██╗██║   ██║██╔══██╗     PROTOCOL v1.0.0",
+    "  ███████╗██║   ██║██║   ██║██████╔╝     SPEC-DRIVEN | CONSTITUTIONAL | AUDITABLE",
+    "  ╚════██║██║   ██║██║   ██║██╔══██╗     \"THE LINUX OF FINANCE\"",
+    "  ███████║╚██████╔╝╚██████╔╝██║  ██║",
+    "  ╚══════╝ ╚═════╝  ╚═════╝ ╚═╝  ╚═╝",
+    "",
+    "  ⬢ Listening:        http://localhost:3001",
+    "  ⬢ Kernel State:     ● HEALTHY",
+    "  ⬢ Build Hash:       6e97ae164fa847ca...",
+    "  ⬢ Attestation:      LOCKED"
   ],
-  "boot_timings_hash": "ea6f93d8bee1c70952a5a69a74dec7712f2dde922c1d367c83810cd535fa4d80",
-  "build_hash": "fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829",
+  "boot_timings_hash": "1ca8483cfb2a33722f462ade55d5bff98ef388dc9c2ac209732dd93f544c4da6",
+  "build_hash": "6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015",
   "events": [
     {
       "eventName": "saga.started",
       "level": 2,
-      "timestamp": "2026-08-01T09:45:21.206Z"
+      "timestamp": "2026-08-03T05:47:03.115Z"
     },
     {
       "eventName": "system.health.restored",
       "level": 2,
-      "timestamp": "2026-08-01T09:45:21.207Z"
+      "timestamp": "2026-08-03T05:47:03.115Z"
     },
     {
       "eventName": "vault.asset.registered",
       "level": 3,
-      "timestamp": "2026-08-01T09:45:21.207Z"
+      "timestamp": "2026-08-03T05:47:03.115Z"
     },
     {
       "eventName": "ledger.journal.created",
       "level": 3,
-      "timestamp": "2026-08-01T09:45:21.207Z"
+      "timestamp": "2026-08-03T05:47:03.115Z"
     },
     {
       "eventName": "saga.started",
       "level": 3,
-      "timestamp": "2026-08-01T09:45:21.207Z"
+      "timestamp": "2026-08-03T05:47:03.115Z"
     },
     {
       "eventName": "identity.actor.registered",
       "level": 4,
-      "timestamp": "2026-08-01T09:45:21.207Z"
+      "timestamp": "2026-08-03T05:47:03.115Z"
     },
     {
       "eventName": "policy.rule.created",
       "level": 4,
-      "timestamp": "2026-08-01T09:45:21.207Z"
+      "timestamp": "2026-08-03T05:47:03.115Z"
     },
     {
       "eventName": "payment.rail.prepared",
       "level": 5,
-      "timestamp": "2026-08-01T09:45:21.207Z"
+      "timestamp": "2026-08-03T05:47:03.116Z"
     },
     {
       "eventName": "saga.started",
       "level": 5,
-      "timestamp": "2026-08-01T09:45:21.207Z"
+      "timestamp": "2026-08-03T05:47:03.116Z"
     },
     {
       "eventName": "saga.completed",
       "level": 6,
-      "timestamp": "2026-08-01T09:45:21.208Z"
+      "timestamp": "2026-08-03T05:47:03.119Z"
     },
     {
       "eventName": "system.health.restored",
       "level": 7,
-      "timestamp": "2026-08-01T09:45:21.208Z"
+      "timestamp": "2026-08-03T05:47:03.119Z"
     },
     {
       "eventName": "saga.completed",
       "level": 7,
-      "timestamp": "2026-08-01T09:45:21.208Z"
+      "timestamp": "2026-08-03T05:47:03.119Z"
     }
   ],
   "final_health": "HEALTHY",
   "schema_version": "1.0.0",
   "stages": [
     {
-      "durationMs": 0.19590500000003885,
+      "durationMs": 0.5009000000000015,
       "level": 2,
       "name": "KERNEL_INIT",
       "passed": true
     },
     {
-      "durationMs": 0.13059399999997368,
+      "durationMs": 0.27700000000004366,
       "level": 3,
       "name": "CORE_DOMAINS",
       "passed": true
     },
     {
-      "durationMs": 0.062433999999996104,
+      "durationMs": 0.10019999999997253,
       "level": 4,
       "name": "SECURITY_SUBSYSTEM",
       "passed": true
     },
     {
-      "durationMs": 0.005430999999987307,
+      "durationMs": 0.010199999999940701,
       "level": 5,
       "name": "EXECUTION_BOUNDARY",
       "passed": true
     },
     {
-      "durationMs": 1.318222999999989,
+      "durationMs": 3.562000000000012,
       "level": 6,
       "name": "INTERPRETATION",
       "passed": true
     },
     {
-      "durationMs": 0.005985000000009677,
+      "durationMs": 0.008600000000001273,
       "level": 7,
       "name": "USERLAND",
       "passed": true

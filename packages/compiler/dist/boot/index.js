@@ -50,19 +50,16 @@ export async function boot(rootDir, outDir) {
     for (const stage of seq.stages) {
         console.log(`${stage.icon} [${stage.level}] ${stage.name} — ${stage.bootLog}`);
         bootLogLines.push(stage.bootLog);
-        // Small delay for dramatic boot effect like Linux dmesg
         await new Promise(r => setTimeout(r, 50));
     }
     console.log('');
-    console.log('  ____   _____  __      __  ____    ___   ____    _   _ ');
-    console.log(' / ___| |  _  | \\ \\    / / |  _ \\  / _ \\ / ___|  | | | |');
-    console.log(' \\___ \\ | | | |  \\ \\  / /  | |_) || |_| \\___ \\  | |_| |');
-    console.log('  ___) || |_| |   \\ \\/ /   |  _ < |  _  | ___) | |  _  |');
-    console.log(' |____/ |_____|    \\__/    |_| \\_\\|_| |_||____/  |_| |_|');
-    console.log(` Financial OS Kernel v${bootloader.buildHash.slice(0, 8)} Booted — build_hash ${bootloader.buildHash.slice(0, 16)}...`);
+    if (seq.attestation.boot_splash && Array.isArray(seq.attestation.boot_splash)) {
+        for (const line of seq.attestation.boot_splash) {
+            console.log(line);
+        }
+    }
     console.log(` Boot hash: ${seq.bootHash.slice(0, 16)}... — unfakeable attestation`);
     console.log(` Total boot time: ${seq.totalDurationMs.toFixed(1)}ms — final health: ${seq.finalHealth}`);
-    console.log(' Frontend can now load — SDK: @sovr/runtime, Types: generated/src/types/*');
     console.log('');
     // Write boot artifacts
     const bootAttestationPath = join(outDir, 'boot-attestation.json');

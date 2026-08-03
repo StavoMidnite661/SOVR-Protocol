@@ -1,5 +1,5 @@
 {
-  "build_hash": "fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829",
+  "build_hash": "6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015",
   "command_lifecycle_coverage": {
     "covered": [
       {
@@ -1271,7 +1271,7 @@
     "projection-engine.yaml": "fdaf0355754738034f4a055be7f701a73c4a6189d741fa1bc7567c80781244ec",
     "protocol/ACCEPTANCE_STANDARD.yaml": "97d7b5d9c0a0351a106b93e88278503474613b927e2fb9518cec39a7c352662c",
     "protocol/AGGREGATE_REGISTRY.yaml": "3def59b44ff06cbae577ace85a15103739af6124854a78f95c8c64441b9a315c",
-    "protocol/BOOT_SEQUENCE.yaml": "659fdc8588c5f8c74e7b2b7382b7edf2fb7a44798edfad7b7107b59862139c6c",
+    "protocol/BOOT_SEQUENCE.yaml": "a31a43d2d96a1b238c324ac4841d52792313dfc341e108894893f2cf0f8575a5",
     "protocol/CANONICAL_AUTHORITY_MODEL.yaml": "01c95d3e8fb0522514cb1955324bb44e6558d15924417d9c99253dc36cf84d41",
     "protocol/DOMAIN_REGISTRY.yaml": "e3ce1dfc95fa6759a34e1c369f6e2615f583726786adde5c5049f2dd9180661a",
     "protocol/METADATA_STANDARD.yaml": "cbb398e2d1d04d7830ce66919a8e4a25f01e75c6b3022b341ff0bb3b6f85ecf3"
