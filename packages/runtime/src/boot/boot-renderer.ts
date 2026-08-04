@@ -86,7 +86,7 @@ export class BootRenderer {
     console.log(`├─ ${name.padEnd(30)} ........ [PASS]`);
   }
 
-  selfTestSummary(passed: number, total: number): void {
+  selfTestSummary(passed: number, total: number = 7): void {
     console.log('');
     console.log(`╔═ SELF-TEST PASSED [${passed}/${total}] ════════════════════════════════════╗`);
     console.log('║                                                            ║');

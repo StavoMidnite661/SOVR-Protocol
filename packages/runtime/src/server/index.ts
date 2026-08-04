@@ -84,16 +84,13 @@ interface SubsystemHealth {
 
 async function bootKernel() {
   const renderer = new BootRenderer();
-  renderer.header();
 
   const config = loadRuntimeConfig(protocolRoot);
 
-  renderer.phase('FIRMWARE_POST');
   console.log(`🔌 [0] FIRMWARE_POST — Node ${process.version}, env=${config.nodeEnv}, R10 isolated`);
 
   const jwt = new JWTService();
   await jwt.initialize();
-  renderer.phase('BOOTLOADER');
   console.log(`🔐 [1] BOOTLOADER — build_hash ${config.buildHash.slice(0, 16)}... verified, JWT ${jwt.getAlgorithm()} ${jwt.getMode()}`);
   if (config.bootHash) console.log(`   boot_hash ${config.bootHash.slice(0, 16)}... chain: build_hash -> boot_hash = unfakeable`);
 
@@ -103,7 +100,6 @@ async function bootKernel() {
   // === Runlevel 2: Secrets Bootstrap (Directive XXVI) ===
   // Fail-closed if required secrets missing.
   // Must happen before any DB or rail usage.
-  renderer.phase('SECRETS_BOOT');
   let secretsBoot: SecretBootstrap | null = null;
   try {
     secretsBoot = await SecretBootstrap.create({
@@ -117,7 +113,6 @@ async function bootKernel() {
     }
     console.warn('⚠️  Continuing in dev without secrets (not recommended)');
   }
-  renderer.phaseComplete('SECRETS_BOOT');
 
   // Wire secrets into JWT if available
   if (secretsBoot) {
@@ -131,23 +126,14 @@ async function bootKernel() {
     }
   }
 
-  renderer.phase('KERNEL_INIT');
   console.log(`🧠 [2] KERNEL_INIT — 10 invariants INV-001..010, envelope 18 fields, authority 4 actors`);
-  renderer.phaseComplete('KERNEL_INIT');
 
-  renderer.phase('CORE_DOMAINS');
   console.log(`🏦 [3] CORE_DOMAINS — vault (Can value exist?), ledger (How truth recorded?), treasury (Can value move?)`);
-  renderer.phaseComplete('CORE_DOMAINS');
 
-  renderer.phase('SECURITY_SUBSYSTEM');
   console.log(`🛡️ [4] SECURITY_SUBSYSTEM — identity (Who acting?), policy (pure function), agent (bounded)`);
-  renderer.phaseComplete('SECURITY_SUBSYSTEM');
 
-  renderer.phase('EXECUTION_BOUNDARY');
   console.log(`🌐 [5] EXECUTION_BOUNDARY — payment 12 rails, hybrid 4 chains, oracle 5 providers, adapters isolated`);
-  renderer.phaseComplete('EXECUTION_BOUNDARY');
 
-  renderer.phase('INTERPRETATION');
   console.log(`👁️ [6] INTERPRETATION — projection engine rebuilding read models from genesis`);
 
   // Real publishers (or nulls when not configured)
@@ -311,7 +297,6 @@ async function bootKernel() {
 
   projectionEngine.rebuildFromGenesis(await Promise.resolve(eventStore.getAll()));
 
-  renderer.phaseComplete('INTERPRETATION');
   renderer.kernelMounted();
 
   const selfTest = await new BootSelfTest().run();
@@ -323,9 +308,9 @@ async function bootKernel() {
   renderer.selfTestCategory('Envelope Builder');
   renderer.selfTestCategory('Event Store');
   renderer.selfTestCategory('Projection Runtime');
-  renderer.selfTestSummary(selfTest.tests);
+  renderer.selfTestSummary(selfTest.results.filter(r => r.passed).length, selfTest.tests);
 
-  renderer.phase('USERLAND');
+  renderer.phase('USERLAND', ['Activating Userland SDK & API Gateway']);
   renderer.userlandActivation([
     { label: 'Runtime SDK',     state: 'ONLINE' },
     { label: 'API Gateway',     state: 'ONLINE' },
@@ -523,6 +508,16 @@ async function buildServer() {
   });
 
   // ---- HTTP routes ------------------------------------------------------------
+
+  // Root serves THE BOARD — Full Console Definition HTML app
+  app.get('/', async (req, reply) => {
+    const boardPath = path.join(protocolRoot, 'sovr-board.html');
+    if (fs.existsSync(boardPath)) {
+      reply.type('text/html').send(fs.readFileSync(boardPath, 'utf8'));
+    } else {
+      reply.type('text/plain').send('SOVR Financial OS Kernel Running. sovr-board.html not found.');
+    }
+  });
 
   // Health — REAL computed health
   app.get('/health', async () => {
