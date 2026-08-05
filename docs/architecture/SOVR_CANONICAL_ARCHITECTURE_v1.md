@@ -1,0 +1,350 @@
+# SOVR Financial Operating System  
+# Canonical Architecture v1.0  
+# STATUS: FROZEN — DO NOT MODIFY WITHOUT GOVERNANCE AMENDMENT  
+  
+---  
+  
+## Core Definition  
+  
+SOVR is a commercial settlement infrastructure that records,  
+verifies, reconciles, and represents commercial obligations  
+through constitutional rules, deterministic ledger operations,  
+cryptographic evidence packages, and programmable settlement  
+interfaces.  
+  
+SOVR does not create economic value.  
+SOVR does not issue money.  
+SOVR does not operate as a bank, custodian, or money  
+transmitter.  
+  
+Economic value originates from:  
+  commerce, agreements, obligations, exchange,  
+  performance, settlement.  
+  
+SOVR provides the verification and execution layer.  
+  
+---  
+  
+## Constitutional Rule — Economic Origin Precedence  
+  
+This rule is enforced in every domain, every artifact,  
+every event, every file in this system.  
+  
+  No settlement representation may exist  
+  without a preceding commercial record.  
+  
+  No ledger entry may exist  
+  without a settlement authorization.  
+  
+  No evidence package may exist  
+  without a finalized ledger state.  
+  
+  No programmable representation may exist  
+  without verifiable evidence provenance.  
+  
+Violation of this rule at any layer invalidates  
+the artifact. Build agents must check this chain  
+before producing any output.  
+  
+---  
+  
+## Layer Model  
+  
+LAYER 0 — COMMERCIAL REALITY  
+  What exists in the world before SOVR touches it.  
+  Contracts. Invoices. Obligations. Receivables.  
+  Payables. Settlement agreements. Exchange.  
+  This layer is the origin of all value relationships.  
+  SOVR does not create this layer. SOVR records it.  
+  
+LAYER 1 — SOVR COMMERCIAL RECORD  
+  SOVR captures and formalizes the commercial event.  
+  Commercial Event. Counterparty. Authorization.  
+  Terms. Value. Source document reference.  
+  Domain: commercial/  
+  
+LAYER 2 — ACCOUNTING TRUTH  
+  TigerBeetle records the settlement state.  
+  Double-entry. Immutable. Atomic.  
+  TigerBeetle does not decide whether commerce happened.  
+  TigerBeetle does not decide whether issuance is allowed.  
+  Those decisions belong to SOVR domains.  
+  TigerBeetle records what SOVR authorizes.  
+  Domain: ledger/  
+  
+LAYER 3 — EVIDENCE TRUTH  
+  Certification engine generates the proof artifact.  
+  JDE-compatible settlement evidence package.  
+  SHA-256 manifest. ECDSA signature. IPFS storage.  
+  This package is a first-class domain artifact.  
+  It is not a report. It is commercial proof.  
+  Domain: certification/  
+  
+LAYER 4 — SETTLEMENT REPRESENTATION  
+  SVU is issued only after Layers 0-3 are complete.  
+  SVU = Settlement Value Unit.  
+  Programmable representation of a finalized commercial  
+  settlement obligation.  
+  It is a representation adapter. Not a money creator.  
+  Domain: representation/  
+  
+LAYER 5 — PUBLIC VERIFICATION  
+  Core Gateway Explorer exposes the full chain.  
+  Any party can traverse from SVU back to commercial record.  
+  Independent verification without SOVR permission.  
+  Domain: gateway/  
+  
+---  
+  
+## Chain of Custody — Non-Negotiable Sequence  
+  
+COMMERCIAL TRUTH  
+  Contract / Invoice / Obligation / Agreement  
+        ↓  
+SOVR COMMERCIAL RECORD  
+  CommercialObligation created  
+  Counterparty identified  
+  Authorization captured  
+  Source document hashed  
+        ↓  
+SETTLEMENT AUTHORIZATION  
+  SettlementAuthorized event  
+  Workflow executed  
+  Approval recorded  
+        ↓  
+ACCOUNTING TRUTH  
+  TigerBeetle transfer posted  
+  Debit and credit recorded  
+  Transfer ID generated  
+  Ledger state finalized  
+        ↓  
+EVIDENCE TRUTH  
+  Settlement Evidence Package generated  
+  10 JDE-compatible documents rendered  
+  SHA-256 manifest computed  
+  ECDSA signature applied  
+  Package published to IPFS + S3  
+        ↓  
+SETTLEMENT REPRESENTATION  
+  SVU issued (optional, requires all above)  
+  Commercial record ID embedded  
+  Settlement package hash embedded  
+  TigerBeetle transfer ID embedded  
+  Multisig authorization (2-of-3)  
+        ↓  
+PUBLIC VERIFICATION  
+  Core Gateway Explorer  
+  /settlement/{settlement_id}  
+  Full traversal. Independent verification.  
+  
+---  
+  
+## Locked Terminology  
+  
+SVU  
+  Full name: Settlement Value Unit  
+  NOT: Stored Value Unit  
+  Definition: A programmable representation of a finalized  
+  commercial settlement obligation, created only after  
+  verified authorization, ledger confirmation, and evidence  
+  generation.  
+  Role: Representation adapter. Interface layer only.  
+  
+TigerBeetle  
+  Role: Accounting truth engine  
+  NOT: The money system  
+  NOT: The asset  
+  NOT: The decision maker  
+  It records what SOVR domains authorize.  
+  Nothing more.  
+  
+JDE Package  
+  Role: Commercial proof artifact  
+  NOT: A report  
+  NOT: An export  
+  It is a first-class domain output generated by the  
+  certification engine on SettlementFinalized event.  
+  It proves commercial truth through document chain.  
+  
+Cal Water  
+  Role: Genesis demonstration counterparty  
+  Obligation: SOVR-OBL-000001  
+  Amount: $700.00  
+  Settlement: SOVR-COMMERCIAL-SETTLEMENT-000001  
+  Package: SOVR-PKG-000001  
+  
+Commercial Record  
+  The root object. Required before anything else exists.  
+  Every ledger entry, evidence package, and SVU token  
+  traces back to a commercial record.  
+  
+Evidence Package  
+  The proof artifact. Contains 10 JDE-compatible documents,  
+  SHA-256 manifest, ECDSA signature, storage URI.  
+  Generated automatically on SettlementFinalized.  
+  
+---  
+  
+## Domain Architecture  
+  
+domains/  
+  identity/  
+    purpose: Who exists, who authorized, who attested,  
+             who controls accounts.  
+    required: Before commercial domain can operate.  
+    contains: entities/, roles/, authorities/  
+  
+  commercial/  
+    purpose: Records commercial reality. Origin layer.  
+             No settlement without commercial record.  
+    required: Before settlement domain can operate.  
+    depends_on: identity/  
+    contains: agreements/, obligations/, invoices/,  
+              transactions/  
+  
+  settlement/  
+    purpose: Settlement workflows, events, evidence  
+             generation triggers.  
+    required: Before ledger can be posted.  
+    depends_on: commercial/, identity/  
+    contains: workflows/, events/, evidence/  
+  
+  ledger/  
+    purpose: TigerBeetle adapter. Account registry.  
+             Reconciliation. Accounting truth only.  
+    required: Before certification can run.  
+    depends_on: settlement/  
+    contains: accounts/, tigerbeetle/, reconciliation/  
+  
+  representation/  
+    purpose: SVU contract. Payment instruments.  
+             Blockchain adapters. Output layer only.  
+    optional: At genesis. Not required for proof.  
+    depends_on: ledger/, certification/  
+    contains: svu/, payment/, blockchain/  
+  
+  certification/  
+    purpose: Evidence engine. Package generators.  
+             Attestations. Manifests. Hashing.  
+             Signatures. Verification.  
+    required: Before representation can issue.  
+    depends_on: settlement/, ledger/  
+    contains: packages/, attestations/, manifests/,  
+              evidence-engine/  
+  
+  gateway/  
+    purpose: Explorer. Partner portal. Audit interface.  
+             Public verification layer.  
+    required: For production operation.  
+    depends_on: certification/, representation/  
+    contains: explorer/, partner/  
+  
+---  
+  
+## TigerBeetle Account Registry  
+  
+Ledger ID: SOVR-TREASURY-001  
+System: TigerBeetle  
+  
+  100001  SOVR_EXTERNAL_RESERVE      ASSET  
+          Tracks external reserve holdings.  
+  
+  100002  SOVR_SETTLEMENT_LIABILITY  LIABILITY  
+          Settlement obligations to counterparties.  
+  
+  100003  SOVR_SETTLEMENT_CLEARING   CLEARING  
+          In-flight settlement processing.  
+  
+  100004  SOVR_TREASURY_OPERATIONS   ASSET  
+          Operational funds.  
+  
+Fundamental Equation:  
+  100001 balance must always equal 100002 balance.  
+  Any breach triggers: HALT AND ALERT.  
+  No further transfers until reconciled.  
+  
+---  
+  
+## The Provenance Guarantee  
+  
+For every SVU in existence, SOVR guarantees  
+the ability to produce this traversal:  
+  
+  SVU token  
+    → Mint event with embedded references  
+      → Attestation record SOVR-ATT-{n}  
+        → Evidence package SOVR-PKG-{n}  
+          → Settlement event SOVR-SETTLEMENT-{n}  
+            → TigerBeetle transfer {uint128}  
+              → Commercial obligation SOVR-OBL-{n}  
+                → Source document SHA-256  
+                  → Counterparty identity record  
+  
+If any link in this chain cannot be produced,  
+the SVU is invalid.  
+  
+---  
+  
+## Genesis Artifact  
+  
+ID: SOVR-COMMERCIAL-SETTLEMENT-000001  
+Counterparty: California Water Service  
+Amount: $700.00  
+Purpose: First production proof of SOVR infrastructure.  
+  
+This artifact proves:  
+  ✓ Commercial event was recorded  
+  ✓ Settlement was authorized  
+  ✓ Ledger was posted (TigerBeetle)  
+  ✓ Evidence was generated (JDE Package)  
+  ✓ Audit trail is independently verifiable  
+  
+SVU issuance is optional for this artifact.  
+The infrastructure proof does not require the token.  
+The token requires the infrastructure proof.  
+  
+---  
+  
+## Strategic Position  
+  
+SOVR is not a blockchain payment company.  
+SOVR is not a token platform.  
+SOVR is not a stablecoin issuer.  
+  
+SOVR is:  
+  
+  A commercial settlement infrastructure that converts  
+  verified economic activity into auditable, programmable  
+  settlement records.  
+  
+The differentiator is not the token.  
+The differentiator is the chain:  
+  
+  Commercial Truth  
+    → Accounting Truth  
+      → Evidence Truth  
+        → Programmable Settlement  
+  
+---  
+  
+## Amendment Protocol  
+  
+This document is frozen at v1.0.  
+  
+Amendments require:  
+  1. Written proposal by SOVR Treasury Operations  
+  2. Architectural review  
+  3. Approval by SOVR Development Holdings governance  
+  4. New version published with full change log  
+  5. SHA-256 of new version recorded on-chain  
+  
+No single party may amend unilaterally.  
+  
+---  
+  
+Document ID: SOVR-ARCH-001  
+Version: 1.0.0  
+Status: FROZEN  
+Effective: 2025  
+Authority: SOVR Development Holdings, LLC  
+SHA-256: [computed at commit]  

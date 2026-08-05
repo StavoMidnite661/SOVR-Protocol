@@ -1,0 +1,256 @@
+# SOVR Certification Domain  
+# Version: 1.0.0  
+# Constitutional Authority: SOVR_CANONICAL_ARCHITECTURE_v1.md  
+# Priority: 5 — Evidence truth. Proof layer.  
+  
+domain:  
+  name: certification  
+  version: "1.0.0"  
+  status: ACTIVE  
+  priority: 5  
+  constitutional_rule: >  
+    No programmable representation may exist without  
+    verifiable evidence provenance. The certification  
+    domain generates cryptographic proof that all  
+    preceding layers completed correctly. Without a  
+    certified evidence package, no SVU may be issued.  
+  
+  purpose: >  
+    Evidence engine, package generators, attestations,  
+    manifests, SHA-256 hashing, ECDSA signatures,  
+    verification. Generates the JDE-compatible settlement  
+    evidence package automatically on SettlementFinalized  
+    event. The evidence package is a first-class domain  
+    artifact. It is the commercial proof artifact that  
+    makes SOVR auditable by enterprise accounting systems.  
+  
+  depends_on:  
+    - settlement  
+    - ledger  
+  
+  required_before:  
+    - representation  
+  
+  entities:  
+  
+    SettlementEvidencePackage:  
+      description: >  
+        JDE EnterpriseOne compatible settlement proof  
+        artifact. Contains 10 documents, SHA-256 manifest,  
+        ECDSA signature. Generated automatically.  
+        First-class artifact. Not a report.  
+      required_fields:  
+        - package_id  
+        - settlement_id  
+        - commercial_obligation_id  
+        - tigerbeetle_transfer_id  
+        - documents  
+        - manifest_hash  
+        - package_hash  
+        - signature  
+        - storage_uri  
+        - timestamp  
+  
+    AttestationRecord:  
+      description: >  
+        Signed verification that settlement satisfies  
+        constitutional chain of custody. Required before  
+        SVU representation may be issued.  
+      required_fields:  
+        - attestation_id  
+        - settlement_id  
+        - package_id  
+        - verification_results  
+        - attestor_entity_id  
+        - attestor_signature  
+        - timestamp  
+  
+    SHA256Manifest:  
+      description: >  
+        Cryptographic manifest of all documents in a  
+        settlement evidence package. Each document  
+        individually hashed. Manifest itself hashed.  
+      required_fields:  
+        - manifest_id  
+        - package_id  
+        - document_hashes  
+        - manifest_hash  
+        - algorithm  
+        - timestamp  
+  
+  jde_document_set:  
+    version: "1.0.0"  
+    document_count: 10  
+    trigger: SettlementFinalized  
+    documents:  
+      - index: "00"  
+        name: MASTER_SETTLEMENT_RECORD  
+        template: templates/jde/00_master_settlement_record.hbs  
+        inputs:  
+          - settlement_event  
+          - commercial_obligation  
+          - ledger_state  
+  
+      - index: "01"  
+        name: SETTLEMENT_CONTROL_HEADER  
+        template: templates/jde/01_control_header.hbs  
+        inputs:  
+          - settlement_event  
+          - system_metadata  
+        jde_system_code: "03B"  
+        jde_document_type: "RB"  
+  
+      - index: "02"  
+        name: REMITTANCE_ADVICE  
+        template: templates/jde/02_remittance_advice.hbs  
+        inputs:  
+          - settlement_event  
+          - account_roster  
+  
+      - index: "03"  
+        name: PAYMENT_RECEIPT_RECORD  
+        template: templates/jde/03_payment_receipt.hbs  
+        inputs:  
+          - settlement_event  
+          - receipt_record  
+  
+      - index: "04"  
+        name: OPEN_ITEM_APPLICATION  
+        template: templates/jde/04_open_item_application.hbs  
+        inputs:  
+          - settlement_event  
+          - commercial_obligation  
+  
+      - index: "05"  
+        name: ACCOUNT_LEDGER_DETAIL  
+        template: templates/jde/05_ledger_detail.hbs  
+        inputs:  
+          - settlement_event  
+          - tigerbeetle_transfer  
+  
+      - index: "06"  
+        name: BATCH_CONTROL  
+        template: templates/jde/06_batch_control.hbs  
+        inputs:  
+          - batch_totals  
+          - variance_check  
+  
+      - index: "07"  
+        name: AUDIT_TRAIL  
+        template: templates/jde/07_audit_trail.hbs  
+        inputs:  
+          - event_history  
+          - authorization_chain  
+  
+      - index: "08"  
+        name: POSTING_INSTRUCTIONS  
+        template: templates/jde/08_posting_instructions.hbs  
+        inputs:  
+          - settlement_event  
+          - gl_mapping  
+  
+      - index: "09"  
+        name: ACKNOWLEDGMENT_RECORD  
+        template: templates/jde/09_acknowledgment_record.hbs  
+        inputs:  
+          - settlement_event  
+          - counterparty  
+  
+      - index: "10"  
+        name: DOCUMENT_INDEX  
+        template: templates/jde/10_document_index.hbs  
+        inputs:  
+          - all_documents  
+          - manifest  
+  
+  evidence_pipeline:  
+    step_1:  
+      name: validate_inputs  
+      checks:  
+        - commercial_record_exists  
+        - settlement_authorized  
+        - ledger_state_finalized  
+      on_fail: HALT  
+  
+    step_2:  
+      name: generate_documents  
+      action: render_all_jde_templates  
+      output: 10_pdf_documents  
+  
+    step_3:  
+      name: hash_documents  
+      algorithm: SHA-256  
+      action: hash_each_document  
+      output: document_hash_list  
+  
+    step_4:  
+      name: generate_manifest  
+      action: compile_document_hashes  
+      format: SOVR_Manifest_v1  
+      output: manifest_file  
+  
+    step_5:  
+      name: hash_manifest  
+      algorithm: SHA-256  
+      output: manifest_hash  
+  
+    step_6:  
+      name: sign_package  
+      algorithm: ECDSA  
+      signer: authorized_attestor  
+      covers: manifest_hash  
+      output: package_signature  
+  
+    step_7:  
+      name: publish_package  
+      targets:  
+        - ipfs  
+        - s3  
+        - sovr_vault  
+      output: storage_uri  
+  
+    step_8:  
+      name: update_explorer  
+      action: publish_to_gateway  
+      view: EvidencePackageViewer  
+      public: true  
+  
+  events:  
+    - name: EvidencePackageGenerated  
+      description: >  
+        JDE package generated and documents rendered.  
+      required_fields:  
+        - package_id  
+        - settlement_id  
+        - document_count  
+        - timestamp  
+  
+    - name: ManifestComputed  
+      description: SHA-256 manifest computed and verified.  
+      required_fields:  
+        - package_id  
+        - manifest_hash  
+        - document_hashes  
+        - timestamp  
+  
+    - name: AttestationSigned  
+      description: >  
+        Attestor signed package. Constitutional chain  
+        of custody verified. SVU issuance now permitted.  
+      required_fields:  
+        - attestation_id  
+        - package_id  
+        - attestor  
+        - signature  
+        - timestamp  
+  
+    - name: PackagePublished  
+      description: Package stored and URI recorded on-chain.  
+      required_fields:  
+        - package_id  
+        - storage_uri  
+        - ipfs_hash  
+        - timestamp  
+  
+  document_id: SOVR-DOM-CERTIFICATION-001  
+  sha256: "[computed at commit]"  

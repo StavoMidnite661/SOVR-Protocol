@@ -1,0 +1,2657 @@
+# ============================================================
+# SOVR Financial OS — Policy Domain Specification
+# File: domains/policy.yaml
+# Status: FROZEN
+# Build Phase: D
+# Domain Priority: 3 (Execution Authority)
+# ============================================================
+# Policy is the Gate 4 Authority of SOVR.
+# It receives an AuthorizationContext from Identity and produces
+# a deterministic PolicyDecision. Policy answers:
+#   "May this action occur?"
+#
+# Policy is the SECOND stage of the execution pipeline:
+#   Actor → Identity → Authorization Context → Policy (evaluate)
+#   → Intent (normalize/validate) → Command → Agent → Treasury → Ledger
+#
+# Constitutional references:
+#   INV-003: No actor may exceed granted authority
+#   INV-004: No agent may create, grant, or modify financial authority
+#   INV-005: Every financial action must produce an auditable event trail
+#   INV-008: Gate 4 — no command executes without policy validation
+# ============================================================
+
+domain:
+  name: policy
+  version: 1.0.0
+  description: >
+    The Execution Authority Domain. Evaluates all commands against
+    active policy rules across seven dimensions: identity, capability,
+    scope, context, treasury state, vault state, and governance rules.
+    Produces deterministic PolicyDecision outputs. Policy never mutates
+    state — it is a pure evaluation function.
+  constitutional_references:
+    invariants: [INV-003, INV-004, INV-005, INV-008]
+    conflict_resolution_rank: 1  # invariant_preservation
+
+  production_invariants:
+    - id: PI-001
+      rule: Policy evaluation SHALL be deterministic
+      enforcement: same inputs + same rule versions + same evaluation order = same decision
+      violation: constitutional_violation (INV-008)
+
+    - id: PI-002
+      rule: Policy evaluation SHALL NOT mutate state
+      enforcement: evaluation engine is a pure function; all state changes via commands only
+      violation: halt_and_investigate
+
+    - id: PI-003
+      rule: Policy SHALL NOT evaluate without authorization_context
+      enforcement: engine rejects evaluation requests lacking authorization_context_id
+      violation: reject_and_audit
+
+    - id: PI-004
+      rule: Policy SHALL NOT grant capabilities not authorized by Identity
+      enforcement: policy output decision cannot expand identity.capabilities
+      violation: constitutional_violation (INV-003)
+
+    - id: PI-005
+      rule: Policy SHALL NOT be modified by agents
+      enforcement: agent actor_type rejected on all policy mutation commands
+      violation: constitutional_violation (INV-004)
+
+    - id: PI-006
+      rule: All policy evaluations SHALL produce auditable events
+      enforcement: every completed evaluation emits policy.evaluation.completed
+      violation: constitutional_violation (INV-005)
+
+    - id: PI-007
+      rule: Constitutional rules SHALL always be evaluated
+      enforcement: rules with constitutional_reference are non-skippable in every set
+      violation: constitutional_violation (INV-008)
+
+    - id: PI-008
+      rule: Policy SHALL NOT make external calls during evaluation
+      enforcement: all context pre-gathered before evaluation begins
+      violation: reject_evaluation_and_audit
+
+# ============================================================
+# SECTION 2 — POLICY RULE MODEL
+# ============================================================
+
+enums:
+  policy_rule_category:
+    values: [AUTHORIZATION, RISK, COMPLIANCE, OPERATIONAL, GOVERNANCE, CONSTITUTIONAL]
+    description: Classification of a policy rule's domain of concern
+
+  condition_type:
+    values: [ALWAYS, IF_FIELD, IF_STATE, IF_THRESHOLD, IF_PATTERN, IF_ABSENCE, COMPOSITE]
+    description: Type of condition evaluation strategy
+
+  condition_operator:
+    values: [EQ, NEQ, GT, GTE, LT, LTE, IN, NOT_IN, MATCHES, CONTAINS, ABSENT, PRESENT]
+    description: Comparison operator for condition evaluation
+
+  composite_operator:
+    values: [AND, OR, NOT]
+    description: Logical operator for COMPOSITE condition types
+
+  rule_action:
+    values: [ALLOW, DENY, ESCALATE, DEFER, REQUIRE_CONDITION, REQUIRE_APPROVAL]
+    description: Action taken when a rule matches
+
+  escalation_target:
+    values: [GOVERNANCE, HUMAN_OPERATOR, COMPLIANCE_OFFICER, NONE]
+    description: Target for escalation when rule action is ESCALATE
+
+  policy_decision_outcome:
+    values: [ALLOW, DENY, ESCALATE, DEFER]
+    description: Final decision outcome from policy evaluation
+
+  decision_confidence:
+    values: [CERTAIN, HIGH, MEDIUM, LOW]
+    description: Confidence level of the policy decision
+
+  risk_level:
+    values: [NONE, LOW, MEDIUM, HIGH, CRITICAL]
+    description: Risk assessment severity level
+
+  risk_factor_type:
+    values: [AMOUNT_THRESHOLD, VELOCITY, COUNTERPARTY_RISK, ASSET_RISK, GEOGRAPHIC, TEMPORAL, NOVEL_PATTERN]
+    description: Classification of individual risk factors
+
+  evaluation_strategy:
+    values: [FIRST_MATCH, ALL_MUST_PASS, MAJORITY, WEIGHTED_SCORE]
+    description: How rules within a policy set are combined into a decision
+
+  conflict_resolution:
+    values: [MOST_RESTRICTIVE, LEAST_RESTRICTIVE, PRIORITY_ORDER, ESCALATE]
+    description: How conflicting rule outcomes are resolved within a set
+
+  domain_scope:
+    values: [GLOBAL, VAULT, TREASURY, LEDGER, IDENTITY, AGENT, PAYMENT, GOVERNANCE]
+    description: Domain scope a policy set applies to
+
+  monitoring_frequency:
+    values: [REAL_TIME, PER_TRANSACTION, DAILY, PERIODIC]
+    description: How often a compliance requirement is monitored
+
+  reporting_destination:
+    values: [GOVERNANCE, REGULATORY, AUDIT]
+    description: Where compliance monitoring results are reported
+
+  escalation_reason:
+    values: [NO_MATCHING_POLICY, CONFLICTING_RULES, RISK_THRESHOLD, COMPLIANCE_AMBIGUITY, NOVEL_OPERATION, GOVERNANCE_REQUIRED]
+    description: Why an evaluation was escalated
+
+  required_resolution:
+    values: [MANUAL_APPROVAL, POLICY_UPDATE, GOVERNANCE_DIRECTIVE]
+    description: How an escalation must be resolved
+
+  evaluation_state:
+    values: [IDLE, GATHERING_CONTEXT, EVALUATING_RULES, COMPUTING_DECISION, DECISION_RENDERED, ARCHIVED]
+    description: States of the policy evaluation lifecycle
+
+  policy_rule_state:
+    values: [DRAFT, ACTIVE, INACTIVE, ARCHIVED]
+    description: Lifecycle states of a policy rule
+
+  escalation_state:
+    values: [PENDING, UNDER_REVIEW, RESOLVED, EXPIRED, AUTO_DENIED]
+    description: Lifecycle states of a policy escalation
+
+# ============================================================
+# SECTION 3 — POLICY RULE SCHEMA
+# ============================================================
+
+policy_rule:
+  description: A single evaluatable rule that produces an action when its condition matches
+  schema:
+    rule_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Globally unique rule identifier
+    rule_name:
+      type: string
+      format: dot.notation.domain.action.constraint
+      required: true
+      description: Dot-notation name for programmatic reference
+    description:
+      type: string
+      required: true
+      description: Human-readable description of rule purpose
+    category:
+      type: enum
+      ref: policy_rule_category
+      required: true
+      description: Classification of rule domain
+    priority:
+      type: integer
+      format: uint32
+      required: true
+      description: Lower value = higher priority in conflict resolution
+    evaluation_order:
+      type: integer
+      format: uint32
+      required: true
+      description: Deterministic position in evaluation sequence within a set
+    condition:
+      type: object
+      required: true
+      description: The condition under which this rule triggers
+      fields:
+        type:
+          type: enum
+          ref: condition_type
+          required: true
+        field:
+          type: string
+          format: dot.path
+          required: false
+          description: Field path to evaluate; not required for ALWAYS or COMPOSITE
+        operator:
+          type: enum
+          ref: condition_operator
+          required: false
+          description: Comparison operator; not required for ALWAYS or COMPOSITE
+        value:
+          type: any
+          required: false
+          description: Comparison value; type determined by field and operator
+        composite_operator:
+          type: enum
+          ref: composite_operator
+          required: false
+          description: Logical operator; required only for COMPOSITE type
+        sub_conditions:
+          type: array
+          items: policy_rule.condition
+          required: false
+          description: Nested conditions; required only for COMPOSITE type
+    action:
+      type: enum
+      ref: rule_action
+      required: true
+      description: Action taken when condition matches
+    escalation_target:
+      type: enum
+      ref: escalation_target
+      required: false
+      description: Target for escalation; required when action is ESCALATE
+    compliance_mapping:
+      type: array
+      items:
+        type: string
+        format: regulation.identifier
+      required: false
+      default: []
+      description: External regulation IDs this rule implements
+    constitutional_reference:
+      type: string
+      format: INV-XXX
+      required: false
+      description: Invariant ID if this rule enforces a constitutional invariant
+    active:
+      type: boolean
+      required: true
+      description: Whether this rule is currently active
+    effective_from:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: When this rule becomes effective
+    effective_until:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: When this rule expires; null means no expiration
+    version:
+      type: string
+      format: semver
+      required: true
+      description: Semantic version of this rule definition
+    last_modified_by:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: identity_id of the actor who last modified this rule
+    last_modified_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Timestamp of last modification
+
+  examples:
+    - rule_id: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+      rule_name: policy.authorization.capability.present
+      description: Deny if actor lacks the required capability
+      category: AUTHORIZATION
+      priority: 10
+      evaluation_order: 1
+      condition:
+        type: IF_ABSENCE
+        field: identity.authorization_context.capabilities
+        operator: CONTAINS
+        value: "$requested_capability"
+      action: DENY
+      escalation_target: NONE
+      compliance_mapping: []
+      constitutional_reference: INV-003
+      active: true
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+      version: "1.0.0"
+      last_modified_by: "00000000-0000-0000-0000-000000000001"
+      last_modified_at: "2025-07-07T00:00:00Z"
+
+    - rule_id: "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e"
+      rule_name: policy.risk.amount.threshold.breach
+      description: Escalate if transaction amount exceeds single-operation risk threshold
+      category: RISK
+      priority: 20
+      evaluation_order: 5
+      condition:
+        type: IF_THRESHOLD
+        field: command.amount
+        operator: GT
+        value: "$policy.parameters.single_operation_limit"
+      action: ESCALATE
+      escalation_target: COMPLIANCE_OFFICER
+      compliance_mapping: []
+      constitutional_reference: null
+      active: true
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+      version: "1.0.0"
+      last_modified_by: "00000000-0000-0000-0000-000000000001"
+      last_modified_at: "2025-07-07T00:00:00Z"
+
+    - rule_id: "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f"
+      rule_name: policy.constitutional.agent.no_authority_modify
+      description: Deny if actor is an agent attempting to modify policy
+      category: CONSTITUTIONAL
+      priority: 1
+      evaluation_order: 0
+      condition:
+        type: COMPOSITE
+        composite_operator: AND
+        sub_conditions:
+          - type: IF_FIELD
+            field: identity.actor_type
+            operator: EQ
+            value: "ai_agent"
+          - type: IF_FIELD
+            field: command.capability
+            operator: MATCHES
+            value: "^policy\\.rule\\.(create|update|activate|deactivate)$"
+      action: DENY
+      escalation_target: NONE
+      compliance_mapping: []
+      constitutional_reference: INV-004
+      active: true
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+      version: "1.0.0"
+      last_modified_by: "00000000-0000-0000-0000-000000000001"
+      last_modified_at: "2025-07-07T00:00:00Z"
+
+    - rule_id: "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a"
+      rule_name: policy.compliance.kyc.verified
+      description: Deny if counterparty lacks KYC verification for applicable jurisdiction
+      category: COMPLIANCE
+      priority: 15
+      evaluation_order: 3
+      condition:
+        type: IF_STATE
+        field: identity.counterparty.kyc_status
+        operator: NOT_IN
+        value: ["VERIFIED", "EXEMPT"]
+      action: DENY
+      escalation_target: NONE
+      compliance_mapping: ["AML-6AMLD", "FATF-REC10"]
+      constitutional_reference: null
+      active: true
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+      version: "1.0.0"
+      last_modified_by: "00000000-0000-0000-0000-000000000001"
+      last_modified_at: "2025-07-07T00:00:00Z"
+
+    - rule_id: "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b"
+      rule_name: policy.operational.treasury.liquidity.sufficient
+      description: Deny if treasury liquidity ratio below minimum threshold
+      category: OPERATIONAL
+      priority: 18
+      evaluation_order: 6
+      condition:
+        type: IF_THRESHOLD
+        field: treasury_state.available_liquidity_ratio
+        operator: LT
+        value: 0.05
+      action: DENY
+      escalation_target: GOVERNANCE
+      compliance_mapping: []
+      constitutional_reference: INV-007
+      active: true
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+      version: "1.0.0"
+      last_modified_by: "00000000-0000-0000-0000-000000000001"
+      last_modified_at: "2025-07-07T00:00:00Z"
+
+    - rule_id: "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c"
+      rule_name: policy.risk.velocity.daily.limit
+      description: Escalate if actor has exceeded 80% of daily transaction velocity limit
+      category: RISK
+      priority: 22
+      evaluation_order: 7
+      condition:
+        type: IF_THRESHOLD
+        field: context.daily_velocity_ratio
+        operator: GTE
+        value: 0.80
+      action: ESCALATE
+      escalation_target: HUMAN_OPERATOR
+      compliance_mapping: []
+      constitutional_reference: null
+      active: true
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+      version: "1.0.0"
+      last_modified_by: "00000000-0000-0000-0000-000000000001"
+      last_modified_at: "2025-07-07T00:00:00Z"
+
+# ============================================================
+# SECTION 4 — POLICY SET MODEL
+# ============================================================
+
+policy_set:
+  description: Groups policy rules for coordinated evaluation with a defined strategy
+  schema:
+    set_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Globally unique set identifier
+    name:
+      type: string
+      required: true
+      description: Human-readable set name
+    description:
+      type: string
+      required: true
+      description: Human-readable set description
+    domain_scope:
+      type: enum
+      ref: domain_scope
+      required: true
+      description: Domain this set applies to
+    rule_ids:
+      type: array
+      items:
+        type: uuid
+        format: uuidv4
+      required: true
+      min_items: 1
+      description: Ordered list of rule IDs; order defines evaluation_order unless overridden
+    evaluation_strategy:
+      type: enum
+      ref: evaluation_strategy
+      required: true
+      description: How individual rule results combine into a set decision
+    conflict_resolution:
+      type: enum
+      ref: conflict_resolution
+      required: true
+      description: How conflicting rule outcomes are resolved
+    active:
+      type: boolean
+      required: true
+      description: Whether this set is currently active
+    governance_approved:
+      type: boolean
+      required: true
+      description: Whether governance has approved this set for production use
+    version:
+      type: string
+      format: semver
+      required: true
+      description: Semantic version of this set definition
+    effective_from:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: When this set becomes effective
+    effective_until:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: When this set expires; null means no expiration
+
+  examples:
+    - set_id: "10000000-0000-0000-0000-000000000001"
+      name: global_execution_authority
+      description: Primary policy set for all command execution; enforces identity, capability, scope, and constitutional rules
+      domain_scope: GLOBAL
+      rule_ids:
+        - "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f"
+        - "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+        - "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a"
+        - "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e"
+        - "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b"
+        - "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c"
+      evaluation_strategy: ALL_MUST_PASS
+      conflict_resolution: MOST_RESTRICTIVE
+      active: true
+      governance_approved: true
+      version: "1.0.0"
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+
+    - set_id: "10000000-0000-0000-0000-000000000002"
+      name: treasury_transfer_policy
+      description: Policy set for treasury transfer operations including liquidity and velocity checks
+      domain_scope: TREASURY
+      rule_ids:
+        - "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f"
+        - "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+        - "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e"
+        - "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b"
+        - "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c"
+      evaluation_strategy: ALL_MUST_PASS
+      conflict_resolution: MOST_RESTRICTIVE
+      active: true
+      governance_approved: true
+      version: "1.0.0"
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+
+# ============================================================
+# SECTION 5 — POLICY DECISION OUTPUT
+# ============================================================
+
+policy_decision:
+  description: Deterministic output of policy evaluation; consumed by Intent domain
+  schema:
+    decision_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Unique identifier for this decision instance
+    evaluation_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Reference to the policy_evaluation that produced this decision
+    decision:
+      type: enum
+      ref: policy_decision_outcome
+      required: true
+      description: Final decision outcome
+    confidence:
+      type: enum
+      ref: decision_confidence
+      required: true
+      description: Confidence level of this decision
+    rules_evaluated:
+      type: array
+      items:
+        type: object
+        fields:
+          rule_id:
+            type: uuid
+            required: true
+          rule_name:
+            type: string
+            required: true
+          action:
+            type: enum
+            ref: rule_action
+            required: true
+          matched:
+            type: boolean
+            required: true
+      required: true
+      description: All rules that were evaluated, with their individual outcomes
+    rules_passed:
+      type: array
+      items:
+        type: uuid
+      required: true
+      description: IDs of rules whose conditions matched and action was not DENY
+    rules_failed:
+      type: array
+      items:
+        type: uuid
+      required: true
+      description: IDs of rules whose conditions matched and action was DENY
+    conditions:
+      type: array
+      items:
+        type: object
+        fields:
+          condition_id:
+            type: uuid
+            required: true
+          condition_type:
+            type: string
+            required: true
+          description:
+            type: string
+            required: true
+          parameter:
+            type: string
+            required: true
+          value:
+            type: any
+            required: true
+      required: false
+      default: []
+      description: Conditions attached to ALLOW decisions; must be satisfied by Intent
+    escalation_reason:
+      type: enum
+      ref: escalation_reason
+      required: false
+      description: Reason for escalation; required when decision is ESCALATE
+    defer_until:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: When to re-evaluate; required when decision is DEFER
+    risk_assessment:
+      type: object
+      ref: risk_assessment
+      required: true
+      description: Risk assessment computed during evaluation
+    compliance_flags:
+      type: array
+      items:
+        type: object
+        fields:
+          flag_code:
+            type: string
+            required: true
+          regulation_id:
+            type: string
+            required: true
+          severity:
+            type: enum
+            ref: risk_level
+            required: true
+          description:
+            type: string
+            required: true
+      required: true
+      default: []
+      description: Compliance issues detected during evaluation
+    constitutional_rules_referenced:
+      type: array
+      items:
+        type: string
+        format: INV-XXX
+      required: true
+      description: All constitutional invariants referenced during evaluation
+    evaluated_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Timestamp when evaluation completed
+    deterministic_hash:
+      type: string
+      format: sha256hex
+      required: true
+      description: Hash of all inputs + rule versions + evaluation order for reproducibility
+
+# ============================================================
+# SECTION 6 — POLICY EVALUATION ENGINE
+# ============================================================
+
+evaluation_engine:
+  description: State machine that drives the policy evaluation process
+  initial_state: IDLE
+  final_states: [DECISION_RENDERED, ARCHIVED]
+
+  states:
+    IDLE:
+      description: No evaluation in progress
+      allowed_transitions: [GATHERING_CONTEXT]
+      entry_actions: []
+      exit_actions: []
+
+    GATHERING_CONTEXT:
+      description: Collecting all seven evaluation dimensions before rule evaluation
+      allowed_transitions: [EVALUATING_RULES, IDLE]
+      entry_actions:
+        - receive authorization_context from identity.authorization_context_id
+        - receive command details (capability, scope, target) from command_id
+        - gather vault_state (asset availability, risk classification, reserves)
+        - gather treasury_state (liquidity, limits, velocity)
+        - gather governance_rules (active compliance requirements)
+        - snapshot all inputs with immutable hashes
+      exit_actions: []
+
+    EVALUATING_RULES:
+      description: Evaluating all rules in the active policy set in deterministic order
+      allowed_transitions: [COMPUTING_DECISION, IDLE]
+      entry_actions:
+        - load policy_set by domain_scope or GLOBAL
+        - sort rules by evaluation_order
+        - evaluate each rule condition against input snapshot
+        - record individual rule outcomes (matched, action, rule_id)
+        - collect compliance_flags from matched rules
+        - collect constitutional_rules_referenced from matched rules
+      exit_actions: []
+
+    COMPUTING_DECISION:
+      description: Applying evaluation strategy and conflict resolution to produce final decision
+      allowed_transitions: [DECISION_RENDERED, IDLE]
+      entry_actions:
+        - apply evaluation_strategy to individual rule outcomes
+        - apply conflict_resolution if rules produced conflicting actions
+        - compute risk_assessment from risk factors
+        - determine decision confidence
+        - attach conditions if ALLOW with constraints
+        - determine escalation_target and escalation_reason if ESCALATE
+        - determine defer_until if DEFER
+        - compute deterministic_hash from sorted_inputs + rule_versions + evaluation_order
+        - validate deterministic_hash against INV-008
+      exit_actions: []
+
+    DECISION_RENDERED:
+      description: Final policy_decision is produced and ready for consumption
+      allowed_transitions: [ARCHIVED]
+      entry_actions:
+        - emit policy.evaluation.completed
+        - emit outcome-specific event (denied/escalated/deferred) if applicable
+        - provide policy_decision to Intent domain
+      exit_actions: []
+
+    ARCHIVED:
+      description: Evaluation record is archived for audit and reproducibility
+      allowed_transitions: []
+      entry_actions:
+        - persist policy_evaluation record
+        - persist policy_decision record
+      exit_actions: []
+
+  evaluation_steps:
+    - step: 1
+      name: receive_authorization_context
+      description: Receive AuthorizationContext from Identity domain
+      input:
+        authorization_context_id:
+          type: uuid
+          required: true
+          source: identity.authorization_context.authorization_context_id
+      output:
+        identity_snapshot:
+          type: object
+          description: Immutable copy of identity state
+      state: GATHERING_CONTEXT
+
+    - step: 2
+      name: receive_command_details
+      description: Receive command capability, scope, and target from the command
+      input:
+        command_id:
+          type: uuid
+          required: true
+          source: command_bus.command.command_id
+        capability:
+          type: string
+          required: true
+          source: command_bus.command.capability
+        scope:
+          type: string
+          required: true
+          source: command_bus.command.scope
+        target:
+          type: object
+          required: false
+          source: command_bus.command.target
+      output:
+        command_snapshot:
+          type: object
+          description: Immutable copy of command details
+      state: GATHERING_CONTEXT
+
+    - step: 3
+      name: gather_vault_state
+      description: Gather current vault state for the target asset
+      input:
+        asset_id:
+          type: uuid
+          required: true
+          source: command_snapshot.scope or command_snapshot.target.asset_id
+      output:
+        vault_state:
+          type: object
+          fields:
+            asset_id: uuid
+            asset_state: string
+            risk_classification: string
+            available_balance: decimal
+            reserved_balance: decimal
+            custody_attestation_valid: boolean
+            custody_attestation_expires_at: timestamp
+        vault_state_hash:
+          type: string
+          format: sha256hex
+          description: Hash of vault state snapshot for determinism
+      state: GATHERING_CONTEXT
+
+    - step: 4
+      name: gather_treasury_state
+      description: Gather current treasury liquidity and velocity state
+      input:
+        asset_id:
+          type: uuid
+          required: true
+          source: command_snapshot.target.asset_id
+        actor_id:
+          type: uuid
+          required: true
+          source: identity_snapshot.actor_id
+      output:
+        treasury_state:
+          type: object
+          fields:
+            asset_id: uuid
+            total_available: decimal
+            total_reserved: decimal
+            in_transit: decimal
+            available_liquidity_ratio: decimal
+            liquidity_state: string
+            actor_daily_velocity: decimal
+            actor_daily_velocity_limit: decimal
+            actor_daily_velocity_ratio: decimal
+        treasury_state_hash:
+          type: string
+          format: sha256hex
+          description: Hash of treasury state snapshot for determinism
+      state: GATHERING_CONTEXT
+
+    - step: 5
+      name: gather_governance_rules
+      description: Gather active governance and compliance requirements
+      input:
+        domain_scope:
+          type: string
+          required: true
+          source: command_snapshot.domain or inferred
+        jurisdiction:
+          type: string
+          required: false
+          source: identity_snapshot.jurisdiction
+      output:
+        governance_rules:
+          type: object
+          fields:
+            active_compliance_requirements:
+              type: array
+              items: compliance_requirement
+            emergency_controls_active:
+              type: boolean
+            governance_directives:
+              type: array
+              items: object
+        governance_rules_hash:
+          type: string
+          format: sha256hex
+          description: Hash of governance rules snapshot for determinism
+      state: GATHERING_CONTEXT
+
+    - step: 6
+      name: evaluate_rules
+      description: Evaluate all rules in deterministic order against the input snapshot
+      input:
+        policy_set:
+          type: policy_set
+          source: loaded by domain_scope
+        input_snapshot:
+          type: object
+          fields:
+            identity: object
+            capability: string
+            scope: string
+            vault_state_hash: string
+            treasury_state_hash: string
+            governance_rules_hash: string
+      output:
+        rules_evaluated:
+          type: array
+          items:
+            rule_id: uuid
+            rule_name: string
+            action: rule_action
+            matched: boolean
+        rules_passed:
+          type: array
+          items: uuid
+        rules_failed:
+          type: array
+          items: uuid
+        compliance_flags:
+          type: array
+          items: object
+        constitutional_rules_referenced:
+          type: array
+          items: string
+          format: INV-XXX
+      state: EVALUATING_RULES
+
+    - step: 7
+      name: compute_decision
+      description: Apply evaluation strategy and conflict resolution to produce final decision
+      input:
+        evaluation_strategy:
+          type: enum
+          ref: evaluation_strategy
+        conflict_resolution:
+          type: enum
+          ref: conflict_resolution
+        rules_evaluated:
+          type: array
+      output:
+        decision:
+          type: enum
+          ref: policy_decision_outcome
+        confidence:
+          type: enum
+          ref: decision_confidence
+        conditions:
+          type: array
+          description: Attached conditions for ALLOW with constraints
+      state: COMPUTING_DECISION
+
+    - step: 8
+      name: attach_risk_assessment
+      description: Compute risk assessment from evaluation factors
+      input:
+        rules_evaluated:
+          type: array
+        vault_state:
+          type: object
+        treasury_state:
+          type: object
+        identity_snapshot:
+          type: object
+        command_snapshot:
+          type: object
+      output:
+        risk_assessment:
+          type: object
+          ref: risk_assessment
+      state: COMPUTING_DECISION
+
+    - step: 9
+      name: attach_compliance_flags
+      description: Attach any compliance violations or requirements from evaluated rules
+      input:
+        compliance_flags:
+          type: array
+        constitutional_rules_referenced:
+          type: array
+      output:
+        compliance_flags:
+          type: array
+          items: object
+        constitutional_rules_referenced:
+          type: array
+          items: string
+      state: COMPUTING_DECISION
+
+    - step: 10
+      name: compute_deterministic_hash
+      description: Compute hash of all inputs for reproducibility verification
+      input:
+        sorted_inputs:
+          type: string
+          description: JSON-serialized, sorted-key representation of all inputs
+        rule_versions:
+          type: array
+          items:
+            rule_id: uuid
+            version: string
+        evaluation_order:
+          type: array
+          items: uuid
+      output:
+        deterministic_hash:
+          type: string
+          format: sha256hex
+          description: Hash enabling exact reproducibility of this decision
+      state: COMPUTING_DECISION
+
+    - step: 11
+      name: return_decision
+      description: Render and return the final policy_decision
+      input:
+        decision:
+          type: enum
+        confidence:
+          type: enum
+        rules_evaluated:
+          type: array
+        rules_passed:
+          type: array
+        rules_failed:
+          type: array
+        conditions:
+          type: array
+        escalation_reason:
+          type: enum
+        defer_until:
+          type: timestamp
+        risk_assessment:
+          type: object
+        compliance_flags:
+          type: array
+        constitutional_rules_referenced:
+          type: array
+        evaluated_at:
+          type: timestamp
+        deterministic_hash:
+          type: string
+      output:
+        policy_decision:
+          type: policy_decision
+          description: Complete decision object consumed by Intent domain
+      state: DECISION_RENDERED
+
+# ============================================================
+# SECTION 7 — DETERMINISM REQUIREMENTS
+# ============================================================
+
+determinism_requirements:
+  description: Rules that ensure reproducible policy decisions
+  requirements:
+    - id: DET-001
+      rule: evaluation_order is fixed per policy_set
+      enforcement: rules evaluated in strict order of policy_rule.evaluation_order within the set
+      validation: no rule may be skipped or reordered during evaluation
+      constitutional_reference: INV-008
+
+    - id: DET-002
+      rule: All inputs are snapshotted before evaluation begins
+      enforcement: all seven dimensions captured as immutable copies in GATHERING_CONTEXT
+      validation: no input read occurs after EVALUATING_RULES state is entered
+      constitutional_reference: INV-008
+
+    - id: DET-003
+      rule: No external calls during evaluation
+      enforcement: all context pre-gathered before EVALUATING_RULES state; no I/O in EVALUATING_RULES or COMPUTING_DECISION
+      validation: evaluation engine is a pure function of its input snapshot
+      constitutional_reference: INV-008
+
+    - id: DET-004
+      rule: deterministic_hash is computed from sorted inputs
+      enforcement: deterministic_hash = SHA256(JSON.stringify(sorted_keys(input_snapshot)) + "|" + rule_versions.join(",") + "|" + evaluation_order.join(","))
+      validation: same deterministic_hash MUST produce same decision when re-evaluated
+      constitutional_reference: INV-008
+
+    - id: DET-005
+      rule: Same hash MUST produce same decision
+      enforcement: system verifies deterministic_hash consistency on audit replay
+      validation: if replay of identical inputs produces different decision, constitutional violation is raised
+      constitutional_reference: INV-008
+
+    - id: DET-006
+      rule: Rule versions are captured at evaluation time
+      enforcement: each rule's version field is included in the hash computation
+      validation: rule version changes between evaluations produce different hashes even with identical inputs
+      constitutional_reference: INV-008
+
+    - id: DET-007
+      rule: Time is not a direct evaluation input
+      enforcement: time-based conditions use pre-snapshot temporal fields (e.g., context.current_hour, context.day_of_week), not wall-clock reads
+      validation: no clock.now() calls during EVALUATING_RULES or COMPUTING_DECISION states
+      constitutional_reference: INV-008
+
+  hash_computation:
+    algorithm: SHA-256
+    input_concatenation: "sorted_json_inputs | rule_id:version_pairs_ordered_by_evaluation | set_id:set_version"
+    encoding: hexadecimal
+    example: |
+      hash_input = canonical_json(input_snapshot)
+                + "|" + "a1b2c3d4:1.0.0,b2c3d4e5:1.0.0,c3d4e5f6:1.0.0"
+                + "|" + "10000000-...-000001:1.0.0"
+      deterministic_hash = SHA256(hash_input)
+
+# ============================================================
+# SECTION 8 — RISK ASSESSMENT MODEL
+# ============================================================
+
+risk_assessment:
+  description: Quantitative risk evaluation produced alongside every policy decision
+  schema:
+    assessment_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Unique identifier for this assessment
+    evaluation_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Reference to the policy_evaluation that produced this assessment
+    level:
+      type: enum
+      ref: risk_level
+      required: true
+      description: Aggregated risk level
+    score:
+      type: decimal
+      format: float64
+      required: true
+      min_value: 0.0
+      max_value: 1.0
+      description: Aggregated risk score where 0.0 is no risk and 1.0 is maximum risk
+    factors:
+      type: array
+      items:
+        type: object
+        fields:
+          factor_id:
+            type: uuid
+            required: true
+          factor_type:
+            type: enum
+            ref: risk_factor_type
+            required: true
+          weight:
+            type: decimal
+            format: float64
+            required: true
+            min_value: 0.0
+            max_value: 1.0
+            description: Weight of this factor in aggregate score
+          value:
+            type: any
+            required: true
+            description: Raw value of the risk factor
+          contribution:
+            type: decimal
+            format: float64
+            required: true
+            description: Weighted contribution to aggregate score
+      required: true
+      min_items: 0
+      description: Individual risk factors contributing to the assessment
+    aggregate_score:
+      type: decimal
+      format: float64
+      required: true
+      min_value: 0.0
+      max_value: 1.0
+      description: Sum of all factor contributions; must equal score
+    threshold_breached:
+      type: boolean
+      required: true
+      description: Whether the aggregate score exceeds the risk threshold for the operation
+    requires_escalation:
+      type: boolean
+      required: true
+      description: Whether this risk level requires escalation per policy configuration
+
+  level_thresholds:
+    NONE:
+      max_score: 0.0
+      description: No risk factors identified
+    LOW:
+      min_score: 0.01
+      max_score: 0.25
+      description: Minimal risk; standard operations
+    MEDIUM:
+      min_score: 0.26
+      max_score: 0.50
+      description: Moderate risk; monitoring recommended
+    HIGH:
+      min_score: 0.51
+      max_score: 0.75
+      description: Elevated risk; escalation may be required
+    CRITICAL:
+      min_score: 0.76
+      max_score: 1.0
+      description: Severe risk; escalation mandatory
+
+  factor_definitions:
+    AMOUNT_THRESHOLD:
+      description: Risk from transaction amount relative to limits
+      weight_default: 0.25
+      value_type: decimal
+      computation: command.amount / policy.parameter.single_operation_limit
+
+    VELOCITY:
+      description: Risk from transaction frequency relative to velocity limits
+      weight_default: 0.20
+      value_type: decimal
+      computation: context.daily_velocity_ratio
+
+    COUNTERPARTY_RISK:
+      description: Risk from counterparty trust level or history
+      weight_default: 0.15
+      value_type: string
+      computation: lookup identity.counterparty.risk_score
+
+    ASSET_RISK:
+      description: Risk from asset classification and volatility
+      weight_default: 0.15
+      value_type: string
+      computation: lookup vault_state.risk_classification
+
+    GEOGRAPHIC:
+      description: Risk from geographic jurisdiction of parties
+      weight_default: 0.10
+      value_type: string
+      computation: lookup identity.counterparty.jurisdiction_risk_rating
+
+    TEMPORAL:
+      description: Risk from time of operation (outside business hours, etc.)
+      weight_default: 0.05
+      value_type: string
+      computation: lookup context.time_risk_band
+
+    NOVEL_PATTERN:
+      description: Risk from operation patterns not previously seen
+      weight_default: 0.10
+      value_type: decimal
+      computation: anomaly_detection_score(context.operation_pattern)
+
+# ============================================================
+# SECTION 9 — COMPLIANCE REQUIREMENTS
+# ============================================================
+
+compliance_requirement:
+  description: External regulatory requirement mapped to internal policy rules
+  schema:
+    requirement_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Unique identifier for this compliance requirement
+    regulation_id:
+      type: string
+      required: true
+      description: External regulation identifier (e.g., AML-6AMLD, GDPR, SOX)
+    jurisdiction:
+      type: string
+      required: true
+      description: Jurisdiction this requirement applies to (ISO 3166-1 alpha-2 or GLOBAL)
+    description:
+      type: string
+      required: true
+      description: Description of the regulatory requirement
+    rule_ids:
+      type: array
+      items:
+        type: uuid
+        format: uuidv4
+      required: true
+      min_items: 1
+      description: Policy rules that implement this requirement
+    monitoring_frequency:
+      type: enum
+      ref: monitoring_frequency
+      required: true
+      description: How often this requirement is monitored
+    reporting_destination:
+      type: enum
+      ref: reporting_destination
+      required: true
+      description: Where compliance monitoring results are reported
+    active:
+      type: boolean
+      required: true
+      description: Whether this requirement is currently active
+    effective_from:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: When this requirement becomes effective
+    effective_until:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: When this requirement expires; null means no expiration
+    severity:
+      type: enum
+      ref: risk_level
+      required: true
+      default: HIGH
+      description: Severity if this requirement is violated
+
+  examples:
+    - requirement_id: "20000000-0000-0000-0000-000000000001"
+      regulation_id: AML-6AMLD
+      jurisdiction: EU
+      description: Anti-money laundering requirements under 6th Anti-Money Laundering Directive
+      rule_ids:
+        - "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a"
+      monitoring_frequency: PER_TRANSACTION
+      reporting_destination: GOVERNANCE
+      active: true
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+      severity: CRITICAL
+
+    - requirement_id: "20000000-0000-0000-0000-000000000002"
+      regulation_id: FATF-REC10
+      jurisdiction: GLOBAL
+      description: FATF Recommendation 10 — customer due diligence
+      rule_ids:
+        - "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a"
+      monitoring_frequency: PER_TRANSACTION
+      reporting_destination: COMPLIANCE_OFFICER
+      active: true
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+      severity: CRITICAL
+
+    - requirement_id: "20000000-0000-0000-0000-000000000003"
+      regulation_id: SOX-404
+      jurisdiction: US
+      description: Sarbanes-Oxley Section 404 — internal controls over financial reporting
+      rule_ids:
+        - "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
+      monitoring_frequency: PERIODIC
+      reporting_destination: AUDIT
+      active: true
+      effective_from: "2025-07-07T00:00:00Z"
+      effective_until: null
+      severity: HIGH
+
+# ============================================================
+# SECTION 10 — ESCALATION MODEL
+# ============================================================
+
+escalation:
+  description: Structured escalation when policy evaluation cannot produce an autonomous decision
+  schema:
+    escalation_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Unique identifier for this escalation
+    evaluation_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Reference to the policy_evaluation that triggered escalation
+    escalation_reason:
+      type: enum
+      ref: escalation_reason
+      required: true
+      description: Why the evaluation was escalated
+    escalation_target:
+      type: enum
+      ref: escalation_target
+      required: true
+      description: Who must resolve this escalation
+    required_resolution:
+      type: enum
+      ref: required_resolution
+      required: true
+      description: What type of resolution is expected
+    deadline:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Deadline by which the escalation must be resolved
+    auto_deny_after_deadline:
+      type: boolean
+      required: true
+      description: Whether the original request is automatically denied if deadline passes
+    context:
+      type: object
+      required: true
+      description: Full evaluation context for the resolver
+      fields:
+        policy_decision_id:
+          type: uuid
+          required: true
+        decision:
+          type: enum
+          ref: policy_decision_outcome
+          required: true
+        risk_assessment_id:
+          type: uuid
+          required: true
+        rules_evaluated:
+          type: array
+          items: uuid
+          required: true
+        rules_failed:
+          type: array
+          items: uuid
+          required: true
+        command_id:
+          type: uuid
+          required: true
+        authorization_context_id:
+          type: uuid
+          required: true
+    resolved_by:
+      type: uuid
+      format: uuidv4
+      required: false
+      description: identity_id of the resolver; populated on resolution
+    resolution:
+      type: string
+      required: false
+      description: Free-text resolution notes
+    resolution_decision:
+      type: enum
+      ref: policy_decision_outcome
+      required: false
+      description: Final decision after resolution
+    resolved_at:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: When the escalation was resolved
+    created_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: When the escalation was created
+
+  reason_to_target_mapping:
+    NO_MATCHING_POLICY:
+      escalation_target: GOVERNANCE
+      required_resolution: POLICY_UPDATE
+      default_deadline_offset_hours: 24
+      auto_deny_after_deadline: true
+    CONFLICTING_RULES:
+      escalation_target: GOVERNANCE
+      required_resolution: GOVERNANCE_DIRECTIVE
+      default_deadline_offset_hours: 4
+      auto_deny_after_deadline: true
+    RISK_THRESHOLD:
+      escalation_target: COMPLIANCE_OFFICER
+      required_resolution: MANUAL_APPROVAL
+      default_deadline_offset_hours: 8
+      auto_deny_after_deadline: true
+    COMPLIANCE_AMBIGUITY:
+      escalation_target: COMPLIANCE_OFFICER
+      required_resolution: MANUAL_APPROVAL
+      default_deadline_offset_hours: 24
+      auto_deny_after_deadline: true
+    NOVEL_OPERATION:
+      escalation_target: GOVERNANCE
+      required_resolution: MANUAL_APPROVAL
+      default_deadline_offset_hours: 48
+      auto_deny_after_deadline: false
+    GOVERNANCE_REQUIRED:
+      escalation_target: GOVERNANCE
+      required_resolution: GOVERNANCE_DIRECTIVE
+      default_deadline_offset_hours: 72
+      auto_deny_after_deadline: false
+
+# ============================================================
+# SECTION 11 — POLICY EVALUATION ENTITY
+# ============================================================
+
+policy_evaluation:
+  description: Persistent record of a single policy evaluation execution
+  schema:
+    evaluation_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Unique identifier for this evaluation
+    policy_set_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: The policy set used for this evaluation
+    authorization_context_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Reference to the AuthorizationContext from Identity domain
+    command_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Reference to the command being evaluated
+    input_snapshot:
+      type: object
+      required: true
+      description: Immutable snapshot of all inputs at evaluation start
+      fields:
+        identity:
+          type: object
+          required: true
+          description: Snapshot of identity state
+          fields:
+            actor_id:
+              type: uuid
+              required: true
+            actor_type:
+              type: string
+              required: true
+            capabilities:
+              type: array
+              items: string
+              required: true
+            scope:
+              type: object
+              required: true
+            kyc_status:
+              type: string
+              required: true
+            jurisdiction:
+              type: string
+              required: false
+        capability:
+          type: string
+          required: true
+          description: The capability being requested
+        scope:
+          type: string
+          required: true
+          description: The resource scope being targeted
+        vault_state_hash:
+          type: string
+          format: sha256hex
+          required: true
+          description: Hash of vault state snapshot
+        treasury_state_hash:
+          type: string
+          format: sha256hex
+          required: true
+          description: Hash of treasury state snapshot
+        governance_rules_hash:
+          type: string
+          format: sha256hex
+          required: true
+          description: Hash of governance rules snapshot
+    rules_evaluated:
+      type: integer
+      format: uint32
+      required: true
+      description: Total count of rules evaluated
+    rules_passed:
+      type: integer
+      format: uint32
+      required: true
+      description: Count of rules that passed
+    rules_failed:
+      type: integer
+      format: uint32
+      required: true
+      description: Count of rules that failed
+    decision:
+      type: enum
+      ref: policy_decision_outcome
+      required: true
+      description: Final decision outcome
+    confidence:
+      type: enum
+      ref: decision_confidence
+      required: true
+      description: Confidence level of the decision
+    risk_assessment_id:
+      type: uuid
+      format: uuidv4
+      required: true
+      description: Reference to the risk assessment produced
+    deterministic_hash:
+      type: string
+      format: sha256hex
+      required: true
+      description: Hash for reproducibility verification
+    evaluation_duration_ms:
+      type: integer
+      format: uint64
+      required: true
+      description: Wall-clock duration of the evaluation in milliseconds
+    evaluated_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Timestamp when evaluation completed
+
+# ============================================================
+# SECTION 12 — COMMANDS
+# ============================================================
+
+commands:
+
+  policy.rule.create:
+    description: Create a new policy rule
+    aggregate: policy_rule
+    source_domain: policy
+    version: 1.0.0
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: policy.rule.create
+    authorization_requirements:
+      identity: required
+      capability: policy.rule.create
+      scope: policy_rule.category
+      policy: policy_mutation_policy
+    validation:
+      - rule_name is unique across all rules
+      - rule_name follows dot.notation format
+      - category is a valid policy_rule_category enum value
+      - condition.type matches condition schema for given type
+      - action is a valid rule_action enum value
+      - if action is ESCALATE, escalation_target is provided and not NONE
+      - if constitutional_reference is provided, it references a valid INV-XXX
+      - issuer actor_type is not ai_agent
+      - effective_from is not in the past
+    constitutional_gates:
+      - INV-004: agent_financial_authority_prohibition
+      - INV-003: authority_boundary
+    produces_events:
+      - policy.rule.created
+    failure_produces:
+      - policy.rule.creation_failed
+
+  policy.rule.update:
+    description: Update an existing policy rule
+    aggregate: policy_rule
+    source_domain: policy
+    version: 1.0.0
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: policy.rule.update
+    authorization_requirements:
+      identity: required
+      capability: policy.rule.update
+      scope: policy_rule.rule_id
+      policy: policy_mutation_policy
+    validation:
+      - rule_id references an existing rule
+      - version is incremented per semver rules
+      - updated fields conform to policy_rule schema
+      - if category changed, new category is valid enum value
+      - if condition changed, new condition matches condition schema
+      - issuer actor_type is not ai_agent
+      - last_modified_by set to issuer identity_id
+      - last_modified_at set to current timestamp
+    constitutional_gates:
+      - INV-004: agent_financial_authority_prohibition
+      - INV-003: authority_boundary
+    produces_events:
+      - policy.rule.updated
+    failure_produces:
+      - policy.rule.update_failed
+
+  policy.rule.activate:
+    description: Activate an inactive policy rule
+    aggregate: policy_rule
+    source_domain: policy
+    version: 1.0.0
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: policy.rule.activate
+    authorization_requirements:
+      identity: required
+      capability: policy.rule.activate
+      scope: policy_rule.rule_id
+      policy: policy_mutation_policy
+    validation:
+      - rule_id references an existing rule
+      - rule is currently inactive (active = false)
+      - effective_from is not in the future
+      - issuer actor_type is not ai_agent
+    constitutional_gates:
+      - INV-004: agent_financial_authority_prohibition
+    produces_events:
+      - policy.rule.activated
+    failure_produces:
+      - policy.rule.activation_failed
+
+  policy.rule.deactivate:
+    description: Deactivate an active policy rule
+    aggregate: policy_rule
+    source_domain: policy
+    version: 1.0.0
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: policy.rule.deactivate
+    authorization_requirements:
+      identity: required
+      capability: policy.rule.deactivate
+      scope: policy_rule.rule_id
+      policy: policy_mutation_policy
+    validation:
+      - rule_id references an existing rule
+      - rule is currently active (active = true)
+      - rule is not the sole enforcer of a constitutional invariant (INV-XXX)
+      - issuer actor_type is not ai_agent
+    constitutional_gates:
+      - INV-004: agent_financial_authority_prohibition
+      - INV-008: command_execution_gates
+    produces_events:
+      - policy.rule.deactivated
+    failure_produces:
+      - policy.rule.deactivation_failed
+
+  policy.set.create:
+    description: Create a new policy set grouping rules for coordinated evaluation
+    aggregate: policy_set
+    source_domain: policy
+    version: 1.0.0
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: policy.set.create
+    authorization_requirements:
+      identity: required
+      capability: policy.set.create
+      scope: policy_set.domain_scope
+      policy: policy_mutation_policy
+    validation:
+      - set_id is globally unique
+      - name is unique across all sets
+      - domain_scope is a valid enum value
+      - all rule_ids reference existing rules
+      - at least one rule has constitutional_reference (ensures INV enforcement)
+      - evaluation_strategy is a valid enum value
+      - conflict_resolution is a valid enum value
+      - issuer actor_type is not ai_agent
+      - governance_approved defaults to false (requires explicit governance approval)
+    constitutional_gates:
+      - INV-004: agent_financial_authority_prohibition
+      - INV-008: command_execution_gates
+    produces_events:
+      - policy.set.created
+    failure_produces:
+      - policy.set.creation_failed
+
+  policy.set.evaluate:
+    description: Execute policy evaluation against an authorization context and command
+    aggregate: policy_evaluation
+    source_domain: policy
+    version: 1.0.0
+    issuer:
+      actor_types: [human, ai_agent, governance, system]
+      minimum_capability: policy.set.evaluate
+    authorization_requirements:
+      identity: required
+      capability: policy.set.evaluate
+      scope: policy_set.set_id
+      policy: none
+    validation:
+      - policy_set_id references an existing, active, governance_approved set
+      - authorization_context_id references a valid AuthorizationContext from Identity
+      - command_id references a valid command
+      - all input dimensions can be gathered (vault, treasury, governance)
+      - issuer actor_type is not ai_agent OR command is not a policy mutation command
+    constitutional_gates:
+      - INV-003: authority_boundary
+      - INV-008: command_execution_gates (Gate 4)
+    produces_events:
+      - policy.evaluation.completed
+      - policy.evaluation.denied (if decision is DENY)
+      - policy.evaluation.escalated (if decision is ESCALATE)
+      - policy.evaluation.deferred (if decision is DEFER)
+      - policy.escalation.created (if decision is ESCALATE)
+      - policy.compliance.violation.detected (if compliance flags raised)
+    failure_produces:
+      - policy.evaluation.failed
+
+  policy.escalation.resolve:
+    description: Resolve a pending policy escalation with a final decision
+    aggregate: escalation
+    source_domain: policy
+    version: 1.0.0
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: policy.escalation.resolve
+    authorization_requirements:
+      identity: required
+      capability: policy.escalation.resolve
+      scope: escalation.escalation_id
+      policy: escalation_resolution_policy
+    validation:
+      - escalation_id references an existing escalation in PENDING or UNDER_REVIEW state
+      - issuer identity_id matches escalation.escalation_target authorization
+      - resolution_decision is a valid policy_decision_outcome
+      - resolution is not empty
+      - escalation deadline has not passed (or governance override is authorized)
+      - issuer actor_type is not ai_agent
+    constitutional_gates:
+      - INV-004: agent_financial_authority_prohibition
+    produces_events:
+      - policy.escalation.resolved
+    failure_produces:
+      - policy.escalation.resolution_failed
+
+  policy.compliance.requirement.register:
+    description: Register a new external compliance requirement mapped to policy rules
+    aggregate: compliance_requirement
+    source_domain: policy
+    version: 1.0.0
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: policy.compliance.requirement.register
+    authorization_requirements:
+      identity: required
+      capability: policy.compliance.requirement.register
+      scope: compliance_requirement.jurisdiction
+      policy: compliance_registration_policy
+    validation:
+      - requirement_id is globally unique
+      - regulation_id is not empty
+      - jurisdiction is valid ISO 3166-1 alpha-2 or GLOBAL
+      - all rule_ids reference existing rules
+      - at least one rule_id is provided
+      - monitoring_frequency is a valid enum value
+      - reporting_destination is a valid enum value
+      - issuer actor_type is not ai_agent
+    constitutional_gates:
+      - INV-004: agent_financial_authority_prohibition
+    produces_events:
+      - policy.compliance.requirement.registered
+    failure_produces:
+      - policy.compliance.requirement.registration_failed
+
+# ============================================================
+# SECTION 13 — EVENTS
+# ============================================================
+
+events:
+
+  policy.rule.created:
+    aggregate: policy_rule
+    aggregate_id_field: rule_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      rule_id:
+        type: uuid
+        required: true
+      rule_name:
+        type: string
+        required: true
+      category:
+        type: enum
+        ref: policy_rule_category
+        required: true
+      priority:
+        type: integer
+        required: true
+      action:
+        type: enum
+        ref: rule_action
+        required: true
+      constitutional_reference:
+        type: string
+        format: INV-XXX
+        required: false
+      version:
+        type: string
+        format: semver
+        required: true
+      created_by:
+        type: uuid
+        required: true
+      created_at:
+        type: timestamp
+        required: true
+    constitutional_significance: INV-004 (rule creation is governance-restricted)
+
+  policy.rule.updated:
+    aggregate: policy_rule
+    aggregate_id_field: rule_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      rule_id:
+        type: uuid
+        required: true
+      rule_name:
+        type: string
+        required: true
+      previous_version:
+        type: string
+        format: semver
+        required: true
+      new_version:
+        type: string
+        format: semver
+        required: true
+      changed_fields:
+        type: array
+        items: string
+        required: true
+      updated_by:
+        type: uuid
+        required: true
+      updated_at:
+        type: timestamp
+        required: true
+    constitutional_significance: INV-004 (rule modification is governance-restricted)
+
+  policy.rule.activated:
+    aggregate: policy_rule
+    aggregate_id_field: rule_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      rule_id:
+        type: uuid
+        required: true
+      rule_name:
+        type: string
+        required: true
+      activated_by:
+        type: uuid
+        required: true
+      activated_at:
+        type: timestamp
+        required: true
+      effective_from:
+        type: timestamp
+        required: true
+    constitutional_significance: INV-008 (active rules participate in Gate 4 evaluation)
+
+  policy.rule.deactivated:
+    aggregate: policy_rule
+    aggregate_id_field: rule_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      rule_id:
+        type: uuid
+        required: true
+      rule_name:
+        type: string
+        required: true
+      deactivated_by:
+        type: uuid
+        required: true
+      deactivated_at:
+        type: timestamp
+        required: true
+      constitutional_impact:
+        type: string
+        required: true
+        description: Assessment of which invariants may be under-enforced after deactivation
+    constitutional_significance: INV-008 (deactivation may weaken Gate 4 enforcement)
+
+  policy.evaluation.completed:
+    aggregate: policy_evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      evaluation_id:
+        type: uuid
+        required: true
+      policy_set_id:
+        type: uuid
+        required: true
+      authorization_context_id:
+        type: uuid
+        required: true
+      command_id:
+        type: uuid
+        required: true
+      decision_id:
+        type: uuid
+        required: true
+      decision:
+        type: enum
+        ref: policy_decision_outcome
+        required: true
+      confidence:
+        type: enum
+        ref: decision_confidence
+        required: true
+      rules_evaluated:
+        type: integer
+        required: true
+      rules_passed:
+        type: integer
+        required: true
+      rules_failed:
+        type: integer
+        required: true
+      rules_failed_ids:
+        type: array
+        items: uuid
+        required: true
+      conditions:
+        type: array
+        items: object
+        required: false
+        default: []
+      risk_assessment_id:
+        type: uuid
+        required: true
+      risk_level:
+        type: enum
+        ref: risk_level
+        required: true
+      risk_score:
+        type: decimal
+        required: true
+      compliance_flags:
+        type: array
+        items: object
+        required: true
+      constitutional_rules_referenced:
+        type: array
+        items: string
+        format: INV-XXX
+        required: true
+      deterministic_hash:
+        type: string
+        format: sha256hex
+        required: true
+      evaluation_duration_ms:
+        type: integer
+        required: true
+      evaluated_at:
+        type: timestamp
+        required: true
+    constitutional_significance: INV-005 (every evaluation produces an auditable event); INV-008 (Gate 4 result)
+
+  policy.evaluation.denied:
+    aggregate: policy_evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      evaluation_id:
+        type: uuid
+        required: true
+      decision_id:
+        type: uuid
+        required: true
+      authorization_context_id:
+        type: uuid
+        required: true
+      command_id:
+        type: uuid
+        required: true
+      rules_failed_ids:
+        type: array
+        items: uuid
+        required: true
+      denial_reasons:
+        type: array
+        items: object
+        fields:
+          rule_id: uuid
+          rule_name: string
+          reason: string
+        required: true
+      constitutional_rules_referenced:
+        type: array
+        items: string
+        format: INV-XXX
+        required: true
+      risk_assessment_id:
+        type: uuid
+        required: true
+      evaluated_at:
+        type: timestamp
+        required: true
+    constitutional_significance: INV-003 (authority boundary enforced)
+
+  policy.evaluation.escalated:
+    aggregate: policy_evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      evaluation_id:
+        type: uuid
+        required: true
+      decision_id:
+        type: uuid
+        required: true
+      escalation_id:
+        type: uuid
+        required: true
+      escalation_reason:
+        type: enum
+        ref: escalation_reason
+        required: true
+      escalation_target:
+        type: enum
+        ref: escalation_target
+        required: true
+      required_resolution:
+        type: enum
+        ref: required_resolution
+        required: true
+      deadline:
+        type: timestamp
+        required: true
+      auto_deny_after_deadline:
+        type: boolean
+        required: true
+      risk_assessment_id:
+        type: uuid
+        required: true
+      authorization_context_id:
+        type: uuid
+        required: true
+      command_id:
+        type: uuid
+        required: true
+      evaluated_at:
+        type: timestamp
+        required: true
+    constitutional_significance: INV-003 (authority boundary — escalation preserves authority)
+
+  policy.evaluation.deferred:
+    aggregate: policy_evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      evaluation_id:
+        type: uuid
+        required: true
+      decision_id:
+        type: uuid
+        required: true
+      defer_reason:
+        type: string
+        required: true
+      defer_until:
+        type: timestamp
+        required: true
+      authorization_context_id:
+        type: uuid
+        required: true
+      command_id:
+        type: uuid
+        required: true
+      evaluated_at:
+        type: timestamp
+        required: true
+    constitutional_significance: INV-009 (deferred state represents unknown resolution — modeled explicitly)
+
+  policy.escalation.created:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      escalation_id:
+        type: uuid
+        required: true
+      evaluation_id:
+        type: uuid
+        required: true
+      escalation_reason:
+        type: enum
+        ref: escalation_reason
+        required: true
+      escalation_target:
+        type: enum
+        ref: escalation_target
+        required: true
+      required_resolution:
+        type: enum
+        ref: required_resolution
+        required: true
+      deadline:
+        type: timestamp
+        required: true
+      auto_deny_after_deadline:
+        type: boolean
+        required: true
+      policy_decision_id:
+        type: uuid
+        required: true
+      command_id:
+        type: uuid
+        required: true
+      authorization_context_id:
+        type: uuid
+        required: true
+      created_at:
+        type: timestamp
+        required: true
+    constitutional_significance: INV-003 (escalation is an authority boundary mechanism)
+
+  policy.escalation.resolved:
+    aggregate: escalation
+    aggregate_id_field: escalation_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      escalation_id:
+        type: uuid
+        required: true
+      evaluation_id:
+        type: uuid
+        required: true
+      resolution_decision:
+        type: enum
+        ref: policy_decision_outcome
+        required: true
+      resolved_by:
+        type: uuid
+        required: true
+      resolution:
+        type: string
+        required: true
+      resolved_at:
+        type: timestamp
+        required: true
+      policy_decision_id:
+        type: uuid
+        required: true
+    constitutional_significance: INV-005 (resolution is an auditable authority action)
+
+  policy.compliance.requirement.registered:
+    aggregate: compliance_requirement
+    aggregate_id_field: requirement_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      requirement_id:
+        type: uuid
+        required: true
+      regulation_id:
+        type: string
+        required: true
+      jurisdiction:
+        type: string
+        required: true
+      rule_ids:
+        type: array
+        items: uuid
+        required: true
+      monitoring_frequency:
+        type: enum
+        ref: monitoring_frequency
+        required: true
+      reporting_destination:
+        type: enum
+        ref: reporting_destination
+        required: true
+      severity:
+        type: enum
+        ref: risk_level
+        required: true
+      registered_by:
+        type: uuid
+        required: true
+      registered_at:
+        type: timestamp
+        required: true
+    constitutional_significance: regulatory_compliance conflict_resolution priority (rank 3)
+
+  policy.compliance.violation.detected:
+    aggregate: policy_evaluation
+    aggregate_id_field: evaluation_id
+    source_domain: policy
+    version: 1.0.0
+    payload:
+      evaluation_id:
+        type: uuid
+        required: true
+      decision_id:
+        type: uuid
+        required: true
+      requirement_id:
+        type: uuid
+        required: true
+      regulation_id:
+        type: string
+        required: true
+      violation_code:
+        type: string
+        required: true
+      severity:
+        type: enum
+        ref: risk_level
+        required: true
+      description:
+        type: string
+        required: true
+      rule_ids_triggered:
+        type: array
+        items: uuid
+        required: true
+      authorization_context_id:
+        type: uuid
+        required: true
+      command_id:
+        type: uuid
+        required: true
+      detected_at:
+        type: timestamp
+        required: true
+    constitutional_significance: regulatory_compliance conflict resolution priority (rank 3); INV-005 (audit trail)
+
+# ============================================================
+# SECTION 14 — STATE MACHINES (references to 05_state-machines.yaml)
+# ============================================================
+
+state_machine_references:
+
+  policy_evaluation_lifecycle:
+    file: 05_state-machines.yaml
+    domain: policy
+    aggregate: policy_evaluation
+    states:
+      IDLE:
+        description: No evaluation in progress
+        allowed_transitions: [GATHERING_CONTEXT]
+      GATHERING_CONTEXT:
+        description: Collecting all seven evaluation dimensions
+        allowed_transitions: [EVALUATING_RULES, IDLE]
+      EVALUATING_RULES:
+        description: Evaluating rules in deterministic order
+        allowed_transitions: [COMPUTING_DECISION, IDLE]
+      COMPUTING_DECISION:
+        description: Applying strategy and conflict resolution
+        allowed_transitions: [DECISION_RENDERED, IDLE]
+      DECISION_RENDERED:
+        description: Final decision produced and emitted
+        allowed_transitions: [ARCHIVED]
+      ARCHIVED:
+        description: Evaluation record persisted for audit
+        allowed_transitions: []
+
+  policy_rule_lifecycle:
+    file: 05_state-machines.yaml
+    domain: policy
+    aggregate: policy_rule
+    states:
+      DRAFT:
+        description: Rule created but not yet active
+        allowed_commands:
+          - policy.rule.update
+          - policy.rule.activate
+      ACTIVE:
+        description: Rule is live and participating in evaluations
+        allowed_commands:
+          - policy.rule.update
+          - policy.rule.deactivate
+      INACTIVE:
+        description: Rule is disabled and not participating in evaluations
+        allowed_commands:
+          - policy.rule.update
+          - policy.rule.activate
+      ARCHIVED:
+        description: Rule is permanently retired
+        allowed_commands: []
+
+  policy_escalation_lifecycle:
+    file: 05_state-machines.yaml
+    domain: policy
+    aggregate: escalation
+    states:
+      PENDING:
+        description: Escalation created, awaiting resolver assignment
+        allowed_commands:
+          - policy.escalation.resolve
+      UNDER_REVIEW:
+        description: Resolver is actively reviewing the escalation
+        allowed_commands:
+          - policy.escalation.resolve
+      RESOLVED:
+        description: Escalation resolved with a final decision
+        allowed_commands: []
+      EXPIRED:
+        description: Deadline passed without resolution
+        allowed_commands: []
+      AUTO_DENIED:
+        description: Deadline passed with auto_deny_after_deadline = true
+        allowed_commands: []
+
+# ============================================================
+# SECTION 15 — PROHIBITIONS
+# ============================================================
+
+prohibitions:
+
+  - id: PROH-001
+    rule: Never evaluate without authorization_context
+    enforcement: evaluation engine rejects any policy.set.evaluate lacking valid authorization_context_id
+    violation_severity: critical
+    violation_action: reject_and_audit
+    constitutional_reference: INV-008
+
+  - id: PROH-002
+    rule: Never produce non-deterministic decisions
+    enforcement: deterministic_hash verified on every evaluation; audit replay validates reproducibility
+    violation_severity: critical
+    violation_action: halt_system_and_escalate_to_governance
+    constitutional_reference: INV-008
+
+  - id: PROH-003
+    rule: Never allow policy evaluation to mutate state
+    enforcement: evaluation engine is a pure function; all state changes emitted as events via commands only
+    violation_severity: critical
+    violation_action: halt_and_investigate
+    constitutional_reference: INV-001
+
+  - id: PROH-004
+    rule: Never skip constitutional rule evaluation
+    enforcement: rules with constitutional_reference are flagged non-skippable; evaluation engine validates all such rules were evaluated
+    violation_severity: critical
+    violation_action: reject_evaluation_and_escalate_to_governance
+    constitutional_reference: INV-008
+
+  - id: PROH-005
+    rule: Never grant capabilities that Identity did not authorize
+    enforcement: policy decision cannot introduce capabilities not present in identity.authorization_context.capabilities
+    violation_severity: critical
+    violation_action: reject_and_terminate_actor_session
+    constitutional_reference: INV-003
+
+  - id: PROH-006
+    rule: Never allow agent to modify policy rules
+    enforcement: all policy mutation commands validate issuer.actor_type is not ai_agent
+    violation_severity: critical
+    violation_action: reject_command_and_audit
+    constitutional_reference: INV-004
+
+  - id: PROH-007
+    rule: Never allow agent to resolve escalations
+    enforcement: policy.escalation.resolve validates issuer.actor_type is not ai_agent
+    violation_severity: critical
+    violation_action: reject_command_and_audit
+    constitutional_reference: INV-004
+
+  - id: PROH-008
+    rule: Never evaluate against inactive or non-governance-approved policy sets
+    enforcement: policy.set.evaluate validates policy_set.active = true and policy_set.governance_approved = true
+    violation_severity: critical
+    violation_action: reject_evaluation_and_audit
+    constitutional_reference: INV-008
+
+  - id: PROH-009
+    rule: Never make external network calls during evaluation
+    enforcement: evaluation engine runs in isolated context; all data pre-gathered in GATHERING_CONTEXT
+    violation_severity: critical
+    violation_action: halt_evaluation_and_investigate
+    constitutional_reference: INV-008
+
+  - id: PROH-010
+    rule: Never allow governance-approved policy set to lack constitutional rule coverage
+    enforcement: policy.set.create validates at least one rule in rule_ids has a non-null constitutional_reference
+    violation_severity: high
+    violation_action: reject_set_creation
+    constitutional_reference: INV-008
+
+# ============================================================
+# SECTION 16 — INTEGRATION POINTS
+# ============================================================
+
+integration_points:
+
+  consumes:
+    - domain: identity
+      interface: AuthorizationContext
+      contract_name: identity_to_policy
+      description: Receives authenticated identity, capabilities, scope, and actor type
+      data_received:
+        authorization_context_id:
+          type: uuid
+          required: true
+        actor_id:
+          type: uuid
+          required: true
+        actor_type:
+          type: string
+          required: true
+        capabilities:
+          type: array
+          items: string
+          required: true
+        scope:
+          type: object
+          required: true
+        kyc_status:
+          type: string
+          required: true
+        jurisdiction:
+          type: string
+          required: false
+        trust_level:
+          type: string
+          required: true
+      consumption_point: GATHERING_CONTEXT state, step 1
+      version: 1.0.0
+
+    - domain: vault
+      interface: VaultState
+      contract_name: vault_to_policy
+      description: Receives asset availability, risk classification, reserve state, and custody attestation
+      data_received:
+        asset_id:
+          type: uuid
+          required: true
+        asset_state:
+          type: string
+          required: true
+        risk_classification:
+          type: string
+          required: true
+        available_balance:
+          type: decimal
+          required: true
+        reserved_balance:
+          type: decimal
+          required: true
+        custody_attestation_valid:
+          type: boolean
+          required: true
+        custody_attestation_expires_at:
+          type: timestamp
+          required: true
+      consumption_point: GATHERING_CONTEXT state, step 3
+      version: 1.0.0
+
+    - domain: treasury
+      interface: TreasuryState
+      contract_name: treasury_to_policy
+      description: Receives liquidity position, velocity state, and liquidity state classification
+      data_received:
+        asset_id:
+          type: uuid
+          required: true
+        total_available:
+          type: decimal
+          required: true
+        total_reserved:
+          type: decimal
+          required: true
+        in_transit:
+          type: decimal
+          required: true
+        available_liquidity_ratio:
+          type: decimal
+          required: true
+        liquidity_state:
+          type: string
+          required: true
+        actor_daily_velocity:
+          type: decimal
+          required: true
+        actor_daily_velocity_limit:
+          type: decimal
+          required: true
+        actor_daily_velocity_ratio:
+          type: decimal
+          required: true
+      consumption_point: GATHERING_CONTEXT state, step 4
+      version: 1.0.0
+
+    - domain: governance
+      interface: GovernanceRules
+      contract_name: governance_to_policy
+      description: Receives active compliance requirements, emergency controls, and governance directives
+      data_received:
+        active_compliance_requirements:
+          type: array
+          items: compliance_requirement
+          required: true
+        emergency_controls_active:
+          type: boolean
+          required: true
+        governance_directives:
+          type: array
+          items: object
+          required: true
+      consumption_point: GATHERING_CONTEXT state, step 5
+      version: 1.0.0
+
+  provides:
+    - domain: intent
+      interface: PolicyDecision
+      contract_name: policy_to_intent
+      description: Provides the deterministic policy decision for command normalization and validation
+      data_provided:
+        decision_id:
+          type: uuid
+          required: true
+        evaluation_id:
+          type: uuid
+          required: true
+        decision:
+          type: enum
+          ref: policy_decision_outcome
+          required: true
+        confidence:
+          type: enum
+          ref: decision_confidence
+          required: true
+        conditions:
+          type: array
+          required: false
+          default: []
+        risk_assessment:
+          type: object
+          required: true
+        compliance_flags:
+          type: array
+          required: true
+        deterministic_hash:
+          type: string
+          format: sha256hex
+          required: true
+        evaluated_at:
+          type: timestamp
+          required: true
+      provision_point: DECISION_RENDERED state
+      version: 1.0.0
+
+    - domain: governance
+      interface: ComplianceEvents
+      contract_name: policy_to_governance
+      description: Provides compliance violation events and escalation requests for governance review
+      data_provided:
+        policy.compliance.violation.detected:
+          type: event
+          required: true
+        policy.escalation.created:
+          type: event
+          required: true
+        policy.evaluation.completed:
+          type: event
+          required: true
+      provision_point: DECISION_RENDERED state
+      version: 1.0.0
+
+    - domain: governance
+      interface: EscalationInterface
+      contract_name: policy_escalation_to_governance
+      description: Provides escalation records requiring human or governance resolution
+      data_provided:
+        escalation_id:
+          type: uuid
+          required: true
+        evaluation_id:
+          type: uuid
+          required: true
+        escalation_reason:
+          type: enum
+          ref: escalation_reason
+          required: true
+        escalation_target:
+          type: enum
+          ref: escalation_target
+          required: true
+        required_resolution:
+          type: enum
+          ref: required_resolution
+          required: true
+        deadline:
+          type: timestamp
+          required: true
+        auto_deny_after_deadline:
+          type: boolean
+          required: true
+        context:
+          type: object
+          required: true
+      provision_point: DECISION_RENDERED state (when decision is ESCALATE)
+      version: 1.0.0

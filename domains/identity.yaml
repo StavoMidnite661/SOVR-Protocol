@@ -1,0 +1,3148 @@
+# ============================================================
+# SOVR Financial OS — Identity Domain Specification
+# File: domains/identity.yaml
+# Status: FROZEN
+# Build Phase: D
+# Domain Priority: 0 (Foundation — first stage of execution pipeline)
+# ============================================================
+# Identity is the Constitutional Execution Authority domain.
+# It is the FIRST stage of the execution pipeline:
+#   Actor -> Identity (authenticate) -> Authorization Context
+#     -> Policy (evaluate) -> Intent (normalize/validate)
+#     -> Command -> Agent (optional execution) -> Treasury -> Ledger
+#
+# Identity does NOT use simple RBAC. Identity issues
+# constitutional authority context — a structured object that
+# flows through every subsequent stage of the pipeline.
+#
+# Constitutional references:
+#   INV-003: No actor may exceed granted authority
+#   INV-005: Every financial action must produce an auditable event trail
+#   INV-008: No command executes without identity, capability, scope, and policy validation
+#   INV-010: No autonomous agent may bypass constitutional enforcement
+# ============================================================
+
+domain:
+  name: identity
+  version: 1.0.0
+  description: >
+    The Constitutional Execution Authority Domain. Authenticates all actors,
+    issues structured authorization context that flows through the execution
+    pipeline, manages credentials, trust anchors, delegation chains, sessions,
+    and enforces impersonation prevention. Identity is the gate through which
+    every command must pass before reaching Policy, Intent, or Ledger.
+  constitutional_references:
+    invariants: [INV-003, INV-005, INV-008, INV-010]
+    conflict_resolution_rank: 1  # invariant_preservation (authority is constitutional)
+
+# ============================================================
+# SECTION 2 — ACTOR MODEL
+# ============================================================
+# Defines all actor types recognized by SOVR.
+# Each actor type has a strongly typed enum code and a set of
+# behavioral attributes that constrain its authentication,
+# trust, delegation, and authority ceiling.
+# ============================================================
+
+enums:
+  actor_type:
+    type: enum
+    values: [human, organization, ai_agent, service_account, governance, external_system]
+    description: All recognized actor types in the SOVR execution pipeline
+  trust_level:
+    type: enum
+    values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+    description: Trust level assigned to an actor or credential
+  authentication_factor:
+    type: enum
+    values: [KNOWLEDGE, POSSESSION, INHERENCE, DELEGATED, GOVERNANCE]
+    description: Authentication factor category
+  binding_strength:
+    type: enum
+    values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+    description: Binding strength of an authentication or credential
+  credential_type:
+    type: enum
+    values:
+      - cryptographic_key
+      - biometric_binding
+      - hardware_token
+      - delegated_token
+      - governance_credential
+    description: All recognized credential types
+  key_algorithm:
+    type: enum
+    values: [ed25519, secp256k1, rsa_4096]
+    description: Supported cryptographic key algorithms
+  hardware_token_type:
+    type: enum
+    values: [fido2, yubikey]
+    description: Supported hardware token types
+  trust_anchor_type:
+    type: enum
+    values: [GOVERNANCE_ROOT, ORGANIZATION_CA, EXTERNAL_CA, SYSTEM_INTERNAL]
+    description: Trust anchor classification
+  delegation_state:
+    type: enum
+    values: [PENDING_ACCEPTANCE, ACTIVE, EXPIRED, REVOKED]
+    description: Lifecycle state of a delegation relationship
+  session_state:
+    type: enum
+    values: [ACTIVE, EXPIRED, REVOKED, TERMINATED]
+    description: Lifecycle state of a session
+  actor_state:
+    type: enum
+    values: [PENDING_VERIFICATION, VERIFYING, ACTIVE, SUSPENDED, REVOKED, ARCHIVED]
+    description: Lifecycle state of an actor identity
+  credential_state:
+    type: enum
+    values: [ACTIVE, EXPIRED, REVOKED, SUSPENDED, ROTATED]
+    description: Lifecycle state of a credential
+  audit_requirement:
+    type: enum
+    values: [STANDARD, ENHANCED, FULL]
+    description: Audit logging level for a delegation
+  revocation_type:
+    type: enum
+    values: [IMMEDIATE, SCHEDULED, GOVERNANCE_ORDERED]
+    description: Type of revocation action
+  authentication_method:
+    type: enum
+    values:
+      - password
+      - mfa
+      - biometric
+      - hardware_key
+      - delegated
+      - cryptographic_signature
+      - delegated_token
+      - governance_approval
+      - governance_binding
+      - mutual_tls
+      - api_key
+      - webhook_verification
+      - multi_signature
+      - governance_credential
+    description: All recognized authentication methods
+  key_usage:
+    type: enum
+    values: [AUTHENTICATION, SIGNING, ENCRYPTION, CERTIFICATE_AUTHORITY]
+    description: Permitted usage of a key
+
+actor_model:
+  human:
+    type_code: human
+    description: Natural person actor
+    authentication_methods: [password, mfa, biometric, hardware_key, delegated]
+    maximum_trust_level: HIGH
+    default_session_ttl: 28800
+    governance_approval_required: false
+    can_delegate: true
+    can_be_delegated_to: false
+    authority_ceiling:
+      - identity.*
+      - vault.own.*
+      - vault.transfer.*
+      - treasury.initiate.*
+      - ledger.query.*
+    default_concurrent_sessions: 5
+    identity_verification_required: true
+
+  organization:
+    type_code: organization
+    description: Legal entity actor
+    authentication_methods: [cryptographic_signature, delegated, governance_approval]
+    maximum_trust_level: HIGH
+    default_session_ttl: 43200
+    governance_approval_required: true
+    can_delegate: true
+    can_be_delegated_to: true
+    authority_ceiling:
+      - identity.*
+      - vault.own.*
+      - vault.transfer.*
+      - treasury.initiate.*
+      - treasury.admin.*
+      - ledger.query.*
+      - policy.read.*
+    default_concurrent_sessions: 10
+    identity_verification_required: true
+
+  ai_agent:
+    type_code: ai_agent
+    description: AI-driven financial operator
+    authentication_methods: [cryptographic_signature, delegated_token, governance_binding]
+    maximum_trust_level: MEDIUM
+    default_session_ttl: 3600
+    governance_approval_required: true
+    can_delegate: false
+    can_be_delegated_to: true
+    authority_ceiling:
+      - vault.query.*
+      - vault.transfer.own.*
+      - treasury.initiate.own.*
+      - ledger.query.*
+    default_concurrent_sessions: 3
+    identity_verification_required: true
+    constitutional_constraints:
+      - inv: INV-004
+        rule: No agent may create, grant, or modify financial authority
+      - inv: INV-010
+        rule: No autonomous agent may bypass constitutional enforcement
+
+  service_account:
+    type_code: service_account
+    description: Machine-to-machine actor
+    authentication_methods: [cryptographic_signature, mutual_tls, delegated_token]
+    maximum_trust_level: MEDIUM
+    default_session_ttl: 0
+    governance_approval_required: true
+    can_delegate: false
+    can_be_delegated_to: true
+    authority_ceiling:
+      - vault.query.*
+      - vault.transfer.own.*
+      - treasury.initiate.own.*
+      - ledger.query.*
+      - identity.query.*
+    default_concurrent_sessions: 1
+    identity_verification_required: true
+    note: Session TTL 0 means no session — each request is independently authenticated
+
+  governance:
+    type_code: governance
+    description: Constitutional oversight function
+    authentication_methods: [multi_signature, governance_credential]
+    maximum_trust_level: SOVEREIGN
+    default_session_ttl: 86400
+    governance_approval_required: false
+    can_delegate: false
+    can_be_delegated_to: false
+    authority_ceiling:
+      - "*"
+    default_concurrent_sessions: 2
+    identity_verification_required: true
+    constitutional_constraints:
+      - inv: INV-003
+        rule: Governance actors must not exceed granted authority
+
+  external_system:
+    type_code: external_system
+    description: Third-party integration actor
+    authentication_methods: [mutual_tls, api_key, webhook_verification]
+    maximum_trust_level: LOW
+    default_session_ttl: 0
+    governance_approval_required: true
+    can_delegate: false
+    can_be_delegated_to: false
+    authority_ceiling:
+      - vault.query.*
+      - ledger.query.*
+      - identity.query.*
+    default_concurrent_sessions: 1
+    identity_verification_required: true
+    note: Session TTL 0 means no session — each request is independently authenticated
+
+# ============================================================
+# SECTION 3 — IDENTITY LIFECYCLE
+# ============================================================
+# States: PENDING_VERIFICATION -> VERIFYING -> ACTIVE
+#   -> SUSPENDED -> ACTIVE (reinstated)
+#   -> REVOKED -> ARCHIVED
+# Actual state machine definition: 05_state-machines.yaml
+# ============================================================
+
+identity_lifecycle:
+  description: State machine governing actor identity lifecycle
+  reference: 05_state-machines.yaml
+  state_machine_name: identity_actor_lifecycle
+  initial_state: PENDING_VERIFICATION
+  final_states: [ARCHIVED]
+  states:
+    PENDING_VERIFICATION:
+      type: enum
+      values: [PENDING_VERIFICATION]
+      description: Actor identity created but not yet verified
+      allowed_transitions: [VERIFYING, REVOKED]
+    VERIFYING:
+      type: enum
+      values: [VERIFYING]
+      description: Actor identity is undergoing verification checks
+      allowed_transitions: [ACTIVE, SUSPENDED, REVOKED]
+    ACTIVE:
+      type: enum
+      values: [ACTIVE]
+      description: Actor identity is verified and operational
+      allowed_transitions: [SUSPENDED, REVOKED, ARCHIVED]
+    SUSPENDED:
+      type: enum
+      values: [SUSPENDED]
+      description: Actor identity temporarily suspended
+      allowed_transitions: [ACTIVE, REVOKED]
+    REVOKED:
+      type: enum
+      values: [REVOKED]
+      description: Actor identity permanently revoked
+      allowed_transitions: [ARCHIVED]
+    ARCHIVED:
+      type: enum
+      values: [ARCHIVED]
+      description: Actor identity archived for historical record
+      allowed_transitions: []
+
+actor_entity:
+  description: Core actor identity entity
+  fields:
+    identity_id:
+      type: string
+      format: uuid
+      required: true
+      description: Globally unique identity identifier
+    actor_type:
+      type: enum
+      values: [human, organization, ai_agent, service_account, governance, external_system]
+      required: true
+      description: Type of actor
+    state:
+      type: enum
+      values: [PENDING_VERIFICATION, VERIFYING, ACTIVE, SUSPENDED, REVOKED, ARCHIVED]
+      required: true
+      description: Current lifecycle state of this identity
+    display_name:
+      type: string
+      format: utf8
+      max_length: 256
+      required: true
+      description: Human-readable display name for the actor
+    legal_identifier:
+      type: string
+      format: utf8
+      max_length: 256
+      required: false
+      description: Legal or regulatory identifier (e.g., tax ID, registration number)
+    primary_contact:
+      type: string
+      format: email
+      required: false
+      description: Primary contact method
+    trust_level:
+      type: enum
+      values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+      required: true
+      description: Current trust level of this identity
+    governance_approved_by:
+      type: string
+      format: uuid
+      required: false
+      description: Identity ID of the governance actor that approved this actor
+    registered_at:
+      type: timestamp
+      required: true
+      description: When this identity was created
+    verified_at:
+      type: timestamp
+      required: false
+      description: When this identity reached ACTIVE state
+    suspended_at:
+      type: timestamp
+      required: false
+      description: When this identity was suspended
+    revoked_at:
+      type: timestamp
+      required: false
+      description: When this identity was revoked
+    revoked_reason:
+      type: string
+      format: utf8
+      max_length: 1024
+      required: false
+      description: Reason for revocation
+    metadata:
+      type: object
+      required: false
+      description: Arbitrary key-value metadata
+
+# ============================================================
+# SECTION 4 — CREDENTIAL MODEL
+# ============================================================
+# Credentials are the proof mechanism that bind an actor identity
+# to authentication capabilities. Each credential has a type,
+# trust level, factor, and binding strength.
+# ============================================================
+
+credential_model:
+  description: Defines all credential types and their structural schema
+
+  credential_types:
+
+    cryptographic_key:
+      type: credential_type
+      value: cryptographic_key
+      description: Asymmetric cryptographic key pair used for signing and authentication
+      supported_algorithms: [ed25519, secp256k1, rsa_4096]
+      default_trust_level: HIGH
+      default_binding_strength: STRONG
+      default_authentication_factor: POSSESSION
+      revocable: true
+      scope_restrictions_supported: true
+      max_delegation_depth: 0
+      attributes:
+        public_key:
+          type: string
+          format: base64
+          required: true
+          description: The public key material
+        key_algorithm:
+          type: enum
+          values: [ed25519, secp256k1, rsa_4096]
+          required: true
+          description: Algorithm used for the key pair
+        key_id:
+          type: string
+          format: base64url
+          required: true
+          description: Key identifier (fingerprint)
+        key_usage:
+          type: enum
+          values: [AUTHENTICATION, SIGNING, ENCRYPTION, CERTIFICATE_AUTHORITY]
+          required: true
+          description: Permitted usage of this key
+
+    biometric_binding:
+      type: credential_type
+      value: biometric_binding
+      description: Biometric data bound to an actor identity
+      supported_algorithms: []
+      default_trust_level: MEDIUM
+      default_binding_strength: MODERATE
+      default_authentication_factor: INHERENCE
+      revocable: true
+      scope_restrictions_supported: false
+      max_delegation_depth: 0
+      attributes:
+        biometric_template_hash:
+          type: string
+          format: sha256
+          required: true
+          description: Hash of the biometric template (never stored raw)
+        biometric_modality:
+          type: enum
+          values: [fingerprint, facial, iris, voice, behavioral]
+          required: true
+          description: Type of biometric captured
+        template_version:
+          type: integer
+          required: true
+          description: Version of the biometric template format
+        capture_device_id:
+          type: string
+          format: utf8
+          required: false
+          description: Identifier of the device used to capture
+
+    hardware_token:
+      type: credential_type
+      value: hardware_token
+      description: Hardware security token (FIDO2, YubiKey)
+      supported_algorithms: []
+      default_trust_level: HIGH
+      default_binding_strength: STRONG
+      default_authentication_factor: POSSESSION
+      revocable: true
+      scope_restrictions_supported: true
+      max_delegation_depth: 0
+      attributes:
+        token_type:
+          type: enum
+          values: [fido2, yubikey]
+          required: true
+          description: Hardware token type
+        device_serial:
+          type: string
+          format: utf8
+          max_length: 128
+          required: true
+          description: Serial number of the hardware token
+        attestation_certificate:
+          type: string
+          format: pem
+          required: false
+          description: Device attestation certificate
+        credential_id:
+          type: string
+          format: base64url
+          required: true
+          description: FIDO2 credential ID
+
+    delegated_token:
+      type: credential_type
+      value: delegated_token
+      description: JWT-like delegated authentication token with constraints
+      supported_algorithms: [ed25519, secp256k1, rsa_4096]
+      default_trust_level: MEDIUM
+      default_binding_strength: MODERATE
+      default_authentication_factor: DELEGATED
+      revocable: true
+      scope_restrictions_supported: true
+      max_delegation_depth: 1
+      attributes:
+        issuer_id:
+          type: string
+          format: uuid
+          required: true
+          description: Identity ID of the delegating actor
+        delegate_id:
+          type: string
+          format: uuid
+          required: true
+          description: Identity ID of the receiving actor
+        claims:
+          type: array
+          items:
+            type: object
+          required: true
+          description: Set of claims and constraints encoded in the token
+        signing_algorithm:
+          type: enum
+          values: [ed25519, secp256k1, rsa_4096]
+          required: true
+          description: Algorithm used to sign the token
+        max_depth:
+          type: integer
+          required: true
+          description: Maximum delegation depth from this token
+        constrained_capabilities:
+          type: array
+          items:
+            type: string
+          required: true
+          description: Capability patterns this token authorizes
+
+    governance_credential:
+      type: credential_type
+      value: governance_credential
+      description: Credential issued by the governance domain for oversight functions
+      supported_algorithms: [ed25519, rsa_4096]
+      default_trust_level: SOVEREIGN
+      default_binding_strength: SOVEREIGN
+      default_authentication_factor: GOVERNANCE
+      revocable: false
+      scope_restrictions_supported: false
+      max_delegation_depth: 0
+      attributes:
+        governance_role:
+          type: enum
+          values: [constitutional_guardian, policy_administrator, auditor, compliance_officer]
+          required: true
+          description: Specific governance role this credential grants
+        issued_by_governance_id:
+          type: string
+          format: uuid
+          required: true
+          description: Identity ID of the issuing governance actor
+        multi_sig_threshold:
+          type: integer
+          required: true
+          description: Number of signatures required for governance action
+        scope_of_oversight:
+          type: array
+          items:
+            type: string
+          required: true
+          description: Domains or subsystems this governance credential oversees
+
+  credential_entity:
+    description: Canonical credential entity schema
+    fields:
+      credential_id:
+        type: string
+        format: uuid
+        required: true
+        description: Globally unique credential identifier
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+        description: References identity.actor.identity_id
+      credential_type:
+        type: enum
+        values: [cryptographic_key, biometric_binding, hardware_token, delegated_token, governance_credential]
+        required: true
+        description: Type of credential
+      state:
+        type: enum
+        values: [ACTIVE, EXPIRED, REVOKED, SUSPENDED, ROTATED]
+        required: true
+        description: Current lifecycle state
+      trust_level:
+        type: enum
+        values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+        required: true
+        description: Trust level of this credential
+      authentication_factor:
+        type: enum
+        values: [KNOWLEDGE, POSSESSION, INHERENCE, DELEGATED, GOVERNANCE]
+        required: true
+        description: Authentication factor category
+      binding_strength:
+        type: enum
+        values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+        required: true
+        description: Binding strength of this credential
+      expires_at:
+        type: timestamp
+        required: true
+        description: When this credential expires
+      revocable:
+        type: boolean
+        required: true
+        description: Whether this credential can be revoked
+      scope_restrictions:
+        type: array
+        items:
+          type: string
+          format: capability_pattern
+        required: true
+        description: Capability scope patterns this credential is restricted to
+      max_delegation_depth:
+        type: integer
+        required: true
+        description: Maximum depth of delegation from this credential
+      issued_at:
+        type: timestamp
+        required: true
+        description: When this credential was issued
+      issued_by:
+        type: string
+        format: uuid
+        required: true
+        description: Identity ID that issued this credential
+      type_specific_data:
+        type: object
+        required: true
+        description: Type-specific credential data (varies by credential_type)
+      last_used_at:
+        type: timestamp
+        required: false
+        description: Last time this credential was used for authentication
+
+# ============================================================
+# SECTION 5 — AUTHENTICATION MODEL
+# ============================================================
+# Maps actor types to their permitted authentication methods.
+# Successful authentication produces an AuthenticationContext
+# object that seeds the authorization context pipeline.
+# ============================================================
+
+authentication_model:
+  description: Defines authentication methods per actor type and the authentication result schema
+
+  actor_authentication_methods:
+    human:
+      - password
+      - mfa
+      - biometric
+      - hardware_key
+      - delegated
+    organization:
+      - cryptographic_signature
+      - delegated
+      - governance_approval
+    ai_agent:
+      - cryptographic_signature
+      - delegated_token
+      - governance_binding
+    service_account:
+      - cryptographic_signature
+      - mutual_tls
+      - delegated_token
+    governance:
+      - multi_signature
+      - governance_credential
+    external_system:
+      - mutual_tls
+      - api_key
+      - webhook_verification
+
+  authentication_context:
+    description: >
+      Structured output produced by a successful authentication.
+      This is the input seed for the Authorization Context.
+    fields:
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+        description: Authenticated actor identity
+      actor_type:
+        type: enum
+        values: [human, organization, ai_agent, service_account, governance, external_system]
+        required: true
+        description: Type of the authenticated actor
+      authentication_method:
+        type: enum
+        values:
+          - password
+          - mfa
+          - biometric
+          - hardware_key
+          - delegated
+          - cryptographic_signature
+          - delegated_token
+          - governance_approval
+          - governance_binding
+          - mutual_tls
+          - api_key
+          - webhook_verification
+          - multi_signature
+          - governance_credential
+        required: true
+        description: Method used for authentication
+      credential_id:
+        type: string
+        format: uuid
+        required: true
+        description: Credential used for authentication
+      trust_level:
+        type: enum
+        values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+        required: true
+        description: Trust level established by this authentication
+      binding_strength:
+        type: enum
+        values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+        required: true
+        description: Binding strength of this authentication
+      authenticated_at:
+        type: timestamp
+        required: true
+        description: When authentication was completed
+      session_id:
+        type: string
+        format: uuid
+        required: true
+        description: Session established by this authentication
+      expires_at:
+        type: timestamp
+        required: true
+        description: When this authentication context expires
+      delegation_chain:
+        type: array
+        items:
+          type: object
+          fields:
+            delegation_id:
+              type: string
+              format: uuid
+              required: true
+            delegator_id:
+              type: string
+              format: uuid
+              required: true
+            delegate_id:
+              type: string
+              format: uuid
+              required: true
+            depth:
+              type: integer
+              required: true
+        required: true
+        description: Chain of delegations (empty if no delegation)
+      ip_address:
+        type: string
+        format: ipv4_or_ipv6
+        required: false
+        description: Client IP address at time of authentication
+      device_fingerprint:
+        type: string
+        format: sha256
+        required: false
+        description: Hashed device fingerprint
+      geo_location:
+        type: string
+        format: iso_country_code
+        required: false
+        description: Geographic location of the authentication source
+
+# ============================================================
+# SECTION 6 — TRUST ANCHOR MODEL
+# ============================================================
+# Trust anchors establish the root of trust for identity
+# verification. They are the top-level certificates or keys
+# that the system uses to validate credential chains.
+# ============================================================
+
+trust_anchor_model:
+  description: Defines trust anchor entities that root identity verification chains
+
+  trust_anchor_entity:
+    fields:
+      trust_anchor_id:
+        type: string
+        format: uuid
+        required: true
+        description: Globally unique trust anchor identifier
+      anchor_type:
+        type: enum
+        values: [GOVERNANCE_ROOT, ORGANIZATION_CA, EXTERNAL_CA, SYSTEM_INTERNAL]
+        required: true
+        description: Classification of this trust anchor
+      anchor_label:
+        type: string
+        format: utf8
+        max_length: 256
+        required: true
+        description: Human-readable label for this trust anchor
+      public_key_material:
+        type: string
+        format: base64
+        required: true
+        description: The public key or certificate of the trust anchor
+      key_algorithm:
+        type: enum
+        values: [ed25519, secp256k1, rsa_4096]
+        required: true
+        description: Algorithm of the trust anchor key
+      key_usage:
+        type: enum
+        values: [AUTHENTICATION, SIGNING, ENCRYPTION, CERTIFICATE_AUTHORITY]
+        required: true
+        description: Permitted usage of this trust anchor key
+      trust_level_issued:
+        type: enum
+        values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+        required: true
+        description: Maximum trust level this anchor can issue
+      scope_of_trust:
+        type: array
+        items:
+          type: string
+          format: capability_pattern
+        required: true
+        description: Scope within which this trust anchor is authoritative
+      issued_by:
+        type: string
+        format: uuid
+        required: false
+        description: Trust anchor ID of the issuing anchor (null for governance root)
+      valid_from:
+        type: timestamp
+        required: true
+        description: When this trust anchor becomes valid
+      valid_until:
+        type: timestamp
+        required: true
+        description: When this trust anchor expires
+      revocation_check_url:
+        type: string
+        format: url
+        required: true
+        description: URL for checking revocation status of certificates issued by this anchor
+      status:
+        type: enum
+        values: [ACTIVE, EXPIRED, REVOKED]
+        required: true
+        description: Current status of this trust anchor
+      governance_approval_id:
+        type: string
+        format: uuid
+        required: false
+        description: Command ID of the governance approval that registered this anchor
+
+# ============================================================
+# SECTION 7 — DELEGATION MODEL
+# ============================================================
+# Delegation allows one actor to temporarily grant specific
+# capabilities to another actor. Delegation creates a NEW
+# identity context — it does NOT allow impersonation.
+# ============================================================
+
+delegation_model:
+  description: Defines delegation relationships between actors
+
+  delegation_entity:
+    fields:
+      delegation_id:
+        type: string
+        format: uuid
+        required: true
+        description: Globally unique delegation identifier
+      delegator_id:
+        type: string
+        format: uuid
+        required: true
+        description: Identity ID of the actor granting delegation
+      delegate_id:
+        type: string
+        format: uuid
+        required: true
+        description: Identity ID of the actor receiving delegation
+      delegated_capabilities:
+        type: array
+        items:
+          type: object
+          fields:
+            capability_pattern:
+              type: string
+              format: capability_pattern
+              required: true
+            scope_restrictions:
+              type: array
+              items:
+                type: string
+              required: true
+        required: true
+        description: Capabilities and scope restrictions being delegated
+      max_delegation_depth:
+        type: integer
+        required: true
+        default: 1
+        description: Maximum delegation depth (1 = no further delegation)
+      conditions:
+        type: object
+        required: true
+        fields:
+          valid_from:
+            type: timestamp
+            required: true
+          valid_until:
+            type: timestamp
+            required: true
+          max_amount_per_transaction:
+            type: decimal
+            precision: 18
+            required: false
+          max_amount_total:
+            type: decimal
+            precision: 18
+            required: false
+          purpose_restriction:
+            type: string
+            format: utf8
+            max_length: 512
+            required: false
+          allowed_commands:
+            type: array
+            items:
+              type: string
+            required: true
+      state:
+        type: enum
+        values: [PENDING_ACCEPTANCE, ACTIVE, EXPIRED, REVOKED]
+        required: true
+        description: Current state of the delegation
+      revocable_by_delegator:
+        type: boolean
+        required: true
+        default: true
+        description: Always true for financial delegations
+      audit_requirement:
+        type: enum
+        values: [STANDARD, ENHANCED, FULL]
+        required: true
+        description: Audit logging level for this delegation
+      created_at:
+        type: timestamp
+        required: true
+        description: When this delegation was created
+      accepted_at:
+        type: timestamp
+        required: false
+        description: When the delegate accepted this delegation
+      revoked_at:
+        type: timestamp
+        required: false
+        description: When this delegation was revoked
+      revoked_by:
+        type: string
+        format: uuid
+        required: false
+        description: Identity ID of the actor that revoked this delegation
+      current_depth:
+        type: integer
+        required: true
+        default: 0
+        description: Current depth in the delegation chain (0 = direct)
+      parent_delegation_id:
+        type: string
+        format: uuid
+        required: false
+        description: Delegation ID of the parent delegation (if chained)
+
+  delegation_constraints:
+    - rule: governance_credentials_cannot_be_delegated
+      description: Governance actors cannot delegate their credentials
+      enforcement: reject
+      constitutional_reference: INV-003
+    - rule: system_credentials_cannot_be_delegated
+      description: System-internal credentials cannot be delegated externally
+      enforcement: reject
+      constitutional_reference: INV-003
+    - rule: ai_agents_cannot_grant_delegation_to_humans
+      description: AI agents may only receive delegation, never grant it to humans
+      enforcement: reject
+      constitutional_reference: INV-004
+    - rule: max_delegation_depth_enforced
+      description: Delegation chains cannot exceed max_delegation_depth
+      enforcement: reject
+      constitutional_reference: INV-003
+    - rule: delegation_creates_new_context
+      description: Delegation must create a new identity context, never impersonate
+      enforcement: architectural
+      constitutional_reference: INV-003
+    - rule: delegation_chain_fully_traceable
+      description: Every delegation in the chain must be auditable
+      enforcement: architectural
+      constitutional_reference: INV-005
+
+# ============================================================
+# SECTION 8 — IMPERSONATION PREVENTION
+# ============================================================
+# Hard prohibitions enforced by the Identity domain.
+# These are non-negotiable architectural constraints.
+# ============================================================
+
+impersonation_prevention:
+  description: Hard prohibitions preventing identity impersonation
+
+  rules:
+    - rule_id: IMP-001
+      rule: no_identity_context_assumption
+      description: No actor may assume another actor's identity context
+      enforcement: reject_command
+      constitutional_reference: INV-003
+      applies_to: all_actor_types
+
+    - rule_id: IMP-002
+      rule: delegation_creates_new_context
+      description: Delegation creates a NEW identity context, not impersonation
+      enforcement: architectural
+      constitutional_reference: INV-003
+      applies_to: all_actor_types
+
+    - rule_id: IMP-003
+      rule: delegation_chain_fully_traceable
+      description: Delegation chain must be fully traceable to root actor
+      enforcement: reject_command
+      constitutional_reference: INV-005
+      applies_to: all_actor_types
+
+    - rule_id: IMP-004
+      rule: governance_credentials_not_delegable
+      description: Governance credentials cannot be delegated to any actor
+      enforcement: reject_command
+      constitutional_reference: INV-003
+      applies_to: [governance]
+
+    - rule_id: IMP-005
+      rule: system_credentials_not_delegable
+      description: System-internal credentials cannot be delegated externally
+      enforcement: reject_command
+      constitutional_reference: INV-003
+      applies_to: [service_account]
+
+    - rule_id: IMP-006
+      rule: ai_cannot_delegate_to_humans
+      description: AI agents may only receive delegation, never grant it to humans
+      enforcement: reject_command
+      constitutional_reference: INV-004
+      applies_to: [ai_agent]
+
+    - rule_id: IMP-007
+      rule: credential_binding_immutable
+      description: A credential may not be re-bound to a different identity
+      enforcement: reject_command
+      constitutional_reference: INV-003
+      applies_to: all_actor_types
+
+    - rule_id: IMP-008
+      rule: session_context_preserved
+      description: Session context cannot be transferred between actors
+      enforcement: terminate_session
+      constitutional_reference: INV-008
+      applies_to: all_actor_types
+
+# ============================================================
+# SECTION 9 — REVOCATION MODEL
+# ============================================================
+# Revocation states and procedures for credentials, sessions,
+# and delegations.
+# ============================================================
+
+revocation_model:
+  description: Defines revocation procedures and their effects
+
+  revocation_types:
+
+    IMMEDIATE:
+      type_code: IMMEDIATE
+      description: Credential-level instant revocation with no grace period
+      applies_to: [credential, session, delegation]
+      grace_period_seconds: 0
+      requires_governance_approval: false
+      propagation:
+        - revoke_all_active_sessions_using_credential
+        - revoke_all_active_delegations_using_credential
+        - emit_identity.credential.revoked
+        - emit_identity.session.terminated for each affected session
+      constitutional_reference: INV-003
+
+    SCHEDULED:
+      type_code: SCHEDULED
+      description: Revocation with a configurable grace period
+      applies_to: [credential, delegation]
+      grace_period_seconds: 3600
+      requires_governance_approval: false
+      propagation:
+        - emit_identity.credential.revoked with effective timestamp
+        - mark_credential_as_revoking
+        - after grace period: full revocation per IMMEDIATE path
+      constitutional_reference: INV-003
+
+    GOVERNANCE_ORDERED:
+      type_code: GOVERNANCE_ORDERED
+      description: Revocation ordered by governance actor with mandatory approval
+      applies_to: [credential, session, delegation, actor_identity]
+      grace_period_seconds: 0
+      requires_governance_approval: true
+      required_governance_capabilities:
+        - identity.actor.revoke
+        - identity.credential.revoke
+      propagation:
+        - revoke_actor_identity_immediately
+        - revoke_all_credentials_for_identity
+        - revoke_all_active_sessions_for_identity
+        - revoke_all_active_delegations_for_identity
+        - emit_identity.actor.revoked
+        - emit_identity.credential.revoked for each credential
+        - emit_identity.session.terminated for each session
+        - emit_identity.delegation.revoked for each delegation
+      constitutional_reference: INV-008
+
+  revocation_entity:
+    fields:
+      revocation_id:
+        type: string
+        format: uuid
+        required: true
+        description: Globally unique revocation identifier
+      revocation_type:
+        type: enum
+        values: [IMMEDIATE, SCHEDULED, GOVERNANCE_ORDERED]
+        required: true
+        description: Type of revocation
+      target_type:
+        type: enum
+        values: [credential, session, delegation, actor_identity]
+        required: true
+        description: Type of entity being revoked
+      target_id:
+        type: string
+        format: uuid
+        required: true
+        description: ID of the entity being revoked
+      reason:
+        type: string
+        format: utf8
+        max_length: 1024
+        required: true
+        description: Human-readable reason for revocation
+      ordered_by:
+        type: string
+        format: uuid
+        required: true
+        description: Identity ID of the actor ordering revocation
+      effective_at:
+        type: timestamp
+        required: true
+        description: When the revocation takes effect
+      grace_period_ends_at:
+        type: timestamp
+        required: false
+        description: End of grace period (null for IMMEDIATE)
+      governance_approval_id:
+        type: string
+        format: uuid
+        required: false
+        description: Command ID of governance approval (required for GOVERNANCE_ORDERED)
+      created_at:
+        type: timestamp
+        required: true
+        description: When this revocation record was created
+
+# ============================================================
+# SECTION 10 — SESSION MODEL
+# ============================================================
+# Sessions represent authenticated interactions between an actor
+# and the system. Each session is bound to a single identity and
+# carries a snapshot of capabilities granted at creation time.
+# ============================================================
+
+session_model:
+  description: Defines session entities and their lifecycle
+
+  session_entity:
+    fields:
+      session_id:
+        type: string
+        format: uuid
+        required: true
+        description: Globally unique session identifier
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+        description: References identity.actor.identity_id
+      authentication_context:
+        type: object
+        required: true
+        description: The authentication context that established this session
+        fields:
+          credential_id:
+            type: string
+            format: uuid
+            required: true
+          authentication_method:
+            type: enum
+            values:
+              - password
+              - mfa
+              - biometric
+              - hardware_key
+              - delegated
+              - cryptographic_signature
+              - delegated_token
+              - governance_approval
+              - governance_binding
+              - mutual_tls
+              - api_key
+              - webhook_verification
+              - multi_signature
+              - governance_credential
+            required: true
+          trust_level:
+            type: enum
+            values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+            required: true
+          binding_strength:
+            type: enum
+            values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+            required: true
+      state:
+        type: enum
+        values: [ACTIVE, EXPIRED, REVOKED, TERMINATED]
+        required: true
+        description: Current session state
+      created_at:
+        type: timestamp
+        required: true
+        description: When this session was created
+      last_activity_at:
+        type: timestamp
+        required: true
+        description: Timestamp of last activity within this session
+      expires_at:
+        type: timestamp
+        required: true
+        description: When this session expires
+      max_session_duration:
+        type: integer
+        required: true
+        description: Maximum duration of this session in seconds
+      idle_timeout:
+        type: integer
+        required: true
+        description: Maximum idle time before session termination in seconds
+      capabilities_granted:
+        type: array
+        items:
+          type: string
+          format: capability_pattern
+        required: true
+        description: Snapshot of capabilities granted at session creation
+      delegation_chain:
+        type: array
+        items:
+          type: object
+          fields:
+            delegation_id:
+              type: string
+              format: uuid
+              required: true
+            delegator_id:
+              type: string
+              format: uuid
+              required: true
+            delegate_id:
+              type: string
+              format: uuid
+              required: true
+            depth:
+              type: integer
+              required: true
+        required: true
+        description: Delegation chain in effect at session creation
+      concurrent_session_limit:
+        type: integer
+        required: true
+        description: Maximum concurrent sessions for this actor type
+      source_ip:
+        type: string
+        format: ipv4_or_ipv6
+        required: false
+        description: IP address of the session source
+      device_fingerprint:
+        type: string
+        format: sha256
+        required: false
+        description: Hashed device fingerprint
+      geo_location:
+        type: string
+        format: iso_country_code
+        required: false
+        description: Geographic location of the session source
+
+  session_constraints:
+    - rule: session_bound_to_single_identity
+      description: A session is bound to exactly one identity and cannot be re-bound
+      enforcement: terminate_session
+      constitutional_reference: INV-003
+    - rule: session_not_continuable_after_revocation
+      description: If the underlying credential or identity is revoked, the session must terminate
+      enforcement: terminate_session
+      constitutional_reference: INV-008
+    - rule: concurrent_session_limit_enforced
+      description: Actor types have maximum concurrent session limits
+      enforcement: reject_new_session
+      constitutional_reference: INV-003
+    - rule: session_capabilities_are_snapshot
+      description: Capabilities granted at session creation cannot be elevated during session
+      enforcement: reject_command
+      constitutional_reference: INV-003
+    - rule: idle_timeout_enforced
+      description: Sessions must terminate after idle timeout
+      enforcement: terminate_session
+      constitutional_reference: INV-008
+
+# ============================================================
+# SECTION 11 — AUTHORIZATION CONTEXT OUTPUT
+# ============================================================
+# This is the CRITICAL output of the Identity domain — the
+# structured object that flows to the Policy domain and through
+# every subsequent stage of the execution pipeline.
+# ============================================================
+
+authorization_context:
+  description: >
+    The primary output of the Identity domain. This structured object
+    is produced by every successful authentication and flows through
+    Policy, Intent, Command, Agent, Treasury, and Ledger. Every
+    command execution MUST have a valid AuthorizationContext.
+
+  fields:
+    identity_id:
+      type: string
+      format: uuid
+      required: true
+      description: Authenticated actor identity ID
+    actor_type:
+      type: enum
+      values: [human, organization, ai_agent, service_account, governance, external_system]
+      required: true
+      description: Type of the authenticated actor
+    trust_level:
+      type: enum
+      values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+      required: true
+      description: Trust level of the authenticated actor
+    binding_strength:
+      type: enum
+      values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+      required: true
+      description: Binding strength of the authentication
+    session_id:
+      type: string
+      format: uuid
+      required: true
+      description: Active session ID (or request-scoped ID for sessionless actors)
+    credential_id:
+      type: string
+      format: uuid
+      required: true
+      description: Credential used for authentication
+    delegation_chain:
+      type: array
+      items:
+        type: object
+        fields:
+          delegation_id:
+            type: string
+            format: uuid
+            required: true
+          delegator_id:
+            type: string
+            format: uuid
+            required: true
+          delegate_id:
+            type: string
+            format: uuid
+            required: true
+          depth:
+            type: integer
+            required: true
+          capabilities_granted:
+            type: array
+            items:
+              type: string
+            required: true
+      required: true
+      description: Full delegation chain (empty if no delegation)
+    effective_capabilities:
+      type: array
+      items:
+        type: string
+        format: capability_pattern
+      required: true
+      description: Computed capabilities from identity + delegation chain
+    scope_restrictions:
+      type: array
+      items:
+        type: string
+        format: scope_pattern
+      required: true
+      description: Scope restrictions from identity + delegation
+    governance_override:
+      type: boolean
+      required: true
+      default: false
+      description: True only for governance actors with sovereign credentials
+    constitutional_authority:
+      type: object
+      required: true
+      fields:
+        can_own_assets:
+          type: boolean
+          required: true
+          description: Whether this actor may own financial assets
+        can_transfer_assets:
+          type: boolean
+          required: true
+          description: Whether this actor may initiate asset transfers
+        can_manage_policy:
+          type: boolean
+          required: true
+          description: Whether this actor may manage policy rules
+        can_govern:
+          type: boolean
+          required: true
+          description: Whether this actor may perform governance actions
+        can_execute_financial_commands:
+          type: boolean
+          required: true
+          description: Whether this actor may execute financial commands
+    metadata:
+      type: object
+      required: true
+      fields:
+        authenticated_at:
+          type: timestamp
+          required: true
+          description: When authentication was completed
+        authentication_method:
+          type: enum
+          values:
+            - password
+            - mfa
+            - biometric
+            - hardware_key
+            - delegated
+            - cryptographic_signature
+            - delegated_token
+            - governance_approval
+            - governance_binding
+            - mutual_tls
+            - api_key
+            - webhook_verification
+            - multi_signature
+            - governance_credential
+          required: true
+          description: Method used for authentication
+        source_ip:
+          type: string
+          format: ipv4_or_ipv6
+          required: false
+          description: Source IP of the authenticated actor
+
+# ============================================================
+# SECTION 12 — COMMANDS
+# ============================================================
+# All commands in the Identity domain. Each command is fully
+# structured for protocol compiler consumption.
+# ============================================================
+
+commands:
+
+  # ========================================================
+  # identity.actor.register
+  # ========================================================
+  identity.actor.register:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Register a new actor identity in the SOVR system
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.actor.register
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.register
+      scope: identity
+      policy: identity_registration_policy
+    validation_rules:
+      - rule: actor_type_must_be_recognized
+        check: actor_type in [human, organization, ai_agent, service_account, governance, external_system]
+        on_failure: REJECT
+      - rule: display_name_required
+        check: display_name is non-empty string, max 256 chars
+        on_failure: REJECT
+      - rule: no_duplicate_identity
+        check: no existing identity with same legal_identifier or display_name combination
+        on_failure: REJECT
+      - rule: governance_approval_for_restricted_types
+        check: if actor_type in [ai_agent, service_account, governance, external_system] then governance_approval_id is not null
+        on_failure: REJECT
+      - rule: legal_identifier_for_organizations
+        check: if actor_type == organization then legal_identifier is not null
+        on_failure: REJECT
+    required_payload:
+      - actor_type
+      - display_name
+      - legal_identifier
+      - primary_contact
+    produces_events:
+      - identity.actor.registered
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.actor.verify
+  # ========================================================
+  identity.actor.verify:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Verify an actor identity and transition to ACTIVE state
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.actor.verify
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.verify
+      scope: identity_id
+      policy: identity_verification_policy
+    validation_rules:
+      - rule: identity_must_exist
+        check: identity with identity_id exists
+        on_failure: REJECT
+      - rule: identity_must_be_in_verifiable_state
+        check: identity.state in [PENDING_VERIFICATION, VERIFYING]
+        on_failure: REJECT
+      - rule: verification_evidence_required
+        check: verification_evidence is not null
+        on_failure: REJECT
+      - rule: issuer_must_be_governance
+        check: issuer.actor_type == governance
+        on_failure: REJECT
+    required_payload:
+      - identity_id
+      - verification_evidence
+    produces_events:
+      - identity.actor.verified
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.actor.suspend
+  # ========================================================
+  identity.actor.suspend:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Suspend an active actor identity temporarily
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.actor.suspend
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.suspend
+      scope: identity_id
+      policy: identity_suspension_policy
+    validation_rules:
+      - rule: identity_must_exist
+        check: identity with identity_id exists
+        on_failure: REJECT
+      - rule: identity_must_be_active
+        check: identity.state == ACTIVE
+        on_failure: REJECT
+      - rule: suspension_reason_required
+        check: reason is non-empty string
+        on_failure: REJECT
+      - rule: cannot_suspend_self
+        check: issuer.identity_id != target.identity_id
+        on_failure: REJECT
+      - rule: cannot_suspend_governance_without_governance
+        check: if target.actor_type == governance then requires multi-governance approval
+        on_failure: REJECT
+    required_payload:
+      - identity_id
+      - reason
+    produces_events:
+      - identity.actor.suspended
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.actor.revoke
+  # ========================================================
+  identity.actor.revoke:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Permanently revoke an actor identity
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.actor.revoke
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.revoke
+      scope: identity_id
+      policy: identity_revocation_policy
+    validation_rules:
+      - rule: identity_must_exist
+        check: identity with identity_id exists
+        on_failure: REJECT
+      - rule: identity_must_be_revocable
+        check: identity.state in [PENDING_VERIFICATION, VERIFYING, ACTIVE, SUSPENDED]
+        on_failure: REJECT
+      - rule: revocation_reason_required
+        check: reason is non-empty string
+        on_failure: REJECT
+      - rule: governance_multi_sig_required_for_governance_actor
+        check: if target.actor_type == governance then multi_signature threshold met
+        on_failure: REJECT
+      - rule: all_sessions_terminated
+        check: no active sessions exist for this identity
+        on_failure: REJECT_WITH_TERMINATE_SESSIONS
+    required_payload:
+      - identity_id
+      - reason
+      - revocation_type
+    produces_events:
+      - identity.actor.revoked
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.actor.archive
+  # ========================================================
+  identity.actor.archive:
+    aggregate: actor
+    source_domain: identity
+    version: 1.0.0
+    description: Archive a revoked actor identity for historical record
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.actor.archive
+    authorization_requirements:
+      identity: required
+      capability: identity.actor.archive
+      scope: identity_id
+      policy: identity_archive_policy
+    validation_rules:
+      - rule: identity_must_exist
+        check: identity with identity_id exists
+        on_failure: REJECT
+      - rule: identity_must_be_revoked
+        check: identity.state == REVOKED
+        on_failure: REJECT
+      - rule: all_credentials_revoked
+        check: no ACTIVE credentials exist for this identity
+        on_failure: REJECT
+      - rule: all_delegations_revoked
+        check: no ACTIVE delegations exist for this identity
+        on_failure: REJECT
+      - rule: all_sessions_terminated
+        check: no ACTIVE sessions exist for this identity
+        on_failure: REJECT
+    required_payload:
+      - identity_id
+    produces_events: []
+    constitutional_gates:
+      - INV-003
+
+  # ========================================================
+  # identity.credential.issue
+  # ========================================================
+  identity.credential.issue:
+    aggregate: credential
+    source_domain: identity
+    version: 1.0.0
+    description: Issue a new credential to an actor identity
+    issuer:
+      actor_types: [governance, service_account]
+      minimum_capability: identity.credential.issue
+    authorization_requirements:
+      identity: required
+      capability: identity.credential.issue
+      scope: identity_id
+      policy: credential_issuance_policy
+    validation_rules:
+      - rule: identity_must_exist
+        check: identity with identity_id exists
+        on_failure: REJECT
+      - rule: identity_must_be_active
+        check: identity.state == ACTIVE
+        on_failure: REJECT
+      - rule: credential_type_must_be_recognized
+        check: credential_type in [cryptographic_key, biometric_binding, hardware_token, delegated_token, governance_credential]
+        on_failure: REJECT
+      - rule: governance_credential_requires_governance_issuer
+        check: if credential_type == governance_credential then issuer.actor_type == governance
+        on_failure: REJECT
+      - rule: max_credentials_per_type
+        check: credential count per type within limits for actor_type
+        on_failure: REJECT
+      - rule: expires_at_must_be_in_future
+        check: expires_at > now
+        on_failure: REJECT
+      - rule: trust_level_within_actor_ceiling
+        check: credential.trust_level <= identity.actor_type.maximum_trust_level
+        on_failure: REJECT
+    required_payload:
+      - identity_id
+      - credential_type
+      - expires_at
+      - trust_level
+      - binding_strength
+      - type_specific_data
+    produces_events:
+      - identity.credential.issued
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.credential.revoke
+  # ========================================================
+  identity.credential.revoke:
+    aggregate: credential
+    source_domain: identity
+    version: 1.0.0
+    description: Revoke a credential immediately or on schedule
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.credential.revoke
+    authorization_requirements:
+      identity: required
+      capability: identity.credential.revoke
+      scope: credential_id
+      policy: credential_revocation_policy
+    validation_rules:
+      - rule: credential_must_exist
+        check: credential with credential_id exists
+        on_failure: REJECT
+      - rule: credential_must_be_revocable
+        check: credential.revocable == true
+        on_failure: REJECT
+      - rule: credential_must_be_active
+        check: credential.state == ACTIVE
+        on_failure: REJECT
+      - rule: revocation_reason_required
+        check: reason is non-empty string
+        on_failure: REJECT
+      - rule: governance_credential_special_handling
+        check: if credential_type == governance_credential then requires governance_ordered revocation
+        on_failure: REJECT
+    required_payload:
+      - credential_id
+      - revocation_type
+      - reason
+    produces_events:
+      - identity.credential.revoked
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.session.create
+  # ========================================================
+  identity.session.create:
+    aggregate: session
+    source_domain: identity
+    version: 1.0.0
+    description: Create a new authenticated session for an actor
+    issuer:
+      actor_types: [human, organization, ai_agent, service_account, governance, external_system]
+      minimum_capability: identity.session.create
+    authorization_requirements:
+      identity: required
+      capability: identity.session.create
+      scope: identity_id
+      policy: session_creation_policy
+    validation_rules:
+      - rule: identity_must_exist
+        check: identity with identity_id exists
+        on_failure: REJECT
+      - rule: identity_must_be_active
+        check: identity.state == ACTIVE
+        on_failure: REJECT
+      - rule: credential_must_be_active
+        check: credential_id references an ACTIVE credential
+        on_failure: REJECT
+      - rule: credential_must_belong_to_identity
+        check: credential.identity_id == session.identity_id
+        on_failure: REJECT
+      - rule: concurrent_session_limit
+        check: active session count < identity.actor_type.default_concurrent_sessions
+        on_failure: REJECT
+      - rule: authentication_method_allowed_for_actor_type
+        check: authentication_method in actor_type.authentication_methods
+        on_failure: REJECT
+      - rule: session_ttl_within_actor_maximum
+        check: requested_ttl <= identity.actor_type.default_session_ttl (or 0 for sessionless)
+        on_failure: REJECT
+    required_payload:
+      - identity_id
+      - credential_id
+      - authentication_method
+    produces_events:
+      - identity.authentication.succeeded
+      - identity.session.created
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.session.terminate
+  # ========================================================
+  identity.session.terminate:
+    aggregate: session
+    source_domain: identity
+    version: 1.0.0
+    description: Terminate an active session
+    issuer:
+      actor_types: [governance, human, service_account]
+      minimum_capability: identity.session.terminate
+    authorization_requirements:
+      identity: required
+      capability: identity.session.terminate
+      scope: session_id
+      policy: session_termination_policy
+    validation_rules:
+      - rule: session_must_exist
+        check: session with session_id exists
+        on_failure: REJECT
+      - rule: session_must_be_active
+        check: session.state == ACTIVE
+        on_failure: REJECT
+      - rule: termination_requires_ownership_or_governance
+        check: issuer.identity_id == session.identity_id OR issuer.actor_type == governance
+        on_failure: REJECT
+      - rule: termination_reason_required_for_governance
+        check: if issuer.actor_type == governance then reason is non-empty string
+        on_failure: REJECT
+    required_payload:
+      - session_id
+      - reason
+    produces_events:
+      - identity.session.terminated
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.delegation.create
+  # ========================================================
+  identity.delegation.create:
+    aggregate: delegation
+    source_domain: identity
+    version: 1.0.0
+    description: Create a delegation relationship between two actors
+    issuer:
+      actor_types: [human, organization, governance]
+      minimum_capability: identity.delegation.create
+    authorization_requirements:
+      identity: required
+      capability: identity.delegation.create
+      scope: delegator_id
+      policy: delegation_creation_policy
+    validation_rules:
+      - rule: delegator_must_exist
+        check: identity with delegator_id exists
+        on_failure: REJECT
+      - rule: delegate_must_exist
+        check: identity with delegate_id exists
+        on_failure: REJECT
+      - rule: delegator_must_be_active
+        check: delegator.state == ACTIVE
+        on_failure: REJECT
+      - rule: delegate_must_be_active
+        check: delegate.state == ACTIVE
+        on_failure: REJECT
+      - rule: delegator_can_delegate
+        check: delegator.actor_type.can_delegate == true
+        on_failure: REJECT
+      - rule: delegate_can_be_delegated_to
+        check: delegate.actor_type.can_be_delegated_to == true
+        on_failure: REJECT
+      - rule: no_self_delegation
+        check: delegator_id != delegate_id
+        on_failure: REJECT
+      - rule: ai_cannot_delegate_to_humans
+        check: not (delegator.actor_type == ai_agent AND delegate.actor_type == human)
+        on_failure: REJECT
+      - rule: governance_cannot_be_delegated
+        check: delegator.actor_type != governance
+        on_failure: REJECT
+      - rule: delegated_capabilities_within_ceiling
+        check: all capability patterns within delegator.authority_ceiling
+        on_failure: REJECT
+      - rule: valid_until_must_be_in_future
+        check: conditions.valid_until > now
+        on_failure: REJECT
+      - rule: max_delegation_depth_positive
+        check: max_delegation_depth >= 1
+        on_failure: REJECT
+      - rule: no_duplicate_active_delegation
+        check: no ACTIVE delegation with same delegator_id and delegate_id
+        on_failure: REJECT
+    required_payload:
+      - delegator_id
+      - delegate_id
+      - delegated_capabilities
+      - max_delegation_depth
+      - conditions
+    produces_events:
+      - identity.delegation.created
+    constitutional_gates:
+      - INV-003
+      - INV-004
+      - INV-008
+
+  # ========================================================
+  # identity.delegation.revoke
+  # ========================================================
+  identity.delegation.revoke:
+    aggregate: delegation
+    source_domain: identity
+    version: 1.0.0
+    description: Revoke an active delegation relationship
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.delegation.revoke
+    authorization_requirements:
+      identity: required
+      capability: identity.delegation.revoke
+      scope: delegation_id
+      policy: delegation_revocation_policy
+    validation_rules:
+      - rule: delegation_must_exist
+        check: delegation with delegation_id exists
+        on_failure: REJECT
+      - rule: delegation_must_be_active
+        check: delegation.state in [PENDING_ACCEPTANCE, ACTIVE]
+        on_failure: REJECT
+      - rule: revocation_reason_required
+        check: reason is non-empty string
+        on_failure: REJECT
+      - rule: affected_sessions_terminated
+        check: all sessions created under this delegation are terminated
+        on_failure: REJECT_WITH_TERMINATE_SESSIONS
+    required_payload:
+      - delegation_id
+      - reason
+    produces_events:
+      - identity.delegation.revoked
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.trust_anchor.register
+  # ========================================================
+  identity.trust_anchor.register:
+    aggregate: trust_anchor
+    source_domain: identity
+    version: 1.0.0
+    description: Register a new trust anchor in the system
+    issuer:
+      actor_types: [governance]
+      minimum_capability: identity.trust_anchor.register
+    authorization_requirements:
+      identity: required
+      capability: identity.trust_anchor.register
+      scope: identity
+      policy: trust_anchor_registration_policy
+    validation_rules:
+      - rule: anchor_type_must_be_recognized
+        check: anchor_type in [GOVERNANCE_ROOT, ORGANIZATION_CA, EXTERNAL_CA, SYSTEM_INTERNAL]
+        on_failure: REJECT
+      - rule: public_key_material_required
+        check: public_key_material is non-empty base64 string
+        on_failure: REJECT
+      - rule: key_algorithm_must_be_supported
+        check: key_algorithm in [ed25519, secp256k1, rsa_4096]
+        on_failure: REJECT
+      - rule: valid_from_must_be_present_or_future
+        check: valid_from <= now
+        on_failure: REJECT
+      - rule: valid_until_must_be_future
+        check: valid_until > now
+        on_failure: REJECT
+      - rule: revocation_check_url_required
+        check: revocation_check_url is valid URL
+        on_failure: REJECT
+      - rule: no_duplicate_trust_anchor
+        check: no existing trust anchor with same public_key_material and key_algorithm
+        on_failure: REJECT
+      - rule: scope_of_trust_non_empty
+        check: scope_of_trust has at least one entry
+        on_failure: REJECT
+    required_payload:
+      - anchor_type
+      - anchor_label
+      - public_key_material
+      - key_algorithm
+      - key_usage
+      - trust_level_issued
+      - scope_of_trust
+      - valid_from
+      - valid_until
+      - revocation_check_url
+    produces_events:
+      - identity.trust_anchor.registered
+    constitutional_gates:
+      - INV-003
+      - INV-008
+
+# ============================================================
+# SECTION 13 — EVENTS
+# ============================================================
+# All events in the Identity domain. Each event follows the
+# envelope from 04_event-catalog.yaml with domain-specific
+# payload fields.
+# ============================================================
+
+events:
+
+  # ========================================================
+  # identity.actor.registered
+  # ========================================================
+  identity.actor.registered:
+    event_name: identity.actor.registered
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: A new actor identity has been registered
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - identity_id is globally unique
+      - actor_type is recognized
+      - governance approval verified if required
+    projection_effect:
+      target: identity_actor_view
+      operation: insert
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      actor_type:
+        type: enum
+        values: [human, organization, ai_agent, service_account, governance, external_system]
+        required: true
+      display_name:
+        type: string
+        format: utf8
+        max_length: 256
+        required: true
+      legal_identifier:
+        type: string
+        format: utf8
+        max_length: 256
+        required: false
+      trust_level:
+        type: enum
+        values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+        required: true
+      state:
+        type: enum
+        values: [PENDING_VERIFICATION, VERIFYING, ACTIVE, SUSPENDED, REVOKED, ARCHIVED]
+        required: true
+      registered_at:
+        type: timestamp
+        required: true
+      governance_approved_by:
+        type: string
+        format: uuid
+        required: false
+    constitutional_significance:
+      - INV-008
+      - INV-003
+
+  # ========================================================
+  # identity.actor.verified
+  # ========================================================
+  identity.actor.verified:
+    event_name: identity.actor.verified
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: An actor identity has been verified and activated
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - identity was in PENDING_VERIFICATION or VERIFYING state
+      - verification evidence was validated
+      - governance actor performed verification
+    projection_effect:
+      target: identity_actor_view
+      operation: update
+      updates: [state -> ACTIVE, verified_at]
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      verified_by:
+        type: string
+        format: uuid
+        required: true
+      verified_at:
+        type: timestamp
+        required: true
+      verification_method:
+        type: string
+        format: utf8
+        required: true
+      state:
+        type: enum
+        values: [ACTIVE]
+        required: true
+    constitutional_significance:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.actor.suspended
+  # ========================================================
+  identity.actor.suspended:
+    event_name: identity.actor.suspended
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: An actor identity has been suspended
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - identity was in ACTIVE state
+      - suspension reason recorded
+      - all active sessions terminated
+    projection_effect:
+      target: identity_actor_view
+      operation: update
+      updates: [state -> SUSPENDED, suspended_at]
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      suspended_by:
+        type: string
+        format: uuid
+        required: true
+      suspended_at:
+        type: timestamp
+        required: true
+      reason:
+        type: string
+        format: utf8
+        max_length: 1024
+        required: true
+      sessions_terminated:
+        type: array
+        items:
+          type: string
+          format: uuid
+        required: true
+    constitutional_significance:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.actor.revoked
+  # ========================================================
+  identity.actor.revoked:
+    event_name: identity.actor.revoked
+    aggregate: actor
+    aggregate_id_field: identity_id
+    source_domain: identity
+    version: 1.0.0
+    description: An actor identity has been permanently revoked
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+      - governance_projection
+      - all_domain_services
+    guarantees:
+      - identity was in revocable state
+      - all credentials revoked
+      - all sessions terminated
+      - all delegations revoked
+    projection_effect:
+      target: identity_actor_view
+      operation: update
+      updates: [state -> REVOKED, revoked_at, revoked_reason]
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      revoked_by:
+        type: string
+        format: uuid
+        required: true
+      revoked_at:
+        type: timestamp
+        required: true
+      revocation_type:
+        type: enum
+        values: [IMMEDIATE, SCHEDULED, GOVERNANCE_ORDERED]
+        required: true
+      reason:
+        type: string
+        format: utf8
+        max_length: 1024
+        required: true
+      credentials_revoked:
+        type: array
+        items:
+          type: string
+          format: uuid
+        required: true
+      sessions_terminated:
+        type: array
+        items:
+          type: string
+          format: uuid
+        required: true
+      delegations_revoked:
+        type: array
+        items:
+          type: string
+          format: uuid
+        required: true
+    constitutional_significance:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.credential.issued
+  # ========================================================
+  identity.credential.issued:
+    event_name: identity.credential.issued
+    aggregate: credential
+    aggregate_id_field: credential_id
+    source_domain: identity
+    version: 1.0.0
+    description: A new credential has been issued to an actor identity
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - identity_id references an ACTIVE identity
+      - credential_id is globally unique
+      - credential_type is recognized
+      - trust level within actor ceiling
+    projection_effect:
+      target: identity_credential_view
+      operation: insert
+    data_fields:
+      credential_id:
+        type: string
+        format: uuid
+        required: true
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      credential_type:
+        type: enum
+        values: [cryptographic_key, biometric_binding, hardware_token, delegated_token, governance_credential]
+        required: true
+      trust_level:
+        type: enum
+        values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+        required: true
+      binding_strength:
+        type: enum
+        values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+        required: true
+      authentication_factor:
+        type: enum
+        values: [KNOWLEDGE, POSSESSION, INHERENCE, DELEGATED, GOVERNANCE]
+        required: true
+      expires_at:
+        type: timestamp
+        required: true
+      revocable:
+        type: boolean
+        required: true
+      issued_at:
+        type: timestamp
+        required: true
+      issued_by:
+        type: string
+        format: uuid
+        required: true
+    constitutional_significance:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.credential.expired
+  # ========================================================
+  identity.credential.expired:
+    event_name: identity.credential.expired
+    aggregate: credential
+    aggregate_id_field: credential_id
+    source_domain: identity
+    version: 1.0.0
+    description: A credential has expired
+    producer: identity_scheduler
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - credential was in ACTIVE state
+      - expires_at has passed
+      - all sessions using this credential were terminated
+    projection_effect:
+      target: identity_credential_view
+      operation: update
+      updates: [state -> EXPIRED]
+    data_fields:
+      credential_id:
+        type: string
+        format: uuid
+        required: true
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      expired_at:
+        type: timestamp
+        required: true
+      sessions_terminated:
+        type: array
+        items:
+          type: string
+          format: uuid
+        required: true
+    constitutional_significance:
+      - INV-003
+
+  # ========================================================
+  # identity.credential.revoked
+  # ========================================================
+  identity.credential.revoked:
+    event_name: identity.credential.revoked
+    aggregate: credential
+    aggregate_id_field: credential_id
+    source_domain: identity
+    version: 1.0.0
+    description: A credential has been revoked
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - credential was in ACTIVE state
+      - credential was revocable
+      - revocation reason recorded
+      - affected sessions terminated
+    projection_effect:
+      target: identity_credential_view
+      operation: update
+      updates: [state -> REVOKED]
+    data_fields:
+      credential_id:
+        type: string
+        format: uuid
+        required: true
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      revoked_by:
+        type: string
+        format: uuid
+        required: true
+      revoked_at:
+        type: timestamp
+        required: true
+      revocation_type:
+        type: enum
+        values: [IMMEDIATE, SCHEDULED, GOVERNANCE_ORDERED]
+        required: true
+      reason:
+        type: string
+        format: utf8
+        max_length: 1024
+        required: true
+      sessions_terminated:
+        type: array
+        items:
+          type: string
+          format: uuid
+        required: true
+    constitutional_significance:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.session.created
+  # ========================================================
+  identity.session.created:
+    event_name: identity.session.created
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: A new session has been created
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - identity was ACTIVE
+      - credential was ACTIVE
+      - concurrent session limit respected
+    projection_effect:
+      target: identity_session_view
+      operation: insert
+    data_fields:
+      session_id:
+        type: string
+        format: uuid
+        required: true
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      credential_id:
+        type: string
+        format: uuid
+        required: true
+      authentication_method:
+        type: enum
+        values:
+          - password
+          - mfa
+          - biometric
+          - hardware_key
+          - delegated
+          - cryptographic_signature
+          - delegated_token
+          - governance_approval
+          - governance_binding
+          - mutual_tls
+          - api_key
+          - webhook_verification
+          - multi_signature
+          - governance_credential
+        required: true
+      trust_level:
+        type: enum
+        values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+        required: true
+      created_at:
+        type: timestamp
+        required: true
+      expires_at:
+        type: timestamp
+        required: true
+      capabilities_granted:
+        type: array
+        items:
+          type: string
+          format: capability_pattern
+        required: true
+    constitutional_significance:
+      - INV-008
+
+  # ========================================================
+  # identity.session.expired
+  # ========================================================
+  identity.session.expired:
+    event_name: identity.session.expired
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: A session has expired
+    producer: identity_scheduler
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - session was in ACTIVE state
+      - expires_at or idle_timeout has been reached
+    projection_effect:
+      target: identity_session_view
+      operation: update
+      updates: [state -> EXPIRED]
+    data_fields:
+      session_id:
+        type: string
+        format: uuid
+        required: true
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      expired_at:
+        type: timestamp
+        required: true
+      expiry_reason:
+        type: enum
+        values: [max_duration_reached, idle_timeout]
+        required: true
+    constitutional_significance:
+      - INV-008
+
+  # ========================================================
+  # identity.session.terminated
+  # ========================================================
+  identity.session.terminated:
+    event_name: identity.session.terminated
+    aggregate: session
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: A session has been explicitly terminated
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - session was in ACTIVE state
+      - termination was authorized
+    projection_effect:
+      target: identity_session_view
+      operation: update
+      updates: [state -> TERMINATED]
+    data_fields:
+      session_id:
+        type: string
+        format: uuid
+        required: true
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      terminated_by:
+        type: string
+        format: uuid
+        required: true
+      terminated_at:
+        type: timestamp
+        required: true
+      reason:
+        type: string
+        format: utf8
+        max_length: 1024
+        required: true
+      termination_trigger:
+        type: enum
+        values: [user_request, governance_order, credential_revocation, identity_revocation, idle_timeout]
+        required: true
+    constitutional_significance:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.delegation.created
+  # ========================================================
+  identity.delegation.created:
+    event_name: identity.delegation.created
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: A new delegation relationship has been created
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - delegator and delegate identities are ACTIVE
+      - delegator can delegate
+      - delegate can be delegated to
+      - capabilities within delegator ceiling
+      - no governance or system credential delegation
+    projection_effect:
+      target: identity_delegation_view
+      operation: insert
+    data_fields:
+      delegation_id:
+        type: string
+        format: uuid
+        required: true
+      delegator_id:
+        type: string
+        format: uuid
+        required: true
+      delegate_id:
+        type: string
+        format: uuid
+        required: true
+      delegated_capabilities:
+        type: array
+        items:
+          type: string
+          format: capability_pattern
+        required: true
+      max_delegation_depth:
+        type: integer
+        required: true
+      valid_from:
+        type: timestamp
+        required: true
+      valid_until:
+        type: timestamp
+        required: true
+      audit_requirement:
+        type: enum
+        values: [STANDARD, ENHANCED, FULL]
+        required: true
+      created_at:
+        type: timestamp
+        required: true
+      state:
+        type: enum
+        values: [PENDING_ACCEPTANCE, ACTIVE]
+        required: true
+    constitutional_significance:
+      - INV-003
+      - INV-004
+
+  # ========================================================
+  # identity.delegation.revoked
+  # ========================================================
+  identity.delegation.revoked:
+    event_name: identity.delegation.revoked
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: A delegation has been revoked
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - delegation was in ACTIVE or PENDING_ACCEPTANCE state
+      - revocation reason recorded
+      - affected sessions terminated
+    projection_effect:
+      target: identity_delegation_view
+      operation: update
+      updates: [state -> REVOKED, revoked_at]
+    data_fields:
+      delegation_id:
+        type: string
+        format: uuid
+        required: true
+      delegator_id:
+        type: string
+        format: uuid
+        required: true
+      delegate_id:
+        type: string
+        format: uuid
+        required: true
+      revoked_by:
+        type: string
+        format: uuid
+        required: true
+      revoked_at:
+        type: timestamp
+        required: true
+      reason:
+        type: string
+        format: utf8
+        max_length: 1024
+        required: true
+      sessions_terminated:
+        type: array
+        items:
+          type: string
+          format: uuid
+        required: true
+    constitutional_significance:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.delegation.expired
+  # ========================================================
+  identity.delegation.expired:
+    event_name: identity.delegation.expired
+    aggregate: delegation
+    aggregate_id_field: delegation_id
+    source_domain: identity
+    version: 1.0.0
+    description: A delegation has expired
+    producer: identity_scheduler
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - delegation was in ACTIVE state
+      - valid_until has passed
+    projection_effect:
+      target: identity_delegation_view
+      operation: update
+      updates: [state -> EXPIRED]
+    data_fields:
+      delegation_id:
+        type: string
+        format: uuid
+        required: true
+      delegator_id:
+        type: string
+        format: uuid
+        required: true
+      delegate_id:
+        type: string
+        format: uuid
+        required: true
+      expired_at:
+        type: timestamp
+        required: true
+    constitutional_significance:
+      - INV-003
+
+  # ========================================================
+  # identity.trust_anchor.registered
+  # ========================================================
+  identity.trust_anchor.registered:
+    event_name: identity.trust_anchor.registered
+    aggregate: trust_anchor
+    aggregate_id_field: trust_anchor_id
+    source_domain: identity
+    version: 1.0.0
+    description: A new trust anchor has been registered
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+      - governance_projection
+    guarantees:
+      - governance actor performed registration
+      - public key material is valid
+      - anchor_type is recognized
+      - revocation check URL is reachable
+    projection_effect:
+      target: identity_trust_anchor_view
+      operation: insert
+    data_fields:
+      trust_anchor_id:
+        type: string
+        format: uuid
+        required: true
+      anchor_type:
+        type: enum
+        values: [GOVERNANCE_ROOT, ORGANIZATION_CA, EXTERNAL_CA, SYSTEM_INTERNAL]
+        required: true
+      anchor_label:
+        type: string
+        format: utf8
+        max_length: 256
+        required: true
+      key_algorithm:
+        type: enum
+        values: [ed25519, secp256k1, rsa_4096]
+        required: true
+      trust_level_issued:
+        type: enum
+        values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+        required: true
+      scope_of_trust:
+        type: array
+        items:
+          type: string
+          format: capability_pattern
+        required: true
+      valid_from:
+        type: timestamp
+        required: true
+      valid_until:
+        type: timestamp
+        required: true
+      registered_by:
+        type: string
+        format: uuid
+        required: true
+      registered_at:
+        type: timestamp
+        required: true
+    constitutional_significance:
+      - INV-003
+      - INV-008
+
+  # ========================================================
+  # identity.authentication.succeeded
+  # ========================================================
+  identity.authentication.succeeded:
+    event_name: identity.authentication.succeeded
+    aggregate: authentication
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: An authentication attempt has succeeded
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+    guarantees:
+      - credential was validated
+      - identity was ACTIVE
+      - authentication method is allowed for actor type
+    projection_effect:
+      target: identity_authentication_log_view
+      operation: insert
+    data_fields:
+      session_id:
+        type: string
+        format: uuid
+        required: true
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      actor_type:
+        type: enum
+        values: [human, organization, ai_agent, service_account, governance, external_system]
+        required: true
+      authentication_method:
+        type: enum
+        values:
+          - password
+          - mfa
+          - biometric
+          - hardware_key
+          - delegated
+          - cryptographic_signature
+          - delegated_token
+          - governance_approval
+          - governance_binding
+          - mutual_tls
+          - api_key
+          - webhook_verification
+          - multi_signature
+          - governance_credential
+        required: true
+      credential_id:
+        type: string
+        format: uuid
+        required: true
+      trust_level:
+        type: enum
+        values: [NONE, LOW, MEDIUM, HIGH, SOVEREIGN]
+        required: true
+      binding_strength:
+        type: enum
+        values: [WEAK, MODERATE, STRONG, SOVEREIGN]
+        required: true
+      authenticated_at:
+        type: timestamp
+        required: true
+      ip_address:
+        type: string
+        format: ipv4_or_ipv6
+        required: false
+      device_fingerprint:
+        type: string
+        format: sha256
+        required: false
+      geo_location:
+        type: string
+        format: iso_country_code
+        required: false
+    constitutional_significance:
+      - INV-008
+
+  # ========================================================
+  # identity.authentication.failed
+  # ========================================================
+  identity.authentication.failed:
+    event_name: identity.authentication.failed
+    aggregate: authentication
+    aggregate_id_field: session_id
+    source_domain: identity
+    version: 1.0.0
+    description: An authentication attempt has failed
+    producer: identity_service
+    consumers:
+      - identity_projection
+      - audit_projection
+      - security_projection
+    guarantees:
+      - failure reason is recorded
+      - failed attempt count is incremented
+    projection_effect:
+      target: identity_authentication_log_view
+      operation: insert
+    data_fields:
+      identity_id:
+        type: string
+        format: uuid
+        required: true
+      actor_type:
+        type: enum
+        values: [human, organization, ai_agent, service_account, governance, external_system]
+        required: true
+      authentication_method:
+        type: enum
+        values:
+          - password
+          - mfa
+          - biometric
+          - hardware_key
+          - delegated
+          - cryptographic_signature
+          - delegated_token
+          - governance_approval
+          - governance_binding
+          - mutual_tls
+          - api_key
+          - webhook_verification
+          - multi_signature
+          - governance_credential
+        required: true
+      credential_id:
+        type: string
+        format: uuid
+        required: false
+      failed_at:
+        type: timestamp
+        required: true
+      failure_reason:
+        type: enum
+        values:
+          - invalid_credentials
+          - credential_not_active
+          - identity_not_active
+          - identity_not_found
+          - method_not_allowed
+          - concurrent_session_limit
+          - rate_limit_exceeded
+          - device_not_recognized
+          - geo_mismatch
+        required: true
+      ip_address:
+        type: string
+        format: ipv4_or_ipv6
+        required: false
+      device_fingerprint:
+        type: string
+        format: sha256
+        required: false
+    constitutional_significance:
+      - INV-008
+
+# ============================================================
+# SECTION 14 — STATE MACHINES (reference to 05_state-machines.yaml)
+# ============================================================
+# These state machines are defined in 05_state-machines.yaml.
+# This section lists the state machines owned by Identity domain.
+# ============================================================
+
+state_machine_references:
+  - name: identity_actor_lifecycle
+    aggregate: actor
+    initial_state: PENDING_VERIFICATION
+    final_states: [ARCHIVED]
+    states: [PENDING_VERIFICATION, VERIFYING, ACTIVE, SUSPENDED, REVOKED, ARCHIVED]
+    description: Manages the lifecycle of actor identities
+
+  - name: identity_credential_lifecycle
+    aggregate: credential
+    initial_state: ACTIVE
+    final_states: [REVOKED, ROTATED]
+    states: [ACTIVE, EXPIRED, REVOKED, SUSPENDED, ROTATED]
+    description: Manages the lifecycle of credentials
+
+  - name: identity_session_lifecycle
+    aggregate: session
+    initial_state: ACTIVE
+    final_states: [EXPIRED, REVOKED, TERMINATED]
+    states: [ACTIVE, EXPIRED, REVOKED, TERMINATED]
+    description: Manages the lifecycle of sessions
+
+  - name: identity_delegation_lifecycle
+    aggregate: delegation
+    initial_state: PENDING_ACCEPTANCE
+    final_states: [EXPIRED, REVOKED]
+    states: [PENDING_ACCEPTANCE, ACTIVE, EXPIRED, REVOKED]
+    description: Manages the lifecycle of delegation relationships
+
+# ============================================================
+# SECTION 15 — PROHIBITIONS
+# ============================================================
+# Hard list of things the Identity domain MUST NEVER do.
+# These are enforced at compile time and runtime.
+# ============================================================
+
+prohibitions:
+  - id: PROHIBIT-IDENTITY-001
+    rule: never_issue_authority_for_unauthenticated_actor
+    description: Never issue an AuthorizationContext for an actor that has not passed authentication
+    enforcement: compile_time_check
+    constitutional_reference: INV-008
+
+  - id: PROHIBIT-IDENTITY-002
+    rule: never_elevate_trust_without_governance
+    description: Never elevate an actor's trust level without explicit governance approval
+    enforcement: compile_time_check
+    constitutional_reference: INV-003
+
+  - id: PROHIBIT-IDENTITY-003
+    rule: never_delegate_governance_credentials
+    description: Never allow governance credentials to be included in a delegation
+    enforcement: compile_time_check
+    constitutional_reference: INV-003
+
+  - id: PROHIBIT-IDENTITY-004
+    rule: never_continue_session_after_revocation
+    description: Never allow a session to continue after the underlying credential or identity is revoked
+    enforcement: runtime_check
+    constitutional_reference: INV-008
+
+  - id: PROHIBIT-IDENTITY-005
+    rule: never_skip_credential_validation
+    description: Never bypass credential validation during authentication
+    enforcement: compile_time_check
+    constitutional_reference: INV-008
+
+  - id: PROHIBIT-IDENTITY-006
+    rule: never_reattach_credential_to_different_identity
+    description: Never reassign a credential to a different identity after issuance
+    enforcement: compile_time_check
+    constitutional_reference: INV-003
+
+  - id: PROHIBIT-IDENTITY-007
+    rule: never_allow_ai_to_create_credentials_for_humans
+    description: Never allow an AI agent to issue credentials to human actors
+    enforcement: compile_time_check
+    constitutional_reference: INV-004
+
+  - id: PROHIBIT-IDENTITY-008
+    rule: never_allow_session_capability_elevation
+    description: Never elevate capabilities granted to a session after creation
+    enforcement: runtime_check
+    constitutional_reference: INV-003
+
+  - id: PROHIBIT-IDENTITY-009
+    rule: never_skip_delegation_chain_validation
+    description: Never accept a delegation token without validating the full chain
+    enforcement: runtime_check
+    constitutional_reference: INV-005
+
+  - id: PROHIBIT-IDENTITY-010
+    rule: never_omit_authorization_context
+    description: Never produce a command without a valid AuthorizationContext attached
+    enforcement: compile_time_check
+    constitutional_reference: INV-008
+
+# ============================================================
+# SECTION 16 — INTEGRATION POINTS
+# ============================================================
+# Defines how the Identity domain interacts with other domains
+# and subsystems in the SOVR execution pipeline.
+# ============================================================
+
+integration_points:
+  provides:
+    - target: policy_domain
+      contract: AuthorizationContext
+      description: >
+        Provides the AuthorizationContext object to the Policy domain.
+        This is the primary output of Identity and the input to Policy
+        evaluation. Every command downstream requires a valid context.
+      field: identity.authorization_context
+      version: 1.0.0
+
+    - target: all_domains
+      contract: IdentityVerification
+      description: >
+        Provides identity verification services to all other domains.
+        Any domain that needs to confirm actor identity calls Identity.
+      field: identity.actor_entity.identity_id
+      version: 1.0.0
+
+    - target: audit_pipeline
+      contract: AuthenticationEvents
+      description: >
+        Emits all authentication events (succeeded, failed) to the
+        audit pipeline for compliance and security monitoring.
+      field: identity.authentication.succeeded, identity.authentication.failed
+      version: 1.0.0
+
+  consumes:
+    - source: governance_domain
+      contract: TrustAnchors
+      description: >
+        Consumes trust anchor registrations from the Governance domain.
+        Trust anchors root the verification chain for credentials.
+      field: identity.trust_anchor_entity
+      version: 1.0.0
+
+    - source: governance_domain
+      contract: GovernanceApprovals
+      description: >
+        Consumes governance approval events for actor registration,
+        credential issuance, and trust level elevation.
+      field: governance.approval events
+      version: 1.0.0
+
+  pipeline_position:
+    stage: 1
+    description: >
+      Identity is the FIRST stage of the execution pipeline.
+      Execution order: Actor -> Identity -> AuthorizationContext
+      -> Policy -> Intent -> Command -> Agent (optional) -> Treasury -> Ledger
+    receives_from: actor
+    sends_to: policy_domain
+    output_type: AuthorizationContext

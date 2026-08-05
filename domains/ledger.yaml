@@ -1,0 +1,1271 @@
+# ============================================================
+# SOVR Financial OS — Ledger Domain Specification
+# File: domains/ledger.yaml
+# Status: FROZEN
+# Build Phase: C
+# Domain Priority: 3
+# ============================================================
+# The Ledger is the Financial Truth Domain of SOVR.
+# It does not store value — Vault does that.
+# It does not move value — Treasury does that.
+# It records the immutable, double-entry financial truth
+# of everything that has happened in the system.
+#
+# The Ledger is the single source of financial history.
+# If the Ledger and any other system disagree,
+# the Ledger is authoritative on what was recorded.
+# Vault is authoritative on what exists.
+#
+# Constitutional references:
+#   INV-001: Every state change requires an immutable event
+#   INV-002: No ledger mutation without balanced journal entry
+#   INV-005: Every financial action must produce an auditable event trail
+#   INV-006: Events describe reality. Projections interpret reality.
+#   INV-009: Unknown financial states must be represented explicitly
+# ============================================================
+
+domain:
+  name: ledger
+  version: 1.0.0
+  description: >
+    The Financial Truth Domain. Maintains immutable, auditable,
+    double-entry financial truth across all value movements.
+    Records the accepted financial interpretation of events.
+  constitutional_references:
+    invariants: [INV-001, INV-002, INV-005, INV-006, INV-009]
+    financial_integrity: [double_entry, atomicity, uniqueness, finality]
+    conflict_resolution_rank: 4  # ledger_integrity
+
+# ============================================================
+# SECTION 1 — LEDGER ACCOUNTING MODEL
+# ============================================================
+# The accounting foundation on which all financial recording rests.
+# ============================================================
+
+accounting_model:
+
+  type: double_entry
+  description: >
+    Every financial state change is recorded as a journal entry
+    containing at least two postings: one or more debits and one
+    or more credits. The total debits must exactly equal the
+    total credits for every journal entry. This is non-negotiable.
+
+  currency_precision:
+    standard: 2        # fiat-denominated entries
+    high: 18           # tokenized asset entries
+    collateral: 4      # collateral valuations
+    rule: >
+      Precision is determined by the asset type referenced in
+      the posting. All postings within a single journal entry
+      that reference the same asset must use the same precision.
+
+  balancing:
+    required: true
+    zero_tolerance: true
+    description: >
+      For every journal entry: sum(debits) == sum(credits).
+      If they do not balance within the asset's defined precision,
+      the entry is rejected. No partial postings are ever stored.
+    enforcement: ledger_service
+    violation_action: reject_entry_and_halt
+
+  journal_integrity:
+    immutable: true
+    description: >
+      Journal entries, once posted, are never modified, updated,
+      or deleted. Corrections are made through new entries
+      (reversals and compensating entries).
+    forbidden_operations:
+      - UPDATE journal_entry
+      - DELETE journal_entry
+      - UPDATE posting
+      - DELETE posting
+      - ALTER historical_balance
+    permitted_operations:
+      - CREATE journal_entry
+      - APPEND posting
+      - REVERSE journal_entry  (creates new reversing entry)
+      - COMPENSATE journal_entry  (creates new compensating entry)
+      - CLOSE accounting_period
+      - FREEZE account
+
+  rounding:
+    method: none
+    description: >
+      SOVR does not round in ledger calculations. Entries must
+      balance exactly. If a source event produces an amount that
+      cannot be exactly represented, the originating domain must
+      resolve the precision before submitting to the Ledger.
+    constitutional_reference: INV-002
+
+  # The relationship between events and ledger entries
+  event_to_ledger_principle: >
+    External financial events (from Vault, Treasury, Payment, etc.)
+    are validated by the Ledger. If accepted, the Ledger produces
+    a journal entry that records the financial interpretation of
+    that event. The event remains the source of truth about what
+    happened. The journal entry records what it means in
+    accounting terms.
+
+# ============================================================
+# SECTION 2 — FINANCIAL RECORD HIERARCHY
+# ============================================================
+# Ledger > Journal > Journal Entry > Posting > Account
+#
+# A Ledger contains multiple Journals (one per accounting entity
+# or domain). Each Journal contains Journal Entries. Each Journal
+# Entry contains Postings (debits and credits) against Accounts.
+# ============================================================
+
+record_hierarchy:
+
+  ledger:
+    description: The top-level financial record container
+    attributes:
+      ledger_id: uuid
+      name: string
+      entity_id: uuid
+      base_currency: string
+      status: enum [ACTIVE, FROZEN, ARCHIVED]
+      created_at: timestamp
+    constraints:
+      - one_active_ledger_per_entity
+      - cannot_be_deleted
+
+  journal:
+    description: A named collection of journal entries, typically one per domain or subsystem
+    attributes:
+      journal_id: uuid
+      ledger_id: uuid
+      name: string
+      domain: string
+      description: string
+      status: enum [OPEN, CLOSING, CLOSED]
+      period_start: timestamp
+      period_end: timestamp
+    constraints:
+      - references a valid ledger
+      - domain must be a recognized SOVR domain
+
+  journal_entry:
+    description: A balanced double-entry record of a financial event
+    attributes:
+      entry_id: uuid
+      journal_id: uuid
+      transaction_id: uuid
+      event_reference: uuid
+      correlation_id: uuid
+      causation_id: uuid
+      description: string
+      entry_type: enum [STANDARD, REVERSAL, CORRECTION, CLOSING, ADJUSTMENT]
+      status: enum [CREATED, VALIDATING, POSTED, SETTLED, RECONCILED]
+      posting_count: integer
+      total_debits: decimal
+      total_credits: decimal
+      balanced: boolean
+      created_at: timestamp
+      posted_at: timestamp
+      settled_at: timestamp
+      reconciled_at: timestamp
+      actor_context:
+        actor_id: uuid
+        actor_type: enum [human, ai_agent, governance, system]
+        identity_id: uuid
+        agent_id: uuid
+      authorization_context:
+        capability: string
+        scope: string
+        policy_result: enum [APPROVE, DENY, REQUIRE_APPROVAL]
+    constraints:
+      - total_debits must equal total_credits
+      - at least two postings per entry
+      - event_reference must reference a valid, published event
+      - entries are immutable once posted
+
+  posting:
+    description: A single debit or credit line within a journal entry
+    attributes:
+      posting_id: uuid
+      entry_id: uuid
+      account_id: uuid
+      amount: decimal
+      direction: enum [DEBIT, CREDIT]
+      asset_id: uuid
+      currency: string
+      precision: integer
+      description: string
+      reference_type: string
+      reference_id: uuid
+    constraints:
+      - must reference a valid account
+      - amount must be positive (direction indicates debit/credit)
+      - must reference a valid asset_id from Vault
+      - all postings in an entry that share the same asset_id
+        must use the same precision
+
+  account:
+    description: A named container for tracking a specific category of financial activity
+    attributes:
+      account_id: uuid
+      account_code: string
+      account_name: string
+      account_type: enum [ASSET, LIABILITY, EQUITY, REVENUE, EXPENSE, MEMORANDUM, RESERVE, COLLATERAL]
+      normal_balance: enum [DEBIT, CREDIT]
+      owner_id: uuid
+      domain_ownership: string
+      parent_account_id: uuid
+      status: enum [ACTIVE, FROZEN, CLOSED]
+      restrictions:
+        debit_allowed: boolean
+        credit_allowed: boolean
+        max_balance: decimal
+        min_balance: decimal
+        requires_approval: boolean
+      created_at: timestamp
+    constraints:
+      - account_code unique within ledger
+      - normal_balance determined by account_type
+      - cannot be deleted, only frozen or closed
+
+  accounting_period:
+    description: A time-bounded interval for financial reporting
+    attributes:
+      period_id: uuid
+      ledger_id: uuid
+      name: string
+      start_date: date
+      end_date: date
+      status: enum [OPEN, CLOSING, CLOSED]
+      opening_balances_recorded: boolean
+      closing_entries_recorded: boolean
+    constraints:
+      - periods cannot overlap
+      - a period must be closed before the next can be closed
+      - closing creates closing entries in the journal
+
+# ============================================================
+# SECTION 3 — ACCOUNT MODEL
+# ============================================================
+# The chart of accounts defines the financial vocabulary of SOVR.
+# ============================================================
+
+chart_of_accounts:
+
+  account_types:
+
+    ASSET:
+      description: Resources controlled by SOVR or its participants with future economic benefit
+      normal_balance: DEBIT
+      debit_increases: true
+      credit_decreases: true
+      examples:
+        - Cash on Hand
+        - Stablecoin Reserves
+        - Tokenized Asset Holdings
+        - Receivables
+        - Custody Assets
+        - Pending Settlements
+
+    LIABILITY:
+      description: Obligations owed by SOVR or its participants
+      normal_balance: CREDIT
+      debit_decreases: true
+      credit_increases: true
+      examples:
+        - Payables
+        - Customer Deposits
+        - Settlement Obligations
+        - Collateral Obligations
+
+    EQUITY:
+      description: Residual interest in assets after deducting liabilities
+      normal_balance: CREDIT
+      debit_decreases: true
+      credit_increases: true
+      examples:
+        - System Equity
+        - Retained Earnings
+        - Treasury Reserves
+
+    REVENUE:
+      description: Income generated through financial operations
+      normal_balance: CREDIT
+      debit_decreases: true
+      credit_increases: true
+      examples:
+        - Transaction Fees
+        - Settlement Fees
+        - Interest Income
+        - Spread Income
+
+    EXPENSE:
+      description: Costs incurred through financial operations
+      normal_balance: DEBIT
+      debit_increases: true
+      credit_decreases: true
+      examples:
+        - Settlement Costs
+        - Network Fees
+        - Custody Fees
+        - Impairment Losses
+
+    MEMORANDUM:
+      description: Non-financial tracking accounts that do not affect balance sheet
+      normal_balance: NONE
+      debit_increases: false
+      credit_decreases: false
+      balancing_exempt: true
+      examples:
+        - Transaction Counts
+        - Compliance Flags
+        - Audit References
+
+    RESERVE:
+      description: Specialized accounts tracking reserved, locked, or encumbered value
+      normal_balance: DEBIT
+      debit_increases: true
+      credit_decreases: true
+      examples:
+        - Reserved for Settlement
+        - Locked for Transfer
+        - Encumbered Collateral
+        - Reserve Provisions
+
+    COLLATERAL:
+      description: Accounts tracking pledged assets and associated obligations
+      normal_balance: DEBIT
+      debit_increases: true
+      credit_decreases: true
+      examples:
+        - Pledged Collateral
+        - Collateral Haircut Reserve
+        - Liquidation Proceeds
+
+  # Domain-owned accounts
+  # Each SOVR domain owns specific accounts that only it
+  # can post to. This prevents cross-domain balance contamination.
+  domain_account_ownership:
+
+    vault:
+      accounts:
+        - type: ASSET
+          description: "Custody Assets — {asset_type}"
+          pattern: "vault.assets.{asset_type}.{asset_id}"
+        - type: RESERVE
+          description: "Reserved Value — {asset_type}"
+          pattern: "vault.reserves.{asset_type}.{asset_id}"
+        - type: ASSET
+          description: "Collateral Holdings — {asset_type}"
+          pattern: "vault.collateral.{asset_type}.{asset_id}"
+      posting_authority: [vault_service, system]
+      read_authority: [all_domains]
+
+    treasury:
+      accounts:
+        - type: ASSET
+          description: "Transfers in Transit — {asset_type}"
+          pattern: "treasury.transit.{asset_type}"
+        - type: LIABILITY
+          description: "Settlement Obligations"
+          pattern: "treasury.obligations.{asset_type}"
+        - type: ASSET
+          description: "Liquidity Pool — {asset_type}"
+          pattern: "treasury.liquidity.{asset_type}"
+      posting_authority: [treasury_service]
+      read_authority: [all_domains]
+
+    payment:
+      accounts:
+        - type: ASSET
+          description: "Pending External Settlement — {rail}"
+          pattern: "payment.pending.{rail}"
+        - type: LIABILITY
+          description: "External Payables"
+          pattern: "payment.payables.{rail}"
+        - type: EXPENSE
+          description: "Payment Rail Fees — {rail}"
+          pattern: "payment.fees.{rail}"
+      posting_authority: [payment_service]
+      read_authority: [all_domains]
+
+    policy:
+      accounts: []
+      posting_authority: []
+      read_authority: [all_domains]
+      note: Policy domain does not post to the ledger. It evaluates rules only.
+
+    identity:
+      accounts: []
+      posting_authority: []
+      read_authority: [all_domains]
+      note: Identity domain does not post to the ledger directly.
+
+    agent:
+      accounts: []
+      posting_authority: []
+      read_authority: [governance_domain]
+      note: Agent domain does not post to the ledger. Agent actions post through the domains they act within.
+
+    governance:
+      accounts:
+        - type: MEMORANDUM
+          description: "Governance Actions"
+          pattern: "governance.actions.{action_type}"
+        - type: MEMORANDUM
+          description: "Audit References"
+          pattern: "governance.audit.{reference_type}"
+        - type: MEMORANDUM
+          description: "Constitutional Events"
+          pattern: "governance.constitutional.{event_type}"
+      posting_authority: [governance_service]
+      read_authority: [all_domains]
+
+    intent:
+      accounts: []
+      posting_authority: []
+      read_authority: []
+      note: Intent domain does not post to the ledger. It translates intent to commands.
+
+  # Account permissions model
+  account_permissions:
+    description: >
+      Every account has explicit rules about who can post to it.
+      This is enforced by the Ledger service, not by the posting domain.
+    fields:
+      posting_allowed_for:
+        - actor_types: list of [human, ai_agent, governance, system]
+        - capabilities: list of required capability strings
+        - domain_scope: list of domains permitted to post
+      restrictions:
+        max_single_posting: decimal  # null = unlimited
+        max_daily_total: decimal     # null = unlimited
+        requires_governance_approval: boolean
+        requires_policy_evaluation: boolean  # almost always true
+
+# ============================================================
+# SECTION 4 — JOURNAL ENTRY MODEL
+# ============================================================
+# The detailed specification of how journal entries are
+# structured, validated, and posted.
+# ============================================================
+
+journal_entry_model:
+
+  # Required fields for every journal entry
+  required_fields:
+    - entry_id: uuid
+    - journal_id: uuid
+    - transaction_id: uuid
+    - event_reference: uuid
+    - correlation_id: uuid
+    - causation_id: uuid
+    - entry_type: enum
+    - description: string
+    - postings: array of posting objects
+    - actor_context: object
+    - authorization_context: object
+
+  # Entry types and their special rules
+  entry_types:
+
+    STANDARD:
+      description: Normal journal entry recording a financial event
+      rules:
+        - must balance
+        - must reference a valid, published event
+        - at least two postings required
+        - all postings must reference valid accounts
+
+    REVERSAL:
+      description: Reverses a previous journal entry by creating inverse postings
+      rules:
+        - must reference the original_entry_id being reversed
+        - debits become credits and credits become debits
+        - must balance (it will by construction)
+        - must reference the same accounts as the original
+        - reason required
+        - produces a new entry_id (does not modify original)
+      required_additional_fields:
+        - original_entry_id: uuid
+        - reversal_reason: string
+
+    CORRECTION:
+      description: Compensating entry that corrects an error without reversing the original
+      rules:
+        - must reference the original_entry_id being corrected
+        - must describe what was wrong and what the correction achieves
+        - must balance
+        - may post to different accounts than the original
+        - governance approval required
+      required_additional_fields:
+        - original_entry_id: uuid
+        - correction_description: string
+        - approved_by: uuid
+
+    CLOSING:
+      description: Period-end closing entry that zeros temporary accounts
+      rules:
+        - only allowed during period close
+        - posts to revenue, expense, and equity accounts
+        - must balance
+        - system-generated
+      required_additional_fields:
+        - period_id: uuid
+
+    ADJUSTMENT:
+      description: Accounting adjustment (e.g., revaluation, impairment recognition)
+      rules:
+        - must balance
+        - must reference the asset or obligation being adjusted
+        - governance or system approval typically required
+        - produces audit event
+      required_additional_fields:
+        - adjustment_reason: enum
+        - reference_asset_id: uuid
+        - approved_by: uuid
+
+  # Validation pipeline for journal entries
+  validation_pipeline:
+
+    - step: structural_validation
+      checks:
+        - entry has at least two postings
+        - all postings have valid account_id
+        - all postings have positive amount
+        - all postings have a direction
+        - all postings reference valid asset_id
+        - actor_context is complete
+        - authorization_context is complete
+      on_failure: REJECT
+
+    - step: balancing_validation
+      checks:
+        - sum of debit amounts equals sum of credit amounts
+        - comparison uses the precision of the most precise asset in the entry
+      on_failure: REJECT
+
+    - step: account_validation
+      checks:
+        - all referenced accounts exist and are ACTIVE
+        - posting direction is allowed for the account
+        - posting amount does not exceed account restrictions
+        - actor has posting authority for all accounts
+      on_failure: REJECT
+
+    - step: authorization_validation
+      checks:
+        - actor identity is verified
+        - actor has required capability
+        - actor scope covers all referenced accounts
+        - policy evaluation passed (if required by account)
+      on_failure: REJECT
+
+    - step: event_validation
+      checks:
+        - referenced event exists in the event store
+        - event has not already been journalized (unless correction)
+        - event is in a terminal state (processed/settled)
+      on_failure: REJECT or PENDING  (if event not yet settled)
+
+    - step: domain_consistency
+      checks:
+        - all postings to domain-owned accounts are from permitted domains
+        - no cross-contamination between domain accounts
+      on_failure: REJECT
+
+    - step: posting
+      description: If all validations pass, post the entry
+      actions:
+        - assign posted_at timestamp
+        - append to journal
+        - update account balances (via projection)
+        - emit ledger.entry.posted event
+      on_failure: ROLLBACK
+
+# ============================================================
+# SECTION 5 — EVENT SOURCING INTEGRATION
+# ============================================================
+# How the Ledger consumes events from other domains and
+# produces its own journal entries.
+# ============================================================
+
+event_sourcing:
+
+  # The pipeline from external event to journal entry
+  event_pipeline:
+
+    external_event_received:
+      description: A financial event from another domain arrives at the Ledger
+      action: validate and queue for processing
+      input: event from event store (vault.*, treasury.*, payment.*)
+
+    event_validation:
+      description: Ledger validates that the event is journalizable
+      checks:
+        - event has valid envelope (event_id, aggregate, source_domain, etc.)
+        - event has not already been journalized
+        - event source_domain is recognized
+        - event has required financial data (amount, asset, accounts)
+      on_pass: ledger_accepted
+      on_fail: ledger_rejected
+
+    ledger_acceptance:
+      description: Ledger determines the accounting interpretation
+      action: map event to journal entry structure
+      rules:
+        - each event type maps to a known journal entry template
+        - template defines which accounts are debited/credited
+        - template defines the description format
+        - actual amounts come from the event payload
+      output: draft journal entry
+
+    journal_posting:
+      description: The draft entry goes through the validation pipeline
+      action: run validation_pipeline (see Section 4)
+      on_pass: entry is posted
+      on_fail: entry is rejected, event remains unjournalized
+
+    projection_update:
+      description: After posting, derived views are updated
+      action: trigger projection rebuilds for affected accounts
+      constitutional_note: >
+        Projections interpret events. If a projection disagrees
+        with the event log, the event log is authoritative. (INV-006)
+
+  # Event types and their ledger treatment
+  event_treatment:
+
+    accepted_event:
+      description: An event that passes validation and produces a journal entry
+      actions:
+        - create journal entry
+        - post to journal
+        - emit ledger.entry.posted
+        - update projections
+
+    rejected_event:
+      description: An event that fails validation and cannot be journalized
+      actions:
+        - emit ledger.entry.rejected
+        - log rejection reason
+        - notify source domain
+        - do not create journal entry
+
+    correction_event:
+      description: An event that corrects a previously journalized event
+      actions:
+        - create correction journal entry (not a reversal)
+        - link to original entry via original_entry_id
+        - require governance approval
+        - emit ledger.entry.corrected
+
+    reversal_event:
+      description: An event that reverses a previously journalized entry
+      actions:
+        - create reversal journal entry (inverse postings)
+        - link to original entry via original_entry_id
+        - emit ledger.entry.reversed
+        - update projections
+
+  # Event-to-journal mapping templates
+  # These define how specific events from other domains
+  # map to double-entry journal entries.
+  event_to_journal_mappings:
+
+    vault.reserve.locked:
+      description: Value has been locked in Vault for a pending operation
+      template:
+        journal: vault_journal
+        entry_type: STANDARD
+        postings:
+          - account_pattern: "vault.reserves.{asset_type}"
+            direction: DEBIT
+            amount_from: event.amount
+          - account_pattern: "vault.assets.{asset_type}.{asset_id}"
+            direction: CREDIT
+            amount_from: event.amount
+
+    vault.reserve.released:
+      description: Reserved value has been returned to available pool
+      template:
+        journal: vault_journal
+        entry_type: STANDARD
+        postings:
+          - account_pattern: "vault.assets.{asset_type}.{asset_id}"
+            direction: DEBIT
+            amount_from: event.amount
+          - account_pattern: "vault.reserves.{asset_type}"
+            direction: CREDIT
+            amount_from: event.amount
+
+    vault.collateral.added:
+      description: Asset pledged as collateral
+      template:
+        journal: vault_journal
+        entry_type: STANDARD
+        postings:
+          - account_pattern: "vault.collateral.{asset_type}.{asset_id}"
+            direction: DEBIT
+            amount_from: event.effective_value
+          - account_pattern: "vault.collateral.haircut_reserve.{asset_type}"
+            direction: CREDIT
+            amount_from: event.haircut_amount  # gross - effective
+
+    vault.ownership.transferred:
+      description: Ownership of an asset has been transferred
+      template:
+        journal: vault_journal
+        entry_type: STANDARD
+        postings:
+          - account_pattern: "vault.assets.{asset_type}.{new_owner_id}"
+            direction: DEBIT
+            amount_from: event.face_value
+          - account_pattern: "vault.assets.{asset_type}.{previous_owner_id}"
+            direction: CREDIT
+            amount_from: event.face_value
+
+    vault.asset.write_down:
+      description: Asset permanently written down
+      template:
+        journal: vault_journal
+        entry_type: ADJUSTMENT
+        postings:
+          - account_pattern: "expense.impairment_loss"
+            direction: DEBIT
+            amount_from: event.write_down_amount
+          - account_pattern: "vault.assets.{asset_type}.{asset_id}"
+            direction: CREDIT
+            amount_from: event.write_down_amount
+
+    # Treasury mappings — will be populated in Phase C (Treasury section)
+    treasury.transfer.initiated:
+      template: PENDING_TREASURY_PHASE
+
+    treasury.transfer.settled:
+      template: PENDING_TREASURY_PHASE
+
+    # Payment mappings — will be populated in Phase F
+    payment.settlement.completed:
+      template: PENDING_PAYMENT_PHASE
+
+    payment.settlement.failed:
+      template: PENDING_PAYMENT_PHASE
+
+# ============================================================
+# SECTION 6 — RECONCILIATION FRAMEWORK
+# ============================================================
+# Reconciliation ensures that the Ledger's recorded truth
+# matches external reality (Vault state, Treasury state,
+# external settlement confirmations).
+# ============================================================
+
+reconciliation_framework:
+
+  description: >
+    Reconciliation is the process of comparing the Ledger's
+    financial records against external sources of truth to
+    identify and resolve discrepancies. It is a constitutional
+    requirement (INV-005, INV-009) that the Ledger's truth
+    can be verified against the systems it records.
+
+  reconciliation_types:
+
+    internal:
+      description: Ledger-to-Ledger verification (account balances, journal integrity)
+      scope: single_ledger
+      frequency: continuous
+      triggers:
+        - every_journal_entry_posted
+        - accounting_period_close
+
+    vault_reconciliation:
+      description: Ledger balances vs. Vault asset state
+      scope: per_asset_or_per_actor
+      frequency: daily
+      triggers:
+        - scheduled (86400s)
+        - vault.reconciliation.discrepancy_found event
+        - governance request
+      comparison_points:
+        - ledger_asset_balance vs. vault_total_balance
+        - ledger_reserve_balance vs. vault_reserved_balance
+        - ledger_collateral_balance vs. vault_encumbered_balance
+        - ledger_collateral_haircut vs. vault_collateral_effective_value
+
+    treasury_reconciliation:
+      description: Ledger settlement records vs. Treasury transfer state
+      scope: per_transfer
+      frequency: per_settlement
+      triggers:
+        - treasury.transfer.settled
+        - treasury.transfer.failed
+      comparison_points:
+        - ledger_posting vs. treasury_transfer_amount
+        - ledger_posting_timestamp vs. treasury_settlement_timestamp
+        - ledger_account vs. treasury_source_and_destination
+
+    external_reconciliation:
+      description: Ledger records vs. external settlement confirmations
+      scope: per_external_settlement
+      frequency: per_settlement
+      triggers:
+        - payment.settlement.confirmed
+        - payment.settlement.failed
+        - on_chain.settlement.confirmed
+      comparison_points:
+        - ledger_amount vs. external_confirmation_amount
+        - ledger_asset_id vs. external_asset_reference
+        - ledger_timestamp vs. external_settlement_timestamp
+
+  reconciliation_lifecycle:
+    states:
+      MATCHED:
+        description: No discrepancy found
+        transitions_to: [COMPLETE]
+      MISMATCH_DETECTED:
+        description: Discrepancy identified between Ledger and source
+        transitions_to: [INVESTIGATION]
+      INVESTIGATION:
+        description: Discrepancy is being investigated
+        transitions_to: [ADJUSTMENT_REQUIRED, RESOLVED, ESCALATED]
+      ADJUSTMENT_REQUIRED:
+        description: A journal adjustment is needed to correct the record
+        transitions_to: [ADJUSTMENT_POSTED, ESCALATED]
+      ADJUSTMENT_POSTED:
+        description: Correction entry has been posted
+        transitions_to: [RESOLVED]
+      RESOLVED:
+        description: Discrepancy has been resolved
+        transitions_to: [COMPLETE]
+      ESCALATED:
+        description: Discrepancy could not be auto-resolved
+        transitions_to: [RESOLVED, COMPLETE]
+      COMPLETE:
+        description: Reconciliation is finished
+    severity_levels:
+      - none: values match exactly
+      - low: rounding difference within tolerance (< 0.01 base unit)
+      - medium: identified discrepancy, auto-correctable
+      - high: identified discrepancy, requires investigation
+      - critical: discrepancy indicates potential integrity issue
+
+  tolerance_rules:
+    description: >
+      Small discrepancies may be auto-resolved within tolerance.
+      Larger discrepancies require investigation and governance.
+    tolerances:
+      currency: 0.01     # 1 cent
+      stablecoin: 0.00000001  # 1 wei (1e-8)
+      tokenized_asset: 0.000000000000000001  # 1 wei (1e-18)
+    auto_resolution:
+      - if discrepancy <= tolerance: auto-adjust and log
+      - if discrepancy > tolerance: flag for investigation
+
+# ============================================================
+# SECTION 7 — LEDGER COMMANDS
+# ============================================================
+# See 03_command-catalog.yaml for full definitions.
+# ============================================================
+
+commands:
+
+  ledger.journal.create:
+    description: Create a new journal for a domain or subsystem
+    issuer: governance
+    capability_required: ledger.journal.manage
+    scope_required: ledger_id
+    validation:
+      - journal name unique within ledger
+      - domain is recognized
+      - ledger is in ACTIVE state
+    produces:
+      - ledger.journal.created
+    failure_produces:
+      - ledger.journal.creation_failed
+
+  ledger.entry.post:
+    description: Submit a journal entry for validation and posting
+    issuer: any_domain_service
+    capability_required: ledger.entry.post
+    scope_required: account_ids in entry
+    validation:
+      - entry passes full validation pipeline
+      - all accounts are ACTIVE
+      - actor has posting authority
+      - referenced event is valid and not already journalized
+      - debits equal credits
+    produces:
+      - ledger.entry.posted
+    failure_produces:
+      - ledger.entry.rejected
+
+  ledger.entry.reverse:
+    description: Reverse a previously posted journal entry
+    issuer: governance_or_source_domain
+    capability_required: ledger.entry.reverse
+    scope_required: original_entry_id
+    validation:
+      - original entry exists and is in POSTED or SETTLED state
+      - original entry has not already been reversed
+      - reversal reason provided
+      - accounts in original entry are still valid
+    produces:
+      - ledger.entry.reversed
+    failure_produces:
+      - ledger.entry.reversal_failed
+
+  ledger.entry.correct:
+    description: Create a compensating correction entry
+    issuer: governance
+    capability_required: ledger.entry.correct
+    scope_required: original_entry_id
+    validation:
+      - original entry exists and is in POSTED or SETTLED state
+      - correction description provided
+      - governance approval obtained
+      - correction entry balances
+    produces:
+      - ledger.entry.corrected
+    failure_produces:
+      - ledger.entry.correction_failed
+
+  ledger.reconciliation.start:
+    description: Initiate a reconciliation process
+    issuer: governance_or_system
+    capability_required: ledger.reconcile
+    scope_required: depends on reconciliation type
+    validation:
+      - no conflicting reconciliation active
+      - source data available
+    produces:
+      - ledger.reconciliation.started
+    failure_produces:
+      - ledger.reconciliation.start_failed
+
+  ledger.reconciliation.resolve:
+    description: Resolve a reconciliation discrepancy
+    issuer: governance
+    capability_required: ledger.reconcile
+    scope_required: reconciliation_id
+    validation:
+      - reconciliation exists and is in INVESTIGATION or ADJUSTMENT_REQUIRED state
+      - resolution method provided
+      - if adjustment: correction entry balances
+    produces:
+      - ledger.reconciliation.completed
+    conditional:
+      - ledger.entry.corrected  (if adjustment posted)
+    failure_produces:
+      - ledger.reconciliation.resolution_failed
+
+  ledger.account.create:
+    description: Create a new account in the chart of accounts
+    issuer: governance
+    capability_required: ledger.account.manage
+    scope_required: ledger_id
+    validation:
+      - account_code unique within ledger
+      - account_type is recognized
+      - parent_account exists (if specified)
+      - normal_balance consistent with account_type
+    produces:
+      - ledger.account.created
+    failure_produces:
+      - ledger.account.creation_failed
+
+  ledger.account.freeze:
+    description: Freeze an account, preventing new postings
+    issuer: governance
+    capability_required: ledger.account.manage
+    scope_required: account_id
+    validation:
+      - account exists and is in ACTIVE state
+      - no pending journal entries reference this account
+      - freeze reason provided
+    produces:
+      - ledger.account.frozen
+    failure_produces:
+      - ledger.account.freeze_failed
+
+  ledger.period.close:
+    description: Close an accounting period
+    issuer: governance_or_system
+    capability_required: ledger.period.manage
+    scope_required: period_id
+    validation:
+      - period exists and is in OPEN state
+      - all entries for the period are in POSTED or SETTLED state
+      - no pending reconciliations for this period
+      - previous period is already closed (if not first period)
+    produces:
+      - ledger.period.closing
+      - ledger.entry.posted  (closing entries)
+      - ledger.period.closed
+    failure_produces:
+      - ledger.period.close_failed
+
+# ============================================================
+# SECTION 8 — LEDGER EVENTS
+# ============================================================
+# See 04_event-catalog.yaml for full definitions.
+# ============================================================
+
+events:
+
+  ledger.journal.created:
+    aggregate: journal
+    source_domain: ledger
+    version: 1.0.0
+    description: A new journal has been created
+
+  ledger.entry.posted:
+    aggregate: journal_entry
+    source_domain: ledger
+    version: 1.0.0
+    description: A journal entry has been validated and posted
+
+  ledger.entry.rejected:
+    aggregate: journal_entry
+    source_domain: ledger
+    version: 1.0.0
+    description: A journal entry failed validation and was rejected
+
+  ledger.entry.reversed:
+    aggregate: journal_entry
+    source_domain: ledger
+    version: 1.0.0
+    description: A journal entry has been reversed by a new reversing entry
+
+  ledger.entry.corrected:
+    aggregate: journal_entry
+    source_domain: ledger
+    version: 1.0.0
+    description: A correcting entry has been posted
+
+  ledger.reconciliation.started:
+    aggregate: reconciliation
+    source_domain: ledger
+    version: 1.0.0
+    description: A reconciliation process has been initiated
+
+  ledger.reconciliation.mismatch_detected:
+    aggregate: reconciliation
+    source_domain: ledger
+    version: 1.0.0
+    description: A discrepancy was found during reconciliation
+
+  ledger.reconciliation.completed:
+    aggregate: reconciliation
+    source_domain: ledger
+    version: 1.0.0
+    description: A reconciliation has been resolved
+
+  ledger.account.created:
+    aggregate: account
+    source_domain: ledger
+    version: 1.0.0
+    description: A new account has been added to the chart of accounts
+
+  ledger.account.frozen:
+    aggregate: account
+    source_domain: ledger
+    version: 1.0.0
+    description: An account has been frozen
+
+  ledger.period.closing:
+    aggregate: accounting_period
+    source_domain: ledger
+    version: 1.0.0
+    description: An accounting period is being closed
+
+  ledger.period.closed:
+    aggregate: accounting_period
+    source_domain: ledger
+    version: 1.0.0
+    description: An accounting period has been closed
+
+# ============================================================
+# SECTION 9 — PROJECTION RULES (Ledger-specific)
+# ============================================================
+# Projections are derived read models built from events.
+# They interpret reality — they are not reality itself.
+# ============================================================
+
+projection_rules:
+
+  account_balance_view:
+    source_events:
+      - ledger.entry.posted
+      - ledger.entry.reversed
+      - ledger.entry.corrected
+      - ledger.period.closed
+    computation:
+      description: Running balance per account
+      formula: |
+        balance = opening_balance
+        for each posting in chronological order:
+          if posting.direction == DEBIT:
+            balance += posting.amount
+          else:
+            balance -= posting.amount
+        return balance
+      adjustments:
+        - RESERVE and COLLATERAL accounts: track separately
+        - MEMORANDUM accounts: track counts, not values
+    cache_invalidation:
+      trigger: on every ledger.entry.posted event
+      scope: affected accounts only
+
+  transaction_history_view:
+    source_events:
+      - ledger.entry.posted
+      - ledger.entry.reversed
+      - ledger.entry.corrected
+    computation:
+      description: Chronological list of all journal entries
+      fields:
+        - entry_id
+        - transaction_id
+        - description
+        - total_amount
+        - event_reference
+        - actor_context
+        - posted_at
+      filters:
+        - by_account_id
+        - by_correlation_id
+        - by_date_range
+        - by_actor_id
+        - by_entry_type
+    cache_invalidation:
+      trigger: on every ledger event
+      scope: append only
+
+  reserve_position_view:
+    source_events:
+      - vault.reserve.created
+      - vault.reserve.locked
+      - vault.reserve.released
+      - vault.reserve.expired
+      - vault.reserve.consumed
+      - ledger.entry.posted
+    computation:
+      description: Current reserve positions across all assets
+      fields:
+        - asset_id
+        - total_balance
+        - reserved_balance
+        - locked_balance
+        - available_balance
+      source_of_truth: vault events (ledger provides confirmation)
+    cache_invalidation:
+      trigger: on every vault.reserve.* event
+      scope: affected asset
+
+  audit_trail_view:
+    source_events:
+      - all ledger events
+      - all vault events
+      - all treasury events
+      - all governance events
+    computation:
+      description: Complete immutable audit trail of all financial actions
+      fields:
+        - timestamp
+        - event_name
+        - source_domain
+        - actor_context
+        - event_data
+        - related_entry_id
+        - related_event_ids
+      ordering: strict chronological
+      retention: permanent
+    cache_invalidation:
+      trigger: on every event in the system
+      scope: append only
+
+  reconciliation_dashboard_view:
+    source_events:
+      - ledger.reconciliation.started
+      - ledger.reconciliation.mismatch_detected
+      - ledger.reconciliation.completed
+    computation:
+      description: Current state of all reconciliation processes
+      fields:
+        - reconciliation_id
+        - type
+        - state
+        - severity
+        - expected_value
+        - actual_value
+        - discrepancy_amount
+        - started_at
+        - resolved_at
+      filters:
+        - by_state
+        - by_severity
+        - by_type
+        - by_date_range
+    cache_invalidation:
+      trigger: on every ledger.reconciliation.* event
+      scope: affected reconciliation
+
+# ============================================================
+# SECTION 10 — IMMUTABLE AUDIT REQUIREMENTS
+# ============================================================
+
+audit_requirements:
+
+  forbidden_operations:
+    - operation: UPDATE journal_entry
+      constitutional_reference: INV-001
+      reason: Events are immutable. Journal entries are event-derived.
+    - operation: DELETE journal_entry
+      constitutional_reference: INV-001
+      reason: Events cannot be deleted. Journal entries cannot be deleted.
+    - operation: UPDATE posting
+      constitutional_reference: INV-001, INV-002
+      reason: Postings are part of immutable journal entries.
+    - operation: DELETE posting
+      constitutional_reference: INV-001, INV-002
+      reason: Deleting a posting would unbalance the entry.
+    - operation: ALTER historical_balance
+      constitutional_reference: INV-001
+      reason: Historical balances are derived from immutable events.
+
+  permitted_operations:
+    - operation: CREATE journal_entry
+      condition: passes validation pipeline
+    - operation: APPEND posting
+      condition: only during entry creation, never after posting
+    - operation: REVERSE journal_entry
+      condition: creates new entry with inverse postings
+    - operation: COMPENSATE journal_entry
+      condition: creates new correction entry with governance approval
+    - operation: CLOSE accounting_period
+      condition: creates closing entries, does not modify history
+
+  audit_event_requirements:
+    every_posted_entry_must_produce:
+      - entry_id
+      - journal_id
+      - transaction_id
+      - event_reference
+      - correlation_id
+      - causation_id
+      - all_postings_with_account_and_amount
+      - actor_context
+      - authorization_context
+      - posted_at
+      - balance_after  (for each affected account)
+
+  query_requirements:
+    governance_must_be_able_to:
+      - query any entry by entry_id
+      - query all entries for a transaction_id
+      - query all entries for a correlation_id
+      - query account balance at any point in time
+      - query full transaction history for any account
+      - query reconciliation status
+      - export audit trail for regulatory compliance

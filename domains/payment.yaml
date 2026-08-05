@@ -1,0 +1,2085 @@
+# ============================================================
+# SOVR Financial OS — Payment Execution Domain
+# File: domains/payment.yaml
+# Status: FROZEN
+# Build Phase: E
+# Domain Priority: 6 (Execution Boundary)
+# ============================================================
+# Payment is the Execution Boundary of SOVR.
+# It is NOT a payment gateway. It is the constitutional
+# interface between the SOVR runtime and external financial
+# systems. Payment receives settlement instructions from
+# Treasury and executes them through abstract rail adapters.
+#
+# CRITICAL: No adapter may mutate constitutional state.
+# Adapters only emit events.
+#
+# Constitutional references:
+#   INV-001: Every state change requires an immutable event
+#   INV-003: No actor may exceed granted authority
+#   INV-005: Every financial action must produce an auditable event trail
+#   INV-007: Value preservation outranks execution speed
+#   INV-008: No command executes without identity, capability, scope, and policy validation
+#   INV-009: Unknown financial states must be represented explicitly
+# ============================================================
+
+domain:
+  name: payment
+  version: 1.0.0
+  description: >
+    The Execution Boundary Domain. Bridges the constitutional runtime to
+    external financial systems through abstract rail adapters. Receives
+    settlement instructions from Treasury, selects execution rails,
+    orchestrates adapter lifecycle, and produces execution receipts.
+  constitutional_references:
+    invariants: [INV-001, INV-003, INV-005, INV-007, INV-008, INV-009]
+    conflict_resolution_rank: 2  # asset_security
+
+  production_invariants:
+    - id: PI-PAY-001
+      rule: Payment adapters SHALL NOT mutate constitutional state
+      description: Adapters are output-only. They prepare, execute, confirm, reconcile, and compensate — but never write to the event store, ledger, vault, or any constitutional data structure.
+      enforcement_point: adapter_runtime
+      violation_severity: critical
+      violation_action: terminate_adapter_and_audit
+
+    - id: PI-PAY-002
+      rule: External system responses SHALL NOT be trusted without confirmation
+      description: No external settlement is final until confirmed through the adapter's confirm() interface. Optimistic external responses must be tracked as PENDING until confirmation.
+      enforcement_point: settlement_coordinator
+      violation_severity: high
+      violation_action: flag_as_unknown_and_escalate
+
+    - id: PI-PAY-003
+      rule: Every rail operation SHALL produce a traceable receipt
+      description: For every adapter execution, an ExecutionReceipt must be produced containing rail_reference_id, amount_executed, fees, and constitutional compliance attestation.
+      enforcement_point: receipt_service
+      violation_severity: high
+      violation_action: block_subsequent_operations_until_receipt_issued
+
+    - id: PI-PAY-004
+      rule: Payment routing SHALL be deterministic for identical inputs
+      description: Given the same payment_request, available_rails, treasury_state, and vault_state, the routing engine must select the same rail. Randomness in routing is prohibited.
+      enforcement_point: routing_engine
+      violation_severity: medium
+      violation_action: log_violation_and_use_default_route
+
+# ============================================================
+# SECTION 2 — PAYMENT REQUEST MODEL
+# ============================================================
+
+enums:
+  rail_type:
+    - ACH
+    - FEDNOW
+    - WIRE
+    - RTP
+    - CARD
+    - BLOCKCHAIN
+    - INTERNAL_TRANSFER
+    - STABLECOIN
+    - SWIFT
+    - SEPA
+    - CASH_SETTLEMENT
+    - FUTURE_ADAPTER
+
+  payment_urgency:
+    - IMMEDIATE
+    - STANDARD
+    - BATCH
+
+  payment_state:
+    - RECEIVED
+    - PLANNING
+    - ROUTING
+    - PREPARING
+    - EXECUTING
+    - CONFIRMING
+    - RECONCILING
+    - SETTLED
+    - FAILED
+    - COMPENSATING
+    - REVERSED
+
+  adapter_phase:
+    - PREPARE
+    - VALIDATE
+    - EXECUTE
+    - CONFIRM
+    - RECONCILE
+    - COMPENSATE
+
+  reconciliation_trigger:
+    - AUTOMATIC_SCHEDULED
+    - EVENT_DRIVEN
+    - ON_DEMAND
+    - DISCREPANCY_DETECTED
+
+  reconciliation_status:
+    - MATCHED
+    - DISCREPANCY_FOUND
+    - ESCALATED
+    - RESOLVED
+
+  receipt_attestation:
+    - CONSTITUTIONALLY_COMPLIANT
+    - COMPLIANT_WITH_EXCEPTIONS
+    - NON_COMPLIANT
+
+entities:
+  payment_request:
+    description: A request to execute a payment through an external rail
+    attributes:
+      payment_request_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      source_transfer_id:
+        type: string
+        format: uuid
+        required: true
+        description: References treasury.transfer.transfer_id
+      execution_plan_id:
+        type: string
+        format: uuid
+        required: false
+        description: Populated after routing
+      rail_type:
+        type: enum
+        values_ref: rail_type
+        required: false
+        description: Populated after routing
+      amount:
+        type: object
+        required: true
+        description: Polymorphic value matching vault value model
+        fields:
+          native_unit:
+            type: string
+            required: true
+          quantity:
+            type: decimal
+            precision: 18
+            required: false
+          face_value:
+            type: decimal
+            precision: 2
+            required: false
+          precision:
+            type: integer
+            required: true
+      sender:
+        type: object
+        required: true
+        fields:
+          identity_id:
+            type: string
+            format: uuid
+            required: true
+          account_id:
+            type: string
+            format: uuid
+            required: true
+          rail_account_ref:
+            type: string
+            required: true
+            description: Rail-specific account identifier
+      recipient:
+        type: object
+        required: true
+        fields:
+          identity_id:
+            type: string
+            format: uuid
+            required: false
+            description: Null for external recipients
+          account_id:
+            type: string
+            format: uuid
+            required: false
+          rail_account_ref:
+            type: string
+            required: true
+          name:
+            type: string
+            required: false
+          rail_metadata:
+            type: object
+            required: false
+            description: Rail-specific recipient data (e.g. routing_number, IBAN)
+      urgency:
+        type: enum
+        values_ref: payment_urgency
+        required: true
+      retry_policy:
+        type: object
+        required: true
+        fields:
+          max_retries:
+            type: integer
+            required: true
+          retry_delay_ms:
+            type: integer
+            required: true
+          backoff_multiplier:
+            type: decimal
+            precision: 2
+            required: true
+      state:
+        type: enum
+        values_ref: payment_state
+        required: true
+      constitutional_gates_passed:
+        type: object
+        required: true
+        fields:
+          identity_verified:
+            type: boolean
+            required: true
+          policy_evaluated:
+            type: boolean
+            required: true
+          capability_confirmed:
+            type: boolean
+            required: true
+          authority_bound:
+            type: boolean
+            required: true
+          policy_decision_id:
+            type: string
+            format: uuid
+            required: true
+      created_at:
+        type: timestamp
+        required: true
+      updated_at:
+        type: timestamp
+        required: true
+      completed_at:
+        type: timestamp
+        required: false
+
+# ============================================================
+# SECTION 3 — EXECUTION PLAN MODEL
+# ============================================================
+
+  execution_plan:
+    description: A routing and execution plan for a payment request
+    attributes:
+      execution_plan_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      payment_request_id:
+        type: string
+        format: uuid
+        required: true
+      selected_rail:
+        type: enum
+        values_ref: rail_type
+        required: true
+      routing_decision:
+        type: object
+        required: true
+        fields:
+          primary_rail:
+            type: enum
+            values_ref: rail_type
+            required: true
+          confidence_score:
+            type: decimal
+            precision: 4
+            required: true
+          selection_criteria:
+            type: array
+            items:
+              type: object
+              fields:
+                criterion:
+                  type: string
+                  required: true
+                score:
+                  type: decimal
+                  precision: 4
+                  required: true
+                weight:
+                  type: decimal
+                  precision: 4
+                  required: true
+            required: true
+          rejected_rails:
+            type: array
+            items:
+              type: object
+              fields:
+                rail:
+                  type: enum
+                  values_ref: rail_type
+                  required: true
+                rejection_reason:
+                  type: string
+                  required: true
+            required: true
+          alternative_rails:
+            type: array
+            items:
+              type: enum
+              values_ref: rail_type
+              required: true
+      step_sequence:
+        type: array
+        items:
+          type: object
+          fields:
+            step_order:
+              type: integer
+              required: true
+            phase:
+              type: enum
+              values_ref: adapter_phase
+              required: true
+            timeout_ms:
+              type: integer
+              required: true
+            compensation_step:
+              type: string
+              required: false
+              description: Which step to compensate if this step fails
+        required: true
+      estimated_settlement_time_ms:
+        type: integer
+        required: true
+      compensation_strategy:
+        type: enum
+        values: [SEQUENTIAL_REVERSE, PARALLEL_ROLLBACK, MANUAL_ESCALATION]
+        required: true
+      state:
+        type: enum
+        values: [DRAFT, APPROVED, EXECUTING, COMPLETED, FAILED]
+        required: true
+      created_at:
+        type: timestamp
+        required: true
+
+# ============================================================
+# SECTION 4 — ROUTING ENGINE
+# ============================================================
+
+routing_engine:
+  description: >
+    Pure evaluation function. Given identical inputs, produces
+    identical outputs. Never mutates state.
+  type: pure_function
+  constitutional_reference: PI-PAY-004
+
+  inputs:
+    payment_request:
+      type: ref:payment_request
+      required: true
+    available_rails:
+      type: array
+      items:
+        type: ref:rail_adapter_config
+      required: true
+    treasury_state:
+      type: object
+      required: true
+      description: Current liquidity and transfer state from Treasury
+    vault_state:
+      type: object
+      required: true
+      description: Asset state confirmation from Vault
+    policy_constraints:
+      type: object
+      required: true
+      description: Any policy-imposed constraints on rail selection
+
+  evaluation_criteria:
+    - criterion: cost
+      weight: 0.25
+      type: minimize
+      description: Estimated transaction fees
+    - criterion: speed
+      weight: 0.20
+      type: minimize
+      description: Estimated settlement time
+    - criterion: reliability
+      weight: 0.25
+      type: maximize
+      description: Historical success rate of the rail
+    - criterion: regulatory_compliance
+      weight: 0.20
+      type: gate
+      description: Rail must satisfy regulatory requirements for the asset type
+      gate_behavior: REJECT_IF_FAIL
+    - criterion: asset_type_compatibility
+      weight: 0.10
+      type: gate
+      description: Rail must support the asset type being transferred
+      gate_behavior: REJECT_IF_FAIL
+
+  output:
+    type: routing_decision
+    fields:
+      selected_rail:
+        type: enum
+        values_ref: rail_type
+      confidence_score:
+        type: decimal
+        precision: 4
+        minimum: 0.0
+        maximum: 1.0
+      alternative_rails:
+        type: array
+        items:
+          type: enum
+          values_ref: rail_type
+      rejected_rails:
+        type: array
+        items:
+          type: object
+          fields:
+            rail: { type: enum, values_ref: rail_type }
+            reason: { type: string }
+
+# ============================================================
+# SECTION 5 — EXTERNAL RAIL ADAPTERS
+# ============================================================
+# All adapters are abstract interfaces. No implementation details.
+# Every adapter MUST implement: prepare, validate, execute, confirm, reconcile, compensate
+# No adapter may mutate constitutional state. Adapters only emit events.
+# ============================================================
+
+rail_adapters:
+
+  ACH:
+    rail_id: ACH
+    rail_type: DOMESTIC_BANK_TRANSFER
+    finality_model: DEFERRED_SETTLEMENT
+    supported_asset_types: [cash]
+    settlement_time_range:
+      min_ms: 3600000
+      max_ms: 172800000
+    retry_config:
+      max_retries: 3
+      retry_delay_ms: 300000
+    interface:
+      prepare:
+        input: { payment_request_id, amount, sender.rail_account_ref, recipient.rail_account_ref, recipient.rail_metadata }
+        output: { rail_preparation_id, status, estimated_settlement_date }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id }
+        output: { rail_execution_id, rail_trace_number, status, submitted_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, confirmation_date, rail_reference_id, actual_amount, fees }
+      reconcile:
+        input: { rail_reference_id, expected_amount, expected_fees }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status, reversal_rail_reference_id }
+    event_emissions:
+      prepare: payment.rail.ach.prepared
+      execute: payment.rail.ach.executed
+      confirm: payment.rail.ach.confirmed
+      fail: payment.rail.ach.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  FEDNOW:
+    rail_id: FEDNOW
+    rail_type: INSTANT_PAYMENT
+    finality_model: IMMEDIATE_SETTLEMENT
+    supported_asset_types: [cash]
+    settlement_time_range:
+      min_ms: 5000
+      max_ms: 30000
+    retry_config:
+      max_retries: 1
+      retry_delay_ms: 1000
+    interface:
+      prepare:
+        input: { payment_request_id, amount, sender.rail_account_ref, recipient.rail_account_ref, recipient.rail_metadata }
+        output: { rail_preparation_id, status }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id }
+        output: { rail_execution_id, rail_message_id, status, submitted_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, confirmation_timestamp, rail_reference_id, actual_amount, fees }
+      reconcile:
+        input: { rail_reference_id, expected_amount, expected_fees }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status }
+    event_emissions:
+      prepare: payment.rail.fednow.prepared
+      execute: payment.rail.fednow.executed
+      confirm: payment.rail.fednow.confirmed
+      fail: payment.rail.fednow.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  WIRE:
+    rail_id: WIRE
+    rail_type: DOMESTIC_WIRE
+    finality_model: SAME_DAY_SETTLEMENT
+    supported_asset_types: [cash]
+    settlement_time_range:
+      min_ms: 1800000
+      max_ms: 28800000
+    retry_config:
+      max_retries: 1
+      retry_delay_ms: 3600000
+    interface:
+      prepare:
+        input: { payment_request_id, amount, sender.rail_account_ref, recipient.rail_account_ref, recipient.rail_metadata }
+        output: { rail_preparation_id, status, cutoff_time }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id }
+        output: { rail_execution_id, wire_confirmation_number, status, submitted_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, confirmation_date, fed_reference_number, actual_amount, fees }
+      reconcile:
+        input: { fed_reference_number, expected_amount, expected_fees }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status, reversal_fed_reference }
+    event_emissions:
+      prepare: payment.rail.wire.prepared
+      execute: payment.rail.wire.executed
+      confirm: payment.rail.wire.confirmed
+      fail: payment.rail.wire.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  RTP:
+    rail_id: RTP
+    rail_type: REAL_TIME_PAYMENT
+    finality_model: IMMEDIATE_SETTLEMENT
+    supported_asset_types: [cash]
+    settlement_time_range:
+      min_ms: 5000
+      max_ms: 20000
+    retry_config:
+      max_retries: 1
+      retry_delay_ms: 1000
+    interface:
+      prepare:
+        input: { payment_request_id, amount, sender.rail_account_ref, recipient.rail_account_ref, recipient.rail_metadata }
+        output: { rail_preparation_id, status }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id }
+        output: { rail_execution_id, end_to_end_id, status, submitted_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, confirmation_timestamp, rail_reference_id, actual_amount, fees }
+      reconcile:
+        input: { rail_reference_id, expected_amount, expected_fees }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status, return_end_to_end_id }
+    event_emissions:
+      prepare: payment.rail.rtp.prepared
+      execute: payment.rail.rtp.executed
+      confirm: payment.rail.rtp.confirmed
+      fail: payment.rail.rtp.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  CARD:
+    rail_id: CARD
+    rail_type: CARD_NETWORK
+    finality_model: DEFERRED_SETTLEMENT
+    supported_asset_types: [cash, stablecoin]
+    settlement_time_range:
+      min_ms: 86400000
+      max_ms: 259200000
+    retry_config:
+      max_retries: 2
+      retry_delay_ms: 60000
+    interface:
+      prepare:
+        input: { payment_request_id, amount, card_token, recipient.rail_account_ref }
+        output: { rail_preparation_id, status, authorization_code }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id }
+        output: { rail_execution_id, transaction_id, status, submitted_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, settlement_date, rail_reference_id, actual_amount, fees, interchange }
+      reconcile:
+        input: { rail_reference_id, expected_amount, expected_fees }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason, partial_amount }
+        output: { compensation_id, status, refund_transaction_id }
+    event_emissions:
+      prepare: payment.rail.card.prepared
+      execute: payment.rail.card.executed
+      confirm: payment.rail.card.confirmed
+      fail: payment.rail.card.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  BLOCKCHAIN:
+    rail_id: BLOCKCHAIN
+    rail_type: ON_CHAIN_SETTLEMENT
+    finality_model: PROBABILISTIC_FINALITY
+    supported_asset_types: [stablecoin, tokenized_asset]
+    settlement_time_range:
+      min_ms: 12000
+      max_ms: 600000
+    retry_config:
+      max_retries: 3
+      retry_delay_ms: 5000
+    interface:
+      prepare:
+        input: { payment_request_id, amount, from_address, to_address, chain_id, gas_config }
+        output: { rail_preparation_id, status, estimated_gas, nonce }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings, gas_estimate }
+      execute:
+        input: { rail_preparation_id, signed_transaction }
+        output: { rail_execution_id, tx_hash, status, submitted_at, block_number }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, confirmation_block_number, tx_receipt, actual_amount, gas_used, contract_address }
+      reconcile:
+        input: { tx_hash, expected_amount, expected_gas }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status, reversal_tx_hash }
+    event_emissions:
+      prepare: payment.rail.blockchain.prepared
+      execute: payment.rail.blockchain.executed
+      confirm: payment.rail.blockchain.confirmed
+      fail: payment.rail.blockchain.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+    hybrid_boundary_ref: hybrid-boundary.yaml
+
+  INTERNAL_TRANSFER:
+    rail_id: INTERNAL_TRANSFER
+    rail_type: SOVR_INTERNAL
+    finality_model: IMMEDIATE_SETTLEMENT
+    supported_asset_types: [cash, stablecoin, tokenized_asset]
+    settlement_time_range:
+      min_ms: 100
+      max_ms: 5000
+    retry_config:
+      max_retries: 0
+      retry_delay_ms: 0
+    interface:
+      prepare:
+        input: { payment_request_id, amount, source_vault_id, destination_vault_id }
+        output: { rail_preparation_id, status }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id }
+        output: { rail_execution_id, status, completed_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, confirmation_timestamp, rail_reference_id, actual_amount }
+      reconcile:
+        input: { rail_reference_id, expected_amount }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status }
+    event_emissions:
+      prepare: payment.rail.internal.prepared
+      execute: payment.rail.internal.executed
+      confirm: payment.rail.internal.confirmed
+      fail: payment.rail.internal.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  STABLECOIN:
+    rail_id: STABLECOIN
+    rail_type: STABLECOIN_NETWORK
+    finality_model: PROBABILISTIC_FINALITY
+    supported_asset_types: [stablecoin]
+    settlement_time_range:
+      min_ms: 12000
+      max_ms: 120000
+    retry_config:
+      max_retries: 3
+      retry_delay_ms: 5000
+    interface:
+      prepare:
+        input: { payment_request_id, amount, from_address, to_address, chain_id, token_contract }
+        output: { rail_preparation_id, status, estimated_gas, nonce }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id, signed_transaction }
+        output: { rail_execution_id, tx_hash, status, submitted_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, confirmation_block, tx_receipt, actual_amount, gas_used }
+      reconcile:
+        input: { tx_hash, expected_amount }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status, reversal_tx_hash }
+    event_emissions:
+      prepare: payment.rail.stablecoin.prepared
+      execute: payment.rail.stablecoin.executed
+      confirm: payment.rail.stablecoin.confirmed
+      fail: payment.rail.stablecoin.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  SWIFT:
+    rail_id: SWIFT
+    rail_type: INTERNATIONAL_WIRE
+    finality_model: DEFERRED_SETTLEMENT
+    supported_asset_types: [cash]
+    settlement_time_range:
+      min_ms: 86400000
+      max_ms: 604800000
+    retry_config:
+      max_retries: 1
+      retry_delay_ms: 86400000
+    interface:
+      prepare:
+        input: { payment_request_id, amount, sender.rail_account_ref, recipient.rail_metadata, swift_bic, purpose_code }
+        output: { rail_preparation_id, status, UETR }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id }
+        output: { rail_execution_id, UETR, status, submitted_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, confirmation_date, UETR, actual_amount, fees, fx_rate }
+      reconcile:
+        input: { UETR, expected_amount, expected_fees }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status, reversal_UETR }
+    event_emissions:
+      prepare: payment.rail.swift.prepared
+      execute: payment.rail.swift.executed
+      confirm: payment.rail.swift.confirmed
+      fail: payment.rail.swift.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  SEPA:
+    rail_id: SEPA
+    rail_type: EUROPEAN_PAYMENT
+    finality_model: DEFERRED_SETTLEMENT
+    supported_asset_types: [cash]
+    settlement_time_range:
+      min_ms: 3600000
+      max_ms: 86400000
+    retry_config:
+      max_retries: 1
+      retry_delay_ms: 3600000
+    interface:
+      prepare:
+        input: { payment_request_id, amount, sender.iban, recipient.iban, recipient.name, remittance_info }
+        output: { rail_preparation_id, status, end_to_end_id }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id }
+        output: { rail_execution_id, end_to_end_id, status, submitted_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, booking_date, value_date, rail_reference_id, actual_amount, fees }
+      reconcile:
+        input: { rail_reference_id, expected_amount, expected_fees }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status }
+    event_emissions:
+      prepare: payment.rail.sepa.prepared
+      execute: payment.rail.sepa.executed
+      confirm: payment.rail.sepa.confirmed
+      fail: payment.rail.sepa.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  CASH_SETTLEMENT:
+    rail_id: CASH_SETTLEMENT
+    rail_type: PHYSICAL_CASH
+    finality_model: MANUAL_CONFIRMATION
+    supported_asset_types: [cash]
+    settlement_time_range:
+      min_ms: 86400000
+      max_ms: 2592000000
+    retry_config:
+      max_retries: 0
+      retry_delay_ms: 0
+    interface:
+      prepare:
+        input: { payment_request_id, amount, disbursement_location, recipient_identification }
+        output: { rail_preparation_id, status, disbursement_authorization }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id, disbursement_confirmation }
+        output: { rail_execution_id, disbursement_receipt_number, status, executed_at }
+      confirm:
+        input: { rail_execution_id, physical_receipt }
+        output: { confirmed, confirmation_date, receipt_reference, actual_amount }
+      reconcile:
+        input: { receipt_reference, expected_amount }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status }
+    event_emissions:
+      prepare: payment.rail.cash.prepared
+      execute: payment.rail.cash.executed
+      confirm: payment.rail.cash.confirmed
+      fail: payment.rail.cash.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+
+  FUTURE_ADAPTER:
+    rail_id: FUTURE_ADAPTER
+    rail_type: EXTENSIBLE_TEMPLATE
+    finality_model: CONFIGURABLE
+    supported_asset_types: []
+    settlement_time_range:
+      min_ms: 0
+      max_ms: 0
+    retry_config:
+      max_retries: 0
+      retry_delay_ms: 0
+    template: true
+    interface:
+      prepare:
+        input: { payment_request_id, rail_config }
+        output: { rail_preparation_id, status, rail_metadata }
+      validate:
+        input: { rail_preparation_id }
+        output: { valid, errors, warnings }
+      execute:
+        input: { rail_preparation_id, rail_execution_config }
+        output: { rail_execution_id, rail_reference_id, status, submitted_at }
+      confirm:
+        input: { rail_execution_id }
+        output: { confirmed, confirmation_timestamp, rail_reference_id, actual_amount, fees, rail_metadata }
+      reconcile:
+        input: { rail_reference_id, expected_amount, expected_fees }
+        output: { matched, discrepancy, reconciliation_status }
+      compensate:
+        input: { rail_execution_id, reason }
+        output: { compensation_id, status, reversal_rail_reference_id }
+    event_emissions:
+      prepare: payment.rail.{rail_id}.prepared
+      execute: payment.rail.{rail_id}.executed
+      confirm: payment.rail.{rail_id}.confirmed
+      fail: payment.rail.{rail_id}.failed
+    prohibition: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+    registration_requires: governance_approval
+
+# ============================================================
+# SECTION 6 — SETTLEMENT COORDINATOR
+# ============================================================
+
+settlement_coordinator:
+  description: >
+    Orchestrates the 6-phase adapter lifecycle.
+    Maps adapter phases to internal state transitions.
+    Emits events at each phase boundary.
+  phase_mapping:
+    - adapter_phase: PREPARE
+      state_before: PLANNING
+      state_after: PREPARING
+      timeout_ms: 30000
+      on_timeout: FAIL_AND_ESCALATE
+      event_on_start: payment.rail.preparing
+      event_on_complete: payment.rail.prepared
+      event_on_timeout: payment.rail.prepare_timed_out
+    - adapter_phase: VALIDATE
+      state_before: PREPARING
+      state_after: EXECUTING
+      timeout_ms: 15000
+      on_timeout: FAIL_AND_ESCALATE
+      event_on_start: payment.rail.validating
+      event_on_complete: payment.rail.validated
+      event_on_timeout: payment.rail.validation_timed_out
+    - adapter_phase: EXECUTE
+      state_before: EXECUTING
+      state_after: CONFIRMING
+      timeout_ms: 300000
+      on_timeout: MARK_UNKNOWN_AND_ESCALATE
+      event_on_start: payment.rail.executing
+      event_on_complete: payment.rail.executed
+      event_on_timeout: payment.rail.execution_timed_out
+    - adapter_phase: CONFIRM
+      state_before: CONFIRMING
+      state_after: RECONCILING
+      timeout_ms: 86400000
+      on_timeout: MARK_UNKNOWN_AND_ESCALATE
+      event_on_start: payment.rail.confirming
+      event_on_complete: payment.rail.confirmed
+      event_on_timeout: payment.rail.confirmation_timed_out
+    - adapter_phase: RECONCILE
+      state_before: RECONCILING
+      state_after: SETTLED
+      timeout_ms: 172800000
+      on_timeout: ESCALATE_TO_GOVERNANCE
+      event_on_start: payment.reconciliation.started
+      event_on_complete: payment.reconciliation.completed
+      event_on_timeout: payment.reconciliation.timed_out
+    - adapter_phase: COMPENSATE
+      state_before: FAILED
+      state_after: REVERSED
+      timeout_ms: 300000
+      on_timeout: ESCALATE_TO_GOVERNANCE
+      event_on_start: payment.compensation.started
+      event_on_complete: payment.compensation.completed
+      event_on_timeout: payment.compensation.timed_out
+
+# ============================================================
+# SECTION 7 — RECONCILIATION
+# ============================================================
+
+reconciliation:
+  triggers:
+    AUTOMATIC_SCHEDULED:
+      description: Reconciliation runs on a fixed schedule per rail type
+      schedule:
+        IMMEDIATE_SETTLEMENT: every_1_hour
+        SAME_DAY_SETTLEMENT: end_of_day
+        DEFERRED_SETTLEMENT: every_24_hours
+        PROBABILISTIC_FINALITY: every_12_confirmations
+        MANUAL_CONFIRMATION: weekly
+    EVENT_DRIVEN:
+      description: Reconciliation triggered by specific events
+      trigger_events:
+        - payment.reconciliation.discrepancy
+        - payment.rail.execution_timed_out
+        - payment.rail.confirmation_timed_out
+        - hybrid.reorg.detected
+    ON_DEMAND:
+      description: Governance-initiated reconciliation
+      required_capability: payment.reconciliation.initiate
+      requires_governance: true
+    DISCREPANCY_DETECTED:
+      description: Automatic reconciliation when a discrepancy is detected
+      trigger_condition: any_projection_divergence_from_event_log
+
+  result_structure:
+    reconciliation_id:
+      type: string
+      format: uuid
+    payment_request_id:
+      type: string
+      format: uuid
+    rail_type:
+      type: enum
+      values_ref: rail_type
+    rail_reference_id:
+      type: string
+    expected_amount:
+      type: decimal
+      precision: 18
+    actual_amount:
+      type: decimal
+      precision: 18
+    discrepancy_amount:
+      type: decimal
+      precision: 18
+      required: false
+    status:
+      type: enum
+      values_ref: reconciliation_status
+    resolution:
+      type: string
+      required: false
+    resolved_by:
+      type: string
+      format: uuid
+      required: false
+
+# ============================================================
+# SECTION 8 — EXECUTION RECEIPTS
+# ============================================================
+
+execution_receipt:
+  description: >
+    Immutable proof of payment execution.
+    Every completed rail operation produces a receipt.
+  constitutional_reference: PI-PAY-003
+
+  attributes:
+    receipt_id:
+      type: string
+      format: uuid
+      required: true
+      unique: true
+    payment_request_id:
+      type: string
+      format: uuid
+      required: true
+    execution_plan_id:
+      type: string
+      format: uuid
+      required: true
+    rail_used:
+      type: enum
+      values_ref: rail_type
+      required: true
+    rail_reference_id:
+      type: string
+      required: true
+      description: External system transaction identifier
+    amount_executed:
+      type: object
+      required: true
+      fields:
+        native_unit:
+          type: string
+          required: true
+        quantity:
+          type: decimal
+          precision: 18
+          required: false
+        face_value:
+          type: decimal
+          precision: 2
+          required: false
+    fees:
+      type: decimal
+      precision: 18
+      required: true
+    fx_rate:
+      type: decimal
+      precision: 8
+      required: false
+      description: Exchange rate if currency conversion occurred
+    execution_timeline:
+      type: array
+      items:
+        type: object
+        fields:
+          phase:
+            type: enum
+            values_ref: adapter_phase
+          started_at:
+            type: timestamp
+          completed_at:
+            type: timestamp
+          duration_ms:
+            type: integer
+      required: true
+    constitutional_compliance_attestation:
+      type: enum
+      values_ref: receipt_attestation
+      required: true
+    attestation_details:
+      type: array
+      items:
+        type: string
+      required: false
+      description: Invariant IDs verified during execution
+    projection_effect:
+      target: payment_receipt_view
+      operation: insert
+
+# ============================================================
+# SECTION 9 — COMMANDS
+# ============================================================
+
+commands:
+  payment.request.create:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Create a new payment request from a Treasury settlement instruction
+    issuer:
+      actor_types: [human, ai_agent, system]
+      minimum_capability: payment.request.create
+    authorization_requirements:
+      identity: required
+      capability: payment.request.create
+      scope: payment_request_id
+      policy: payment_creation_policy
+    validation_rules:
+      - rule: source_transfer_must_exist
+        check: treasury.transfer with source_transfer_id exists and state == AUTHORIZED
+        on_failure: REJECT
+      - rule: amount_must_match_transfer
+        check: amount == treasury.transfer.amount
+        on_failure: REJECT
+      - rule: urgency_must_be_valid
+        check: urgency in [IMMEDIATE, STANDARD, BATCH]
+        on_failure: REJECT
+      - rule: recipient_rail_ref_required
+        check: recipient.rail_account_ref is non-empty
+        on_failure: REJECT
+    required_payload:
+      - source_transfer_id
+      - amount
+      - sender
+      - recipient
+      - urgency
+      - retry_policy
+    resulting_events:
+      success: [payment.request.created]
+      failure: [payment.request.creation_failed]
+    failure_conditions:
+      - transfer_not_found
+      - amount_mismatch
+      - invalid_urgency
+      - missing_recipient
+      - policy_violation
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+
+  payment.request.cancel:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Cancel a payment request that has not yet been executed
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: payment.request.cancel
+    authorization_requirements:
+      identity: required
+      capability: payment.request.cancel
+      scope: payment_request_id
+      policy: payment_cancellation_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_cancellable
+        check: payment_request.state in [RECEIVED, PLANNING, ROUTING, PREPARING]
+        on_failure: REJECT
+      - rule: cancellation_reason_required
+        check: reason is non-empty string
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - reason
+    resulting_events:
+      success: [payment.request.cancelled]
+      failure: [payment.request.cancellation_failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_cancellable
+      - missing_reason
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+
+  payment.execution.plan:
+    aggregate: execution_plan
+    source_domain: payment
+    version: 1.0.0
+    description: Execute routing engine and create an execution plan for a payment request
+    issuer:
+      actor_types: [system]
+      minimum_capability: payment.execution.plan
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.plan
+      scope: payment_request_id
+      policy: payment_routing_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_planning_state
+        check: payment_request.state == PLANNING
+        on_failure: REJECT
+      - rule: at_least_one_rail_available
+        check: len(available_rails) > 0
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - available_rails
+      - treasury_state
+      - vault_state
+      - policy_constraints
+    resulting_events:
+      success: [payment.execution.planned]
+      failure: [payment.execution.planning_failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_in_planning
+      - no_rails_available
+      - routing_engine_error
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+
+  payment.execution.execute:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Execute the payment through the selected rail adapter
+    issuer:
+      actor_types: [system]
+      minimum_capability: payment.execution.execute
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.execute
+      scope: payment_request_id
+      policy: payment_execution_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_have_execution_plan
+        check: execution_plan_id is non-null and plan exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_executable_state
+        check: payment_request.state in [ROUTING, PREPARING]
+        on_failure: REJECT
+      - rule: adapter_must_be_registered
+        check: rail_adapter for selected_rail exists
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+    resulting_events:
+      success: [payment.execution.started]
+      failure: [payment.execution.start_failed]
+    failure_conditions:
+      - payment_not_found
+      - no_execution_plan
+      - payment_not_executable
+      - adapter_not_registered
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+
+  payment.execution.confirm:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Confirm settlement from an external rail
+    issuer:
+      actor_types: [system]
+      minimum_capability: payment.execution.confirm
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.confirm
+      scope: payment_request_id
+      policy: payment_confirmation_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_confirming_state
+        check: payment_request.state == CONFIRMING
+        on_failure: REJECT
+      - rule: rail_reference_required
+        check: rail_reference_id is non-empty
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - rail_reference_id
+      - confirmed
+      - confirmation_data
+    resulting_events:
+      success: [payment.execution.completed, payment.rail.confirmed]
+      failure: [payment.execution.confirmation_failed, payment.rail.failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_confirming
+      - missing_rail_reference
+      - confirmation_mismatch
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+
+  payment.execution.compensate:
+    aggregate: payment_request
+    source_domain: payment
+    version: 1.0.0
+    description: Initiate compensation for a failed payment
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: payment.execution.compensate
+    authorization_requirements:
+      identity: required
+      capability: payment.execution.compensate
+      scope: payment_request_id
+      policy: payment_compensation_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_compensatable_state
+        check: payment_request.state in [FAILED, EXECUTING]
+        on_failure: REJECT
+      - rule: compensation_reason_required
+        check: reason is non-empty string
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - reason
+    resulting_events:
+      success: [payment.compensation.started]
+      failure: [payment.compensation.start_failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_compensatable
+      - missing_reason
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+
+  payment.reconciliation.start:
+    aggregate: reconciliation
+    source_domain: payment
+    version: 1.0.0
+    description: Initiate a reconciliation process
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: payment.reconciliation.initiate
+    authorization_requirements:
+      identity: required
+      capability: payment.reconciliation.initiate
+      scope: payment_request_id
+      policy: payment_reconciliation_policy
+    validation_rules:
+      - rule: payment_must_exist
+        check: payment_request with payment_request_id exists
+        on_failure: REJECT
+      - rule: payment_must_be_in_reconcilable_state
+        check: payment_request.state in [CONFIRMING, RECONCILING, SETTLED]
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - trigger_type
+    resulting_events:
+      success: [payment.reconciliation.started]
+      failure: [payment.reconciliation.start_failed]
+    failure_conditions:
+      - payment_not_found
+      - payment_not_reconcilable
+      - reconciliation_already_active
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+
+  payment.reconciliation.complete:
+    aggregate: reconciliation
+    source_domain: payment
+    version: 1.0.0
+    description: Complete a reconciliation with results
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: payment.reconciliation.complete
+    authorization_requirements:
+      identity: required
+      capability: payment.reconciliation.complete
+      scope: reconciliation_id
+      policy: payment_reconciliation_policy
+    validation_rules:
+      - rule: reconciliation_must_exist
+        check: reconciliation with reconciliation_id exists
+        on_failure: REJECT
+      - rule: reconciliation_must_be_active
+        check: reconciliation.status == ACTIVE
+        on_failure: REJECT
+    required_payload:
+      - reconciliation_id
+      - status
+      - matched
+      - discrepancy_details
+    resulting_events:
+      success: [payment.reconciliation.completed]
+      failure: [payment.reconciliation.completion_failed]
+    failure_conditions:
+      - reconciliation_not_found
+      - reconciliation_not_active
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+
+  payment.receipt.issue:
+    aggregate: execution_receipt
+    source_domain: payment
+    version: 1.0.0
+    description: Issue an execution receipt for a completed payment
+    issuer:
+      actor_types: [system]
+      minimum_capability: payment.receipt.issue
+    authorization_requirements:
+      identity: required
+      capability: payment.receipt.issue
+      scope: payment_request_id
+      policy: payment_receipt_policy
+    validation_rules:
+      - rule: payment_must_be_settled
+        check: payment_request.state == SETTLED
+        on_failure: REJECT
+      - rule: rail_reference_required
+        check: rail_reference_id is non-empty
+        on_failure: REJECT
+      - rule: no_duplicate_receipt
+        check: no existing receipt for this payment_request_id
+        on_failure: REJECT
+    required_payload:
+      - payment_request_id
+      - rail_reference_id
+      - amount_executed
+      - fees
+      - execution_timeline
+      - constitutional_compliance_attestation
+    resulting_events:
+      success: [payment.receipt.issued]
+      failure: [payment.receipt.issuance_failed]
+    failure_conditions:
+      - payment_not_settled
+      - missing_rail_reference
+      - duplicate_receipt
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      authority_required: true
+
+# ============================================================
+# SECTION 10 — EVENTS
+# ============================================================
+
+events:
+  payment.request.created:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: payment_service
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    guarantees:
+      - payment_request_id is globally unique
+      - source_transfer_id references existing treasury.transfer
+      - amount matches treasury.transfer amount
+    projection_effect:
+      target: payment_status_view
+      operation: insert
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      source_transfer_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type, required: false }
+      amount: { type: object }
+      urgency: { type: enum, values_ref: payment_urgency }
+      state: { type: enum, values_ref: payment_state }
+
+  payment.request.cancelled:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: payment_service
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    guarantees:
+      - payment_request.state was in a cancellable state
+      - No adapter execution was in progress
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      reason: { type: string }
+      cancelled_by: { type: string, format: uuid }
+      state: { type: enum, values: [CANCELLED] }
+
+  payment.execution.planned:
+    aggregate: execution_plan
+    aggregate_id_field: execution_plan_id
+    source_domain: payment
+    version: 1.0.0
+    producer: routing_engine
+    consumers: [payment_projection, audit_projection]
+    guarantees:
+      - Routing was deterministic
+      - Selected rail is compatible with asset type
+      - All evaluation criteria were scored
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      execution_plan_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      selected_rail: { type: enum, values_ref: rail_type }
+      confidence_score: { type: decimal, precision: 4 }
+      estimated_settlement_time_ms: { type: integer }
+      compensation_strategy: { type: string }
+
+  payment.execution.started:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection]
+    guarantees:
+      - Execution plan was approved
+      - Adapter was registered
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type }
+      adapter_phase: { type: enum, values: [EXECUTE] }
+
+  payment.execution.completed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, treasury_projection, receipt_service]
+    guarantees:
+      - Rail adapter returned confirmed: true
+      - Rail reference ID was captured
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type }
+      rail_reference_id: { type: string }
+      actual_amount: { type: decimal, precision: 18 }
+      fees: { type: decimal, precision: 18 }
+      state: { type: enum, values: [RECONCILING] }
+
+  payment.execution.failed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, escalation_service]
+    guarantees:
+      - Failure reason was captured
+      - Compensation may be required
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type }
+      failure_reason: { type: string }
+      failure_phase: { type: enum, values_ref: adapter_phase }
+      retryable: { type: boolean }
+      state: { type: enum, values: [FAILED] }
+
+  payment.rail.prepared:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    guarantees:
+      - Adapter did not mutate constitutional state
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type }
+      rail_preparation_id: { type: string }
+      rail_metadata: { type: object, required: false }
+
+  payment.rail.executed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection]
+    guarantees:
+      - Adapter did not mutate constitutional state
+      - Rail execution ID was captured
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type }
+      rail_execution_id: { type: string }
+      rail_reference_id: { type: string, required: false }
+      submitted_at: { type: timestamp }
+
+  payment.rail.confirmed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    guarantees:
+      - External system confirmed the transaction
+      - Actual amount matches or discrepancy was flagged
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type }
+      rail_reference_id: { type: string }
+      confirmed_amount: { type: decimal, precision: 18 }
+      fees: { type: decimal, precision: 18 }
+      fx_rate: { type: decimal, precision: 8, required: false }
+
+  payment.rail.failed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: rail_adapter
+    consumers: [payment_projection, audit_projection, escalation_service]
+    guarantees:
+      - Failure was captured without data loss
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type }
+      rail_execution_id: { type: string }
+      error_code: { type: string }
+      error_message: { type: string }
+      retryable: { type: boolean }
+
+  payment.reconciliation.started:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: payment
+    version: 1.0.0
+    producer: reconciliation_service
+    consumers: [payment_projection, audit_projection, governance_projection]
+    projection_effect:
+      target: reconciliation_view
+      operation: insert
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type }
+      trigger_type: { type: enum, values_ref: reconciliation_trigger }
+
+  payment.reconciliation.completed:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: payment
+    version: 1.0.0
+    producer: reconciliation_service
+    consumers: [payment_projection, audit_projection, governance_projection]
+    projection_effect:
+      target: reconciliation_view
+      operation: update
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      status: { type: enum, values_ref: reconciliation_status }
+      matched: { type: boolean }
+      discrepancy_amount: { type: decimal, precision: 18, required: false }
+      resolved_by: { type: string, format: uuid, required: false }
+
+  payment.reconciliation.discrepancy:
+    aggregate: reconciliation
+    aggregate_id_field: reconciliation_id
+    source_domain: payment
+    version: 1.0.0
+    producer: reconciliation_service
+    consumers: [payment_projection, audit_projection, escalation_service, governance_projection]
+    projection_effect:
+      target: reconciliation_view
+      operation: update
+    data_fields:
+      reconciliation_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      expected_amount: { type: decimal, precision: 18 }
+      actual_amount: { type: decimal, precision: 18 }
+      discrepancy_amount: { type: decimal, precision: 18 }
+      severity: { type: enum, values: [LOW, MEDIUM, HIGH, CRITICAL] }
+
+  payment.receipt.issued:
+    aggregate: execution_receipt
+    aggregate_id_field: receipt_id
+    source_domain: payment
+    version: 1.0.0
+    producer: receipt_service
+    consumers: [payment_projection, audit_projection, compliance_projection]
+    guarantees:
+      - Payment was in SETTLED state
+      - All constitutional gates were passed
+    projection_effect:
+      target: receipt_view
+      operation: insert
+    data_fields:
+      receipt_id: { type: string, format: uuid }
+      payment_request_id: { type: string, format: uuid }
+      rail_type: { type: enum, values_ref: rail_type }
+      rail_reference_id: { type: string }
+      amount_executed: { type: object }
+      fees: { type: decimal, precision: 18 }
+      constitutional_compliance_attestation: { type: enum, values_ref: receipt_attestation }
+
+  payment.compensation.started:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      reason: { type: string }
+      compensation_strategy: { type: string }
+      state: { type: enum, values: [COMPENSATING] }
+
+  payment.compensation.completed:
+    aggregate: payment_request
+    aggregate_id_field: payment_request_id
+    source_domain: payment
+    version: 1.0.0
+    producer: settlement_coordinator
+    consumers: [payment_projection, audit_projection, treasury_projection]
+    projection_effect:
+      target: payment_status_view
+      operation: update
+    data_fields:
+      payment_request_id: { type: string, format: uuid }
+      reversal_rail_reference_id: { type: string, required: false }
+      state: { type: enum, values: [REVERSED] }
+
+# ============================================================
+# SECTION 11 — STATE MACHINES
+# ============================================================
+
+state_machines:
+  payment_request_lifecycle:
+    domain: payment
+    aggregate: payment_request
+    initial_state: RECEIVED
+    final_states: [SETTLED, REVERSED, CANCELLED]
+    description: >
+      Manages the full lifecycle of a payment request from receipt
+      through routing, execution, confirmation, reconciliation, to settlement.
+
+    states:
+      RECEIVED:
+        description: Payment request has been created and is awaiting planning
+        allowed_commands:
+          - payment.execution.plan
+          - payment.request.cancel
+        timeout_ms: null
+        entry_actions: []
+        exit_actions: []
+
+      PLANNING:
+        description: Routing engine is evaluating available rails
+        allowed_commands:
+          - payment.request.cancel
+        timeout_ms: 30000
+        timeout_transition: FAILED
+        timeout_action: emit payment.execution.planning_failed
+        entry_actions:
+          - emit payment.request.state_changed
+        exit_actions: []
+
+      ROUTING:
+        description: Execution plan has been created, rail selected
+        allowed_commands:
+          - payment.execution.execute
+          - payment.request.cancel
+        timeout_ms: 15000
+        timeout_transition: FAILED
+        timeout_action: emit payment.execution.start_failed
+        entry_actions:
+          - emit payment.execution.planned
+        exit_actions: []
+
+      PREPARING:
+        description: Rail adapter is preparing the transaction
+        allowed_commands:
+          - payment.execution.execute
+        timeout_ms: 30000
+        timeout_transition: FAILED
+        timeout_action: emit payment.rail.prepare_timed_out
+        entry_actions:
+          - emit payment.rail.preparing
+        exit_actions: []
+
+      EXECUTING:
+        description: Rail adapter is executing the transaction
+        allowed_commands:
+          - payment.execution.confirm
+          - payment.execution.compensate
+        timeout_ms: 300000
+        timeout_transition: FAILED
+        timeout_action: emit payment.rail.execution_timed_out
+        entry_actions:
+          - emit payment.execution.started
+          - emit payment.rail.executing
+        exit_actions: []
+
+      CONFIRMING:
+        description: Awaiting confirmation from external rail
+        allowed_commands:
+          - payment.execution.confirm
+          - payment.reconciliation.start
+          - payment.execution.compensate
+        timeout_ms: 86400000
+        timeout_transition: FAILED
+        timeout_action: emit payment.rail.confirmation_timed_out
+        entry_actions:
+          - emit payment.rail.confirming
+        exit_actions: []
+
+      RECONCILING:
+        description: Comparing external settlement with internal records
+        allowed_commands:
+          - payment.reconciliation.complete
+          - payment.receipt.issue
+        timeout_ms: 172800000
+        timeout_transition: SETTLED
+        timeout_action: emit payment.reconciliation.timed_out
+        entry_actions:
+          - emit payment.execution.completed
+        exit_actions: []
+
+      SETTLED:
+        description: Payment is fully settled and receipted
+        allowed_commands:
+          - payment.receipt.issue
+        timeout_ms: null
+        entry_actions:
+          - emit payment.rail.confirmed
+        exit_actions: []
+
+      FAILED:
+        description: Payment failed at some stage
+        allowed_commands:
+          - payment.execution.compensate
+        timeout_ms: null
+        entry_actions:
+          - emit payment.execution.failed
+        exit_actions: []
+
+      COMPENSATING:
+        description: Compensation is in progress
+        allowed_commands: []
+        timeout_ms: 300000
+        timeout_transition: FAILED
+        timeout_action: emit payment.compensation.timed_out
+        entry_actions:
+          - emit payment.compensation.started
+        exit_actions: []
+
+      REVERSED:
+        description: Payment has been fully reversed through compensation
+        allowed_commands: []
+        timeout_ms: null
+        entry_actions:
+          - emit payment.compensation.completed
+        exit_actions: []
+
+      CANCELLED:
+        description: Payment was cancelled before execution
+        allowed_commands: []
+        timeout_ms: null
+        entry_actions:
+          - emit payment.request.cancelled
+        exit_actions: []
+
+    transitions:
+      - from: RECEIVED
+        to: PLANNING
+        command: payment.execution.plan
+        guard: execution_plan_does_not_exist
+      - from: RECEIVED
+        to: CANCELLED
+        command: payment.request.cancel
+      - from: PLANNING
+        to: ROUTING
+        event: payment.execution.planned
+        guard: plan_approved
+      - from: PLANNING
+        to: FAILED
+        event: payment.execution.planning_failed
+      - from: PLANNING
+        to: CANCELLED
+        command: payment.request.cancel
+      - from: ROUTING
+        to: PREPARING
+        command: payment.execution.execute
+        guard: adapter_registered
+      - from: ROUTING
+        to: FAILED
+        event: payment.execution.start_failed
+      - from: ROUTING
+        to: CANCELLED
+        command: payment.request.cancel
+      - from: PREPARING
+        to: EXECUTING
+        event: payment.rail.prepared
+        guard: preparation_successful
+      - from: PREPARING
+        to: FAILED
+        event: payment.rail.prepare_timed_out
+      - from: EXECUTING
+        to: CONFIRMING
+        event: payment.rail.executed
+        guard: execution_submitted
+      - from: EXECUTING
+        to: FAILED
+        event: payment.rail.execution_timed_out
+      - from: EXECUTING
+        to: FAILED
+        event: payment.rail.failed
+        guard: not_retryable
+      - from: EXECUTING
+        to: COMPENSATING
+        command: payment.execution.compensate
+      - from: CONFIRMING
+        to: RECONCILING
+        event: payment.rail.confirmed
+        guard: confirmation_positive
+      - from: CONFIRMING
+        to: FAILED
+        event: payment.rail.failed
+      - from: CONFIRMING
+        to: COMPENSATING
+        command: payment.execution.compensate
+      - from: RECONCILING
+        to: SETTLED
+        event: payment.reconciliation.completed
+        guard: reconciliation_matched
+      - from: RECONCILING
+        to: SETTLED
+        command: payment.receipt.issue
+        guard: reconciliation_bypassed
+      - from: FAILED
+        to: COMPENSATING
+        command: payment.execution.compensate
+      - from: COMPENSATING
+        to: REVERSED
+        event: payment.compensation.completed
+        guard: compensation_successful
+
+# ============================================================
+# SECTION 12 — SECURITY PROHIBITIONS
+# ============================================================
+
+security_prohibitions:
+  - id: PAY-SEC-001
+    rule: ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE
+    description: No rail adapter may write to the event store, ledger, vault, identity, policy, or any constitutional data structure
+    enforcement_point: adapter_sandbox
+    violation_action: terminate_adapter_and_audit
+    constitutional_reference: INV-005, INV-010
+
+  - id: PAY-SEC-002
+    rule: NO_4_GATE_BYPASS
+    description: No adapter, rail, or external system may bypass the identity-capability-scope-policy gate pipeline
+    enforcement_point: command_bus
+    violation_action: reject_and_halt
+    constitutional_reference: INV-008
+
+  - id: PAY-SEC-003
+    rule: NO_TRUST_WITHOUT_CONFIRMATION
+    description: External system responses are advisory until confirmed through the adapter confirm() interface
+    enforcement_point: settlement_coordinator
+    violation_action: mark_unknown_and_escalate
+    constitutional_reference: INV-009
+
+  - id: PAY-SEC-004
+    rule: ALL_ADAPTER_EVENTS_REQUIRE_RAIL_REFERENCE
+    description: Every event emitted by a rail adapter must include the rail_reference_id for external traceability
+    enforcement_point: event_publisher
+    violation_action: reject_event
+    constitutional_reference: INV-005
+
+  - id: PAY-SEC-005
+    rule: NO_CASH_MOVEMENT_WITHOUT_RECEIPT
+    description: No value may leave the system through any rail without producing an ExecutionReceipt
+    enforcement_point: receipt_service
+    violation_action: block_subsequent_operations
+    constitutional_reference: INV-005, PI-PAY-003
+
+# ============================================================
+# SECTION 13 — CROSS-DOMAIN DEPENDENCIES
+# ============================================================
+
+cross_domain_dependencies:
+  consumes:
+    - domain: treasury
+      interface: settlement_instructions
+      contract_ref: treasury_to_payment
+      description: Payment receives settlement instructions from Treasury
+    - domain: vault
+      interface: asset_confirmation
+      contract_ref: vault_to_payment
+      description: Payment confirms asset existence and state with Vault
+    - domain: policy
+      interface: execution_permission
+      contract_ref: policy_to_payment
+      description: Payment requires policy authorization for every rail operation
+    - domain: identity
+      interface: actor_authentication
+      contract_ref: identity_to_payment
+      description: Payment requires identity context for every operation
+  produces:
+    - artifact: execution_receipts
+      consumers: [audit, governance, treasury, compliance]
+    - artifact: reconciliation_results
+      consumers: [audit, governance, treasury]
+    - artifact: settlement_confirmations
+      consumers: [treasury, ledger]
+    - artifact: rail_events
+      consumers: [audit, reconciliation, governance]
+  saga_participation:
+    - saga: payment_execution_saga
+      role: primary_executor
+      compensation: adapter_compensate_then_treasury_reverse

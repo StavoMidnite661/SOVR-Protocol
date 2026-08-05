@@ -1,0 +1,163 @@
+# SOVR Representation Domain  
+# Version: 1.0.0  
+# Constitutional Authority: SOVR_CANONICAL_ARCHITECTURE_v1.md  
+# Priority: 6 — Output interface only. Not money creator.  
+  
+domain:  
+  name: representation  
+  version: "1.0.0"  
+  status: ACTIVE  
+  priority: 6  
+  constitutional_rule: >  
+    No programmable representation may exist without  
+    verifiable evidence provenance. SVU is a Settlement  
+    Value Unit. It is a representation adapter only.  
+    It is not a money creator. It is not a currency.  
+    It is not a deposit. Every SVU traces to a certified  
+    evidence package which traces to a ledger transfer  
+    which traces to a commercial obligation.  
+  
+  purpose: >  
+    SVU contract, payment instruments, blockchain adapters.  
+    The output interface layer. Represents finalized  
+    settlement states as programmable instruments.  
+    Optional at genesis. The infrastructure proof does  
+    not require the token. The token requires the  
+    infrastructure proof.  
+  
+  depends_on:  
+    - ledger  
+    - certification  
+  
+  svu_definition:  
+    full_name: Settlement Value Unit  
+    symbol: SVU  
+    decimals: 2  
+    description: >  
+      A programmable representation of a finalized  
+      commercial settlement obligation, created only  
+      after verified authorization, ledger confirmation,  
+      and evidence generation.  
+    role: Representation adapter. Interface layer only.  
+    not:  
+      - money  
+      - currency  
+      - deposit  
+      - stablecoin  
+      - security  
+  
+  required_provenance:  
+    every_svu_must_reference:  
+      - commercial_record_id: bytes32  
+      - settlement_id: bytes32  
+      - settlement_package_hash: bytes32  
+      - tigerbeetle_transfer_id: bytes32  
+      - attestation_record_id: bytes32  
+  
+  issuance_controls:  
+    authority_type: multisig  
+    threshold: "2-of-3"  
+    signers:  
+      - role: TREASURY_OPERATOR  
+        key_type: hot  
+        domain_reference: identity/roles/TREASURY_OPERATOR  
+      - role: INDEPENDENT_AUDITOR  
+        key_type: cold  
+        domain_reference: identity/roles/INDEPENDENT_AUDITOR  
+      - role: GOVERNANCE_AUTHORITY  
+        key_type: deep_cold  
+        domain_reference: identity/roles/GOVERNANCE_AUTHORITY  
+  
+  issuance_requirements:  
+    all_must_be_true:  
+      - commercial_record_exists: true  
+      - obligation_validated: true  
+      - settlement_authorized: true  
+      - settlement_finalized: true  
+      - ledger_state_confirmed: true  
+      - evidence_package_generated: true  
+      - attestation_signed: true  
+      - total_supply_plus_amount_lte_reserve_cap: true  
+  
+  reserve_controls:  
+    reserve_cap:  
+      description: >  
+        Maximum SVU supply equals verified reserve.  
+        Enforced on-chain. Cannot be exceeded.  
+      controlled_by: treasury_multisig  
+      update_requires: multisig_2_of_3  
+  
+    last_reserve_proof:  
+      description: >  
+        SHA-256 of most recent reserve certificate.  
+        Stored on-chain. Publicly verifiable.  
+      algorithm: SHA-256  
+      update_requires: multisig_2_of_3  
+  
+  contract_specification:  
+    name: SOVRSettlementValueUnit  
+    standard: ERC20  
+    network: Base Mainnet  
+    chain_agnostic_spec: true  
+    state_variables:  
+      - reserveCap: uint256  
+      - lastReserveProof: bytes32  
+      - commercialRecordId: bytes32  
+      - settlementPackageHash: bytes32  
+    ledger_event_mapping:  
+      storage: "mapping(bytes32 => LedgerEvent)"  
+      struct_fields:  
+        - tigerBeetleTransferId: bytes32  
+        - amountCents: uint256  
+        - timestamp: uint256  
+        - recipient: address  
+        - commercialRecordId: bytes32  
+        - settlementPackageHash: bytes32  
+        - finalized: bool  
+  
+  events:  
+    - name: SVUMintAuthorized  
+      description: Multisig authorized SVU mint  
+      required_fields:  
+        - authorization_id  
+        - settlement_id  
+        - amount_cents  
+        - authorized_by  
+        - timestamp  
+  
+    - name: SVUIssued  
+      description: >  
+        SVU tokens minted with full provenance chain.  
+      required_fields:  
+        - mint_id  
+        - recipient  
+        - amount_cents  
+        - commercial_record_id  
+        - settlement_id  
+        - settlement_package_hash  
+        - tigerbeetle_transfer_id  
+        - attestation_id  
+        - blockchain_tx_hash  
+        - timestamp  
+  
+    - name: SVURedeemed  
+      description: SVU redeemed against settlement obligation  
+      required_fields:  
+        - redemption_id  
+        - from_address  
+        - amount_cents  
+        - settlement_reference  
+        - timestamp  
+  
+    - name: SVUBurned  
+      description: SVU destroyed with full audit trail  
+      required_fields:  
+        - burn_id  
+        - from_address  
+        - amount_cents  
+        - reason  
+        - ledger_reference  
+        - timestamp  
+  
+  document_id: SOVR-DOM-REPRESENTATION-001  
+  sha256: "[computed at commit]"  

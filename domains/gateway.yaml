@@ -1,0 +1,166 @@
+# SOVR Gateway Domain  
+# Version: 1.0.0  
+# Constitutional Authority: SOVR_CANONICAL_ARCHITECTURE_v1.md  
+# Priority: 7 — Public verification layer.  
+  
+domain:  
+  name: gateway  
+  version: "1.0.0"  
+  status: ACTIVE  
+  priority: 7  
+  constitutional_rule: >  
+    The gateway exists to make the entire constitutional  
+    chain of custody independently verifiable. Any party  
+    must be able to traverse from SVU token back to  
+    commercial record without SOVR permission. If the  
+    chain cannot be traversed here, the architecture  
+    has failed.  
+  
+  purpose: >  
+    Core Gateway Explorer, partner portal, audit interface.  
+    Public verification layer. Exposes commercial records,  
+    settlement timelines, ledger proofs, evidence packages,  
+    attestations, and representations. Independent  
+    verification without SOVR intermediation.  
+  
+  depends_on:  
+    - certification  
+    - representation  
+  
+  repository: >  
+    https://github.com/StavoMidnite661/SOVR-Core-Gateway-Explorer  
+  
+  views:  
+  
+    - name: CommercialRecordViewer  
+      route: /commercial/{obligation_id}  
+      description: >  
+        Displays commercial obligation details.  
+        Origin record for all downstream artifacts.  
+      displays:  
+        - obligation_id  
+        - counterparty  
+        - obligation_type  
+        - amount  
+        - status  
+        - authorization_reference  
+        - source_document_hash  
+        - downstream_settlement_references  
+  
+    - name: SettlementTimeline  
+      route: /settlement/{settlement_id}  
+      description: >  
+        Full timeline of settlement lifecycle events.  
+        From commercial record through SVU issuance.  
+      displays:  
+        - settlement_id  
+        - commercial_obligation_id  
+        - counterparty  
+        - amount  
+        - status  
+        - event_timeline  
+        - ledger_reference  
+        - evidence_package_reference  
+        - attestation_reference  
+        - svu_reference  
+  
+    - name: LedgerProofViewer  
+      route: /ledger/{transfer_id}  
+      description: >  
+        TigerBeetle transfer details. Accounting truth.  
+      displays:  
+        - transfer_id  
+        - debit_account  
+        - credit_account  
+        - amount_cents  
+        - settlement_reference  
+        - timestamp  
+        - equation_status  
+  
+    - name: EvidencePackageViewer  
+      route: /evidence/{package_id}  
+      description: >  
+        Full JDE evidence package with document list,  
+        hashes, manifest verification, signature check.  
+      displays:  
+        - package_id  
+        - settlement_id  
+        - commercial_obligation_id  
+        - document_count  
+        - documents_with_hashes  
+        - manifest_hash  
+        - manifest_verified  
+        - package_hash  
+        - signature_verified  
+        - storage_uri  
+      actions:  
+        - Download Full Package  
+        - Verify Integrity  
+        - Export JDE Package  
+        - View Individual Document  
+  
+    - name: AttestationViewer  
+      route: /attestation/{attestation_id}  
+      description: >  
+        Attestation record with verification results  
+        and signature proof.  
+      displays:  
+        - attestation_id  
+        - settlement_id  
+        - package_id  
+        - verification_results  
+        - attestor  
+        - signature  
+        - signature_verified  
+        - timestamp  
+  
+    - name: RepresentationViewer  
+      route: /svu/{mint_id}  
+      description: >  
+        SVU issuance record with full provenance chain.  
+      displays:  
+        - mint_id  
+        - recipient  
+        - amount_cents  
+        - commercial_record_id  
+        - settlement_id  
+        - settlement_package_hash  
+        - tigerbeetle_transfer_id  
+        - attestation_id  
+        - blockchain_tx_hash  
+  
+    - name: PartnerPortal  
+      route: /partner/{entity_id}  
+      description: >  
+        Partner-specific view of their commercial  
+        obligations, settlement history, evidence  
+        packages, and verification status.  
+      access: authenticated_partner  
+      displays:  
+        - entity_profile  
+        - obligation_history  
+        - settlement_history  
+        - evidence_packages  
+        - verification_status  
+  
+  provenance_traversal:  
+    description: >  
+      The test of the entire system. Starting from any  
+      artifact, a reviewer must be able to traverse  
+      the full chain.  
+    traversal_path:  
+      - SVU token  
+      - → Mint event with embedded references  
+      - → Attestation record SOVR-ATT-{n}  
+      - → Evidence package SOVR-PKG-{n}  
+      - → Settlement event SOVR-SETTLEMENT-{n}  
+      - → TigerBeetle transfer {uint128}  
+      - → Commercial obligation SOVR-OBL-{n}  
+      - → Source document SHA-256  
+      - → Counterparty identity record  
+    test: >  
+      If any link in this chain cannot be produced,  
+      the build is not complete.  
+  
+  document_id: SOVR-DOM-GATEWAY-001  
+  sha256: "[computed at commit]"  

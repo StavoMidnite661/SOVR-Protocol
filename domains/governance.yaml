@@ -1,0 +1,931 @@
+# ============================================================
+# SOVR Financial OS — Governance Domain Specification
+# File: domains/governance.yaml
+# Status: FROZEN
+# Build Phase: E
+# Domain Priority: 8 (Constitutional Oversight)
+# ============================================================
+# Governance is the Constitutional Oversight Domain.
+# It is the highest authority in the SOVR system, bound by
+# the same 10 constitutional invariants as all other actors.
+#
+# Governance answers: "Who oversees the system?"
+#
+# Governance is the ONLY authority that may:
+#   - Amend the constitution
+#   - Modify policies
+#   - Grant/revoke capabilities
+#   - Override agent decisions
+#   - Issue emergency halt
+#   - Approve constitutional boundary changes
+#
+# Constitutional references:
+#   INV-003: No actor may exceed granted authority
+#   INV-004: No agent may create, grant, or modify financial authority
+#   INV-005: Every financial action must produce an auditable event trail
+#   INV-008: No command executes without identity, capability, scope, and policy validation
+#   INV-009: Unknown financial states must be represented explicitly
+#   INV-010: No autonomous agent may bypass constitutional enforcement
+# ============================================================
+
+domain:
+  name: governance
+  version: 1.0.0
+  description: >
+    The Constitutional Oversight Domain. Manages constitutional amendments,
+    policy governance, capability grants and revocations, emergency authority,
+    agent oversight, audit review, escalation resolution, and regulatory
+    compliance tracking. Governance is the highest authority in the system
+    and is itself bound by the 10 constitutional invariants.
+  constitutional_references:
+    invariants: [INV-003, INV-004, INV-005, INV-008, INV-009, INV-010]
+    conflict_resolution_rank: 1  # invariant_preservation
+
+  production_invariants:
+    - id: GOV-001
+      rule: Governance SHALL NOT modify immutable events
+      enforcement: no command produces events that alter existing event store entries
+      violation: constitutional_violation
+      constitutional_reference: INV-001
+
+    - id: GOV-002
+      rule: Governance SHALL NOT bypass double-entry accounting
+      enforcement: all financial governance actions produce balanced journal entries via Ledger
+      violation: constitutional_violation
+      constitutional_reference: INV-002
+
+    - id: GOV-003
+      rule: Governance SHALL NOT grant unscoped capabilities
+      enforcement: all capability grants require explicit scope_pattern and resource_type
+      violation: constitutional_violation
+      constitutional_reference: INV-003
+
+    - id: GOV-004
+      rule: Governance actions SHALL NOT bypass the 4-gate command pipeline
+      enforcement: every governance command passes through identity, capability, scope, policy gates
+      violation: constitutional_violation
+      constitutional_reference: INV-008
+
+    - id: GOV-005
+      rule: Emergency powers SHALL expire automatically after 24 hours
+      enforcement: emergency_halt state machine has mandatory 24h timeout
+      violation: constitutional_violation
+      constitutional_reference: INV-009
+
+    - id: GOV-006
+      rule: Constitutional amendments require unanimous oversight committee
+      enforcement: amendment state machine requires unanimous quorum
+      violation: reject_command
+      constitutional_reference: INV-008
+
+# ============================================================
+# SECTION 1 — GOVERNANCE STRUCTURE
+# ============================================================
+# Defines the three governance bodies and their authority.
+# ============================================================
+
+governance_structure:
+
+  oversight_committee:
+    description: Human governance body with ultimate constitutional authority
+    authority:
+      - constitutional_amendment_proposal
+      - policy_creation_and_modification
+      - agent_capability_grant_and_revocation
+      - emergency_system_halt
+      - audit_review_and_investigation
+      - boundary_system_approval
+    quorum_required: majority
+    for_constitutional_changes: unanimous
+
+  operational_governance:
+    description: Day-to-day governance decisions that do not require constitutional changes
+    authority:
+      - policy_parameter_adjustment
+      - agent_limit_modification
+      - escalation_resolution
+      - incident_response
+    quorum_required: single_authorized_governor
+    audit_requirement: all_actions_logged
+
+  emergency_powers:
+    description: Extraordinary authority available during system emergencies
+    trigger_conditions:
+      - active_breach_detected
+      - asset_integrity_compromised
+      - regulatory_mandate_requiring_immediate_action
+    authority:
+      - immediate_system_halt
+      - temporary_capability_suspension
+      - targeted_transaction_blocking
+    activation_requires: two_governors_concurrent
+    duration_limit: 24_hours
+    mandatory_post_action_review: true
+    review_deadline: 72_hours_after_activation
+
+# ============================================================
+# SECTION 2 — GOVERNANCE ENTITIES
+# ============================================================
+
+entities:
+
+  governance_proposal:
+    description: A proposed governance action requiring review and approval
+    attributes:
+      proposal_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      proposal_type:
+        type: enum
+        values: [CONSTITUTIONAL_AMENDMENT, POLICY_RULE_CREATE, POLICY_RULE_MODIFY, CAPABILITY_GRANT, CAPABILITY_REVOKE, AGENT_APPROVAL, AGENT_OVERRIDE, BOUNDARY_SYSTEM_APPROVAL, EMERGENCY_HALT, AUDIT_INVESTIGATION]
+        required: true
+      title:
+        type: string
+        required: true
+        description: Short descriptive title
+      description:
+        type: string
+        required: true
+        description: Full description of the proposed action
+      proposed_by:
+        type: string
+        format: uuid
+        required: true
+        references: identity.actor.identity_id
+      target_domain:
+        type: enum
+        values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, GOVERNANCE, SYSTEM]
+        required: true
+      target_resource_id:
+        type: string
+        format: uuid
+        required: false
+      payload:
+        type: object
+        required: true
+        description: Proposed changes or actions
+      required_approvals:
+        type: integer
+        required: true
+        description: Number of approvals required
+      current_approvals:
+        type: integer
+        required: true
+        default: 0
+      approval_threshold:
+        type: enum
+        values: [SINGLE, MAJORITY, UNANIMOUS]
+        required: true
+      state:
+        type: enum
+        values: [DRAFT, PENDING_REVIEW, APPROVED, REJECTED, EXPIRED, IMPLEMENTED, CANCELLED]
+        required: true
+      expires_at:
+        type: timestamp
+        required: true
+      implemented_at:
+        type: timestamp
+        required: false
+      created_at:
+        type: timestamp
+        required: true
+
+  governance_amendment:
+    description: A proposed change to the constitutional framework
+    attributes:
+      amendment_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      amendment_number:
+        type: string
+        required: true
+        unique: true
+        description: Sequential amendment identifier
+      title:
+        type: string
+        required: true
+      description:
+        type: string
+        required: true
+      section:
+        type: enum
+        values: [INVARIANTS, CONFLICT_RESOLUTION, AUTHORITY_MODEL, FINANCIAL_INTEGRITY, AGENT_GOVERNANCE, GOVERNANCE_STRUCTURE, RUNTIME_ENFORCEMENT, PROTECTED_ARTICLES]
+        required: true
+      current_text:
+        type: string
+        required: true
+        description: Current constitutional text
+      proposed_text:
+        type: string
+        required: true
+        description: Proposed replacement text
+      rationale:
+        type: string
+        required: true
+      proposed_by:
+        type: string
+        format: uuid
+        required: true
+        references: identity.actor.identity_id
+      co_signers:
+        type: array
+        items:
+          type: string
+          format: uuid
+        required: false
+      required_quorum:
+        type: enum
+        values: [MAJORITY, UNANIMOUS]
+        required: true
+      current_votes:
+        type: object
+        required: true
+        description: Map of voter_id -> vote (APPROVE/REJECT/ABSTAIN)
+      state:
+        type: enum
+        values: [PROPOSED, UNDER_REVIEW, VOTING, APPROVED, REJECTED, RATIFIED, EXPIRED]
+        required: true
+      voting_ends_at:
+        type: timestamp
+        required: true
+      ratified_at:
+        type: timestamp
+        required: false
+      created_at:
+        type: timestamp
+        required: true
+
+  governance_override:
+    description: A governance override of an agent decision or system behavior
+    attributes:
+      override_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      override_type:
+        type: enum
+        values: [AGENT_DECISION_OVERRIDE, POLICY_EXCEPTION, CAPABILITY_SUSPENSION, TRANSACTION_BLOCK, EMERGENCY_HALT]
+        required: true
+      target_type:
+        type: enum
+        values: [AGENT, POLICY_RULE, CAPABILITY, TRANSACTION, SYSTEM]
+        required: true
+      target_id:
+        type: string
+        format: uuid
+        required: true
+      reason:
+        type: string
+        required: true
+      evidence_refs:
+        type: array
+        items:
+          type: string
+          format: uuid
+        required: false
+        description: References to audit events or evidence
+      issued_by:
+        type: string
+        format: uuid
+        required: true
+        references: identity.actor.identity_id
+      effective_from:
+        type: timestamp
+        required: true
+      expires_at:
+        type: timestamp
+        required: false
+      lifted_at:
+        type: timestamp
+        required: false
+      state:
+        type: enum
+        values: [ACTIVE, EXPIRED, LIFTED, CANCELLED]
+        required: true
+      created_at:
+        type: timestamp
+        required: true
+
+  emergency_halt:
+    description: A record of an emergency system halt
+    attributes:
+      halt_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      triggered_by:
+        type: string
+        format: uuid
+        required: true
+        references: identity.actor.identity_id
+      co_triggered_by:
+        type: string
+        format: uuid
+        required: false
+        references: identity.actor.identity_id
+      trigger_reason:
+        type: enum
+        values: [ACTIVE_BREACH, ASSET_INTEGRITY_COMPROMISED, REGULATORY_MANDATE, SYSTEMIC_FAILURE]
+        required: true
+      description:
+        type: string
+        required: true
+      affected_domains:
+        type: array
+        items:
+          type: enum
+          values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, ALL]
+        required: true
+      state:
+        type: enum
+        values: [ACTIVE, PARTIALLY_LIFTED, LIFTED, EXPIRED]
+        required: true
+      initiated_at:
+        type: timestamp
+        required: true
+      expires_at:
+        type: timestamp
+        required: true
+        description: 24 hours from initiated_at
+      lifted_at:
+        type: timestamp
+        required: false
+      post_action_review_required:
+        type: boolean
+        required: true
+        default: true
+      post_action_review_completed:
+        type: boolean
+        required: true
+        default: false
+      post_action_review_at:
+        type: timestamp
+        required: false
+
+  audit_record:
+    description: A governance-initiated audit record
+    attributes:
+      audit_id:
+        type: string
+        format: uuid
+        required: true
+        unique: true
+      audit_type:
+        type: enum
+        values: [ROUTINE, INVESTIGATIVE, COMPLIANCE, EMERGENCY, CONSTITUTIONAL]
+        required: true
+      scope:
+        type: object
+        required: true
+        description: Audit scope definition
+      initiated_by:
+        type: string
+        format: uuid
+        required: true
+        references: identity.actor.identity_id
+      target_domains:
+        type: array
+        items:
+          type: enum
+          values: [VAULT, LEDGER, TREASURY, IDENTITY, POLICY, INTENT, AGENT, PAYMENT, ALL]
+        required: true
+      start_date:
+        type: timestamp
+        required: true
+      end_date:
+        type: timestamp
+        required: false
+      findings:
+        type: array
+        items:
+          type: object
+        required: false
+      state:
+        type: enum
+        values: [PENDING, IN_PROGRESS, COMPLETED, ESCALATED]
+        required: true
+      created_at:
+        type: timestamp
+        required: true
+      completed_at:
+        type: timestamp
+        required: false
+
+# ============================================================
+# SECTION 3 — GOVERNANCE COMMANDS
+# ============================================================
+# See 03_command-catalog.yaml for full command definitions.
+# ============================================================
+
+commands:
+
+  governance.proposal.submit:
+    description: Submit a new governance proposal for review
+    issuer: authorized_governance_actor
+    capability_required: governance.proposal.create
+    scope_required: governance:proposal:*
+    validation:
+      - proposal_type recognized
+      - target_domain valid
+      - required_approvals > 0
+      - expires_at in the future
+    produces:
+      - governance.proposal.submitted
+    failure_produces:
+      - governance.proposal.submission_failed
+
+  governance.proposal.approve:
+    description: Approve a pending governance proposal
+    issuer: authorized_governance_actor
+    capability_required: governance.proposal.approve
+    scope_required: governance:proposal:{proposal_id}
+    validation:
+      - proposal in PENDING_REVIEW state
+      - actor has not already approved
+      - proposal not expired
+    produces:
+      - governance.proposal.approved
+    failure_produces:
+      - governance.proposal.approval_failed
+
+  governance.proposal.reject:
+    description: Reject a pending governance proposal
+    issuer: authorized_governance_actor
+    capability_required: governance.proposal.reject
+    scope_required: governance:proposal:{proposal_id}
+    validation:
+      - proposal in PENDING_REVIEW state
+      - actor has not already voted
+      - proposal not expired
+    produces:
+      - governance.proposal.rejected
+    failure_produces:
+      - governance.proposal.rejection_failed
+
+  governance.amend.propose:
+    description: Propose a constitutional amendment
+    issuer: oversight_committee_member
+    capability_required: governance.amend.propose
+    scope_required: governance:amendment:*
+    validation:
+      - amendment_number not already used
+      - section valid
+      - proposed_text differs from current_text
+      - rationale provided
+    produces:
+      - governance.amendment.proposed
+    failure_produces:
+      - governance.amendment.proposal_failed
+
+  governance.amend.ratify:
+    description: Ratify an approved constitutional amendment
+    issuer: oversight_committee
+    capability_required: governance.amend.ratify
+    scope_required: governance:amendment:{amendment_id}
+    validation:
+      - amendment in APPROVED state
+      - unanimous quorum achieved
+      - voting period ended
+    produces:
+      - governance.amendment.ratified
+    failure_produces:
+      - governance.amendment.ratification_failed
+
+  governance.emergency.halt:
+    description: Issue an emergency system halt
+    issuer: two_governors_concurrent
+    capability_required: governance.emergency.halt
+    scope_required: governance:emergency:*
+    validation:
+      - two distinct governance identities
+      - valid trigger condition
+      - affected_domains specified
+    produces:
+      - governance.emergency_halt.issued
+    failure_produces:
+      - governance.emergency_halt.failed
+
+  governance.emergency.lift:
+    description: Lift an active emergency halt
+    issuer: two_governors_concurrent
+    capability_required: governance.emergency.halt
+    scope_required: governance:emergency:*
+    validation:
+      - halt in ACTIVE state
+      - two distinct governance identities
+      - post_action_review completed or waived
+    produces:
+      - governance.emergency_halt.lifted
+    failure_produces:
+      - governance.emergency_halt.lift_failed
+
+  governance.audit.query:
+    description: Query audit logs and compliance records
+    issuer: authorized_governance_actor
+    capability_required: governance.audit.query
+    scope_required: audit:*
+    validation:
+      - time_range valid
+      - target_domains specified
+    produces:
+      - governance.audit.queried
+    failure_produces:
+      - governance.audit.query_failed
+
+  governance.oversight.review:
+    description: Review overall system state and health
+    issuer: authorized_governance_actor
+    capability_required: governance.oversight.review
+    scope_required: governance:oversight:*
+    validation:
+      - review_scope defined
+    produces:
+      - governance.oversight.reviewed
+    failure_produces:
+      - governance.oversight.review_failed
+
+  governance.capability.grant:
+    description: Grant a capability to an actor
+    issuer: oversight_committee
+    capability_required: governance.capability.grant
+    scope_required: capability:{capability_id}
+    validation:
+      - capability exists in security-capabilities
+      - target_actor exists and is verified
+      - scope_pattern valid
+      - governance approval obtained
+    produces:
+      - governance.capability.granted
+    failure_produces:
+      - governance.capability.grant_failed
+
+  governance.capability.revoke:
+    description: Revoke a capability from an actor
+    issuer: oversight_committee
+    capability_required: governance.capability.revoke
+    scope_required: capability:{capability_id}
+    validation:
+      - capability grant exists
+      - target_actor exists
+      - not a governance-only capability
+    produces:
+      - governance.capability.revoked
+    failure_produces:
+      - governance.capability.revoke_failed
+
+  governance.escalation.resolve:
+    description: Resolve a pending governance escalation
+    issuer: authorized_governance_actor
+    capability_required: governance.escalation.resolve
+    scope_required: governance:escalation:{escalation_id}
+    validation:
+      - escalation in PENDING or UNDER_REVIEW state
+      - resolution provided
+    produces:
+      - governance.escalation.resolved
+    failure_produces:
+      - governance.escalation.resolution_failed
+
+  governance.policy_rule.review:
+    description: Review a policy rule before activation
+    issuer: operational_governance
+    capability_required: governance.policy.review
+    scope_required: policy:rule:{rule_id}
+    validation:
+      - policy rule exists in DRAFT state
+      - constitutional compliance check passed
+    produces:
+      - governance.policy_rule.review_requested
+    failure_produces:
+      - governance.policy_rule.review_failed
+
+# ============================================================
+# SECTION 4 — GOVERNANCE EVENTS
+# ============================================================
+# See 04_event-catalog.yaml for full event definitions.
+# All events follow the constitutional event envelope.
+# ============================================================
+
+events:
+
+  governance.proposal.submitted:
+    aggregate: governance_proposal
+    source_domain: governance
+    version: 1.0.0
+    description: A new governance proposal has been submitted
+    data:
+      - proposal_id
+      - proposal_type
+      - proposed_by
+      - target_domain
+      - required_approvals
+      - expires_at
+
+  governance.proposal.approved:
+    aggregate: governance_proposal
+    source_domain: governance
+    version: 1.0.0
+    description: A governance proposal has been approved
+    data:
+      - proposal_id
+      - approver_id
+      - current_approvals
+      - required_approvals
+
+  governance.proposal.rejected:
+    aggregate: governance_proposal
+    source_domain: governance
+    version: 1.0.0
+    description: A governance proposal has been rejected
+    data:
+      - proposal_id
+      - rejector_id
+      - reason
+
+  governance.amendment.proposed:
+    aggregate: governance_amendment
+    source_domain: governance
+    version: 1.0.0
+    description: A constitutional amendment has been proposed
+    data:
+      - amendment_id
+      - amendment_number
+      - section
+      - proposed_by
+      - voting_ends_at
+
+  governance.amendment.ratified:
+    aggregate: governance_amendment
+    source_domain: governance
+    version: 1.0.0
+    description: A constitutional amendment has been ratified
+    data:
+      - amendment_id
+      - amendment_number
+      - section
+      - ratified_at
+      - new_text
+
+  governance.emergency_halt.issued:
+    aggregate: emergency_halt
+    source_domain: governance
+    version: 1.0.0
+    description: An emergency system halt has been issued
+    data:
+      - halt_id
+      - triggered_by
+      - co_triggered_by
+      - trigger_reason
+      - affected_domains
+      - expires_at
+
+  governance.emergency_halt.lifted:
+    aggregate: emergency_halt
+    source_domain: governance
+    version: 1.0.0
+    description: An emergency system halt has been lifted
+    data:
+      - halt_id
+      - lifted_by
+      - lifted_at
+
+  governance.audit.queried:
+    aggregate: audit_record
+    source_domain: governance
+    version: 1.0.0
+    description: An audit query has been executed
+    data:
+      - audit_id
+      - audit_type
+      - target_domains
+      - start_date
+      - end_date
+
+  governance.oversight.reviewed:
+    aggregate: audit_record
+    source_domain: governance
+    version: 1.0.0
+    description: An oversight review has been completed
+    data:
+      - audit_id
+      - findings_summary
+      - actions_required
+
+  governance.capability.granted:
+    aggregate: capability_grant
+    source_domain: governance
+    version: 1.0.0
+    description: A capability has been granted to an actor
+    data:
+      - grant_id
+      - capability_id
+      - actor_id
+      - scope_pattern
+      - granted_by
+      - expires_at
+
+  governance.capability.revoked:
+    aggregate: capability_grant
+    source_domain: governance
+    version: 1.0.0
+    description: A capability has been revoked from an actor
+    data:
+      - grant_id
+      - capability_id
+      - actor_id
+      - revoked_by
+      - reason
+
+  governance.escalation.submitted:
+    aggregate: escalation
+    source_domain: governance
+    version: 1.0.0
+    description: A governance escalation has been submitted
+    data:
+      - escalation_id
+      - source_domain
+      - source_event_id
+      - reason
+      - submitted_by
+
+  governance.escalation.resolved:
+    aggregate: escalation
+    source_domain: governance
+    version: 1.0.0
+    description: A governance escalation has been resolved
+    data:
+      - escalation_id
+      - resolution
+      - resolved_by
+      - resolved_at
+
+  governance.escalation.expired:
+    aggregate: escalation
+    source_domain: governance
+    version: 1.0.0
+    description: A governance escalation has expired without resolution
+    data:
+      - escalation_id
+      - expired_at
+      - compensation_action
+
+  governance.policy_rule.review_requested:
+    aggregate: policy_rule
+    source_domain: governance
+    version: 1.0.0
+    description: Governance review has been requested for a policy rule
+    data:
+      - rule_id
+      - rule_name
+      - requested_by
+      - review_reason
+
+  governance.policy_rule.activated.notification.sent:
+    aggregate: policy_rule
+    source_domain: governance
+    version: 1.0.0
+    description: Notification sent to affected domains after policy rule activation
+    data:
+      - rule_id
+      - notified_domains
+      - notification_status
+
+# ============================================================
+# SECTION 5 — GOVERNANCE STATE MACHINES
+# ============================================================
+# See 05_state-machines.yaml for formal state machine definitions.
+# ============================================================
+
+state_machines:
+
+  governance_proposal_lifecycle:
+    description: Manages the lifecycle of a governance proposal
+    states: [DRAFT, PENDING_REVIEW, APPROVED, REJECTED, EXPIRED, IMPLEMENTED, CANCELLED]
+    initial_state: DRAFT
+    final_states: [REJECTED, EXPIRED, CANCELLED, IMPLEMENTED]
+    defined_in: 05_state-machines.yaml
+
+  governance_amendment_lifecycle:
+    description: Manages the lifecycle of a constitutional amendment
+    states: [PROPOSED, UNDER_REVIEW, VOTING, APPROVED, REJECTED, RATIFIED, EXPIRED]
+    initial_state: PROPOSED
+    final_states: [REJECTED, EXPIRED, RATIFIED]
+    defined_in: 05_state-machines.yaml
+
+  emergency_halt_lifecycle:
+    description: Manages the lifecycle of an emergency system halt
+    states: [ACTIVE, PARTIALLY_LIFTED, LIFTED, EXPIRED]
+    initial_state: ACTIVE
+    final_states: [LIFTED, EXPIRED]
+    defined_in: 05_state-machines.yaml
+
+  governance_override_lifecycle:
+    description: Manages the lifecycle of a governance override
+    states: [ACTIVE, EXPIRED, LIFTED, CANCELLED]
+    initial_state: ACTIVE
+    final_states: [EXPIRED, LIFTED, CANCELLED]
+    defined_in: 05_state-machines.yaml
+
+# ============================================================
+# SECTION 6 — DOMAIN CONTRACT OUTPUTS
+# ============================================================
+# See 12_domain-contracts.yaml for full contract definitions.
+# ============================================================
+
+domain_contracts:
+
+  governance_to_policy:
+    description: >
+      Governance modifies and approves policy rules. Policy enforces
+      governance decisions. Governance receives escalation notifications.
+    governance_guarantees:
+      - policy_rule_reviewed_before_activation
+      - escalation_target_notified
+      - constitutional_compliance_verified
+    policy_requires:
+      - governance_approval_id
+      - review_decision
+      - constitutional_references
+    failure_protocol:
+      - if_governance_unavailable: policy.defaults_to_deny
+
+  governance_to_identity:
+    description: >
+      Governance manages capabilities through Identity. Identity
+      enforces capability grants and revocations.
+    governance_guarantees:
+      - capability_grant_recorded
+      - capability_revocation_recorded
+    identity_requires:
+      - capability_id
+      - actor_id
+      - scope_pattern
+      - grant_expiry
+    failure_protocol:
+      - if_identity_unavailable: governance.command.rejected
+
+  governance_to_agent:
+    description: >
+      Governance approves agents and can override agent decisions.
+      Agent executes within governance-approved boundaries.
+    governance_guarantees:
+      - agent_registration_reviewed
+      - override_recorded_and_audited
+    agent_requires:
+      - governance_approval_id
+      - approved_capabilities
+      - execution_limits
+    failure_protocol:
+      - if_governance_unavailable: agent.defaults_to_deny
+
+  governance_to_all_domains:
+    description: >
+      Governance has oversight authority over all domains.
+      Domains must report escalation events to Governance.
+    governance_guarantees:
+      - audit_trail_queryable
+      - escalation_response_within_timeout
+    all_domains_require:
+      - escalation_notification_channel
+      - audit_event_format
+    failure_protocol:
+      - if_governance_unavailable: domain.defaults_to_safe_state
+
+# ============================================================
+# SECTION 7 — SECURITY REQUIREMENTS
+# ============================================================
+
+security_requirements:
+
+  prohibitions:
+    - id: GOV-001
+      rule: No governance action may modify immutable events
+      enforcement: event_store_immutability_trigger
+    - id: GOV-002
+      rule: No governance action may bypass double-entry accounting
+      enforcement: ledger_service_validation
+    - id: GOV-003
+      rule: No governance action may grant unscoped capabilities
+      enforcement: capability_engine_scope_validation
+    - id: GOV-004
+      rule: No governance action may bypass the 4-gate command pipeline
+      enforcement: command_bus_constitutional_gates
+    - id: GOV-005
+      rule: No single governor may issue emergency halt alone
+      enforcement: emergency_halt_requires_two_governors
+    - id: GOV-006
+      rule: No governance action may alter its own audit trail
+      enforcement: audit_log_immutability
+
+  capability_requirements:
+    - governance.proposal.create requires governance.oversight.review
+    - governance.amend.propose requires unanimous oversight committee
+    - governance.emergency.halt requires two governors concurrent
+    - governance.capability.grant requires governance.oversight.review
+    - all governance commands require identity verification and policy evaluation

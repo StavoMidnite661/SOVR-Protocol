@@ -1,0 +1,2385 @@
+# ============================================================
+# SOVR Financial OS — Agent Domain Specification
+# File: domains/agent.yaml
+# Status: FROZEN
+# Build Phase: D
+# Domain Priority: 7
+# ============================================================
+# Agent is the Optional Execution Authority of SOVR.
+# It does not create authority (Constitution owns authority).
+# It does not evaluate policy (Policy owns evaluation).
+# It does not record financial truth (Ledger owns truth).
+# It does not hold value (Vault owns value).
+#
+# Agent answers: "Who executes an approved command?"
+#
+# CRITICAL: An agent cannot invent authority.
+# An agent only executes constitutional authority.
+#
+# Agent is the EXECUTION stage (optional) of the pipeline:
+#   Actor -> Identity (authenticate) -> Authorization Context
+#   -> Policy (evaluate) -> Intent (normalize/validate)
+#   -> Command -> Agent (optional execution)
+#   -> Treasury -> Ledger
+#
+# Constitutional references:
+#   INV-004: No agent may create, grant, or modify financial authority
+#   INV-005: Every agent action must produce an auditable event trail
+#   INV-007: Value preservation outranks execution speed
+#   INV-008: No command executes without identity, capability, scope,
+#            and policy validation
+#   INV-010: No autonomous agent may bypass constitutional enforcement
+# ============================================================
+
+domain:
+  name: agent
+  version: 1.0.0
+  description: >
+    The Optional Execution Authority. Manages AI agent lifecycle,
+    capability binding, execution quotas, concurrency control,
+    resource limits, delegation constraints, and mandatory audit
+    envelopes. Agent never creates authority, never evaluates policy,
+    never bypasses constitutional enforcement, and never operates
+    without a valid intent and policy decision.
+  constitutional_references:
+    invariants: [INV-004, INV-005, INV-007, INV-008, INV-010]
+    conflict_resolution_rank: 7  # agent_autonomy
+
+  production_invariants:
+    - id: AI-001
+      rule: Agent SHALL NOT create, grant, or modify financial authority
+      enforcement: agent has no write access to capability definitions or grants
+      violation: constitutional_violation
+      constitutional_reference: INV-004
+
+    - id: AI-002
+      rule: Agent SHALL NOT bypass the 4-gate command pipeline
+      enforcement: every execution requires valid intent_id and policy_decision_id
+      violation: reject_execution_and_escalate
+      constitutional_reference: INV-008
+
+    - id: AI-003
+      rule: Every agent execution SHALL produce a complete audit envelope
+      enforcement: agent_audit_envelope is mandatory for every agent.execution.execute
+      violation: reject_execution_and_halt_agent
+      constitutional_reference: INV-005
+
+    - id: AI-004
+      rule: Agent SHALL NOT approve its own commands
+      enforcement: policy_decision identity must differ from agent owner/operator
+      violation: reject_execution_and_escalate
+
+    - id: AI-005
+      rule: Agent SHALL NOT escalate its own authority
+      enforcement: authority escalation requires governance actor identity
+      violation: reject_and_escalate_to_governance
+
+    - id: AI-006
+      rule: Agent SHALL NOT modify constitutional rules
+      enforcement: agent has no write access to constitutional rule store
+      violation: constitutional_violation
+
+    - id: AI-007
+      rule: Agent SHALL NOT modify governance settings
+      enforcement: agent has no write access to governance configuration
+      violation: constitutional_violation
+
+    - id: AI-008
+      rule: Agent SHALL NOT operate without a valid intent_id
+      enforcement: agent.execution.execute requires intent_id referencing an existing intent
+      violation: reject_execution
+
+    - id: AI-009
+      rule: Agent SHALL NOT operate without a valid policy_decision_id
+      enforcement: agent.execution.execute requires policy_decision_id with result APPROVE
+      violation: reject_execution
+
+    - id: AI-010
+      rule: Agent SHALL NOT mint or destroy assets
+      enforcement: agent has no access to vault.asset.create or vault.asset.destroy
+      violation: constitutional_violation
+
+    - id: AI-011
+      rule: Agent SHALL NOT grant delegation to other agents or actors
+      enforcement: can_grant_delegation is always false
+      violation: constitutional_violation
+      constitutional_reference: INV-004
+
+# ============================================================
+# SECTION 1 — DOMAIN HEADER
+# ============================================================
+
+domain_header:
+  domain_name: agent
+  version: "1.0.0"
+  status: CONSTITUTIONAL_FREEZE
+  build_phase: D
+  pipeline_position: EXECUTION  # optional stage
+  pipeline_order: 7
+  constitutional_references:
+    invariants: [INV-004, INV-005, INV-007, INV-008, INV-010]
+    conflict_resolution_rank: 7
+
+# ============================================================
+# SECTION 2 — AGENT INSTANCE ENTITY
+# ============================================================
+
+agent_instance:
+  description: >
+    A registered AI agent authorized to execute commands within
+    the SOVR Financial OS. Every agent is owned by a human or
+    organization identity, bound to specific capabilities, and
+    constrained by quotas, concurrency limits, and resource limits.
+
+  fields:
+    agent_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      unique: true
+      description: Globally unique agent instance identifier
+
+    agent_name:
+      type: string
+      format: identifier
+      required: true
+      min_length: 1
+      max_length: 128
+      description: Human-readable agent name
+
+    agent_type:
+      type: enum
+      required: true
+      values:
+        - FINANCIAL_ANALYST
+        - TREASURY_OPERATOR
+        - COMPLIANCE_MONITOR
+        - RECONCILIATION
+        - REPORTING
+        - CUSTOM
+      description: Functional classification of the agent
+
+    model_type:
+      type: string
+      format: model_identifier
+      required: true
+      examples:
+        - "gpt-4o"
+        - "claude-4"
+        - "custom-v2.1"
+      description: LLM or model family identifier
+
+    model_version:
+      type: string
+      format: semantic_version_or_hash
+      required: true
+      description: Exact model version or commit hash
+
+    owner_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: identity.identity_id
+      description: Identity ID of the human or organization that owns this agent
+
+    operator_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: identity.identity_id
+      description: Identity ID of the human currently responsible for this agent
+
+    state:
+      type: enum
+      required: true
+      values:
+        - REGISTERED
+        - ACTIVATING
+        - ACTIVE
+        - EXECUTING
+        - PAUSED
+        - SUSPENDED
+        - TERMINATED
+        - ARCHIVED
+        - FAILED
+        - ESCALATED
+      description: Current lifecycle state of the agent instance
+
+    registration_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: agent_registration.registration_id
+      description: The governance registration record that created this agent
+
+    trust_level:
+      type: enum
+      required: true
+      values:
+        - NONE
+        - LOW
+        - MEDIUM
+        - HIGH
+      description: Governance-assigned trust classification
+
+    capability_bindings:
+      type: array
+      required: true
+      element_type: uuid
+      references: capability_binding.binding_id
+      description: List of active capability binding IDs
+
+    execution_quotas:
+      type: object
+      required: true
+      references: execution_quotas
+      description: Quota constraints governing this agent's execution
+
+    concurrency_limits:
+      type: object
+      required: true
+      references: concurrency_limits
+      description: Concurrency constraints governing this agent's execution
+
+    resource_limits:
+      type: object
+      required: true
+      references: resource_limits
+      description: Resource consumption constraints for this agent
+
+    governance_approved:
+      type: boolean
+      required: true
+      description: Whether governance has approved this agent for operation
+
+    governance_approval_id:
+      type: uuid
+      format: uuid_v4
+      required: false
+      description: Governance approval record ID, if governance review was required
+
+    created_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Timestamp when the agent instance was created
+
+    activated_at:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: Timestamp when the agent transitioned to ACTIVE state
+
+    last_execution_at:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: Timestamp of the most recent execution by this agent
+
+    terminated_at:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: Timestamp when the agent was terminated
+
+    termination_reason:
+      type: string
+      format: free_text
+      required: false
+      max_length: 1024
+      description: Human-readable reason for agent termination
+
+  constraints:
+    - agent_id must be globally unique
+    - agent_name must be unique within the owning identity's agent set
+    - state must conform to agent_instance_lifecycle state machine
+    - capability_bindings must all reference ACTIVE bindings
+    - execution_quotas and concurrency_limits and resource_limits must be populated
+      at creation time
+    - owner_id and operator_id must reference verified identities
+    - governance_approved must be true before state can transition to ACTIVATING
+
+  indexes:
+    - { field: agent_id, unique: true }
+    - { field: owner_id }
+    - { field: operator_id }
+    - { field: state }
+    - { field: agent_type }
+    - { field: registration_id }
+
+# ============================================================
+# SECTION 3 — AGENT REGISTRATION ENTITY
+# ============================================================
+
+agent_registration:
+  description: >
+    The governance review record for proposing a new agent.
+    Every agent must pass through registration before activation.
+    Governance may approve, reject, or conditionally approve
+    the registration.
+
+  fields:
+    registration_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      unique: true
+      description: Globally unique registration identifier
+
+    agent_name:
+      type: string
+      format: identifier
+      required: true
+      min_length: 1
+      max_length: 128
+      description: Proposed agent name
+
+    agent_type:
+      type: enum
+      required: true
+      values:
+        - FINANCIAL_ANALYST
+        - TREASURY_OPERATOR
+        - COMPLIANCE_MONITOR
+        - RECONCILIATION
+        - REPORTING
+        - CUSTOM
+      description: Proposed agent type
+
+    model_type:
+      type: string
+      format: model_identifier
+      required: true
+      description: Proposed model type
+
+    model_version:
+      type: string
+      format: semantic_version_or_hash
+      required: true
+      description: Proposed model version
+
+    proposed_by:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: identity.identity_id
+      description: Identity ID of the proposer
+
+    proposed_capabilities:
+      type: array
+      required: true
+      element_type: object
+      element_fields:
+        capability_pattern:
+          type: string
+          format: capability_id_pattern
+          required: true
+          description: Capability ID or pattern to bind (e.g., "treasury.transfer.initiate")
+        scope_pattern:
+          type: string
+          format: scope_pattern
+          required: true
+          description: Resource scope pattern (e.g., "asset:USD:*", "actor:org-123:*")
+        justification:
+          type: string
+          format: free_text
+          required: true
+          max_length: 2048
+          description: Business justification for this capability binding
+      description: Capabilities proposed for this agent
+
+    proposed_quotas:
+      type: object
+      required: true
+      references: execution_quotas
+      description: Proposed execution quotas
+
+    risk_assessment:
+      type: object
+      required: true
+      fields:
+        risk_level:
+          type: enum
+          values: [LOW, MEDIUM, HIGH, CRITICAL]
+          required: true
+        financial_exposure_limit:
+          type: decimal
+          required: true
+          description: Maximum financial value this agent can affect per period
+        blast_radius:
+          type: enum
+          values: [INDIVIDUAL, TEAM, ORGANIZATION, SYSTEM_WIDE]
+          required: true
+        requires_human_in_loop:
+          type: boolean
+          required: true
+        recovery_complexity:
+          type: enum
+          values: [TRIVIAL, LOW, MEDIUM, HIGH, EXTREME]
+          required: true
+        assessed_by:
+          type: uuid
+          format: uuid_v4
+          required: false
+          references: identity.identity_id
+        assessed_at:
+          type: timestamp
+          format: iso8601
+          required: false
+      description: Risk assessment for the proposed agent
+
+    governance_review_required:
+      type: boolean
+      required: true
+      description: Whether this registration requires governance review
+
+    governance_review_status:
+      type: enum
+      required: true
+      values:
+        - PENDING
+        - APPROVED
+        - REJECTED
+        - CONDITIONAL
+      description: Current governance review status
+
+    governance_reviewer_id:
+      type: uuid
+      format: uuid_v4
+      required: false
+      references: identity.identity_id
+      description: Identity ID of the governance reviewer
+
+    governance_review_notes:
+      type: string
+      format: free_text
+      required: false
+      max_length: 4096
+      description: Governance reviewer notes and rationale
+
+    conditions:
+      type: array
+      required: false
+      element_type: object
+      element_fields:
+        condition_id:
+          type: uuid
+          format: uuid_v4
+          required: true
+        condition_type:
+          type: enum
+          values:
+            - HUMAN_APPROVAL_REQUIRED
+            - QUOTA_REDUCTION
+            - CAPABILITY_NARROWING
+            - TIME_RESTRICTION
+            - AUDIT_FREQUENCY
+            - ADDITIONAL_MONITORING
+          required: true
+        description:
+          type: string
+          format: free_text
+          required: true
+          max_length: 1024
+        parameters:
+          type: object
+          required: false
+          description: Condition-specific parameters
+        enforced:
+          type: boolean
+          required: true
+          default: true
+      description: Conditions imposed by governance on approval
+
+    state:
+      type: enum
+      required: true
+      values:
+        - SUBMITTED
+        - UNDER_REVIEW
+        - APPROVED
+        - REJECTED
+        - CONDITIONAL
+        - WITHDRAWN
+      description: Current registration lifecycle state
+
+    submitted_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Timestamp when registration was submitted
+
+    reviewed_at:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: Timestamp when governance review was completed
+
+  constraints:
+    - registration_id must be globally unique
+    - proposed_capabilities must reference valid capability patterns
+    - governance_review_status must reflect actual governance action
+    - state must conform to agent_registration_lifecycle state machine
+    - conditions array is required when governance_review_status is CONDITIONAL
+    - proposed_quotas must not exceed system maximums
+
+  indexes:
+    - { field: registration_id, unique: true }
+    - { field: proposed_by }
+    - { field: state }
+    - { field: governance_review_status }
+
+# ============================================================
+# SECTION 4 — CAPABILITY BINDING MODEL
+# ============================================================
+
+capability_binding:
+  description: >
+    Binds a specific capability to an agent instance with a scope
+    pattern and optional conditions. Capability bindings are
+    granted by a human identity and may be revoked. An agent
+    cannot create, grant, or modify capability bindings itself.
+
+  fields:
+    binding_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      unique: true
+      description: Globally unique binding identifier
+
+    agent_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: agent_instance.agent_id
+      description: The agent instance this binding applies to
+
+    capability_id:
+      type: string
+      format: capability_id
+      required: true
+      description: The capability being bound (e.g., "treasury.transfer.initiate")
+
+    scope_pattern:
+      type: string
+      format: scope_pattern
+      required: true
+      examples:
+        - "asset:USD:*"
+        - "actor:org-123:*"
+        - "account:*:*"
+      description: Resource scope this binding covers
+
+    granted_by:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: identity.identity_id
+      description: Identity ID of the human who granted this binding
+
+    granted_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Timestamp when this binding was granted
+
+    expires_at:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: Expiration time for this binding; null means no expiration
+
+    conditions:
+      type: array
+      required: false
+      element_type: object
+      element_fields:
+        type:
+          type: enum
+          required: true
+          values:
+            - AMOUNT_LIMIT
+            - FREQUENCY_LIMIT
+            - TIME_WINDOW
+            - PURPOSE_RESTRICTION
+            - APPROVAL_REQUIRED
+        value:
+          type: any
+          required: true
+          description: Condition value; type depends on condition type
+      description: Constraints applied to this binding
+
+    revocable:
+      type: boolean
+      required: true
+      const: true
+      description: Always true; all capability bindings are revocable
+
+    state:
+      type: enum
+      required: true
+      values:
+        - ACTIVE
+        - EXPIRED
+        - REVOKED
+      description: Current state of this capability binding
+
+  constraints:
+    - binding_id must be globally unique
+    - agent_id must reference an existing agent instance
+    - capability_id must reference a valid capability definition
+    - scope_pattern must be a valid scope pattern
+    - granted_by must be a human identity (not an agent identity)
+    - revocable is always true (INV-004 enforcement)
+    - binding may be revoked by governance or the granting identity
+    - an agent cannot modify its own bindings
+
+  indexes:
+    - { field: binding_id, unique: true }
+    - { field: agent_id }
+    - { field: capability_id }
+    - { field: state }
+
+# ============================================================
+# SECTION 5 — AGENT AUDIT ENVELOPE
+# ============================================================
+# Every agent execution MUST emit this complete envelope.
+# There are no exceptions. This is INV-005.
+# ============================================================
+
+agent_audit_envelope:
+  description: >
+    The mandatory, immutable audit record for every agent execution.
+    This envelope is emitted as part of the execution.started and
+    execution.completed events. It provides complete provenance
+    for every action an agent takes.
+
+  fields:
+    execution_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      unique: true
+      description: Globally unique execution identifier
+
+    agent_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: agent_instance.agent_id
+      description: The agent instance that performed this execution
+
+    identity_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: identity.identity_id
+      description: The owner/operator identity responsible for this execution
+
+    intent_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: intent.intent_id
+      description: The intent that originated this execution
+
+    command_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      description: The command being executed
+
+    policy_decision_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      description: The policy decision that authorized this execution
+
+    capability_id:
+      type: string
+      format: capability_id
+      required: true
+      description: The specific capability used for this execution
+
+    authorization_context_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: identity.authorization_context.authorization_context_id
+      description: The authorization context from the Identity domain
+
+    resources_used:
+      type: object
+      required: true
+      fields:
+        api_calls:
+          type: integer
+          required: true
+          minimum: 0
+          description: Number of API calls made during execution
+        compute_time_ms:
+          type: integer
+          required: true
+          minimum: 0
+          description: Total compute time consumed in milliseconds
+        memory_mb:
+          type: decimal
+          required: true
+          minimum: 0.0
+          description: Peak memory consumed during execution in megabytes
+        tokens_consumed:
+          type: integer
+          required: false
+          minimum: 0
+          description: Token count consumed, if LLM-based execution
+      description: Resource consumption metrics for this execution
+
+    execution_result:
+      type: enum
+      required: true
+      values:
+        - SUCCESS
+        - FAILURE
+        - ESCALATED
+        - TIMEOUT
+        - PARTIAL
+      description: Final outcome of the execution
+
+    execution_time_ms:
+      type: integer
+      required: true
+      minimum: 0
+      description: Total wall-clock time of the execution in milliseconds
+
+    constitutional_rules:
+      type: array
+      required: true
+      element_type: string
+      description: List of INV-XXX references that applied to this execution
+
+    model_version:
+      type: string
+      format: semantic_version_or_hash
+      required: true
+      description: Exact model version used for this execution
+
+    model_parameters:
+      type: object
+      required: false
+      fields:
+        temperature:
+          type: decimal
+          required: false
+          minimum: 0.0
+          maximum: 2.0
+        top_p:
+          type: decimal
+          required: false
+          minimum: 0.0
+          maximum: 1.0
+        max_tokens:
+          type: integer
+          required: false
+          minimum: 1
+        seed:
+          type: integer
+          required: false
+      description: Model inference parameters used, if applicable
+
+    input_summary:
+      type: string
+      format: free_text
+      required: true
+      max_length: 8192
+      description: Sanitized summary of what the agent received as input
+
+    output_summary:
+      type: string
+      format: free_text
+      required: true
+      max_length: 8192
+      description: Sanitized summary of what the agent produced as output
+
+    state_changes:
+      type: array
+      required: true
+      element_type: object
+      element_fields:
+        entity_type:
+          type: string
+          required: true
+        entity_id:
+          type: uuid
+          format: uuid_v4
+          required: true
+        field:
+          type: string
+          required: true
+        previous_value:
+          type: any
+          required: false
+        new_value:
+          type: any
+          required: false
+      description: List of all state changes attempted during this execution
+
+    error_detail:
+      type: string
+      format: free_text
+      required: false
+      max_length: 4096
+      description: Detailed error information, populated on FAILURE or PARTIAL
+
+    executed_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Timestamp when execution started
+
+    completed_at:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: Timestamp when execution completed; null if still running
+
+  constraints:
+    - execution_id must be globally unique
+    - identity_id must reference the agent's owner_id or operator_id
+    - intent_id must reference an existing, valid intent
+    - command_id must reference an existing, valid command
+    - policy_decision_id must reference an existing policy decision with result APPROVE
+    - capability_id must match one of the agent's active capability bindings
+    - authorization_context_id must reference a valid authorization context
+    - constitutional_rules must include all applicable invariants for the executed command
+    - input_summary and output_summary must be sanitized (no raw PII, no raw credentials)
+    - state_changes must list every state mutation attempted, including partial failures
+
+  indexes:
+    - { field: execution_id, unique: true }
+    - { field: agent_id }
+    - { field: identity_id }
+    - { field: intent_id }
+    - { field: command_id }
+    - { field: policy_decision_id }
+    - { field: executed_at }
+
+# ============================================================
+# SECTION 6 — EXECUTION QUOTAS
+# ============================================================
+
+execution_quotas:
+  description: >
+    Quota constraints that limit how much an agent can execute
+    within a given time period. Quotas are reset at period boundaries
+    and enforced before every execution.
+
+  fields:
+    quota_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      unique: true
+      description: Globally unique quota identifier
+
+    agent_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: agent_instance.agent_id
+      description: The agent instance these quotas apply to
+
+    period:
+      type: enum
+      required: true
+      values:
+        - HOURLY
+        - DAILY
+        - WEEKLY
+        - MONTHLY
+      description: Time period over which limits apply
+
+    limits:
+      type: object
+      required: true
+      fields:
+        max_commands:
+          type: integer
+          required: true
+          minimum: 0
+          description: Maximum number of commands executable in the period
+        max_financial_value:
+          type: decimal
+          required: true
+          minimum: 0.0
+          description: Maximum total financial value movable in the period
+        max_distinct_actors_affected:
+          type: integer
+          required: true
+          minimum: 0
+          description: Maximum number of distinct actors the agent may affect
+        max_asset_types:
+          type: integer
+          required: true
+          minimum: 0
+          description: Maximum number of distinct asset types the agent may interact with
+      description: Quota limits for this agent in this period
+
+    usage:
+      type: object
+      required: true
+      fields:
+        commands_executed:
+          type: integer
+          required: true
+          minimum: 0
+          description: Number of commands executed in the current period
+        financial_value_moved:
+          type: decimal
+          required: true
+          minimum: 0.0
+          description: Total financial value moved in the current period
+        actors_affected:
+          type: array
+          required: true
+          element_type: uuid
+          description: Distinct actor IDs affected in the current period
+        asset_types_used:
+          type: array
+          required: true
+          element_type: string
+          description: Distinct asset types interacted with in the current period
+      description: Current usage counters for this quota period
+
+    reset_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Timestamp when this quota period resets
+
+    enforced:
+      type: boolean
+      required: true
+      const: true
+      description: Always true; quota enforcement is mandatory
+
+  constraints:
+    - quota_id must be globally unique
+    - usage counters must not exceed limits at any point
+    - quota exceeded must emit agent.quota.exceeded event
+    - reset_at must be a valid future timestamp relative to creation
+    - financial_value_moved must be monotonically tracked within a period
+
+  indexes:
+    - { field: quota_id, unique: true }
+    - { field: agent_id }
+
+# ============================================================
+# SECTION 7 — CONCURRENCY LIMITS
+# ============================================================
+
+concurrency_limits:
+  description: >
+    Concurrency constraints that prevent an agent from executing
+    too many operations simultaneously. Limits queue behavior
+    and prevent resource exhaustion.
+
+  fields:
+    agent_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: agent_instance.agent_id
+      description: The agent instance these limits apply to
+
+    max_concurrent_executions:
+      type: integer
+      required: true
+      minimum: 1
+      default: 1
+      description: Maximum number of commands that may execute simultaneously
+
+    max_concurrent_intents:
+      type: integer
+      required: true
+      minimum: 1
+      default: 3
+      description: Maximum number of intents the agent may process simultaneously
+
+    max_pending_commands:
+      type: integer
+      required: true
+      minimum: 1
+      default: 5
+      description: Maximum number of commands queued waiting for execution
+
+    queue_timeout_ms:
+      type: integer
+      required: true
+      minimum: 1000
+      default: 30000
+      description: Maximum time a command may wait in the queue before timing out
+
+    current_executions:
+      type: integer
+      required: true
+      minimum: 0
+      description: Current number of active executions
+
+    current_pending:
+      type: integer
+      required: true
+      minimum: 0
+      description: Current number of queued pending commands
+
+  constraints:
+    - current_executions must never exceed max_concurrent_executions
+    - current_pending must never exceed max_pending_commands
+    - when current_pending equals max_pending_commands, new commands must be rejected
+    - when queue timeout is reached, emit agent.concurrency.limit_reached event
+    - current_executions and current_pending are runtime-maintained counters
+
+# ============================================================
+# SECTION 8 — RESOURCE LIMITS
+# ============================================================
+
+resource_limits:
+  description: >
+    Resource consumption constraints that prevent an agent from
+    consuming excessive compute, memory, API calls, or tokens.
+    Also defines which data sources an agent may access and
+    which capability patterns it may never invoke.
+
+  fields:
+    agent_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: agent_instance.agent_id
+      description: The agent instance these limits apply to
+
+    max_compute_time_per_execution_ms:
+      type: integer
+      required: true
+      minimum: 100
+      description: Maximum compute time allowed for a single execution in milliseconds
+
+    max_memory_per_execution_mb:
+      type: integer
+      required: true
+      minimum: 16
+      description: Maximum memory allowed for a single execution in megabytes
+
+    max_total_daily_compute_ms:
+      type: integer
+      required: true
+      minimum: 1000
+      description: Maximum total compute time allowed per day across all executions
+
+    max_api_calls_per_execution:
+      type: integer
+      required: true
+      minimum: 1
+      description: Maximum number of API calls allowed per execution
+
+    max_token_budget_per_execution:
+      type: integer
+      required: false
+      minimum: 100
+      description: Maximum token budget per execution, if LLM-based
+
+    allowed_data_sources:
+      type: array
+      required: true
+      element_type: enum
+      values:
+        - VAULT
+        - TREASURY
+        - LEDGER
+        - POLICY
+        - IDENTITY
+        - INTERNAL_CACHE
+        - EXTERNAL_ORACLE
+      description: Data sources this agent is permitted to read from
+
+    forbidden_actions:
+      type: array
+      required: true
+      element_type: string
+      format: capability_pattern
+      description: Capability patterns this agent may NEVER invoke
+
+    rate_limit_per_second:
+      type: integer
+      required: true
+      minimum: 1
+      description: Maximum number of actions per second this agent may perform
+
+  constraints:
+    - allowed_data_sources must not be empty
+    - forbidden_actions must always include authority-creating capabilities
+    - EXTERNAL_ORACLE requires HIGH trust level
+    - resource consumption is tracked per-execution and aggregated daily
+    - exceeding any resource limit terminates the execution immediately
+
+# ============================================================
+# SECTION 9 — DELEGATION CONSTRAINTS
+# ============================================================
+# Agents may only RECEIVE delegation, never GRANT it.
+# This is a hard constitutional constraint (INV-004).
+# ============================================================
+
+agent_delegation_constraints:
+  description: >
+    Hardcoded constraints on agent delegation behavior.
+    These are not configurable. They are constitutional requirements.
+
+  can_receive_delegation:
+    type: boolean
+    required: true
+    const: true
+    description: Agents may receive delegation from authorized human identities
+
+  can_grant_delegation:
+    type: boolean
+    required: true
+    const: false
+    description: >
+      Always false. An agent may never grant delegation.
+      INV-004: No agent may create, grant, or modify financial authority.
+    constitutional_reference: INV-004
+
+  can_delegate_to_other_agents:
+    type: boolean
+    required: true
+    const: false
+    description: >
+      Always false. An agent may never delegate to other agents.
+      INV-004: No agent may create, grant, or modify financial authority.
+    constitutional_reference: INV-004
+
+  can_act_on_behalf_of:
+    type: array
+    required: true
+    element_type: uuid
+    references: identity.identity_id
+    description: >
+      Explicit list of identity IDs this agent is authorized to represent.
+      If empty, the agent may only act on its own behalf (its owner).
+
+  requires_explicit_delegation:
+    type: boolean
+    required: true
+    const: true
+    description: >
+      Always true for financial commands. The agent must have an
+      explicit delegation record linking the acting identity to
+      the agent for any command that affects financial state.
+
+  delegation_must_include_scope:
+    type: boolean
+    required: true
+    const: true
+    description: >
+      Always true. Every delegation must specify the exact scope
+      of authority being delegated. No open-ended delegations.
+
+  delegation_expiration_enforced:
+    type: boolean
+    required: true
+    const: true
+    description: >
+      Always true. All delegations must have an expiration time.
+      Expired delegations are automatically revoked.
+
+# ============================================================
+# SECTION 10 — GOVERNANCE OVERRIDE
+# ============================================================
+
+governance_override:
+  description: >
+    Governance-initiated overrides that can immediately alter
+    an agent's operational state. Overrides are issued by
+    governance actors and take effect immediately.
+
+  fields:
+    override_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      unique: true
+      description: Globally unique override identifier
+
+    agent_id:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: agent_instance.agent_id
+      description: The agent instance being overridden
+
+    override_type:
+      type: enum
+      required: true
+      values:
+        - EMERGENCY_SUSPEND
+        - CAPABILITY_REVOKE
+        - QUOTA_REDUCE
+        - FORCE_TERMINATE
+        - AUDIT_ORDER
+      description: Type of governance override
+
+    initiated_by:
+      type: uuid
+      format: uuid_v4
+      required: true
+      references: identity.identity_id
+      description: Identity ID of the governance actor who initiated this override
+
+    reason:
+      type: string
+      format: free_text
+      required: true
+      max_length: 4096
+      description: Human-readable reason for the override
+
+    constitutional_reference:
+      type: string
+      format: invariant_id
+      required: true
+      description: The INV-XXX reference that justifies this override
+
+    effective_immediately:
+      type: boolean
+      required: true
+      const: true
+      description: Always true; governance overrides take effect immediately
+
+    expires_at:
+      type: timestamp
+      format: iso8601
+      required: false
+      description: >
+        Expiration time for the override. Null means the override
+        is permanent (e.g., FORCE_TERMINATE).
+
+    state:
+      type: enum
+      required: true
+      values:
+        - ACTIVE
+        - EXPIRED
+        - REVOKED
+      description: Current state of this governance override
+
+    created_at:
+      type: timestamp
+      format: iso8601
+      required: true
+      description: Timestamp when this override was created
+
+  constraints:
+    - override_id must be globally unique
+    - initiated_by must reference a governance-authorized identity
+    - effective_immediately is always true
+    - CAPABILITY_REVOKE must specify which capability_id is being revoked
+    - QUOTA_REDUCE must specify the new quota limits
+    - EMERGENCY_SUSPEND immediately transitions agent to SUSPENDED
+    - FORCE_TERMINATE immediately transitions agent to TERMINATED
+    - AUDIT_ORDER requires the agent to produce an immediate audit dump
+    - constitutional_reference must be a valid INV-XXX identifier
+
+  override_effects:
+    EMERGENCY_SUSPEND:
+      agent_state_transition: -> SUSPENDED
+      immediate_actions:
+        - cancel all pending commands
+        - cancel all in-flight executions
+        - emit agent.suspended event
+    CAPABILITY_REVOKE:
+      immediate_actions:
+        - revoke specified capability binding
+        - emit agent.capability.revoked event
+    QUOTA_REDUCE:
+      immediate_actions:
+        - update execution_quotas to new limits
+        - emit agent.quota.exceeded if current usage exceeds new limits
+    FORCE_TERMINATE:
+      agent_state_transition: -> TERMINATED
+      immediate_actions:
+        - cancel all pending commands
+        - cancel all in-flight executions
+        - revoke all capability bindings
+        - emit agent.terminated event
+    AUDIT_ORDER:
+      immediate_actions:
+        - trigger immediate full audit envelope generation
+        - include all execution history since agent activation
+        - deliver audit package to governance
+
+  indexes:
+    - { field: override_id, unique: true }
+    - { field: agent_id }
+    - { field: override_type }
+    - { field: state }
+
+# ============================================================
+# SECTION 11 — AGENT COMMANDS
+# ============================================================
+# See 03_command-catalog.yaml for full definitions.
+# ============================================================
+
+commands:
+
+  agent.register:
+    description: Submit an agent registration for governance review
+    issuer:
+      actor_types: [human]
+      minimum_capability: agent.management.register
+    authorization_requirements:
+      identity: required
+      capability: agent.management.register
+      scope: owner_id
+      policy: agent_registration_policy
+    validation:
+      - agent_name is valid and unique within owner's agent set
+      - agent_type is a valid enum value
+      - model_type and model_version are non-empty
+      - proposed_capabilities references valid capability patterns
+      - proposed_quotas does not exceed system maximums
+      - risk_assessment is complete
+      - proposed_by references a verified identity
+    input_fields:
+      agent_name: string (required)
+      agent_type: enum (required)
+      model_type: string (required)
+      model_version: string (required)
+      proposed_capabilities: array (required)
+      proposed_quotas: object (required)
+      risk_assessment: object (required)
+    produces:
+      - agent.registration.submitted
+    failure_produces:
+      - agent.registration.rejected
+
+  agent.activate:
+    description: Activate an agent after governance approval
+    issuer:
+      actor_types: [human, system]
+      minimum_capability: agent.management.activate
+    authorization_requirements:
+      identity: required
+      capability: agent.management.activate
+      scope: agent_id
+      policy: agent_activation_policy
+    preconditions:
+      - agent_instance exists in REGISTERED state
+      - agent_registration exists in APPROVED or CONDITIONAL state
+      - governance_approved is true
+      - all CONDITIONAL conditions are satisfied (if applicable)
+      - capability bindings are established
+      - execution_quotas are configured
+      - concurrency_limits are configured
+      - resource_limits are configured
+    input_fields:
+      agent_id: uuid (required)
+    produces:
+      - agent.activated
+    failure_produces:
+      - agent.execution.failed
+
+  agent.terminate:
+    description: Terminate an agent instance
+    issuer:
+      actor_types: [human, governance, system]
+      minimum_capability: agent.management.terminate
+    authorization_requirements:
+      identity: required
+      capability: agent.management.terminate
+      scope: agent_id
+      policy: agent_termination_policy
+    preconditions:
+      - agent_instance exists
+      - agent_instance state is one of [ACTIVE, PAUSED, SUSPENDED, EXECUTING, FAILED, ESCALATED]
+      - termination_reason is provided
+    input_fields:
+      agent_id: uuid (required)
+      termination_reason: string (required)
+    produces:
+      - agent.terminated
+    failure_produces:
+      - agent.execution.failed
+
+  agent.capability.bind:
+    description: Bind a capability to an agent instance
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: agent.capability.manage
+    authorization_requirements:
+      identity: required
+      capability: agent.capability.manage
+      scope: agent_id
+      policy: capability_binding_policy
+    preconditions:
+      - agent_instance exists and is not in TERMINATED or ARCHIVED state
+      - capability_id references a valid capability definition
+      - scope_pattern is a valid scope pattern
+      - granting identity is not the agent itself
+    input_fields:
+      agent_id: uuid (required)
+      capability_id: string (required)
+      scope_pattern: string (required)
+      expires_at: timestamp (optional)
+      conditions: array (optional)
+    produces:
+      - agent.capability.bound
+    failure_produces:
+      - agent.execution.failed
+
+  agent.capability.revoke:
+    description: Revoke a capability binding from an agent instance
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: agent.capability.manage
+    authorization_requirements:
+      identity: required
+      capability: agent.capability.manage
+      scope: binding_id
+      policy: capability_binding_policy
+    preconditions:
+      - capability_binding exists and is in ACTIVE state
+      - revoking identity is the granting identity or a governance actor
+    input_fields:
+      binding_id: uuid (required)
+      revocation_reason: string (required)
+    produces:
+      - agent.capability.revoked
+    failure_produces:
+      - agent.execution.failed
+
+  agent.quota.update:
+    description: Update execution quotas for an agent instance
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: agent.quota.manage
+    authorization_requirements:
+      identity: required
+      capability: agent.quota.manage
+      scope: agent_id
+      policy: quota_management_policy
+    preconditions:
+      - agent_instance exists
+      - new limits do not exceed system maximums
+      - new limits are not below minimum safety thresholds
+    input_fields:
+      agent_id: uuid (required)
+      period: enum (required)
+      new_limits:
+        max_commands: integer (required)
+        max_financial_value: decimal (required)
+        max_distinct_actors_affected: integer (required)
+        max_asset_types: integer (required)
+      reason: string (required)
+    produces:
+      - agent.quota.exceeded (if current usage exceeds new limits)
+    failure_produces:
+      - agent.execution.failed
+
+  agent.governance.override:
+    description: Issue a governance override for an agent instance
+    issuer:
+      actor_types: [governance]
+      minimum_capability: agent.governance.override
+    authorization_requirements:
+      identity: required
+      capability: agent.governance.override
+      scope: agent_id
+      policy: governance_override_policy
+    preconditions:
+      - agent_instance exists
+      - initiated_by is a governance-authorized identity
+      - constitutional_reference is a valid INV-XXX
+      - reason is provided
+    input_fields:
+      agent_id: uuid (required)
+      override_type: enum (required)
+      reason: string (required)
+      constitutional_reference: string (required)
+      expires_at: timestamp (optional)
+      override_parameters: object (optional)
+    produces:
+      - agent.governance.override.issued
+    failure_produces:
+      - agent.execution.failed
+
+  agent.execution.execute:
+    description: >
+      Execute an approved command through the agent. This is the
+      primary execution command. It wraps a domain command that
+      has already passed through Identity, Authorization, Policy,
+      and Intent validation. The agent must emit a complete audit
+      envelope before, during, and after execution.
+    issuer:
+      actor_types: [ai_agent]
+      minimum_capability: agent.execution.execute
+    authorization_requirements:
+      identity: required
+      capability: agent.execution.execute
+      scope: command_id
+      policy: agent_execution_policy
+    preconditions:
+      - agent_instance exists in ACTIVE state
+      - intent_id references a valid, normalized intent
+      - command_id references a valid command
+      - policy_decision_id references a policy decision with result APPROVE
+      - capability_id matches an active capability binding on this agent
+      - authorization_context_id references a valid authorization context
+      - execution quotas are not exceeded
+      - concurrency limits are not reached
+      - resource limits allow this execution
+      - agent is not under an active governance override that blocks execution
+    input_fields:
+      agent_id: uuid (required)
+      intent_id: uuid (required)
+      command_id: uuid (required)
+      policy_decision_id: uuid (required)
+      capability_id: string (required)
+      authorization_context_id: uuid (required)
+      execution_parameters: object (optional)
+    produces:
+      - agent.execution.started
+      - agent.execution.completed (on success)
+      - agent.execution.failed (on failure)
+      - agent.execution.escalated (on escalation)
+    failure_produces:
+      - agent.quota.exceeded (if quota limit hit)
+      - agent.concurrency.limit_reached (if concurrency limit hit)
+
+# ============================================================
+# SECTION 12 — AGENT EVENTS
+# ============================================================
+# See 04_event-catalog.yaml for full definitions.
+# ============================================================
+
+events:
+
+  agent.registration.submitted:
+    aggregate: agent_registration
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - registration_id, agent_name, agent_type, model_type, model_version
+      - proposed_by, proposed_capabilities, proposed_quotas
+      - governance_review_required, submitted_at
+    audit_significance: informational
+
+  agent.registration.approved:
+    aggregate: agent_registration
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - registration_id, governance_reviewer_id, governance_review_notes
+      - conditions, reviewed_at
+    audit_significance: high
+
+  agent.registration.rejected:
+    aggregate: agent_registration
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - registration_id, governance_reviewer_id, governance_review_notes
+      - rejection_reason, reviewed_at
+    audit_significance: high
+
+  agent.activated:
+    aggregate: agent_instance
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - agent_id, registration_id, activated_at
+      - capability_bindings, execution_quotas, concurrency_limits, resource_limits
+    audit_significance: high
+
+  agent.execution.started:
+    aggregate: agent_audit_envelope
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - execution_id, agent_id, identity_id, intent_id, command_id
+      - policy_decision_id, capability_id, authorization_context_id
+      - constitutional_rules, model_version, model_parameters
+      - input_summary, executed_at
+    audit_significance: critical
+    includes_audit_envelope: true
+    constitutional_reference: INV-005
+
+  agent.execution.completed:
+    aggregate: agent_audit_envelope
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - execution_id, agent_id, identity_id, intent_id, command_id
+      - policy_decision_id, capability_id, authorization_context_id
+      - resources_used, execution_result, execution_time_ms
+      - constitutional_rules, model_version
+      - input_summary, output_summary, state_changes
+      - executed_at, completed_at
+    audit_significance: critical
+    includes_audit_envelope: true
+    constitutional_reference: INV-005
+
+  agent.execution.failed:
+    aggregate: agent_audit_envelope
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - execution_id, agent_id, identity_id, intent_id, command_id
+      - policy_decision_id, capability_id, authorization_context_id
+      - resources_used, execution_result, execution_time_ms
+      - constitutional_rules, model_version
+      - input_summary, output_summary, state_changes
+      - error_detail, executed_at, completed_at
+    audit_significance: critical
+    includes_audit_envelope: true
+    constitutional_reference: INV-005
+
+  agent.execution.escalated:
+    aggregate: agent_audit_envelope
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - execution_id, agent_id, identity_id, intent_id, command_id
+      - policy_decision_id, capability_id, authorization_context_id
+      - resources_used, execution_result, execution_time_ms
+      - constitutional_rules, model_version
+      - input_summary, output_summary, state_changes
+      - escalation_reason, escalation_target, executed_at
+    audit_significance: critical
+    includes_audit_envelope: true
+    constitutional_reference: INV-005
+
+  agent.capability.bound:
+    aggregate: capability_binding
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - binding_id, agent_id, capability_id, scope_pattern
+      - granted_by, granted_at, expires_at, conditions
+    audit_significance: high
+
+  agent.capability.revoked:
+    aggregate: capability_binding
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - binding_id, agent_id, capability_id
+      - revoked_by, revocation_reason, revoked_at
+    audit_significance: high
+
+  agent.suspended:
+    aggregate: agent_instance
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - agent_id, suspension_reason, suspended_at
+      - override_id (if governance-initiated)
+      - pending_commands_cancelled, in_flight_executions_cancelled
+    audit_significance: critical
+
+  agent.terminated:
+    aggregate: agent_instance
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - agent_id, termination_reason, terminated_at
+      - override_id (if governance-initiated)
+      - capability_bindings_revoked, final_audit_generated
+    audit_significance: critical
+
+  agent.governance.override.issued:
+    aggregate: governance_override
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - override_id, agent_id, override_type
+      - initiated_by, reason, constitutional_reference
+      - effective_immediately, expires_at, created_at
+    audit_significance: critical
+
+  agent.quota.exceeded:
+    aggregate: execution_quotas
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - quota_id, agent_id, period
+      - limit_field_exceeded, limit_value, current_usage
+      - execution_id (if triggered by an execution attempt)
+      - exceeded_at
+    audit_significance: high
+
+  agent.concurrency.limit_reached:
+    aggregate: concurrency_limits
+    source_domain: agent
+    version: 1.0.0
+    data_fields:
+      - agent_id, limit_type
+      - max_value, current_value
+      - command_id (if triggered by a command)
+      - reached_at
+    audit_significance: medium
+
+# ============================================================
+# SECTION 13 — STATE MACHINES
+# ============================================================
+# See 05_state-machines.yaml for the formal definition.
+# These state machines are documented here for the domain spec
+# and will be added to 05_state-machines.yaml during build.
+# ============================================================
+
+state_machines:
+
+  # ========================================================
+  # AGENT INSTANCE LIFECYCLE
+  # ========================================================
+
+  agent_instance_lifecycle:
+    domain: agent
+    aggregate: agent_instance
+    initial_state: REGISTERED
+    final_states: [TERMINATED, ARCHIVED]
+    description: >
+      Manages the lifecycle of an agent instance from registration
+      through activation, execution, and termination.
+
+    states:
+
+      REGISTERED:
+        description: Agent instance created, pending activation
+        allowed_commands:
+          - agent.activate
+          - agent.terminate
+        time_limit: null
+        on_timeout: null
+
+      ACTIVATING:
+        description: Agent is being activated, validation in progress
+        allowed_commands: []  # system-driven
+        time_limit: 30000
+        on_timeout: FAILED
+        entry_actions:
+          - validate all capability bindings
+          - validate execution quotas
+          - validate concurrency limits
+          - validate resource limits
+
+      ACTIVE:
+        description: Agent is operational and may receive execution commands
+        allowed_commands:
+          - agent.execution.execute
+          - agent.terminate
+          - agent.capability.bind
+          - agent.capability.revoke
+          - agent.quota.update
+          - agent.governance.override
+        time_limit: null
+        on_timeout: null
+
+      EXECUTING:
+        description: Agent is currently executing a command
+        allowed_commands:
+          - agent.governance.override  # emergency override allowed
+        substates:
+          running: command execution in progress
+          awaiting_approval: waiting for human approval gate
+        time_limit: determined by resource_limits.max_compute_time_per_execution_ms
+        on_timeout: FAILED
+
+      PAUSED:
+        description: Agent is temporarily paused by its operator
+        allowed_commands:
+          - agent.terminate
+          - agent.capability.revoke
+          - agent.governance.override
+        time_limit: null
+        on_timeout: null
+        entry_actions:
+          - cancel all pending commands
+          - allow in-flight executions to complete or timeout
+
+      SUSPENDED:
+        description: Agent is suspended by governance override
+        allowed_commands:
+          - agent.terminate
+          - agent.capability.revoke
+          - agent.governance.override  # to revoke the suspension
+        time_limit: null
+        on_timeout: null
+        entry_actions:
+          - cancel all pending commands
+          - cancel all in-flight executions
+          - emit agent.suspended
+
+      TERMINATED:
+        description: Agent is permanently terminated
+        allowed_commands: []
+        entry_actions:
+          - revoke all capability bindings
+          - cancel all pending commands
+          - cancel all in-flight executions
+          - generate final audit report
+          - emit agent.terminated
+
+      ARCHIVED:
+        description: Agent records have been archived for long-term storage
+        allowed_commands: []
+        entry_actions:
+          - export audit history to cold storage
+          - remove from active agent index
+
+      FAILED:
+        description: Agent entered a failure state
+        allowed_commands:
+          - agent.terminate
+          - agent.governance.override
+        entry_actions:
+          - cancel all pending commands
+          - cancel all in-flight executions
+          - log failure details
+          - notify operator
+
+      ESCALATED:
+        description: Agent execution has been escalated to governance
+        allowed_commands:
+          - agent.governance.override
+          - agent.terminate
+        entry_actions:
+          - pause all pending commands
+          - preserve execution context for governance review
+          - emit agent.execution.escalated
+
+    transitions:
+      REGISTERED_to_ACTIVATING:
+        trigger: agent.activate
+        guard: governance_approved is true
+      ACTIVATING_to_ACTIVE:
+        trigger: system (validation complete)
+        guard: all validations passed
+      ACTIVATING_to_FAILED:
+        trigger: system (validation failed)
+      ACTIVE_to_EXECUTING:
+        trigger: agent.execution.execute
+        guard: quotas not exceeded, concurrency available, resources available
+      EXECUTING_to_ACTIVE:
+        trigger: system (execution completed)
+      EXECUTING_to_FAILED:
+        trigger: system (execution failed)
+      EXECUTING_to_ESCALATED:
+        trigger: system (execution requires escalation)
+      ACTIVE_to_PAUSED:
+        trigger: agent.pause (operator-initiated)
+      PAUSED_to_ACTIVE:
+        trigger: agent.resume (operator-initiated)
+      ACTIVE_to_SUSPENDED:
+        trigger: agent.governance.override (EMERGENCY_SUSPEND)
+      EXECUTING_to_SUSPENDED:
+        trigger: agent.governance.override (EMERGENCY_SUSPEND)
+      ACTIVE_to_TERMINATED:
+        trigger: agent.terminate
+      PAUSED_to_TERMINATED:
+        trigger: agent.terminate
+      SUSPENDED_to_TERMINATED:
+        trigger: agent.terminate or agent.governance.override (FORCE_TERMINATE)
+      FAILED_to_TERMINATED:
+        trigger: agent.terminate
+      ESCALATED_to_TERMINATED:
+        trigger: agent.terminate or agent.governance.override (FORCE_TERMINATE)
+      ESCALATED_to_ACTIVE:
+        trigger: agent.governance.override (override revoked)
+        guard: governance override allows resumption
+      SUSPENDED_to_ACTIVE:
+        trigger: agent.governance.override (override revoked)
+        guard: governance override allows resumption
+      TERMINATED_to_ARCHIVED:
+        trigger: system (archival policy)
+      FAILED_to_ACTIVE:
+        trigger: agent.governance.override (recovery authorized)
+        guard: failure cause resolved
+
+    invalid_transitions:
+      - { from: TERMINATED, to: any }
+      - { from: ARCHIVED, to: any }
+      - { from: REGISTERED, to: EXECUTING }
+      - { from: REGISTERED, to: PAUSED }
+      - { from: REGISTERED, to: SUSPENDED }
+      - { from: ACTIVATING, to: EXECUTING }
+      - { from: ACTIVATING, to: PAUSED }
+      - { from: EXECUTING, to: PAUSED }
+      - { from: EXECUTING, to: ARCHIVED }
+      - { from: ESCALATED, to: EXECUTING }
+      - { from: ESCALATED, to: PAUSED }
+
+  # ========================================================
+  # AGENT REGISTRATION LIFECYCLE
+  # ========================================================
+
+  agent_registration_lifecycle:
+    domain: agent
+    aggregate: agent_registration
+    initial_state: SUBMITTED
+    final_states: [APPROVED, REJECTED, WITHDRAWN]
+    description: >
+      Manages the governance review process for agent registration.
+
+    states:
+
+      SUBMITTED:
+        description: Registration submitted, awaiting governance review
+        allowed_commands:
+          - agent.registration.withdraw
+        time_limit: null
+        on_timeout: null
+
+      UNDER_REVIEW:
+        description: Governance is actively reviewing the registration
+        allowed_commands:
+          - agent.registration.approve
+          - agent.registration.reject
+          - agent.registration.withdraw
+        time_limit: null
+        on_timeout: null
+
+      APPROVED:
+        description: Governance has approved the registration
+        allowed_commands: []
+        entry_actions:
+          - emit agent.registration.approved
+          - enable agent activation
+
+      REJECTED:
+        description: Governance has rejected the registration
+        allowed_commands: []
+        entry_actions:
+          - emit agent.registration.rejected
+          - notify proposer
+
+      CONDITIONAL:
+        description: Governance has approved with conditions
+        allowed_commands:
+          - agent.capability.bind (to narrow capabilities)
+          - agent.quota.update (to reduce quotas)
+        time_limit: null
+        on_timeout: null
+        entry_actions:
+          - emit agent.registration.approved
+          - record conditions
+          - enable agent activation once conditions met
+
+      WITHDRAWN:
+        description: Registration has been withdrawn by the proposer
+        allowed_commands: []
+        entry_actions:
+          - notify governance
+
+    transitions:
+      SUBMITTED_to_UNDER_REVIEW:
+        trigger: governance picks up review
+      SUBMITTED_to_APPROVED:
+        trigger: governance (auto-approve for low-risk)
+        guard: risk_assessment.risk_level is LOW
+      SUBMITTED_to_REJECTED:
+        trigger: governance (auto-reject)
+      UNDER_REVIEW_to_APPROVED:
+        trigger: agent.registration.approve
+      UNDER_REVIEW_to_REJECTED:
+        trigger: agent.registration.reject
+      UNDER_REVIEW_to_CONDITIONAL:
+        trigger: agent.registration.approve (with conditions)
+      SUBMITTED_to_WITHDRAWN:
+        trigger: agent.registration.withdraw
+      UNDER_REVIEW_to_WITHDRAWN:
+        trigger: agent.registration.withdraw
+
+    invalid_transitions:
+      - { from: APPROVED, to: any }
+      - { from: REJECTED, to: any }
+      - { from: WITHDRAWN, to: any }
+      - { from: SUBMITTED, to: CONDITIONAL }
+      - { from: CONDITIONAL, to: REJECTED }
+
+  # ========================================================
+  # AGENT EXECUTION LIFECYCLE
+  # ========================================================
+
+  agent_execution_lifecycle:
+    domain: agent
+    aggregate: agent_audit_envelope
+    initial_state: PENDING
+    final_states: [COMPLETED, FAILED, ESCALATED, TIMEOUT]
+    description: >
+      Manages the lifecycle of a single agent execution,
+      from pending through completion or failure.
+
+    states:
+
+      PENDING:
+        description: Execution is queued, waiting for resources
+        allowed_commands:
+          - agent.execution.cancel (operator)
+        time_limit: determined by concurrency_limits.queue_timeout_ms
+        on_timeout: TIMEOUT
+        entry_actions:
+          - validate preconditions
+          - check quotas
+          - check concurrency
+
+      RUNNING:
+        description: Execution is in progress
+        allowed_commands:
+          - agent.governance.override (emergency)
+        time_limit: determined by resource_limits.max_compute_time_per_execution_ms
+        on_timeout: TIMEOUT
+        entry_actions:
+          - emit agent.execution.started (with full audit envelope)
+          - transition agent_instance to EXECUTING
+
+      COMPLETED:
+        description: Execution completed successfully
+        allowed_commands: []
+        entry_actions:
+          - emit agent.execution.completed (with full audit envelope)
+          - update quota usage
+          - transition agent_instance to ACTIVE
+
+      FAILED:
+        description: Execution failed
+        allowed_commands: []
+        entry_actions:
+          - emit agent.execution.failed (with full audit envelope)
+          - update quota usage
+          - log error details
+          - transition agent_instance to ACTIVE or FAILED
+
+      ESCALATED:
+        description: Execution requires human or governance intervention
+        allowed_commands:
+          - agent.governance.override
+        entry_actions:
+          - emit agent.execution.escalated (with full audit envelope)
+          - preserve execution context
+          - transition agent_instance to ESCALATED
+
+      TIMEOUT:
+        description: Execution exceeded time limits
+        allowed_commands: []
+        entry_actions:
+          - emit agent.execution.failed (with full audit envelope)
+          - set execution_result to TIMEOUT
+          - release consumed resources
+          - transition agent_instance to ACTIVE
+
+      PARTIAL:
+        description: Execution produced partial results
+        allowed_commands: []
+        entry_actions:
+          - emit agent.execution.completed (with execution_result PARTIAL)
+          - document partial state changes
+          - transition agent_instance to ACTIVE
+
+    transitions:
+      PENDING_to_RUNNING:
+        trigger: system (resources available)
+        guard: preconditions met, quotas available, concurrency available
+      RUNNING_to_COMPLETED:
+        trigger: system (execution success)
+      RUNNING_to_FAILED:
+        trigger: system (execution error)
+      RUNNING_to_ESCALATED:
+        trigger: system (escalation required)
+      RUNNING_to_TIMEOUT:
+        trigger: system (time limit exceeded)
+      RUNNING_to_PARTIAL:
+        trigger: system (partial completion)
+      PENDING_to_TIMEOUT:
+        trigger: system (queue timeout)
+      PENDING_to_FAILED:
+        trigger: agent.execution.cancel
+
+    invalid_transitions:
+      - { from: COMPLETED, to: any }
+      - { from: FAILED, to: any }
+      - { from: TIMEOUT, to: any }
+      - { from: ESCALATED, to: RUNNING }
+      - { from: ESCALATED, to: COMPLETED }
+      - { from: PARTIAL, to: RUNNING }
+      - { from: PENDING, to: COMPLETED }
+      - { from: PENDING, to: FAILED }  # only via cancel
+      - { from: PENDING, to: ESCALATED }
+
+# ============================================================
+# SECTION 14 — PROHIBITIONS
+# ============================================================
+# Absolute prohibitions on agent behavior.
+# These are not configurable. They are constitutional requirements.
+# Any violation is a constitutional violation (INV-004, INV-005,
+# INV-008, INV-010).
+# ============================================================
+
+prohibitions:
+
+  - id: P-AGENT-001
+    rule: Agent SHALL NOT create, grant, or modify capabilities
+    constitutional_reference: INV-004
+    enforcement: >
+      Agent has no write access to capability definitions, grants,
+      or modifications. The agent.capability.bind and
+      agent.capability.revoke commands require human or governance
+      actor types, never ai_agent.
+    violation_severity: critical
+
+  - id: P-AGENT-002
+    rule: Agent SHALL NOT bypass the 4-gate command pipeline
+    constitutional_reference: INV-008
+    enforcement: >
+      Every agent.execution.execute requires valid intent_id,
+      policy_decision_id, capability_id, and authorization_context_id.
+      Any missing or invalid reference causes immediate rejection.
+    violation_severity: critical
+
+  - id: P-AGENT-003
+    rule: Agent SHALL NOT approve its own commands
+    constitutional_reference: INV-010
+    enforcement: >
+      The policy_decision identity must differ from the agent's
+      owner_id and operator_id. Self-approval is structurally
+      impossible by the command pipeline design.
+    violation_severity: critical
+
+  - id: P-AGENT-004
+    rule: Agent SHALL NOT escalate its own authority
+    constitutional_reference: INV-004
+    enforcement: >
+      Authority escalation requires a governance actor identity.
+      Agents cannot issue governance commands or modify their
+      own capability bindings, quotas, or trust level.
+    violation_severity: critical
+
+  - id: P-AGENT-005
+    rule: Agent SHALL NOT modify constitutional rules
+    constitutional_reference: INV-010
+    enforcement: >
+      Agent has no write access to the constitutional rule store.
+      Constitutional rules are only modifiable through the
+      governance domain by governance-authorized identities.
+    violation_severity: critical
+
+  - id: P-AGENT-006
+    rule: Agent SHALL NOT modify governance settings
+    constitutional_reference: INV-010
+    enforcement: >
+      Agent has no write access to governance configuration.
+      Governance settings are only modifiable through the
+      governance domain.
+    violation_severity: critical
+
+  - id: P-AGENT-007
+    rule: Agent SHALL NOT operate without a valid intent_id
+    constitutional_reference: INV-008
+    enforcement: >
+      The agent.execution.execute command requires intent_id
+      as a required field. The command handler validates that
+      the intent_id references an existing, valid intent before
+      execution begins.
+    violation_severity: critical
+
+  - id: P-AGENT-008
+    rule: Agent SHALL NOT operate without a valid policy_decision_id
+    constitutional_reference: INV-008
+    enforcement: >
+      The agent.execution.execute command requires policy_decision_id
+      as a required field. The command handler validates that the
+      policy_decision_id references an existing policy decision
+      with result APPROVE before execution begins.
+    violation_severity: critical
+
+  - id: P-AGENT-009
+    rule: Agent SHALL NOT mint or destroy assets
+    constitutional_reference: INV-004
+    enforcement: >
+      Agent has no access to vault.asset.create or vault.asset.destroy
+      commands. The forbidden_actions field in resource_limits must
+      include these capability patterns for all agent instances.
+    violation_severity: critical
+
+  - id: P-AGENT-010
+    rule: Agent audit envelope is MANDATORY for every execution
+    constitutional_reference: INV-005
+    enforcement: >
+      The agent execution handler creates a complete agent_audit_envelope
+      before execution begins and updates it on completion or failure.
+      The envelope is emitted as part of the agent.execution.started
+      and agent.execution.completed/failed events. There are no
+      exceptions. An execution without a complete audit envelope
+      is a constitutional violation.
+    violation_severity: critical
+
+# ============================================================
+# SECTION 15 — INTEGRATION POINTS
+# ============================================================
+
+integration_contracts:
+
+  identity_to_agent_consumed:
+    description: Agent consumes authorization context from the Identity domain
+    consumed_from: identity
+    via: intent (intent carries authorization_context_id)
+    data_received:
+      authorization_context_id:
+        type: uuid
+        format: uuid_v4
+        required: true
+      identity_id:
+        type: uuid
+        format: uuid_v4
+        required: true
+      authentication_verified:
+        type: boolean
+        required: true
+      actor_type:
+        type: enum
+        values: [human, organization, ai_agent, service_account, governance, external_system, system]
+        required: true
+    contract: >
+      Agent trusts the Identity domain's authentication and
+      authorization output. Agent does not re-authenticate.
+      Agent validates that authorization_context_id references
+      a valid, non-expired authorization context.
+
+  policy_to_agent_consumed:
+    description: Agent consumes policy decisions from the Policy domain
+    consumed_from: policy
+    via: intent (intent carries policy_decision_id)
+    data_received:
+      policy_decision_id:
+        type: uuid
+        format: uuid_v4
+        required: true
+      result:
+        type: enum
+        values: [APPROVE, DENY, REQUIRE_APPROVAL]
+        required: true
+      rules_applied:
+        type: array
+        element_type: string
+        required: true
+      conditions:
+        type: array
+        element_type: object
+        required: false
+    contract: >
+      Agent trusts the Policy domain's evaluation. Agent only
+      executes when result is APPROVE. Agent does not re-evaluate
+      policy. Agent includes policy_decision_id in every audit envelope.
+
+  intent_to_agent_consumed:
+    description: Agent consumes normalized intents from the Intent domain
+    consumed_from: intent
+    via: command pipeline (intent is attached to command)
+    data_received:
+      intent_id:
+        type: uuid
+        format: uuid_v4
+        required: true
+      intent_type:
+        type: string
+        required: true
+      normalized_payload:
+        type: object
+        required: true
+      actor_context:
+        type: object
+        required: true
+      validation_status:
+        type: enum
+        values: [VALID, INVALID]
+        required: true
+    contract: >
+      Agent receives the normalized intent from the Intent domain.
+      Agent executes the command within the intent's scope.
+      Agent does not modify the intent or its payload.
+
+  command_pipeline:
+    description: Agent executes commands through the standard command pipeline
+    consumed_from: intent
+    via: command dispatch
+    contract: >
+      Agent receives a command that has passed through Identity
+      authentication, Authorization Context binding, Policy evaluation,
+      and Intent normalization/validation. Agent's role is execution
+      only. Agent wraps the domain command and produces an audit envelope.
+
+  agent_to_ledger_provided:
+    description: Agent emits audit envelopes to the Ledger domain for audit trail
+    provided_to: ledger
+    data_provided:
+      agent_audit_envelope:
+        type: object
+        references: agent_audit_envelope
+        required: true
+      execution_id:
+        type: uuid
+        format: uuid_v4
+        required: true
+      agent_id:
+        type: uuid
+        format: uuid_v4
+        required: true
+      executed_at:
+        type: timestamp
+        format: iso8601
+        required: true
+    contract: >
+      Every agent execution produces an audit envelope that is
+      recorded by the Ledger as an audit event. The Ledger
+      provides immutable storage and audit query capabilities.
+
+  agent_to_governance:
+    description: Escalation interface from Agent to Governance
+    provided_to: governance
+    escalation_triggers:
+      - execution exceeds resource limits
+      - execution produces unexpected state changes
+      - quota breach detected
+      - governance_override issued
+      - agent enters ESCALATED or FAILED state
+    data_provided:
+      escalation_event:
+        type: object
+        fields:
+          execution_id: uuid
+          agent_id: uuid
+          escalation_reason: string
+          escalation_severity: enum [LOW, MEDIUM, HIGH, CRITICAL]
+          affected_resources: array
+          audit_envelope: object
+    contract: >
+      Agent may escalate to Governance but cannot receive
+      governance commands except through the standard command
+      pipeline with governance actor type.
+
+  security_capabilities_consumed:
+    description: Agent consumes capability definitions from the security capabilities domain
+    consumed_from: security_capabilities
+    reference_file: "08_security-capabilities.yaml"
+    data_consumed:
+      capability_definitions:
+        type: array
+        element_type: object
+        description: Available capability definitions that may be bound to agents
+      capability_patterns:
+        type: array
+        element_type: string
+        description: Valid capability ID patterns for binding
+    contract: >
+      Agent references but does not modify capability definitions.
+      All capability bindings must reference valid capabilities
+      defined in the security capabilities domain. Agent's
+      forbidden_actions must align with security domain constraints.
