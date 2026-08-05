@@ -1,0 +1,330 @@
+# SOVR Domain Registry  
+# Version: 1.0.0  
+# Status: ACTIVE  
+# Constitutional Authority: SOVR_CANONICAL_ARCHITECTURE_v1.md  
+# Rule: No domain may operate without its dependencies satisfied.  
+  
+registry:  
+  version: "1.0.0"  
+  frozen_architecture: SOVR_CANONICAL_ARCHITECTURE_v1.md  
+  constitutional_rule: >  
+    No settlement representation may exist without a preceding  
+    commercial record. No ledger entry may exist without a  
+    settlement authorization. No evidence package may exist  
+    without a finalized ledger state. No programmable  
+    representation may exist without verifiable evidence  
+    provenance.  
+  
+  execution_order:  
+    - identity  
+    - commercial  
+    - settlement  
+    - ledger  
+    - certification  
+    - representation  
+    - gateway  
+  
+  domains:  
+  
+    - name: identity  
+      version: "1.0.0"  
+      status: REQUIRED  
+      priority: 1  
+      path: domains/identity/  
+      purpose: >  
+        Defines who exists in the system. Who created an  
+        obligation. Who authorized settlement. Who attested  
+        records. Who controls accounts. Every commercial  
+        record, settlement event, and attestation traces  
+        to an identity record.  
+      contains:  
+        - entities/  
+        - roles/  
+        - authorities/  
+      depends_on: []  
+      required_before:  
+        - commercial  
+        - settlement  
+        - certification  
+      events:  
+        - EntityRegistered  
+        - RoleAssigned  
+        - AuthorityGranted  
+      constitutional_note: >  
+        Commercial settlement requires identified parties.  
+        No obligation may exist without identified originator  
+        and counterparty.  
+  
+    - name: commercial  
+      version: "1.0.0"  
+      status: REQUIRED  
+      priority: 2  
+      path: domains/commercial/  
+      purpose: >  
+        Records commercial reality. The origin layer for all  
+        value relationships in SOVR. No settlement may occur  
+        without a preceding commercial record. This domain  
+        does not create value. It records value that already  
+        exists in the form of commercial agreements,  
+        obligations, invoices, and transactions.  
+      contains:  
+        - agreements/  
+        - obligations/  
+        - invoices/  
+        - transactions/  
+      depends_on:  
+        - identity  
+      required_before:  
+        - settlement  
+      events:  
+        - CommercialRecordCreated  
+        - ObligationValidated  
+        - SettlementRequested  
+        - ObligationCancelled  
+      constitutional_note: >  
+        This is LAYER 1 in the canonical architecture.  
+        Every downstream artifact traces to this domain.  
+        The commercial record is the root of provenance.  
+  
+    - name: settlement  
+      version: "1.0.0"  
+      status: REQUIRED  
+      priority: 3  
+      path: domains/settlement/  
+      purpose: >  
+        Settlement workflows, events, and evidence generation  
+        triggers. Converts authorized commercial obligations  
+        into finalized settlement states. Triggers the  
+        certification engine to generate evidence packages.  
+        Cannot operate without commercial domain record.  
+      contains:  
+        - workflows/  
+        - events/  
+        - evidence/  
+      depends_on:  
+        - commercial  
+        - identity  
+      required_before:  
+        - ledger  
+        - certification  
+      events:  
+        - SettlementAuthorized  
+        - SettlementExecuted  
+        - SettlementFinalized  
+        - SettlementDisputed  
+        - SettlementCancelled  
+      constitutional_note: >  
+        This is LAYER 1 to LAYER 2 bridge.  
+        Settlement authorization is required before any  
+        TigerBeetle ledger entry may be posted.  
+  
+    - name: ledger  
+      version: "1.0.0"  
+      status: REQUIRED  
+      priority: 4  
+      path: domains/ledger/  
+      purpose: >  
+        TigerBeetle adapter, account registry, reconciliation.  
+        The accounting truth engine. Records what SOVR  
+        settlement domain authorizes. Does not decide whether  
+        commerce happened. Does not decide whether issuance  
+        is allowed. Those decisions belong to commercial and  
+        settlement domains. TigerBeetle records. It does not  
+        decide.  
+      contains:  
+        - accounts/  
+        - tigerbeetle/  
+        - reconciliation/  
+      depends_on:  
+        - settlement  
+      required_before:  
+        - certification  
+        - representation  
+      accounts:  
+        - id: 100001  
+          name: SOVR_EXTERNAL_RESERVE  
+          type: ASSET  
+        - id: 100002  
+          name: SOVR_SETTLEMENT_LIABILITY  
+          type: LIABILITY  
+        - id: 100003  
+          name: SOVR_SETTLEMENT_CLEARING  
+          type: CLEARING  
+        - id: 100004  
+          name: SOVR_TREASURY_OPERATIONS  
+          type: ASSET  
+      fundamental_equation:  
+        rule: "100001.balance == 100002.balance"  
+        breach_action: HALT_AND_ALERT  
+      events:  
+        - LedgerEntryPosted  
+        - TransferCompleted  
+        - ReconciliationRun  
+        - EquationBreached  
+      constitutional_note: >  
+        This is LAYER 2 in the canonical architecture.  
+        Accounting truth. Immutable. Atomic. Source of  
+        truth for all balance states.  
+  
+    - name: certification  
+      version: "1.0.0"  
+      status: REQUIRED  
+      priority: 5  
+      path: domains/certification/  
+      purpose: >  
+        Evidence engine, package generators, attestations,  
+        manifests, SHA-256 hashing, ECDSA signatures,  
+        verification. Generates the JDE-compatible settlement  
+        evidence package on SettlementFinalized event.  
+        The evidence package is a first-class domain artifact.  
+        It is not a report. It is commercial proof.  
+      contains:  
+        - evidence-engine/  
+        - packages/  
+        - attestations/  
+        - manifests/  
+      depends_on:  
+        - settlement  
+        - ledger  
+      required_before:  
+        - representation  
+      generates:  
+        - SOVR_Settlement_Evidence_Package  
+        - SHA256_Manifest  
+        - ECDSA_Signature  
+        - Explorer_View  
+      jde_documents:  
+        - "00_MASTER_SETTLEMENT_RECORD"  
+        - "01_SETTLEMENT_CONTROL_HEADER"  
+        - "02_REMITTANCE_ADVICE"  
+        - "03_PAYMENT_RECEIPT_RECORD"  
+        - "04_OPEN_ITEM_APPLICATION"  
+        - "05_ACCOUNT_LEDGER_DETAIL"  
+        - "06_BATCH_CONTROL"  
+        - "07_AUDIT_TRAIL"  
+        - "08_POSTING_INSTRUCTIONS"  
+        - "09_ACKNOWLEDGMENT_RECORD"  
+        - "10_DOCUMENT_INDEX"  
+      events:  
+        - EvidencePackageGenerated  
+        - ManifestComputed  
+        - AttestationSigned  
+        - PackagePublished  
+      constitutional_note: >  
+        This is LAYER 3 in the canonical architecture.  
+        Evidence truth. No representation may be issued  
+        without a certified evidence package.  
+  
+    - name: representation  
+      version: "1.0.0"  
+      status: OPTIONAL_AT_GENESIS  
+      priority: 6  
+      path: domains/representation/  
+      purpose: >  
+        SVU contract, payment instruments, blockchain adapters.  
+        The output interface layer. Represents finalized  
+        settlement states as programmable instruments.  
+        This is a representation adapter only.  
+        It is not a money creator.  
+        SVU = Settlement Value Unit.  
+      contains:  
+        - svu/  
+        - payment/  
+        - blockchain/  
+      depends_on:  
+        - ledger  
+        - certification  
+      svu_definition: >  
+        A Settlement Value Unit is a programmable  
+        representation of a finalized commercial settlement  
+        obligation, created only after verified authorization,  
+        ledger confirmation, and evidence generation.  
+      required_provenance:  
+        - commercial_record_id: bytes32  
+        - settlement_package_hash: bytes32  
+        - tigerbeetle_transfer_id: bytes32  
+        - attestation_record_id: bytes32  
+      issuance_authority:  
+        type: multisig  
+        threshold: "2-of-3"  
+        signers:  
+          - Treasury Operator  
+          - Independent Auditor  
+          - Governance Recovery  
+      events:  
+        - SVUMintAuthorized  
+        - SVUIssued  
+        - SVURedeemed  
+        - SVUBurned  
+      constitutional_note: >  
+        This is LAYER 4 in the canonical architecture.  
+        Settlement representation. Optional at genesis.  
+        The infrastructure proof does not require the token.  
+        The token requires the infrastructure proof.  
+  
+    - name: gateway  
+      version: "1.0.0"  
+      status: REQUIRED  
+      priority: 7  
+      path: domains/gateway/  
+      purpose: >  
+        Core Gateway Explorer, partner portal, audit interface.  
+        Public verification layer. Any party can traverse  
+        the full provenance chain without SOVR permission.  
+        Commercial record to SVU. Every link. Independent.  
+      contains:  
+        - explorer/  
+        - partner/  
+      depends_on:  
+        - certification  
+        - representation  
+      views:  
+        - CommercialRecordViewer  
+        - SettlementTimeline  
+        - LedgerProofViewer  
+        - EvidencePackageViewer  
+        - AttestationViewer  
+        - RepresentationViewer  
+        - PartnerPortal  
+      repository: >  
+        https://github.com/StavoMidnite661/SOVR-Core-Gateway-Explorer  
+      constitutional_note: >  
+        This is LAYER 5 in the canonical architecture.  
+        Public verification. The test of the entire system.  
+        If the chain cannot be traversed here, the  
+        architecture has failed.  
+  
+---  
+  
+# Genesis Record  
+genesis:  
+  artifact_id: SOVR-COMMERCIAL-SETTLEMENT-000001  
+  counterparty: California Water Service  
+  amount_cents: 70000  
+  currency: USD  
+  status: PENDING_BUILD  
+  purpose: >  
+    First production proof of SOVR infrastructure.  
+    Proves commercial event, settlement authorization,  
+    ledger posting, evidence generation, and independent  
+    audit capability. SVU issuance is optional for this  
+    artifact. The infrastructure proof does not require  
+    the token. The token requires the infrastructure proof.  
+  phases_required:  
+    - identity  
+    - commercial  
+    - settlement  
+    - ledger  
+    - certification  
+  phases_optional:  
+    - representation  
+  
+---  
+  
+# Registry Integrity  
+integrity:  
+  document_id: SOVR-REG-001  
+  version: "1.0.0"  
+  status: ACTIVE  
+  authority: SOVR Development Holdings, LLC  
+  sha256: "[computed at commit]"  
