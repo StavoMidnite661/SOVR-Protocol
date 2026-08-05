@@ -1,0 +1,28 @@
+name: identity
+version: "1.0.0"
+status: REQUIRED
+priority: 1
+path: domains/identity/
+purpose: >
+  Defines who exists in the system. Who created an
+  obligation. Who authorized settlement. Who attested
+  records. Who controls accounts. Every commercial
+  record, settlement event, and attestation traces
+  to an identity record.
+contains:
+  - entities/
+  - roles/
+  - authorities/
+depends_on: []
+required_before:
+  - commercial
+  - settlement
+  - certification
+events:
+  - EntityRegistered
+  - RoleAssigned
+  - AuthorityGranted
+constitutional_note: >
+  Commercial settlement requires identified parties.
+  No obligation may exist without identified originator
+  and counterparty.

@@ -1,0 +1,48 @@
+name: certification
+version: "1.0.0"
+status: REQUIRED
+priority: 5
+path: domains/certification/
+purpose: >
+  Evidence engine, package generators, attestations,
+  manifests, SHA-256 hashing, ECDSA signatures,
+  verification. Generates the JDE-compatible settlement
+  evidence package on SettlementFinalized event.
+  The evidence package is a first-class domain artifact.
+  It is not a report. It is commercial proof.
+contains:
+  - evidence-engine/
+  - packages/
+  - attestations/
+  - manifests/
+depends_on:
+  - settlement
+  - ledger
+required_before:
+  - representation
+generates:
+  - SOVR_Settlement_Evidence_Package
+  - SHA256_Manifest
+  - ECDSA_Signature
+  - Explorer_View
+jde_documents:
+  - "00_MASTER_SETTLEMENT_RECORD"
+  - "01_SETTLEMENT_CONTROL_HEADER"
+  - "02_REMITTANCE_ADVICE"
+  - "03_PAYMENT_RECEIPT_RECORD"
+  - "04_OPEN_ITEM_APPLICATION"
+  - "05_ACCOUNT_LEDGER_DETAIL"
+  - "06_BATCH_CONTROL"
+  - "07_AUDIT_TRAIL"
+  - "08_POSTING_INSTRUCTIONS"
+  - "09_ACKNOWLEDGMENT_RECORD"
+  - "10_DOCUMENT_INDEX"
+events:
+  - EvidencePackageGenerated
+  - ManifestComputed
+  - AttestationSigned
+  - PackagePublished
+constitutional_note: >
+  This is LAYER 3 in the canonical architecture.
+  Evidence truth. No representation may be issued
+  without a certified evidence package.

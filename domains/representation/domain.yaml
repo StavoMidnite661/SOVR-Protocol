@@ -1,0 +1,46 @@
+name: representation
+version: "1.0.0"
+status: OPTIONAL_AT_GENESIS
+priority: 6
+path: domains/representation/
+purpose: >
+  SVU contract, payment instruments, blockchain adapters.
+  The output interface layer. Represents finalized
+  settlement states as programmable instruments.
+  This is a representation adapter only.
+  It is not a money creator.
+  SVU = Settlement Value Unit.
+contains:
+  - svu/
+  - payment/
+  - blockchain/
+depends_on:
+  - ledger
+  - certification
+svu_definition: >
+  A Settlement Value Unit is a programmable
+  representation of a finalized commercial settlement
+  obligation, created only after verified authorization,
+  ledger confirmation, and evidence generation.
+required_provenance:
+  - commercial_record_id: bytes32
+  - settlement_package_hash: bytes32
+  - tigerbeetle_transfer_id: bytes32
+  - attestation_record_id: bytes32
+issuance_authority:
+  type: multisig
+  threshold: "2-of-3"
+  signers:
+    - Treasury Operator
+    - Independent Auditor
+    - Governance Recovery
+events:
+  - SVUMintAuthorized
+  - SVUIssued
+  - SVURedeemed
+  - SVUBurned
+constitutional_note: >
+  This is LAYER 4 in the canonical architecture.
+  Settlement representation. Optional at genesis.
+  The infrastructure proof does not require the token.
+  The token requires the infrastructure proof.

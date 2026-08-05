@@ -1,0 +1,31 @@
+name: settlement
+version: "1.0.0"
+status: REQUIRED
+priority: 3
+path: domains/settlement/
+purpose: >
+  Settlement workflows, events, and evidence generation
+  triggers. Converts authorized commercial obligations
+  into finalized settlement states. Triggers the
+  certification engine to generate evidence packages.
+  Cannot operate without commercial domain record.
+contains:
+  - workflows/
+  - events/
+  - evidence/
+depends_on:
+  - commercial
+  - identity
+required_before:
+  - ledger
+  - certification
+events:
+  - SettlementAuthorized
+  - SettlementExecuted
+  - SettlementFinalized
+  - SettlementDisputed
+  - SettlementCancelled
+constitutional_note: >
+  This is LAYER 1 to LAYER 2 bridge.
+  Settlement authorization is required before any
+  TigerBeetle ledger entry may be posted.

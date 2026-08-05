@@ -1,0 +1,31 @@
+name: gateway
+version: "1.0.0"
+status: REQUIRED
+priority: 7
+path: domains/gateway/
+purpose: >
+  Core Gateway Explorer, partner portal, audit interface.
+  Public verification layer. Any party can traverse
+  the full provenance chain without SOVR permission.
+  Commercial record to SVU. Every link. Independent.
+contains:
+  - explorer/
+  - partner/
+depends_on:
+  - certification
+  - representation
+views:
+  - CommercialRecordViewer
+  - SettlementTimeline
+  - LedgerProofViewer
+  - EvidencePackageViewer
+  - AttestationViewer
+  - RepresentationViewer
+  - PartnerPortal
+repository: >
+  https://github.com/StavoMidnite661/SOVR-Core-Gateway-Explorer
+constitutional_note: >
+  This is LAYER 5 in the canonical architecture.
+  Public verification. The test of the entire system.
+  If the chain cannot be traversed here, the
+  architecture has failed.

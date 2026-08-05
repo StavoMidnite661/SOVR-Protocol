@@ -1,0 +1,47 @@
+name: ledger
+version: "1.0.0"
+status: REQUIRED
+priority: 4
+path: domains/ledger/
+purpose: >
+  TigerBeetle adapter, account registry, reconciliation.
+  The accounting truth engine. Records what SOVR
+  settlement domain authorizes. Does not decide whether
+  commerce happened. Does not decide whether issuance
+  is allowed. Those decisions belong to commercial and
+  settlement domains. TigerBeetle records. It does not
+  decide.
+contains:
+  - accounts/
+  - tigerbeetle/
+  - reconciliation/
+depends_on:
+  - settlement
+required_before:
+  - certification
+  - representation
+accounts:
+  - id: 100001
+    name: SOVR_EXTERNAL_RESERVE
+    type: ASSET
+  - id: 100002
+    name: SOVR_SETTLEMENT_LIABILITY
+    type: LIABILITY
+  - id: 100003
+    name: SOVR_SETTLEMENT_CLEARING
+    type: CLEARING
+  - id: 100004
+    name: SOVR_TREASURY_OPERATIONS
+    type: ASSET
+fundamental_equation:
+  rule: "100001.balance == 100002.balance"
+  breach_action: HALT_AND_ALERT
+events:
+  - LedgerEntryPosted
+  - TransferCompleted
+  - ReconciliationRun
+  - EquationBreached
+constitutional_note: >
+  This is LAYER 2 in the canonical architecture.
+  Accounting truth. Immutable. Atomic. Source of
+  truth for all balance states.

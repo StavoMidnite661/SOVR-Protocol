@@ -1,0 +1,30 @@
+name: commercial
+version: "1.0.0"
+status: REQUIRED
+priority: 2
+path: domains/commercial/
+purpose: >
+  Records commercial reality. The origin layer for all
+  value relationships in SOVR. No settlement may occur
+  without a preceding commercial record. This domain
+  does not create value. It records value that already
+  exists in the form of commercial agreements,
+  obligations, invoices, and transactions.
+contains:
+  - agreements/
+  - obligations/
+  - invoices/
+  - transactions/
+depends_on:
+  - identity
+required_before:
+  - settlement
+events:
+  - CommercialRecordCreated
+  - ObligationValidated
+  - SettlementRequested
+  - ObligationCancelled
+constitutional_note: >
+  This is LAYER 1 in the canonical architecture.
+  Every downstream artifact traces to this domain.
+  The commercial record is the root of provenance.
