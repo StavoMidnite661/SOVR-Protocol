@@ -1,30 +1,156 @@
-name: commercial
-version: "1.0.0"
-status: REQUIRED
-priority: 2
-path: domains/commercial/
-purpose: >
-  Records commercial reality. The origin layer for all
-  value relationships in SOVR. No settlement may occur
-  without a preceding commercial record. This domain
-  does not create value. It records value that already
-  exists in the form of commercial agreements,
-  obligations, invoices, and transactions.
-contains:
-  - agreements/
-  - obligations/
-  - invoices/
-  - transactions/
-depends_on:
-  - identity
-required_before:
-  - settlement
-events:
-  - CommercialRecordCreated
-  - ObligationValidated
-  - SettlementRequested
-  - ObligationCancelled
-constitutional_note: >
-  This is LAYER 1 in the canonical architecture.
-  Every downstream artifact traces to this domain.
-  The commercial record is the root of provenance.
+# SOVR Commercial Domain  
+# Version: 1.0.0  
+# Constitutional Authority: SOVR_CANONICAL_ARCHITECTURE_v1.md  
+# Priority: 2 — Origin layer. Root of all provenance.  
+  
+domain:  
+  name: commercial  
+  version: "1.0.0"  
+  status: ACTIVE  
+  priority: 2  
+  constitutional_rule: >  
+    No settlement representation may exist without a  
+    preceding commercial record. This domain is the  
+    origin of all value relationships in SOVR.  
+    SOVR does not create value here. It records value  
+    that already exists in commercial reality.  
+  
+  purpose: >  
+    Records commercial reality. Captures agreements,  
+    obligations, invoices, and transactions that exist  
+    in the world before SOVR processes them. Every  
+    downstream artifact — ledger entry, evidence package,  
+    SVU token — traces its provenance to a record in  
+    this domain.  
+  
+  depends_on:  
+    - identity  
+  
+  required_before:  
+    - settlement  
+  
+  entities:  
+  
+    CommercialAgreement:  
+      description: >  
+        A formal agreement between identified parties  
+        establishing terms for commercial exchange.  
+      required_fields:  
+        - agreement_id  
+        - parties  
+        - terms  
+        - effective_date  
+        - source_document_hash  
+  
+    CommercialObligation:  
+      description: >  
+        A verified obligation arising from a commercial  
+        agreement. The root object required before any  
+        settlement may occur. Every settlement traces  
+        to exactly one CommercialObligation.  
+      required_fields:  
+        - obligation_id  
+        - agreement_reference  
+        - originator  
+        - counterparty  
+        - obligation_type  
+        - amount_cents  
+        - currency  
+        - authorization_reference  
+        - source_document_hash  
+        - status  
+      state_machine:  
+        initial: DRAFT  
+        states:  
+          - DRAFT  
+          - VALIDATED  
+          - SETTLEMENT_REQUESTED  
+          - SETTLED  
+          - CANCELLED  
+          - DISPUTED  
+  
+    CommercialTransaction:  
+      description: >  
+        A recorded instance of commercial exchange  
+        against an obligation.  
+      required_fields:  
+        - transaction_id  
+        - obligation_reference  
+        - transaction_type  
+        - amount_cents  
+        - timestamp  
+        - authorization_reference  
+  
+    CommercialAuthorization:  
+      description: >  
+        Explicit approval for settlement to proceed  
+        against a validated obligation.  
+      required_fields:  
+        - authorization_id  
+        - obligation_reference  
+        - authorized_by  
+        - authorization_date  
+        - authorization_type  
+        - source_reference  
+  
+  events:  
+    - name: CommercialRecordCreated  
+      description: >  
+        Genesis event. Commercial obligation formally  
+        recorded in SOVR. Root of all downstream  
+        provenance. Nothing may precede this event  
+        in the chain of custody.  
+      required_fields:  
+        - obligation_id  
+        - created_by  
+        - counterparty  
+        - obligation_type  
+        - amount_cents  
+        - currency  
+        - authorization_reference  
+        - source_document_hash  
+        - timestamp  
+  
+    - name: ObligationValidated  
+      description: >  
+        Commercial obligation confirmed as valid,  
+        authorized, and eligible for settlement.  
+      required_fields:  
+        - obligation_id  
+        - validated_by  
+        - validation_reference  
+        - timestamp  
+  
+    - name: SettlementRequested  
+      description: >  
+        Settlement of validated obligation formally  
+        requested. Triggers settlement domain workflow.  
+      required_fields:  
+        - obligation_id  
+        - settlement_request_id  
+        - requested_by  
+        - amount_cents  
+        - timestamp  
+  
+    - name: ObligationCancelled  
+      description: >  
+        Commercial obligation cancelled before settlement.  
+        Full audit trail preserved.  
+      required_fields:  
+        - obligation_id  
+        - cancelled_by  
+        - reason  
+        - timestamp  
+  
+  genesis_obligation:  
+    obligation_id: SOVR-OBL-000001  
+    counterparty: SOVR-ENT-000002  
+    counterparty_name: California Water Service  
+    obligation_type: PAYMENT  
+    amount_cents: 70000  
+    currency: USD  
+    status: PENDING_VALIDATION  
+    purpose: Genesis demonstration artifact  
+  
+  document_id: SOVR-DOM-COMMERCIAL-001  
+  sha256: "[computed at commit]"  

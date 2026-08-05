@@ -1,28 +1,123 @@
-name: identity
-version: "1.0.0"
-status: REQUIRED
-priority: 1
-path: domains/identity/
-purpose: >
-  Defines who exists in the system. Who created an
-  obligation. Who authorized settlement. Who attested
-  records. Who controls accounts. Every commercial
-  record, settlement event, and attestation traces
-  to an identity record.
-contains:
-  - entities/
-  - roles/
-  - authorities/
-depends_on: []
-required_before:
-  - commercial
-  - settlement
-  - certification
-events:
-  - EntityRegistered
-  - RoleAssigned
-  - AuthorityGranted
-constitutional_note: >
-  Commercial settlement requires identified parties.
-  No obligation may exist without identified originator
-  and counterparty.
+# SOVR Identity Domain  
+# Version: 1.0.0  
+# Constitutional Authority: SOVR_CANONICAL_ARCHITECTURE_v1.md  
+# Priority: 1 — Must exist before all other domains  
+  
+domain:  
+  name: identity  
+  version: "1.0.0"  
+  status: ACTIVE  
+  priority: 1  
+  constitutional_rule: >  
+    Commercial settlement requires identified parties.  
+    No obligation may exist without an identified  
+    originator and counterparty. No attestation may  
+    exist without an identified attestor. No account  
+    may exist without an identified controller.  
+  
+  purpose: >  
+    Defines who exists in the SOVR system. Records  
+    entities, assigns roles, grants authorities.  
+    Every commercial record, settlement event,  
+    ledger entry, and attestation traces to an  
+    identity record in this domain.  
+  
+  depends_on: []  
+  
+  required_before:  
+    - commercial  
+    - settlement  
+    - certification  
+  
+  entities:  
+  
+    Entity:  
+      description: >  
+        A registered participant in the SOVR system.  
+        May be an organization, business, or operator.  
+      required_fields:  
+        - entity_id  
+        - legal_name  
+        - entity_type  
+        - registration_date  
+        - status  
+  
+    Role:  
+      description: >  
+        A functional assignment within SOVR operations.  
+        Determines what actions an entity may perform.  
+      values:  
+        - TREASURY_OPERATOR  
+        - INDEPENDENT_AUDITOR  
+        - GOVERNANCE_AUTHORITY  
+        - COMMERCIAL_COUNTERPARTY  
+        - SETTLEMENT_AGENT  
+        - ATTESTOR  
+        - EXPLORER_VIEWER  
+  
+    Authority:  
+      description: >  
+        An explicit grant of operational permission.  
+        Required before any controlled action executes.  
+      required_fields:  
+        - authority_id  
+        - granted_to  
+        - authority_type  
+        - granted_by  
+        - effective_date  
+        - expiry_date  
+  
+  events:  
+    - name: EntityRegistered  
+      description: New entity added to SOVR identity registry  
+      triggers: none  
+      required_fields:  
+        - entity_id  
+        - legal_name  
+        - entity_type  
+        - registration_reference  
+  
+    - name: RoleAssigned  
+      description: Role granted to registered entity  
+      triggers: none  
+      required_fields:  
+        - entity_id  
+        - role  
+        - assigned_by  
+        - effective_date  
+  
+    - name: AuthorityGranted  
+      description: Operational authority granted to entity  
+      triggers: none  
+      required_fields:  
+        - authority_id  
+        - entity_id  
+        - authority_type  
+        - granted_by  
+  
+    - name: EntityRevoked  
+      description: Entity access suspended or terminated  
+      triggers: none  
+      required_fields:  
+        - entity_id  
+        - reason  
+        - revoked_by  
+  
+  registered_entities:  
+  
+    - entity_id: SOVR-ENT-000001  
+      legal_name: SOVR Development Holdings, LLC  
+      entity_type: ISSUING_AUTHORITY  
+      roles:  
+        - GOVERNANCE_AUTHORITY  
+        - TREASURY_OPERATOR  
+  
+    - entity_id: SOVR-ENT-000002  
+      legal_name: California Water Service  
+      entity_type: COMMERCIAL_COUNTERPARTY  
+      roles:  
+        - COMMERCIAL_COUNTERPARTY  
+      genesis_counterparty: true  
+  
+  document_id: SOVR-DOM-IDENTITY-001  
+  sha256: "[computed at commit]"  

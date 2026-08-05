@@ -1,31 +1,158 @@
-name: settlement
-version: "1.0.0"
-status: REQUIRED
-priority: 3
-path: domains/settlement/
-purpose: >
-  Settlement workflows, events, and evidence generation
-  triggers. Converts authorized commercial obligations
-  into finalized settlement states. Triggers the
-  certification engine to generate evidence packages.
-  Cannot operate without commercial domain record.
-contains:
-  - workflows/
-  - events/
-  - evidence/
-depends_on:
-  - commercial
-  - identity
-required_before:
-  - ledger
-  - certification
-events:
-  - SettlementAuthorized
-  - SettlementExecuted
-  - SettlementFinalized
-  - SettlementDisputed
-  - SettlementCancelled
-constitutional_note: >
-  This is LAYER 1 to LAYER 2 bridge.
-  Settlement authorization is required before any
-  TigerBeetle ledger entry may be posted.
+# SOVR Settlement Domain  
+# Version: 1.0.0  
+# Constitutional Authority: SOVR_CANONICAL_ARCHITECTURE_v1.md  
+# Priority: 3 — Converts commercial truth into ledger state.  
+  
+domain:  
+  name: settlement  
+  version: "1.0.0"  
+  status: ACTIVE  
+  priority: 3  
+  constitutional_rule: >  
+    No ledger entry may exist without a settlement  
+    authorization. Settlement domain is the bridge  
+    between commercial reality and accounting truth.  
+    Every settlement traces to a validated commercial  
+    obligation. No settlement may be created without  
+    a preceding CommercialRecordCreated event.  
+  
+  purpose: >  
+    Settlement workflows, events, and evidence generation  
+    triggers. Converts authorized commercial obligations  
+    into finalized settlement states. On SettlementFinalized,  
+    triggers the certification engine to generate the  
+    JDE-compatible evidence package. Cannot operate  
+    without a commercial domain record.  
+  
+  depends_on:  
+    - commercial  
+    - identity  
+  
+  required_before:  
+    - ledger  
+    - certification  
+  
+  entities:  
+  
+    SettlementRecord:  
+      description: >  
+        The formal settlement of a validated commercial  
+        obligation. Contains full reference chain from  
+        commercial obligation through ledger posting.  
+      required_fields:  
+        - settlement_id  
+        - commercial_obligation_id  
+        - counterparty  
+        - amount_cents  
+        - currency  
+        - settlement_type  
+        - status  
+        - ledger_reference  
+        - evidence_package_reference  
+        - timestamp  
+      state_machine:  
+        initial: PENDING  
+        states:  
+          - PENDING  
+          - AUTHORIZED  
+          - EXECUTING  
+          - LEDGER_POSTED  
+          - EVIDENCE_GENERATED  
+          - FINALIZED  
+          - DISPUTED  
+          - CANCELLED  
+  
+    SettlementEvidencePackage:  
+      description: >  
+        JDE-compatible commercial proof artifact.  
+        Generated automatically on SettlementFinalized.  
+        First-class domain artifact. Not a report.  
+        Contains 10 documents plus manifest and signature.  
+      required_fields:  
+        - package_id  
+        - settlement_id  
+        - commercial_obligation_id  
+        - document_count  
+        - manifest_hash  
+        - package_hash  
+        - package_uri  
+        - signature  
+        - timestamp  
+  
+    AttestationRecord:  
+      description: >  
+        Signed verification that settlement satisfies  
+        all constitutional and policy requirements.  
+        Required before any SVU representation may issue.  
+      required_fields:  
+        - attestation_id  
+        - settlement_id  
+        - attestor  
+        - verification_checks  
+        - signature  
+        - timestamp  
+  
+  events:  
+    - name: SettlementAuthorized  
+      description: >  
+        Settlement of commercial obligation formally  
+        authorized. Triggers ledger posting workflow.  
+      required_fields:  
+        - settlement_id  
+        - commercial_obligation_id  
+        - authorized_by  
+        - amount_cents  
+        - timestamp  
+  
+    - name: SettlementExecuted  
+      description: >  
+        Settlement workflow completed. TigerBeetle  
+        transfer posted. Evidence generation triggered.  
+      required_fields:  
+        - settlement_id  
+        - commercial_obligation_id  
+        - tigerbeetle_transfer_id  
+        - debit_account  
+        - credit_account  
+        - amount_cents  
+        - evidence_package_id  
+        - timestamp  
+  
+    - name: SettlementFinalized  
+      description: >  
+        Settlement confirmed finalized. Evidence package  
+        verified. Attestation signed. SVU issuance now  
+        permitted if required.  
+      required_fields:  
+        - settlement_id  
+        - commercial_obligation_id  
+        - tigerbeetle_transfer_id  
+        - evidence_package_hash  
+        - attestation_id  
+        - timestamp  
+      triggers:  
+        - EvidencePackageGenerated  
+        - SVUMintAuthorized (conditional)  
+  
+    - name: SettlementDisputed  
+      description: Settlement placed in dispute status.  
+      required_fields:  
+        - settlement_id  
+        - disputed_by  
+        - reason  
+        - timestamp  
+  
+  evidence_package:  
+    trigger: SettlementFinalized  
+    generator: certification/evidence-engine  
+    format: SOVR_Settlement_Evidence_Package_v1  
+    documents: 10  
+    manifest_algorithm: SHA-256  
+    signature_algorithm: ECDSA  
+    storage:  
+      - ipfs  
+      - s3  
+      - sovr_vault  
+  
+  document_id: SOVR-DOM-SETTLEMENT-001  
+  sha256: "[computed at commit]"  

@@ -1,47 +1,186 @@
-name: ledger
-version: "1.0.0"
-status: REQUIRED
-priority: 4
-path: domains/ledger/
-purpose: >
-  TigerBeetle adapter, account registry, reconciliation.
-  The accounting truth engine. Records what SOVR
-  settlement domain authorizes. Does not decide whether
-  commerce happened. Does not decide whether issuance
-  is allowed. Those decisions belong to commercial and
-  settlement domains. TigerBeetle records. It does not
-  decide.
-contains:
-  - accounts/
-  - tigerbeetle/
-  - reconciliation/
-depends_on:
-  - settlement
-required_before:
-  - certification
-  - representation
-accounts:
-  - id: 100001
-    name: SOVR_EXTERNAL_RESERVE
-    type: ASSET
-  - id: 100002
-    name: SOVR_SETTLEMENT_LIABILITY
-    type: LIABILITY
-  - id: 100003
-    name: SOVR_SETTLEMENT_CLEARING
-    type: CLEARING
-  - id: 100004
-    name: SOVR_TREASURY_OPERATIONS
-    type: ASSET
-fundamental_equation:
-  rule: "100001.balance == 100002.balance"
-  breach_action: HALT_AND_ALERT
-events:
-  - LedgerEntryPosted
-  - TransferCompleted
-  - ReconciliationRun
-  - EquationBreached
-constitutional_note: >
-  This is LAYER 2 in the canonical architecture.
-  Accounting truth. Immutable. Atomic. Source of
-  truth for all balance states.
+# SOVR Ledger Domain  
+# Version: 1.0.0  
+# Constitutional Authority: SOVR_CANONICAL_ARCHITECTURE_v1.md  
+# Priority: 4 — Accounting truth engine. Records only.  
+  
+domain:  
+  name: ledger  
+  version: "1.0.0"  
+  status: ACTIVE  
+  priority: 4  
+  constitutional_rule: >  
+    No evidence package may exist without a finalized  
+    ledger state. TigerBeetle is the accounting truth  
+    engine. It does not decide whether commerce happened.  
+    It does not decide whether issuance is allowed.  
+    Those decisions belong to commercial and settlement  
+    domains. TigerBeetle records what SOVR authorizes.  
+    Nothing more.  
+  
+  purpose: >  
+    TigerBeetle adapter, account registry, reconciliation.  
+    Maintains immutable double-entry accounting state.  
+    Every ledger entry traces to a settlement authorization  
+    which traces to a commercial obligation. The ledger  
+    records accounting truth. It does not create it.  
+  
+  depends_on:  
+    - settlement  
+  
+  required_before:  
+    - certification  
+    - representation  
+  
+  system:  
+    name: TigerBeetle  
+    version: "0.15.x"  
+    ledger_id: SOVR-TREASURY-001  
+    mode: production  
+    replication: enabled  
+  
+  accounts:  
+  
+    - id: 100001  
+      name: SOVR_EXTERNAL_RESERVE  
+      type: ASSET  
+      domain_object: ExternalReserve  
+      description: >  
+        Tracks external reserve holdings backing  
+        all settlement obligations. Must always  
+        equal SOVR_SETTLEMENT_LIABILITY balance.  
+      debited_when: Value enters SOVR system  
+      credited_when: Value exits SOVR system  
+  
+    - id: 100002  
+      name: SOVR_SETTLEMENT_LIABILITY  
+      type: LIABILITY  
+      domain_object: SettlementLiability  
+      description: >  
+        Settlement obligations owed to counterparties.  
+        Must always equal SOVR_EXTERNAL_RESERVE balance.  
+        Represents what SOVR owes. Not what SOVR owns.  
+      debited_when: Settlement obligation discharged  
+      credited_when: Settlement obligation created  
+  
+    - id: 100003  
+      name: SOVR_SETTLEMENT_CLEARING  
+      type: CLEARING  
+      domain_object: SettlementClearing  
+      description: >  
+        Temporary holding for in-flight settlement  
+        processing. Must net to zero after each  
+        settlement cycle completes.  
+      debited_when: Settlement initiated  
+      credited_when: Settlement completed  
+  
+    - id: 100004  
+      name: SOVR_TREASURY_OPERATIONS  
+      type: ASSET  
+      domain_object: TreasuryOperations  
+      description: >  
+        Operational funds for SOVR system operations.  
+        Separate from settlement reserve. Not backing  
+        SVU issuance.  
+      debited_when: Operational expense recorded  
+      credited_when: Operational revenue recorded  
+  
+  fundamental_equation:  
+    rule: "100001.balance == 100002.balance"  
+    description: >  
+      External reserve must always equal settlement  
+      liability. This is the double-entry anchor of  
+      the entire system. Any breach means the system  
+      has more obligations than reserves or more  
+      reserves than recorded obligations. Both states  
+      are errors.  
+    enforcement: policy_check_on_every_transfer  
+    breach_action: HALT_AND_ALERT  
+    breach_resolution: >  
+      No further transfers until reconciliation  
+      completes and equation is restored.  
+  
+  entities:  
+  
+    LedgerEntry:  
+      description: >  
+        A single debit or credit posting in TigerBeetle.  
+        Immutable after creation. Always part of a  
+        balanced transfer.  
+      required_fields:  
+        - entry_id  
+        - account_id  
+        - entry_type  
+        - amount_cents  
+        - settlement_reference  
+        - timestamp  
+  
+    LedgerTransfer:  
+      description: >  
+        An atomic double-entry transfer in TigerBeetle.  
+        Always balanced. Always references a settlement  
+        authorization. Cannot exist without settlement  
+        domain authorization.  
+      required_fields:  
+        - transfer_id  
+        - debit_account  
+        - credit_account  
+        - amount_cents  
+        - settlement_id  
+        - commercial_obligation_id  
+        - timestamp  
+  
+  events:  
+    - name: LedgerEntryPosted  
+      description: Double-entry transfer recorded in TigerBeetle  
+      required_fields:  
+        - transfer_id  
+        - debit_account  
+        - credit_account  
+        - amount_cents  
+        - settlement_id  
+        - timestamp  
+  
+    - name: ReconciliationRun  
+      description: >  
+        Periodic check that fundamental equation holds.  
+        100001 balance equals 100002 balance.  
+      required_fields:  
+        - reconciliation_id  
+        - reserve_balance  
+        - liability_balance  
+        - equation_holds  
+        - timestamp  
+  
+    - name: EquationBreached  
+      description: >  
+        CRITICAL. Fundamental equation violated.  
+        System halted pending resolution.  
+      required_fields:  
+        - breach_id  
+        - reserve_balance  
+        - liability_balance  
+        - variance  
+        - timestamp  
+      action: HALT_ALL_TRANSFERS  
+  
+  genesis_transaction:  
+    id: SOVR-GENESIS-000001  
+    description: Initial SOVR ledger activation  
+    commercial_reference: SOVR-OBL-000001  
+    settlement_reference: SOVR-SETTLEMENT-000001  
+    entries:  
+      debit:  
+        account: 100001  
+        name: SOVR_EXTERNAL_RESERVE  
+        amount_cents: 70000  
+      credit:  
+        account: 100002  
+        name: SOVR_SETTLEMENT_LIABILITY  
+        amount_cents: 70000  
+    status: PENDING_EXECUTION  
+    requires:  
+      - CommercialRecordCreated: SOVR-OBL-000001  
+      - SettlementAuthorized: SOVR-SETTLEMENT-000001  
+  
+  document_id: SOVR-DOM-LEDGER-001  
+  sha256: "[computed at commit]"  
