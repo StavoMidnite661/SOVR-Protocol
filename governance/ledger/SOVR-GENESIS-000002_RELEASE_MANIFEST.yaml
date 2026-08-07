@@ -1,0 +1,18 @@
+release:
+  id: SOVR-GENESIS-000002
+  classification: CONTROLLED_LEDGER_GENESIS
+  status: PRE_SIMULATION
+  repository:
+    frozen_protocol_modified: false
+  ledger:
+    cluster:
+      id: 85465645d45d45e9
+    replicas:
+      count: 3
+    accounts:
+      genesis_count: 17
+  security:
+    agent_direct_filesystem_access: false
+    mutation_gateway: required
+    transaction_authority: disabled
+  next_gate: PHASE9_CONTROLLED_SIMULATION
