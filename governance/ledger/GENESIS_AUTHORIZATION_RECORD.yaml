@@ -1,0 +1,10 @@
+authorization_record:
+  id: GEN-AUTH-000002
+  event: SOVR-GENESIS-000002
+  approved: true
+  approval:
+    approved: true
+    approved_at: 2026-08-06T23:09:29Z
+    approved_by:
+      - OPERATOR-001
+    approval_hash: b7e3238e2a083246182e4aca5cbf9371eae194628760a37cdfc358d2a8e38b02
