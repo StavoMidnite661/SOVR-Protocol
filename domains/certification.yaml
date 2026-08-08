@@ -1,0 +1,126 @@
+meta:
+  schema_version: "1.0.0"
+  file_id: "domains/certification"
+  status: "ACTIVE"
+  version: "1.0.0"
+  domain: "certification"
+  owner: "governance"
+  amendment: AMD-0005
+  classification: EXTENSION
+  constitutional_reference: "L1"
+
+domain:
+  id: certification
+  name: Certification
+  description: >
+    Evidence generation layer. JDE-compatible settlement
+    evidence packages as first-class governance
+    attestation artifacts. EvidencePackage entity has
+    full state machine lifecycle. Stored in
+    TB_LEDGER.SYSTEM code MEMORANDUM. Option B selected.
+    IPFS/S3 publish is optional boundary adapter only.
+  version: "1.0.0"
+  extends: governance
+  entities:
+    - id: EvidencePackage
+      description: >
+        JDE-compatible commercial proof artifact. First-class
+        domain entity with full lifecycle state machine.
+        Stored inside constitutional kernel via TB_LEDGER.SYSTEM
+        MEMORANDUM. Generated automatically on SettlementFinalized.
+        IPFS/S3 publish is optional boundary adapter only.
+      tigerbeetle:
+        ledger: TB_LEDGER.SYSTEM
+        code: MEMORANDUM
+      fields:
+        - id: package_id
+          type: string
+          format: "SOVR-PKG-{sequence}"
+          immutable: true
+          required: true
+        - id: settlement_id
+          type: SettlementId
+          domain: settlement
+          required: true
+        - id: commercial_obligation_id
+          type: ObligationId
+          domain: commercial
+          required: true
+        - id: tigerbeetle_transfer_id
+          type: uint128
+          required: true
+        - id: documents
+          type: array
+          items: JDEDocument
+          count: 10
+          required: true
+        - id: document_hashes
+          type: map
+          key: document_index
+          value: bytes32
+          algorithm: SHA-256
+          required: true
+        - id: manifest_hash
+          type: bytes32
+          algorithm: SHA-256
+          required: true
+        - id: package_hash
+          type: bytes32
+          algorithm: SHA-256
+          covers: manifest_plus_all_document_hashes
+          required: true
+        - id: attestor
+          type: EntityId
+          domain: identity
+          required: true
+        - id: signature
+          type: bytes
+          algorithm: ECDSA
+          covers: package_hash
+          required: false
+          populated_on: AttestationSigned
+        - id: storage_uri
+          type: string
+          required: false
+          populated_on: PackagePublished
+          note: Optional boundary adapter only
+        - id: status
+          type: enum
+          values:
+            - PENDING
+            - GENERATING
+            - GENERATED
+            - VERIFIED
+            - SIGNED
+            - PUBLISHED
+            - ARCHIVED
+          required: true
+      jde_document_set:
+        - index: "00"
+          name: MASTER_SETTLEMENT_RECORD
+        - index: "01"
+          name: SETTLEMENT_CONTROL_HEADER
+          jde_system_code: "03B"
+        - index: "02"
+          name: REMITTANCE_ADVICE
+        - index: "03"
+          name: PAYMENT_RECEIPT_RECORD
+        - index: "04"
+          name: OPEN_ITEM_APPLICATION
+        - index: "05"
+          name: ACCOUNT_LEDGER_DETAIL
+        - index: "06"
+          name: BATCH_CONTROL
+        - index: "07"
+          name: AUDIT_TRAIL
+        - index: "08"
+          name: POSTING_INSTRUCTIONS
+        - index: "09"
+          name: ACKNOWLEDGMENT_RECORD
+        - index: "10"
+          name: DOCUMENT_INDEX
+      invariants:
+        - settlement_must_be_finalized_before_package_generated
+        - all_10_documents_required_before_manifest_computed
+        - manifest_hash_must_match_document_hashes
+        - signature_required_before_status_SIGNED

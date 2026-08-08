@@ -1,0 +1,57 @@
+meta:
+  schema_version: "1.0.0"
+  file_id: "domains/gateway"
+  status: "ACTIVE"
+  version: "1.0.0"
+  domain: "gateway"
+  owner: "governance"
+  amendment: AMD-0005
+  classification: EXTENSION
+  constitutional_reference: "L6"
+
+domain:
+  id: gateway
+  name: Gateway
+  description: >
+    Public verification and traversal layer. Read-model
+    and API observation surface only. No balance impact.
+    No TigerBeetle writes. Exposes full provenance chain
+    for independent verification without SOVR permission.
+  version: "1.0.0"
+  extends: none
+  balance_impact: NONE
+  tigerbeetle_writes: NONE
+  repository: https://github.com/StavoMidnite661/SOVR-Core-Gateway-Explorer
+  entities:
+    - id: VerificationEntry
+      description: >
+        A read-only verification entry exposing the full
+        provenance chain for independent verification.
+      fields:
+        - id: verification_id
+          type: string
+          format: "SOVR-VERIFY-{sequence}"
+          immutable: true
+          required: true
+        - id: settlement_id
+          type: SettlementId
+          domain: settlement
+          required: true
+        - id: commercial_obligation_id
+          type: ObligationId
+          domain: commercial
+          required: true
+        - id: evidence_package_id
+          type: PackageId
+          domain: certification
+          required: true
+        - id: svu_id
+          type: string
+          required: false
+        - id: provenance_chain
+          type: array
+          items: string
+          required: true
+        - id: verified_at
+          type: timestamp
+          required: true

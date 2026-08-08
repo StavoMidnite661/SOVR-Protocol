@@ -1,0 +1,30 @@
+ledger_validation:
+  genesis:
+    event: SOVR-GENESIS-000002
+    status: AUTHORIZED
+    authorization_record: governance/ledger/GENESIS_AUTHORIZATION_RECORD.yaml
+    release_manifest: governance/ledger/SOVR-GENESIS-000002_RELEASE_MANIFEST.yaml
+
+  cluster:
+    id: 85465645d45d45e9
+    replicas_expected: 3
+    replicas_verified: 3
+    accounts_expected: 17
+    accounts_verified: true
+
+  guardian:
+    format:
+      blocked: true
+    recover:
+      controlled: true
+    direct_agent_access: false
+
+  runtime:
+    mode: DEVELOPMENT
+    mutation: ENABLED_ONLY_FOR_TEST_FIXTURES
+    production_traffic: DISABLED
+
+  certificate:
+    issued: 2026-08-07
+    directive: SOVR-GENESIS-000002-PHASE9A
+    result: VALIDATED

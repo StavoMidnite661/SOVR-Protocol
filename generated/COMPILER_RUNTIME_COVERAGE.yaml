@@ -3,8 +3,8 @@ commands:
   generated: 105
   manual: 0
 state_machines:
-  total: 43
-  generated: 43
+  total: 46
+  generated: 46
   manual: 0
 runtime_bridges:
   count: 0

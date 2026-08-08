@@ -3,7 +3,7 @@
 **Control ID:** CC6.1  
 **Control Name:** Logical Access Controls  
 **Framework:** SOC2 Trust Service Criteria (2017)  
-**SOVR Version:** 0.9.0  
+**SOVR Version:** 0.6.0  
 **Evidence Date:** 2026-07-24
 
 ---
@@ -85,7 +85,7 @@ curl -X POST http://localhost:3001/api/v1/capabilities/grant \
 ### Evidence 3: Capability Registry
 
 **File:** `generated/registries/capabilities.registry.json`  
-**Count:** 111 capabilities
+**Count:** 113 capabilities
 
 **Sample Entry:**
 ```json
@@ -114,7 +114,7 @@ curl -X POST http://localhost:3001/api/v1/capabilities/grant \
 
 ## Current Gaps
 
-1. **Capability Grant Durability:** Grants are in-memory only in v0.8.0. Lost on restart. (Addressed in v0.9.0)
+1. **Capability Grant Durability:** Grants are in-memory only in v0.8.0. Lost on restart. (Addressed in v0.6.0)
 2. **Scope Pattern Edge Cases:** Wildcard matching has untested edge cases.
 3. **Multi-Factor Authentication:** Not implemented.
 

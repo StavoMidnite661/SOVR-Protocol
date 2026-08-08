@@ -1,0 +1,79 @@
+meta:
+  schema_version: "1.0.0"
+  file_id: "domains/commercial"
+  status: "ACTIVE"
+  version: "1.0.0"
+  domain: "commercial"
+  owner: "governance"
+  amendment: AMD-0005
+  classification: EXTENSION
+  constitutional_reference: "L1"
+
+domain:
+  id: commercial
+  name: Commercial
+  description: >
+    Commercial obligation layer. Origin of all value
+    relationships. Sits above vault domain. References
+    vault assets as obligated value. No new balance
+    store. Root of constitutional chain of custody.
+  version: "1.0.0"
+  extends: vault
+  entities:
+    - id: CommercialObligation
+      description: >
+        A verified commercial obligation referencing a Vault
+        asset as the obligated value. Root object required
+        before any settlement may occur.
+      fields:
+        - id: obligation_id
+          type: string
+          format: "SOVR-OBL-{sequence}"
+          immutable: true
+          required: true
+        - id: vault_asset_reference
+          type: AssetId
+          domain: vault
+          required: true
+        - id: originator
+          type: EntityId
+          domain: identity
+          required: true
+        - id: counterparty
+          type: EntityId
+          domain: identity
+          required: true
+        - id: obligation_type
+          type: enum
+          values: [PAYMENT, SERVICE, DELIVERY, SETTLEMENT]
+          required: true
+        - id: amount_cents
+          type: uint64
+          minimum: 1
+          required: true
+        - id: currency
+          type: string
+          default: USD
+          required: true
+        - id: authorization_reference
+          type: string
+          required: true
+        - id: source_document_hash
+          type: bytes32
+          algorithm: SHA-256
+          required: true
+        - id: status
+          type: enum
+          values:
+            - DRAFT
+            - VALIDATED
+            - SETTLEMENT_REQUESTED
+            - SETTLED
+            - CANCELLED
+            - DISPUTED
+          required: true
+      invariants:
+        - vault_asset_must_exist_before_obligation
+        - originator_must_be_registered_identity
+        - counterparty_must_be_registered_identity
+        - amount_must_not_exceed_vault_asset_value

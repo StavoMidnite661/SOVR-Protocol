@@ -22,7 +22,18 @@ deterministic compiler generation.
 - Constitutional layers L0 through L7 complete
 - 10 invariants (INV-001 through INV-010) — all enforced
 - 10 domains, 105 commands, 259 events
-- 43 state machines, 111 capabilities, 16 sagas, 48 entities
+- 43 state machines, 113 capabilities, 16 sagas, 48 entities
+
+### AMD-0005 Extension (Commercial Settlement Suite)
+- 5 extension domains added: commercial, settlement, certification, representation, gateway
+- 4 new entities: CommercialObligation, SettlementRecord, EvidencePackage, SettlementValueUnit
+- 8 new commands: CreateCommercialObligation, ValidateObligation, AuthorizeSettlement, ExecuteSettlement, GenerateEvidencePackage, SignAttestation, IssueSVU, RedeemSVU
+- 9 new events: CommercialRecordCreated, ObligationValidated, SettlementAuthorized, SettlementExecuted, SettlementFinalized, EvidencePackageGenerated, AttestationSigned, SVUIssued, SVURedeemed
+- 3 new state machines: CommercialObligation, SettlementRecord, EvidencePackage
+- Additive extension — zero frozen files replaced
+- All 10 original domains preserved intact
+- All 4 TigerBeetle ledgers untouched
+- All existing invariants preserved
 
 ### Compiler
 - Version: v1.0.0

@@ -1,7 +1,7 @@
 # GDPR Evidence — Right to Erasure (Art. 17)
 
 **Framework:** GDPR (EU) 2016/679, Art. 17  
-**SOVR Version:** 0.9.0  
+**SOVR Version:** 0.6.0  
 **Evidence Date:** 2026-07-24
 
 ---
@@ -70,7 +70,7 @@ This approach is permitted under:
 ### 3.2 Pseudonymization Implementation
 
 **File:** `packages/runtime/src/identity/did-service.ts`  
-**Function:** `pseudonymizeActor(actorId, reason)` (to be implemented in v0.9.0)
+**Function:** `pseudonymizeActor(actorId, reason)` (to be implemented in v0.6.0)
 
 ```typescript
 async pseudonymizeActor(actorId: string, reason: string, governanceProposalId: string): Promise<string> {
@@ -179,7 +179,7 @@ Once pseudonymized, the original `actor_id` MUST NOT be recoverable without:
 
 ## 9. Auditor Verification
 
-1. Review `packages/runtime/src/identity/did-service.ts` pseudonymization function (v0.9.0)
+1. Review `packages/runtime/src/identity/did-service.ts` pseudonymization function (v0.6.0)
 2. Verify `identity.actor.pseudonymized` event is emitted
 3. Verify original actor_id is not queryable after pseudonymization
 4. Verify event log retains structure (no deletion)

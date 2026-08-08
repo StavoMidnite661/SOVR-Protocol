@@ -200,7 +200,7 @@ Content-Type: application/json
 
 ---
 
-## Available Domains (v0.9.0)
+## Available Domains (v0.6.0)
 
 | Domain | Description | Source |
 |---|---|---|
@@ -216,7 +216,7 @@ Content-Type: application/json
 | vault | Asset registry | YAML constitution |
 
 **Ground truth:** 10 domains extracted from `generated/registries/commands.registry.json`.
-**Ground truth:** 105 commands, 43 state machines, 111 capabilities.
+**Ground truth:** 105 commands, 43 state machines, 113 capabilities.
 
 ---
 

@@ -1,0 +1,49 @@
+simulation_scope:
+  directive: SOVR-GENESIS-000002-PHASE9A
+  phase: Phase 9 — Local Simulation Authorization Package
+
+  in_scope:
+    domains:
+      - kernel
+      - governance
+      - vault
+      - ledger
+      - treasury
+      - payment
+      - identity
+      - policy
+      - intent
+      - agent
+      - certification
+      - commercial
+      - settlement
+      - representation
+      - gateway
+
+    commands:
+      - all 105 commands (read-only validation)
+      - AMD-0005 extension commands (compile-time validation only)
+
+    events:
+      - all 267 events (stream validation)
+      - AMD-0005 extension events (stream validation)
+
+    state_machines:
+      - all 46 state machines (TLA+ model validation)
+      - AMD-0005 extension state machines (TLA+ model validation)
+
+    invariants:
+      - INV-001 through INV-010
+
+  out_of_scope:
+    - production traffic routing
+    - external payment rail execution
+    - real asset movement or settlement
+    - external system integration
+    - production credential usage
+
+  data_scope:
+    - test fixtures only
+    - genesis bootstrap accounts (17 accounts)
+    - local simulation event store
+    - no production data ingestion

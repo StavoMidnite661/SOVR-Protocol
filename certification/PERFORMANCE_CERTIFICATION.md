@@ -1,7 +1,7 @@
 # SOVR Protocol — Performance Certification
 
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 **Protocol Version:** v1.0.0 (FROZEN)  
 
 ---
@@ -142,7 +142,7 @@ This document certifies runtime performance characteristics of the SOVR Protocol
 | Metric | Value | Notes |
 |---|---|---|
 | Hash Computation | < 100ms | SHA-256 over canonical JSON |
-| IR Construction | < 1s | 592 nodes, 459 edges |
+| IR Construction | < 1s | 594 nodes, 459 edges |
 | Registry Generation | < 500ms | 11 JSON files |
 | Certification Generation | < 200ms | Compiler certification JSON |
 

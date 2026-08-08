@@ -1,0 +1,79 @@
+meta:
+  schema_version: "1.0.0"
+  file_id: "domains/settlement"
+  status: "ACTIVE"
+  version: "1.0.0"
+  domain: "settlement"
+  owner: "governance"
+  amendment: AMD-0005
+  classification: EXTENSION
+  constitutional_reference: "L1"
+
+domain:
+  id: settlement
+  name: Settlement
+  description: >
+    Settlement workflow layer. Extends treasury transfer
+    workflow. Settlement events trigger treasury transfer
+    commands. Does not replace treasury. Does not
+    duplicate treasury transfer logic.
+  version: "1.0.0"
+  extends: treasury
+  entities:
+    - id: SettlementRecord
+      description: >
+        Formal settlement of a validated commercial obligation.
+        Extends treasury transfer workflow. Does not replace
+        treasury transfer logic. Triggers a treasury transfer
+        command on authorization.
+      fields:
+        - id: settlement_id
+          type: string
+          format: "SOVR-SETTLEMENT-{sequence}"
+          immutable: true
+          required: true
+        - id: commercial_obligation_id
+          type: ObligationId
+          domain: commercial
+          required: true
+        - id: treasury_transfer_reference
+          type: TransferId
+          domain: treasury
+          required: false
+          populated_on: SettlementExecuted
+        - id: tigerbeetle_transfer_id
+          type: uint128
+          required: false
+          populated_on: SettlementExecuted
+        - id: counterparty
+          type: EntityId
+          domain: identity
+          required: true
+        - id: amount_cents
+          type: uint64
+          required: true
+        - id: currency
+          type: string
+          default: USD
+          required: true
+        - id: evidence_package_id
+          type: PackageId
+          domain: certification
+          required: false
+          populated_on: EvidencePackageGenerated
+        - id: status
+          type: enum
+          values:
+            - PENDING
+            - AUTHORIZED
+            - EXECUTING
+            - LEDGER_POSTED
+            - EVIDENCE_GENERATED
+            - FINALIZED
+            - DISPUTED
+            - CANCELLED
+          required: true
+      invariants:
+        - commercial_obligation_must_be_validated
+        - treasury_transfer_must_complete_before_finalization
+        - evidence_package_must_exist_before_finalization

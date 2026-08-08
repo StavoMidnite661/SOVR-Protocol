@@ -37,10 +37,10 @@ Summary:
 3. Update environment variables to new keys
 4. Restart runtime (graceful reload preferred)
 5. Invalidate all existing JWTs by changing `jti` namespace or waiting for expiry
-6. Old keys may be kept in verification-only mode for grace period (not implemented in v0.9.0)
+6. Old keys may be kept in verification-only mode for grace period (not implemented in v0.6.0)
 7. Remove old keys from secrets manager after grace period
 
-**Current gap:** Grace-period dual-key verification is not implemented in v0.9.0. Key rotation requires immediate cutover.
+**Current gap:** Grace-period dual-key verification is not implemented in v0.6.0. Key rotation requires immediate cutover.
 
 ---
 
@@ -153,7 +153,7 @@ Two rate-limiting layers active in production:
 
 ## Threat Surface
 
-From `docs/security/threat-model.md` v0.9.0:
+From `docs/security/threat-model.md` v0.6.0:
 
 | Category | Threats | Controls |
 |---|---|---|

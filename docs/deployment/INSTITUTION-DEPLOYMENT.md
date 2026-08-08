@@ -21,13 +21,13 @@ The constitutional proof (XV3) demonstrated zero-runtime-code execution of a new
 | Component | Technology | Version | Role |
 |---|---|---|---|
 | Constitutional DB | YAML Corpus | v1.0.0 | Source of truth |
-| Compiler | Node.js | v0.9.0 | Generates runtime artifacts |
-| Runtime | Fastify v5 | v0.9.0 | Generic financial kernel |
+| Compiler | Node.js | v0.6.0 | Generates runtime artifacts |
+| Runtime | Fastify v5 | v0.6.0 | Generic financial kernel |
 | Event Store | PostgreSQL | 16+ | Tamper-evident audit log |
 | Auth | RS256 JWT | jose v6.2 | Asymmetric identity layer |
 | Rate Limiting | @fastify/rate-limit | v11.1 | Abuse prevention |
 | Message Bus | Kafka / Redis | optional | External event streaming |
-| Boundary Adapters | TypeScript | v0.9.0 | ACH rail execution |
+| Boundary Adapters | TypeScript | v0.6.0 | ACH rail execution |
 
 **Verified artifact:** `packages/runtime/package.json` — dependency versions confirmed.
 **Verified artifact:** `npm audit --omit=dev --audit-level=high` — 0 HIGH, 0 CRITICAL.
@@ -82,7 +82,7 @@ The constitutional proof (XV3) demonstrated zero-runtime-code execution of a new
 # Clone release tag (not main)
 git clone https://github.com/StavoMidnite661/SOVR-Protocol
 cd SOVR-Protocol
-git checkout v0.9.0
+git checkout v0.6.0
 
 # Install dependencies
 npm install --workspaces

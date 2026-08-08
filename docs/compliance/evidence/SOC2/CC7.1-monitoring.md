@@ -3,7 +3,7 @@
 **Control ID:** CC7.1  
 **Control Name:** System Monitoring  
 **Framework:** SOC2 Trust Service Criteria (2017)  
-**SOVR Version:** 0.9.0  
+**SOVR Version:** 0.6.0  
 **Evidence Date:** 2026-07-24
 
 ---

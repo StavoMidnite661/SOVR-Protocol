@@ -746,6 +746,60 @@
         "governance_approved"
       ]
     },
+    "event:AttestationSigned": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1"
+      }
+    },
+    "event:CommercialRecordCreated": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1"
+      }
+    },
+    "event:EvidencePackageGenerated": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1"
+      }
+    },
+    "event:ObligationValidated": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1"
+      }
+    },
+    "event:SVUIssued": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1"
+      }
+    },
+    "event:SVURedeemed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1"
+      }
+    },
+    "event:SettlementAuthorized": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1"
+      }
+    },
+    "event:SettlementExecuted": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1"
+      }
+    },
+    "event:SettlementFinalized": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1"
+      }
+    },
     "event:agent.activated": {
       "abi": "v1",
       "data_fields": {
@@ -1255,16 +1309,6 @@
         "sent_at": {
           "abi": "v1",
           "type": "timestamp"
-        }
-      }
-    },
-    "event:escrow.account.cancellation_failed": {
-      "abi": "v1",
-      "data_fields": {
-        "abi": "v1",
-        "escrow_id": {
-          "abi": "v1",
-          "type": "string"
         }
       }
     },
@@ -7109,6 +7153,6 @@
       }
     }
   },
-  "entry_count": 364,
+  "entry_count": 372,
   "kind": "schemas"
 }

@@ -1,6 +1,6 @@
 # SOVR Protocol — SOC2 Control Mapping
 
-**Version:** 0.9.0  
+**Version:** 0.6.0  
 **Date:** 2026-07-24  
 **Status:** ACTIVE  
 **Framework:** SOC2 Trust Service Criteria (2017)
@@ -92,7 +92,7 @@ NODE_ENV=production node dist/server/index.js
 
 **SOVR Implementation:**
 
-1. **Capability Registry:** 111 capabilities organized by domain, each with minimum required capability and scope pattern.
+1. **Capability Registry:** 113 capabilities organized by domain, each with minimum required capability and scope pattern.
 2. **Scope Pattern Language:** `{resource}:{id}:{field}` with wildcard support. Example: `vault.asset:{asset_id}`.
 3. **Pre-Execution Gate:** Capability check runs before command execution in `KernelExecutor.capabilityCheck()`.
 4. **INV-003 Enforcement:** "No actor may exceed granted authority" — enforced at runtime.
@@ -266,8 +266,8 @@ node packages/compiler/dist/cli.js compile
 **Overall SOC2 Readiness:** Partial. Core controls are implemented and testable. Gaps are documented and tracked to v1.0.0.
 
 **Next Steps for SOC2:**
-1. Complete capability grant persistence (v0.9.0)
-2. Add CI gate for build hash stability (v0.9.0)
+1. Complete capability grant persistence (v0.6.0)
+2. Add CI gate for build hash stability (v0.6.0)
 3. Implement key rotation ceremony (v1.0.0)
 4. Add SIEM integration (v1.0.0)
 5. External SOC2 auditor engagement (post-v1.0.0)

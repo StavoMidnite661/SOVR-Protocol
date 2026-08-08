@@ -1,7 +1,7 @@
 # SOVR Protocol — Artifact Catalog
 
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 **Protocol Version:** v1.0.0 (FROZEN)  
 
 ---
@@ -63,7 +63,7 @@
 | L1 | Command Catalog | `03_command-catalog.yaml` | 105 commands |
 | L1 | Event Catalog | `04_event-catalog.yaml` | 259 events |
 | L2 | State Machines | `05_state-machines.yaml` | 43 state machines |
-| L3 | Security Capabilities | `08_security-capabilities.yaml` | 111 capabilities |
+| L3 | Security Capabilities | `08_security-capabilities.yaml` | 113 capabilities |
 | L2 | Saga Orchestration | `09_saga-orchestration.yaml` | Saga definitions |
 | L5 | Domain Contracts | `12_domain-contracts.yaml` | Cross-domain contracts |
 | L7 | Compiler ADR | `13_compiler-adr.yaml` | 12 ADRs |
@@ -216,7 +216,7 @@ YAML Constitution (15 files)
     ↓
 Compiler Pipeline (20 passes)
     ↓
-Canonical IR (592 nodes, 459 edges)
+Canonical IR (594 nodes, 459 edges)
     ↓
 Registry Package (11 JSON files)
     ↓
@@ -224,7 +224,7 @@ Runtime Boot (8 runlevels)
     ↓
 Boot Attestation (SHA-256 chain)
     ↓
-HTTP API (44 endpoints)
+HTTP API (45 endpoints)
     ↓
 Event Log (append-only)
     ↓

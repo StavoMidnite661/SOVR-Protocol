@@ -96,7 +96,7 @@ export class EventStore {
 
   constructor(persistencePath?: string, opts: { strictCausation?: boolean } = {}) {
     this.persistencePath = persistencePath;
-    this.strictCausation = opts.strictCausation ?? false; // we tolerate genesis bootstraps
+    this.strictCausation = opts.strictCausation ?? true; // strict mode enforced per Phase 9A
     if (persistencePath) this.load();
   }
 

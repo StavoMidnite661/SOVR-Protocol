@@ -1,7 +1,7 @@
 # SOVR Protocol — Technical Debt Register
 
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 **Protocol Version:** v1.0.0 (FROZEN)  
 
 ---
@@ -107,7 +107,7 @@ This document catalogs all known technical debt in the SOVR Protocol reference i
 
 ## Recommendations
 
-1. **Immediate (v0.9.0-rc):** Fix TD-015 (TLS), TD-016 (root user), TD-019 (cleanup), TD-020 (cleanup), TD-021 (cleanup)
+1. **Immediate (v0.6.0):** Fix TD-015 (TLS), TD-016 (root user), TD-019 (cleanup), TD-020 (cleanup), TD-021 (cleanup)
 2. **Short-term (v1.0.0):** Address TD-001 through TD-014
 3. **Medium-term (v1.1.0):** Address TD-022 through TD-026
 4. **Long-term:** Monitor TD-023, TD-024 for feasibility

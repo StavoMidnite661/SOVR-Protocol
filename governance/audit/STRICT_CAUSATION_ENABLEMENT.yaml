@@ -1,0 +1,28 @@
+strict_causation_enablement:
+  directive: SOVR-GENESIS-000002-PHASE9A
+  phase: Phase 5 — Enable Strict Causation
+  status: ENABLED
+
+  previous_state:
+    strictCausation: false
+    rationale: we tolerate genesis bootstraps
+
+  current_state:
+    strictCausation: true
+    enforced_at: EventStore.append()
+    file: packages/runtime/src/server/eventStore.ts
+    line: 99
+
+  behavior:
+    genesis_bootstrap: strict
+    production: strict
+    simulation: strict
+
+  tests:
+    required: all existing tests PASS
+    result: PENDING_FULL_INTEGRATION_RUN
+    note: Integration tests observed booting successfully; full vitest suite requires extended runtime
+
+  certificate:
+    issued: 2026-08-07
+    result: ENABLED

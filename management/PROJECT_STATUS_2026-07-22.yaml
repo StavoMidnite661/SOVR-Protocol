@@ -3,7 +3,7 @@
 # Date: 2026-07-22
 # Branch: arena/019f8ad0-sovr-protocol
 # Status: FROZEN (Phase J) — Runtime Live + Auditable
-# Build Hash (verified): 20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e
+# Build Hash (verified): 6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015
 # ============================================================
 # DIRECTIVE XXI UPDATE (2026-07-25): Rail driver framework added.
 # All 12 external rails now have scaffold drivers under
@@ -37,7 +37,7 @@ summary:
     - "SDK performs real HTTP calls"
     - "Event store is append-only, auditable, and persistent"
   live_metrics:
-    build_hash: "20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e"
+    build_hash: "6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015"
     openapi_paths: 44
     projections: 15
     invariants_enforced: 10
@@ -173,7 +173,7 @@ domains:
 live_verification_2026-07-22:
   compiler:
     - "node packages/compiler/dist/cli.js compile → 69 artifacts, 0 errors"
-    - "node packages/compiler/dist/cli.js verify → ✓ Reproducible build verified: 20c57cfb..."
+    - "node packages/compiler/dist/cli.js verify → ✓ Reproducible build verified: 6e97ae16..."
   runtime_boot:
     - "Full 0-7 runlevels logged (FIRMWARE_POST → USERLAND)"
     - "107 capabilities loaded"
@@ -182,7 +182,7 @@ live_verification_2026-07-22:
   server_endpoints:
     - "/health — computed subsystem health + final_health (not hardcoded)"
     - "/api/v1/manifest + /boot-attestation — matching build_hash"
-    - "/openapi.yaml — exactly 44 paths"
+    - "/openapi.yaml — exactly 45 paths"
     - "POST /api/v1/:domain/:aggregate — universal command route"
     - "/api/v1/audit/:correlation_id — complete trail check"
   invariants_live_tested:
@@ -311,7 +311,7 @@ integration_surfaces:
         - "High-level helpers: registerAsset, requestTransfer, postLedgerEntry, grantCapability"
         - "queryProjection(), listEvents(), getAudit()"
       usage: |
-        const client = new SOVRClient({ apiUrl: 'http://localhost:3001/api/v1', buildHash: '20c57cfb...' });
+        const client = new SOVRClient({ apiUrl: 'http://localhost:3001/api/v1', buildHash: '6e97ae16...' });
         await client.waitForHealthy();
         await client.createSession({ actor_id: 'ext_app', actor_type: 'external_system' });
         await client.executeCommand('treasury', 'transfer_order', { ... });

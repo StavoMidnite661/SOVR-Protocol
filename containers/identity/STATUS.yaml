@@ -10,4 +10,4 @@ production: conditional
 last_updated: "2026-07-22"
 notes: "See management/PROJECT_STATUS_2026-07-22.yaml for authoritative state. Server (runtime) is live and auditable."
 live_test_date: "2026-07-22"
-build_hash: "20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e"
+build_hash: "6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015"

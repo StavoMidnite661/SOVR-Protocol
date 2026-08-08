@@ -18,7 +18,7 @@ Now it does. This is my fingerprint on the kernel.
 | Load LSM / SELinux | Runlevel 4 SECURITY_SUBSYSTEM | 🛡️ | Identity (Who acting? trust anchors), Policy (Is permitted? pure function deterministic_hash), Intent (What wants? enrichment), Agent (Can intelligence request? bounded, audit envelope) — INV-003,004,008 |
 | Load drivers /dev/* | Runlevel 5 EXECUTION_BOUNDARY | 🌐 | Payment 12 rails ACH/FEDNOW/WIRE/RTP/CARD/BLOCKCHAIN/STABLECOIN/SWIFT/SEPA/FUTURE_ADAPTER, Hybrid 4 chains ethereum/base/polygon/future_chain, 5 oracles CHAINLINK/PYTH/BAND/DIA/CUSTOM, prohibition ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE |
 | Mount /proc /sys | Runlevel 6 INTERPRETATION | 👁️ | Projection engine 15 read models rebuilt from genesis, replay determinism verified (INV-006 event log authoritative), Kafka topics sovr.*, Redis streams sovr:stream:* |
-| systemd → graphical.target | Runlevel 7 USERLAND | 🚀 | Runtime SDK @sovr/runtime, types src/types/*, commands, events, OpenAPI 44 endpoints, execution-context, boot attestation. Frontend gate: only load after HEALTHY |
+| systemd → graphical.target | Runlevel 7 USERLAND | 🚀 | Runtime SDK @sovr/runtime, types src/types/*, commands, events, OpenAPI 45 endpoints, execution-context, boot attestation. Frontend gate: only load after HEALTHY |
 
 ---
 
@@ -106,19 +106,19 @@ node packages/compiler/dist/cli.js boot
 # Output:
 🔌 [0] FIRMWARE_POST — [0.000] SOVR POST: crypto OK...
    ✓ POST OK
-🔐 [1] BOOTLOADER — [0.144s] verified build_hash 20c57cfb56b202ce... unfakeable
+🔐 [1] BOOTLOADER — [0.144s] verified build_hash 6e97ae1656b202ce... unfakeable
    ✓ Build provenance verified
 🧠 [2] KERNEL_INIT — constitution loaded (10 invariants)
 🏦 [3] CORE_DOMAINS — vault ✓, ledger ✓, treasury ✓
 🛡️ [4] SECURITY_SUBSYSTEM — identity ✓, policy ✓
 🌐 [5] EXECUTION_BOUNDARY — payment 12 rails, hybrid 4 chains
 👁️ [6] INTERPRETATION — 15 projections rebuilt, replay determinism
-🚀 [7] USERLAND — runtime SDK ready, OpenAPI 44 endpoints — SYSTEM HEALTHY
+🚀 [7] USERLAND — runtime SDK ready, OpenAPI 45 endpoints — SYSTEM HEALTHY
 
   ____   _____  __      __  ____    ___   ____    _   _
  / ___| |  _  | \ \    / / |  _ \  / _ \ / ___|  | | | |
  ...
- Financial OS Kernel v20c57cfb Booted — build_hash 20c57cfb56b202ce...
+ Financial OS Kernel v6e97ae16 Booted — build_hash 6e97ae1656b202ce...
  Frontend can now load — SDK: @sovr/runtime, Types: generated/src/types/*
 ```
 
@@ -181,7 +181,7 @@ cd packages/runtime && npm run build && PORT=3001 node dist/server/index.js
 curl http://localhost:3001/health
 curl http://localhost:3001/api/v1/manifest | grep build_hash
 curl http://localhost:3001/api/v1/boot-attestation | grep build_hash
-# must match: compiler-manifest build_hash == boot-attestation build_hash == 20c57cfb...
+# must match: compiler-manifest build_hash == boot-attestation build_hash == 6e97ae16...
 
 # 6. Import generated in frontend that connects via /api/v1 to :3001
 import { IAsset } from './generated/src/types/vault/vault.types.js'
@@ -190,7 +190,7 @@ import { SOVRClient } from './packages/runtime/src/sdk/client.js'
 const health = await fetch('http://localhost:3001/health').then(r=>r.json())
 if (health.final_health !== 'HEALTHY') throw Error('halt')
 
-const client = new SOVRClient({ apiUrl: 'http://localhost:3001/api/v1', buildHash: '20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e' })
+const client = new SOVRClient({ apiUrl: 'http://localhost:3001/api/v1', buildHash: '6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015' })
 await client.verifyBuildManifest(client.config.buildHash) // unfakeable check
 // Now safe to call treasury.transfer.request via POST /api/v1/treasury/transfer_order
 ```

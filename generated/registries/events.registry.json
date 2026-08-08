@@ -1,6 +1,189 @@
 {
   "abi": "v1",
   "entries": {
+    "AttestationSigned": {
+      "abi": "v1",
+      "amendment": "AMD-0005",
+      "description": "Attestor signed evidence package. Constitutional chain of custody verified. SVU issuance unlocked.\n",
+      "domain": "certification",
+      "event_name": "AttestationSigned",
+      "payload": {
+        "abi": "v1",
+        "attestation_id": "string",
+        "attestor": "EntityId",
+        "package_hash": "bytes32",
+        "package_id": "string",
+        "settlement_id": "string",
+        "signature": "bytes",
+        "timestamp": "ISO-8601"
+      },
+      "triggered_by": "SignAttestation",
+      "triggers": [
+        "SettlementFinalized"
+      ]
+    },
+    "CommercialRecordCreated": {
+      "abi": "v1",
+      "amendment": "AMD-0005",
+      "description": "Genesis event of the constitutional chain of custody. Commercial obligation formally recorded in SOVR. Nothing may precede this event in the provenance chain.\n",
+      "domain": "commercial",
+      "event_name": "CommercialRecordCreated",
+      "payload": {
+        "abi": "v1",
+        "amount_cents": "uint64",
+        "authorization_reference": "string",
+        "counterparty": "EntityId",
+        "currency": "string",
+        "obligation_id": "string",
+        "obligation_type": "enum",
+        "originator": "EntityId",
+        "source_document_hash": "bytes32",
+        "timestamp": "ISO-8601",
+        "vault_asset_reference": "AssetId"
+      },
+      "triggered_by": "CreateCommercialObligation",
+      "triggers": "none"
+    },
+    "EvidencePackageGenerated": {
+      "abi": "v1",
+      "amendment": "AMD-0005",
+      "description": "JDE evidence package generated. 10 documents rendered. SHA-256 manifest computed. Awaiting attestor signature.\n",
+      "domain": "certification",
+      "event_name": "EvidencePackageGenerated",
+      "payload": {
+        "abi": "v1",
+        "commercial_obligation_id": "string",
+        "document_count": "integer",
+        "document_hashes": "map",
+        "manifest_hash": "bytes32",
+        "package_hash": "bytes32",
+        "package_id": "string",
+        "settlement_id": "string",
+        "tigerbeetle_transfer_id": "uint128",
+        "timestamp": "ISO-8601"
+      },
+      "triggered_by": "GenerateEvidencePackage",
+      "triggers": "none"
+    },
+    "ObligationValidated": {
+      "abi": "v1",
+      "amendment": "AMD-0005",
+      "description": "Commercial obligation confirmed valid and eligible for settlement processing.\n",
+      "domain": "commercial",
+      "event_name": "ObligationValidated",
+      "payload": {
+        "abi": "v1",
+        "obligation_id": "string",
+        "timestamp": "ISO-8601",
+        "validated_by": "EntityId",
+        "validation_reference": "string"
+      },
+      "triggered_by": "ValidateObligation",
+      "triggers": "none"
+    },
+    "SVUIssued": {
+      "abi": "v1",
+      "amendment": "AMD-0005",
+      "description": "Settlement Value Units issued with full provenance. Every field traces back through the complete chain.\n",
+      "domain": "representation",
+      "event_name": "SVUIssued",
+      "payload": {
+        "abi": "v1",
+        "amount_cents": "uint64",
+        "attestation_id": "string",
+        "blockchain_tx_hash": "bytes32",
+        "commercial_obligation_id": "string",
+        "evidence_package_hash": "bytes32",
+        "evidence_package_id": "string",
+        "recipient": "address",
+        "settlement_id": "string",
+        "svu_id": "string",
+        "tigerbeetle_transfer_id": "uint128",
+        "timestamp": "ISO-8601"
+      },
+      "triggered_by": "IssueSVU",
+      "triggers": "none"
+    },
+    "SVURedeemed": {
+      "abi": "v1",
+      "amendment": "AMD-0005",
+      "description": "SVU redeemed against settlement obligation. Full audit trail preserved. Tokens burned.\n",
+      "domain": "representation",
+      "event_name": "SVURedeemed",
+      "payload": {
+        "abi": "v1",
+        "amount_cents": "uint64",
+        "from_address": "address",
+        "settlement_reference": "string",
+        "svu_id": "string",
+        "timestamp": "ISO-8601"
+      },
+      "triggered_by": "RedeemSVU",
+      "triggers": "none"
+    },
+    "SettlementAuthorized": {
+      "abi": "v1",
+      "amendment": "AMD-0005",
+      "description": "Settlement formally authorized. Treasury transfer workflow initiated. Ledger posting imminent.\n",
+      "domain": "settlement",
+      "event_name": "SettlementAuthorized",
+      "payload": {
+        "abi": "v1",
+        "amount_cents": "uint64",
+        "authorized_by": "EntityId",
+        "commercial_obligation_id": "string",
+        "currency": "string",
+        "settlement_id": "string",
+        "timestamp": "ISO-8601"
+      },
+      "triggered_by": "AuthorizeSettlement",
+      "triggers": [
+        "treasury.InitiateTransfer"
+      ]
+    },
+    "SettlementExecuted": {
+      "abi": "v1",
+      "amendment": "AMD-0005",
+      "description": "Settlement workflow completed. TigerBeetle transfer posted. Evidence generation triggered.\n",
+      "domain": "settlement",
+      "event_name": "SettlementExecuted",
+      "payload": {
+        "abi": "v1",
+        "amount_cents": "uint64",
+        "commercial_obligation_id": "string",
+        "credit_account": "uint64",
+        "debit_account": "uint64",
+        "settlement_id": "string",
+        "tigerbeetle_transfer_id": "uint128",
+        "timestamp": "ISO-8601",
+        "treasury_transfer_reference": "TransferId"
+      },
+      "triggered_by": "ExecuteSettlement",
+      "triggers": [
+        "GenerateEvidencePackage"
+      ]
+    },
+    "SettlementFinalized": {
+      "abi": "v1",
+      "amendment": "AMD-0005",
+      "description": "Settlement confirmed finalized. Evidence package signed. SVU issuance now permitted if required.\n",
+      "domain": "settlement",
+      "event_name": "SettlementFinalized",
+      "payload": {
+        "abi": "v1",
+        "attestation_id": "string",
+        "commercial_obligation_id": "string",
+        "evidence_package_hash": "bytes32",
+        "evidence_package_id": "string",
+        "settlement_id": "string",
+        "tigerbeetle_transfer_id": "uint128",
+        "timestamp": "ISO-8601"
+      },
+      "triggered_by": "SignAttestation",
+      "triggers": [
+        "IssueSVU (conditional on representation domain)"
+      ]
+    },
     "agent.activated": {
       "abi": "v1",
       "aggregate": "instance",
@@ -1069,32 +1252,6 @@
         "target": "none"
       },
       "source_domain": "governance",
-      "version": "1.0.0"
-    },
-    "escrow.account.cancellation_failed": {
-      "abi": "v1",
-      "aggregate": "escrow_account",
-      "aggregate_id_field": "escrow_id",
-      "constitutional_refs": [
-        "INV-001"
-      ],
-      "data_fields": {
-        "abi": "v1",
-        "escrow_id": {
-          "abi": "v1",
-          "type": "string"
-        }
-      },
-      "description": "Escrow account cancellation failed",
-      "event_name": "escrow.account.cancellation_failed",
-      "projection_effect": {
-        "abi": "v1",
-        "operation": "no_op",
-        "target": "none"
-      },
-      "projection_effects": [],
-      "retention_class": "operational_90d",
-      "source_domain": "escrow",
       "version": "1.0.0"
     },
     "escrow.account.cancelled": {
@@ -12073,6 +12230,6 @@
       "version": "1.0.0"
     }
   },
-  "entry_count": 259,
+  "entry_count": 267,
   "kind": "events"
 }

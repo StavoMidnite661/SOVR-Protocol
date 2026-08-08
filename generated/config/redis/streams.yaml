@@ -1,5 +1,5 @@
 # SOVR GENERATED — Redis Streams
-# hash c1a1b03bcd22e80bd83968c48e7c85bc850ba763f236c27e0615a37da3ba0d21
+# hash 387175c5a368a146a7e7bcd78610c9b3f7ee1352924e45687f26b1ac21a19fcd
 {
   "streams": [
     {
@@ -38,11 +38,32 @@
       "event": "agent.registration.approved"
     },
     {
+      "stream": "sovr:stream:AttestationSigned:",
+      "consumer_group": "sovr-AttestationSigned-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "AttestationSigned"
+    },
+    {
+      "stream": "sovr:stream:CommercialRecordCreated:",
+      "consumer_group": "sovr-CommercialRecordCreated-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "CommercialRecordCreated"
+    },
+    {
       "stream": "sovr:stream:escrow:escrow_account",
       "consumer_group": "sovr-escrow-service",
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
-      "event": "escrow.account.cancellation_failed"
+      "event": "escrow.account.cancelled"
+    },
+    {
+      "stream": "sovr:stream:EvidencePackageGenerated:",
+      "consumer_group": "sovr-EvidencePackageGenerated-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "EvidencePackageGenerated"
     },
     {
       "stream": "sovr:stream:governance:audit_record",
@@ -185,6 +206,13 @@
       "event": "ledger.reconciliation.completed"
     },
     {
+      "stream": "sovr:stream:ObligationValidated:",
+      "consumer_group": "sovr-ObligationValidated-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "ObligationValidated"
+    },
+    {
       "stream": "sovr:stream:payment:execution",
       "consumer_group": "sovr-payment-service",
       "max_length": 100000,
@@ -274,6 +302,41 @@
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
       "event": "policy.rule.activated"
+    },
+    {
+      "stream": "sovr:stream:SettlementAuthorized:",
+      "consumer_group": "sovr-SettlementAuthorized-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "SettlementAuthorized"
+    },
+    {
+      "stream": "sovr:stream:SettlementExecuted:",
+      "consumer_group": "sovr-SettlementExecuted-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "SettlementExecuted"
+    },
+    {
+      "stream": "sovr:stream:SettlementFinalized:",
+      "consumer_group": "sovr-SettlementFinalized-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "SettlementFinalized"
+    },
+    {
+      "stream": "sovr:stream:SVUIssued:",
+      "consumer_group": "sovr-SVUIssued-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "SVUIssued"
+    },
+    {
+      "stream": "sovr:stream:SVURedeemed:",
+      "consumer_group": "sovr-SVURedeemed-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "SVURedeemed"
     },
     {
       "stream": "sovr:stream:treasury:liquidity_position",

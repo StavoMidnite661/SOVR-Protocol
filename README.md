@@ -185,7 +185,7 @@ npm run protocol:runtime-audit
 ### Measured Metrics
 
 > Measured from this repository at build hash
-> `fa948641…`. Verified by `npm run certify:production`.
+> `6e97ae16…`. Verified by `npm run certify:production`.
 > Corrected 2026-07-27 following independent audit — see
 > `DUE_DILIGENCE/INDEPENDENT_AUDIT_2026-07-27.md`.
 
@@ -199,13 +199,13 @@ npm run protocol:runtime-audit
 | Commands | 105 | ✅ |
 | Events | 259 | ✅ |
 | State Machines | 43 | ✅ |
-| Capabilities | 111 | ✅ |
+| Capabilities | 113 | ✅ |
 | Projections | 16 | ✅ |
-| IR nodes / edges | 592 / 459 | ✅ |
+| IR nodes / edges | 594 / 459 | ✅ |
 | Generated artifacts | 147 | ✅ |
 | Registry JSON files | 11 | ✅ |
 | Registry integrity | 11/11 match manifest | ✅ |
-| Build hash | `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829` | ✅ |
+| Build hash | `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` | ✅ |
 | Reproducibility | Byte-identical, platform-independent | ✅ |
 | Runtime build | `tsc` 0 errors | ✅ |
 | Server boot | HEALTHY at runlevel 7 | ✅ |
@@ -405,13 +405,18 @@ SOVR defines **10 first-class financial domains** covering the complete operatio
 | Treasury | Can value move? | 9 | 12 |
 | Identity | Who is acting? | 12 | — |
 | Policy | Is this action permitted? | 8 | — |
-| Intent | What does the actor want? | 9 | — |
+| Intent | What does the actor want to do? | 9 | — |
 | Agent | Can intelligence request action? | 8 | — |
 | Payment | Can execution leave the system? | 10 | — |
 | Governance | Who oversees the system? | 13 | — |
 | Escrow | Can value be conditionally held and released? | 4 | 8 |
+| Commercial (EXT) | Can a commercial obligation be recorded? | — | — |
+| Settlement (EXT) | Can a commercial obligation be settled? | — | — |
+| Certification (EXT) | Can settlement evidence be certified? | — | — |
+| Representation (EXT) | Can a settlement value unit be issued? | — | — |
+| Gateway (EXT) | Can the settlement provenance be independently verified? | — | — |
 
-**Total: 105 commands. 259 events. 48 entities.**
+**Total: 113 commands. 268 events. 52 entities.**
 
 ### Vault Domain
 
@@ -529,7 +534,7 @@ Escrow was added through the XV.3 Constitutional Proof using YAML-only changes. 
 
 ## Command Catalog
 
-**105 commands** across 10 domains.
+**113 commands** across 10 canonical domains plus 5 extension domains.
 
 Every command is defined with:
 
@@ -571,7 +576,7 @@ Event Publication
 
 ## Event Catalog
 
-**259 events** across 10 domains plus kernel events.
+**268 events** across 10 canonical domains plus 5 extension domains and kernel events.
 
 Every event carries the mandatory **21-field event envelope**:
 
@@ -610,7 +615,7 @@ If a projection disagrees with the event log, **the event log wins.**
 
 ## State Machines
 
-**43 state machines** covering all domain lifecycles, defined in `05_state-machines.yaml`.
+**46 state machines** covering all domain lifecycles, defined in `05_state-machines.yaml`.
 
 Each machine specifies:
 
@@ -682,7 +687,7 @@ Compensation model: **`SEQUENTIAL_REVERSE`**
 
 ### Capabilities
 
-**111 capabilities** organized by domain:
+**113 capabilities** organized by domain:
 
 - **Scope Pattern Language:** `{resource}:{id}:{field}` with wildcard support
 - **Risk Levels:** `NONE` `LOW` `MEDIUM` `HIGH` `CRITICAL`
@@ -809,7 +814,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 - Human-readable canonical JSON
 - Contains: metadata, typed protocol nodes, graph edges, diagnostics
 - IR hash: SHA-256 over canonical JSON of IR nodes, edges, protocol version, and compiler version
-- Current metrics: **592 nodes, 459 edges**
+- Current metrics: **594 nodes, 459 edges**
 
 ### Reproducibility (R1–R10)
 
@@ -826,7 +831,7 @@ Every successful compilation produces generated protocol artifacts plus compiler
 | R9 | Byte-identical manifest — `build_hash = sha256(sorted(input_hashes) + ir_hash + sorted(output_hashes) + compiler_version + registry_versions)` |
 | R10 | Environmental isolation — compile in clean environment |
 
-**Verified build hash:** `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829`
+**Verified build hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`
 
 Identical YAML inputs produce identical build hashes. This is verified. This is the unfakeable proof of protocol integrity.
 
@@ -862,7 +867,7 @@ The SOVR reference runtime (`@sovr/runtime v0.6.0`) is the execution environment
 ### What the Runtime Does Not Do Yet
 
 ```text
-🔧 Execute complete YAML-driven routing for all 105 commands without compatibility fallbacks
+🔧 Execute complete YAML-driven routing for all 113 commands without compatibility fallbacks
 🔧 Interpret saga orchestration from spec
 🔧 Wire all generated TypeScript artifacts into execution
 🔧 Connect to a production-durable event store
@@ -995,7 +1000,7 @@ bash scripts/demo.sh
 
 ### Expected Output
 ```
-✅ Build hash: fa948641...
+✅ Build hash: 6e97ae16...
 ✅ System HEALTHY
 ✅ Attestation chain intact
 ✅ Session created with RS256 JWT
@@ -1054,7 +1059,7 @@ node packages/compiler/dist/cli.js compile
 
 # Verify byte-identical reproducibility
 node packages/compiler/dist/cli.js verify
-# ✓ Reproducible build verified: fa948641...
+# ✓ Reproducible build verified: 6e97ae16...
 
 # Boot kernel (8 runlevels + attestation)
 node packages/compiler/dist/cli.js boot
@@ -1132,7 +1137,7 @@ if (health.final_health !== 'HEALTHY') {
 // Verify unfakeable build hash chain
 const manifest = await fetch('http://localhost:3001/api/v1/manifest').then(r => r.json())
 const attestation = await fetch('http://localhost:3001/api/v1/boot-attestation').then(r => r.json())
-// manifest.build_hash === attestation.build_hash === fa948641...
+// manifest.build_hash === attestation.build_hash === 6e97ae16...
 
 const client = new SOVRClient({
   apiUrl: 'http://localhost:3001/api/v1',
@@ -1153,7 +1158,7 @@ const client = new SOVRClient({
 |---|---|---|
 | YAML corpus compilation (39 protocol inputs) | ✅ | 100% valid |
 | Deterministic SHA-256 build hash | ✅ | Verified byte-identical |
-| Canonical IR (592 nodes, 459 edges) | ✅ | Human-readable JSON |
+| Canonical IR (594 nodes, 459 edges) | ✅ | Human-readable JSON |
 | Generated artifacts | ✅ | Output types generated |
 | TLA+ formal specs (21 machines) | ✅ | Generated — not yet model-checked |
 | 8-runlevel boot sequence | ✅ | Cryptographic attestation chain |
@@ -1230,11 +1235,11 @@ SOVR-Protocol/
 ├── 📜 PROTOCOL SPECIFICATION (Root YAML — 16 files)
 │   ├── 00_protocol-manifest.yaml     ← Entry point: layers, domains, build phases
 │   ├── 01_constitution.yaml          ← Supreme law: 10 invariants, authority, enforcement
-│   ├── 02_domain-model.yaml          ← 48 entities across 10 domains
-│   ├── 03_command-catalog.yaml       ← 105 commands with validation rules
-│   ├── 04_event-catalog.yaml         ← 259 events with full envelope
-│   ├── 05_state-machines.yaml        ← 43 state machines
-│   ├── 08_security-capabilities.yaml ← 111 capabilities + scope language
+│   ├── 02_domain-model.yaml          ← 52 entities across 10 domains + 5 extensions
+│   ├── 03_command-catalog.yaml       ← 113 commands with validation rules
+│   ├── 04_event-catalog.yaml         ← 268 events with full envelope
+│   ├── 05_state-machines.yaml        ← 46 state machines
+│   ├── 08_security-capabilities.yaml ← 113 capabilities + scope language
 │   ├── 09_saga-orchestration.yaml    ← Saga definitions + compensation model
 │   ├── 11_governance-amendments.yaml ← Amendment process
 │   ├── 12_domain-contracts.yaml      ← Inter-domain coupling contracts
@@ -1298,7 +1303,7 @@ SOVR-Protocol/
 │           └── generated/                ← Runtime generated manifests
 │
 ├── 📁 generated/                     ← Compiler output artifacts
-│   ├── sovr-ir.json                  ← Canonical IR (592 nodes, 459 edges)
+│   ├── sovr-ir.json                  ← Canonical IR (594 nodes, 459 edges)
 │   ├── compiler-manifest.yaml        ← Build hash + artifact inventory
 │   ├── boot.log                      ← Boot sequence log
 │   ├── boot-attestation.json         ← Cryptographic boot proof
@@ -1353,7 +1358,7 @@ SOVR-Protocol/
 | Generated behavior | 100% | ✅ |
 | Registry ABI | v1 | ✅ |
 | Constitutional proof | XV3-ESCROW-PROOF | ✅ |
-| Build hash | `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829` | ✅ |
+| Build hash | `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` | ✅ |
 | Byte-identical reproducibility | Verified | ✅ |
 | Compiler diagnostics | 0 errors, 71 warnings | ✅ |
 
@@ -1385,7 +1390,7 @@ SOVR uses a constitution-governed development model.
 | Priority | Area | Description |
 |---|---|---|
 | 🔴 Critical | Pass Runner Hardening | Expand the initial PASS-001 through PASS-020 runner into fully certified pass contracts per `compiler/PASS_REGISTRY.yaml` |
-| 🔴 Critical | State Machine Coverage | Extend CommandBus state-machine routing to all 105 commands and saga paths |
+| 🔴 Critical | State Machine Coverage | Extend CommandBus state-machine routing to all 113 commands and saga paths |
 | 🔴 Critical | Fail-Closed Enforcement | Extend ERROR/FATAL halt behavior across every compiler diagnostic path and prevent partial artifact output |
 | 🟡 High | Invariant Enforcement | Wire all 10 constitutional invariants into the runtime execution path |
 | 🟡 High | Generated Artifact Wiring | Connect compiler-generated types, routes, and aggregates into runtime execution |
@@ -1429,8 +1434,8 @@ Proprietary — All rights reserved.
 | Component | Version | Status |
 |---|---|---|
 | Protocol Specification | `1.0.0` | Frozen |
-| Compiler | `0.9.0` | Active development |
-| Runtime | `0.9.0` | Active development |
+| Compiler | `0.6.0` | Active development |
+| Runtime | `0.6.0` | Active development |
 
 ---
 

@@ -93,7 +93,7 @@ The fail-closed mechanism behaved **correctly** — it detected a real byte diff
 
 ```
 Compile          : SUCCESS — 39 inputs, 592 IR nodes / 459 edges, 147 artifacts, 0 errors
-Reproducibility  : ✓ byte-identical — fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829
+Reproducibility  : ✓ byte-identical — 6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015
 Input hash chain : 39 / 39 match
 Registry integrity: 11 / 11 match (hash + entry count)
 Boot             : HEALTHY at runlevel 7, attestation matches build hash
@@ -105,8 +105,8 @@ Certification    : ✅ PRODUCTION CERTIFICATION PASSED — 0 blocking, 1 warning
 The entire 39-file corpus was converted to CRLF (simulating a Windows checkout) in an isolated copy and recompiled:
 
 ```
-LF   corpus → build hash fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829
-CRLF corpus → build hash fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829
+LF   corpus → build hash 6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015
+CRLF corpus → build hash 6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015
 ```
 
 **Identical.** The reproducibility claim is now empirically true rather than merely asserted.
@@ -117,7 +117,7 @@ CRLF corpus → build hash fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b
 
 | Field | Value |
 |---|---|
-| Build hash | `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829` |
+| Build hash | `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` |
 | Constitution hash (canonical, LF) | `34dfbdc2de193f54f87bb873039603bb5a5502a8448ef6151133f54c77a54ed3` |
 | Compiler version | 0.6.0 |
 | Protocol version | 1.0.0 (FROZEN) |

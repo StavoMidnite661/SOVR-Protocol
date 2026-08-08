@@ -1,8 +1,8 @@
 # SOVR Protocol — Production Evidence Book
 
-**Version:** v0.9.0-rc  
+**Version:** v0.6.0  
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 
 ---
 
@@ -25,7 +25,7 @@ This document is the master index of all production evidence for the SOVR Protoc
 | Compiler Execution Proof | `certification/COMPILER_EXECUTION_PROOF.yaml` | ✅ Verified |
 | Compiler Trust Package | `certification/COMPILER_TRUST_PACKAGE.yaml` | ✅ Verified |
 | Determinism Certification | `certification/DETERMINISM_CERTIFICATION.md` | ✅ 3/3 runs identical |
-| Build Hash | `generated/compiler-manifest.yaml` | ✅ `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` |
+| Build Hash | `generated/compiler-manifest.yaml` | ✅ `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` |
 
 **Command to verify:**
 ```bash
@@ -99,7 +99,7 @@ npm audit --audit-level=high
 
 | Evidence | Location | Status |
 |---|---|---|
-| API Certification | `certification/API_CERTIFICATION.md` | ✅ 44 endpoints |
+| API Certification | `certification/API_CERTIFICATION.md` | ✅ 45 endpoints |
 | OpenAPI Spec | `generated/openapi.yaml` | ✅ 3.1.0 |
 | Endpoint Count | 44 | ✅ Verified |
 | Authentication | JWT RS256 | ✅ Active |

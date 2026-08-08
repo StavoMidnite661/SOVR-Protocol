@@ -1,0 +1,91 @@
+# ============================================================
+# SOVR Governance Amendment Proposal
+# ID: AMD-0013
+# Title: Commercial Settlement Extension Suite
+# Status: PROPOSED
+# Date: 2026-08-05
+# ============================================================
+
+amendment:
+  id: AMD-0013
+  version: "1.0.0"
+  type: CONSTITUTIONAL_EXTENSION
+  priority: HIGH
+  author: Chief Architect
+
+  title: Commercial Settlement Extension Suite
+
+  description: >
+    Introduces the Commercial Settlement Suite (CSS) to the SOVR Protocol.
+    This extension bridges Commercial Reality (Layer 0) with programmable
+    Settlement Representation (Layer 4) through an immutable chain of
+    custody involving explicit Commercial Records, Settlement Workflows,
+    JDE-compatible Evidence Packages, and SVU Representation.
+
+  findings: [CSS-001]
+
+  impacted_artifacts:
+    - 00_protocol-manifest.yaml
+    - protocol/DOMAIN_REGISTRY.yaml
+    - 02_domain-model.yaml
+    - 03_command-catalog.yaml
+    - 04_event-catalog.yaml
+    - 05_state-machines.yaml
+    - 08_security-capabilities.yaml
+    - 09_saga-orchestration.yaml
+    - projection-engine.yaml
+    - acceptance-tests.yaml
+
+  proposed_domains:
+    - name: commercial
+      purpose: Origin of commercial truth and obligations.
+      priority: 2
+      layer: L1
+      depends_on: [identity]
+    - name: settlement
+      purpose: Execution and workflow for commercial obligations.
+      priority: 3
+      layer: L2
+      depends_on: [commercial, identity]
+    - name: certification
+      purpose: Generation of JDE-compatible evidence packages.
+      priority: 5
+      layer: L3
+      depends_on: [settlement, ledger]
+    - name: representation
+      purpose: Programmable SVU representation of settled obligations.
+      priority: 6
+      layer: L4
+      depends_on: [ledger, certification]
+    - name: gateway
+      purpose: Public verification and traversal interface.
+      priority: 7
+      layer: L6
+      depends_on: [certification, representation]
+
+  constitutional_compliance:
+    rule: Economic Origin Precedence
+    verification: >
+      Every SVU in the representation domain must trace back through
+      certification and settlement to a commercial record.
+    status: PASSED
+
+  ratification_requirements:
+    - unanimous_oversight_approval
+    - compiler_integrity_verification
+    - genesis_artifact_proof: SOVR-COMMERCIAL-SETTLEMENT-000001
+
+  implementation_steps:
+    - step: 1
+      action: Register domains in protocol/DOMAIN_REGISTRY.yaml
+    - step: 2
+      action: Register domains in 00_protocol-manifest.yaml
+    - step: 3
+      action: Implement domain logic in domains/*.yaml
+    - step: 4
+      action: Compile and verify integrity
+
+  severity: high
+  vote: unanimous
+  compiler_impact: HIGH
+  status: PROPOSED

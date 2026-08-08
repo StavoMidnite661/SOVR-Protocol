@@ -1,0 +1,98 @@
+simulation_test_cases:
+  directive: SOVR-GENESIS-000002-PHASE9A
+  phase: Phase 9 — Local Simulation Authorization Package
+
+  test_suites:
+    - id: TC-001
+      name: Compiler Determinism Validation
+      command: npm run compile
+      expected:
+        commands: 105
+        events: 267
+        state_machines: 46
+        build_hash_match: true
+      status: PASS
+
+    - id: TC-002
+      name: Genesis Spec Validation
+      command: npm run test:genesis
+      expected:
+        all_checks_passed: true
+        compiler_errors: 0
+      status: PASS
+
+    - id: TC-003
+      name: TypeScript Typecheck
+      command: npm run typecheck
+      expected:
+        exit_code: 0
+      status: PASS
+
+    - id: TC-004
+      name: Runtime Boot Sequence
+      command: LOCAL_SIMULATION_MODE=true npm run test:integration
+      expected:
+        runlevels:
+          - FIRMWARE_POST: PASS
+          - PLATFORM_INIT: PASS
+          - SECRETS_BOOT: PASS
+          - CONSTITUTIONAL_LOAD: PASS
+          - CAPABILITY_REGISTER: PASS
+          - PROJECTION_REBUILD: PASS
+          - BOUNDARY_REGISTER: PASS
+          - USERLAND: PASS
+      status: OBSERVED_BOOTING
+
+    - id: TC-005
+      name: Strict Causation Enforcement
+      command: npm test
+      expected:
+        strictCausation: true
+        existing_tests: PASS
+      status: PENDING_FULL_RUN
+
+    - id: TC-006
+      name: AMD-0005 Compilation
+      command: npm run compile
+      expected:
+        new_domains: 5
+        new_commands: 8
+        new_events: 9
+        new_state_machines: 3
+        warnings_only: true
+        errors: 0
+      status: PASS
+
+    - id: TC-007
+      name: Payment Rails Disabled
+      command: runtime config audit
+      expected:
+        ACH:
+          enabled: false
+        FEDNOW:
+          enabled: false
+        WIRE:
+          enabled: false
+        BLOCKCHAIN:
+          enabled: false
+        STABLECOIN:
+          enabled: false
+      status: CONFIRMED
+
+    - id: TC-008
+      name: Merkle Audit Surface Design
+      command: design review
+      expected:
+        MerkleRootService.ts: EXISTS
+        internal_only: true
+        external_endpoint: NOT_EXPOSED
+      status: COMPLETE
+
+    - id: TC-009
+      name: State Machine Runtime Design
+      command: design review
+      expected:
+        STATE_MACHINE_EXECUTOR_DESIGN.yaml: EXISTS
+        prototype_status: PENDING
+        integration_status: PENDING
+      status: DESIGN_COMPLETE

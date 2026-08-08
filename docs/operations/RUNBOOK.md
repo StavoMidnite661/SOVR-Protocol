@@ -1,6 +1,6 @@
 # SOVR Protocol — Operations Runbook
 
-**Version:** 0.9.0  
+**Version:** 0.6.0  
 **Last Updated:** 2026-07-24  
 **Classification:** Internal — Operations
 
@@ -46,7 +46,7 @@
 # 1. Pull release
 git clone https://github.com/StavoMidnite661/SOVR-Protocol
 cd SOVR-Protocol
-git checkout v0.9.0
+git checkout v0.6.0
 
 # 2. Verify build hash
 node packages/compiler/dist/cli.js verify
@@ -308,7 +308,7 @@ curl http://localhost:3001/api/v1/events | jq '.total'
 # 2. Deploy from last verified release
 git clone https://github.com/StavoMidnite661/SOVR-Protocol
 cd SOVR-Protocol
-git checkout v0.9.0
+git checkout v0.6.0
 
 # 3. Verify build hash matches release tag
 node packages/compiler/dist/cli.js verify
@@ -391,7 +391,7 @@ git tag --list | grep "v0.9" | sort -V | tail -5
 kill -SIGTERM $(cat runtime.pid)
 
 # 3. Checkout last known good
-git checkout v0.9.0
+git checkout v0.6.0
 
 # 4. Rebuild
 cd packages/runtime && npm run build && cd ../..

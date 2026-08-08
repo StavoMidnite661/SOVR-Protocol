@@ -114,7 +114,7 @@ export class BootSelfTest {
   }
 
   private async testEventStore(): Promise<TestResult> {
-    const store = new EventStore();
+    const store = new EventStore(undefined, { strictCausation: false });
     store.append({ event_name: 'self.test', aggregate: 'self', aggregate_id: 'self', source_domain: 'kernel', command_id: 'cmd', triggering_command: 'boot.self_test', causation_id: 'cmd', correlation_id: 'corr', actor_id: 'system', identity_context: { identity_id: 'system', actor_type: 'system' }, policy_decision_id: 'policy', capability_id: 'system.internal', payload: {}, projection_effect: { target: 'none', operation: 'no_op' }, audit: { constitutional_rules_referenced: ['INV-001'], retention_class: 'operational_90d' } });
     return store.stats().totalEvents === 1 ? { name: 'EventStore', passed: true } : { name: 'EventStore', passed: false, error: 'append failed' };
   }
@@ -125,7 +125,7 @@ export class BootSelfTest {
     if (actual !== expected) {
       return { name: 'ProjectionRuntime', passed: false, error: `Manifest expects ${expected} projections, registry contains ${actual}` };
     }
-    const pr = new ProjectionRuntime(new EventStore());
+    const pr = new ProjectionRuntime(new EventStore(undefined, { strictCausation: false }));
     return pr.registryCount() === expected ? { name: 'ProjectionRuntime', passed: true } : { name: 'ProjectionRuntime', passed: false, error: `ProjectionRuntime sees ${pr.registryCount()} projections; manifest expects ${expected}` };
   }
 

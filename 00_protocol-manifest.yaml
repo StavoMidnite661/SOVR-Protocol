@@ -312,6 +312,118 @@ domains:
     answers_the_question: "Can value be conditionally held and released?"
     defines_atomic_value: false
 
+  # ============================================================
+  # AMD-0005 EXTENSION DOMAINS
+  # Ratified: 2026-08-05
+  # Commercial Settlement Suite
+  # Additive extension — zero frozen files replaced
+  # ============================================================
+
+  commercial:
+    name: Commercial
+    description: >
+      Commercial obligation layer. Origin of all value
+      relationships. Sits above vault domain. References
+      vault assets as obligated value. No new balance
+      store. Root of constitutional chain of custody.
+    layer: L1
+    entities_defined_in: domains/commercial.yaml
+    contracts_with:
+      - vault
+      - identity
+    build_phase: C
+    priority: 11
+    answers_the_question: "Can a commercial obligation be recorded?"
+    defines_atomic_value: false
+    classification: EXTENSION
+    amendment: AMD-0005
+    extends: vault
+
+  settlement:
+    name: Settlement
+    description: >
+      Settlement workflow layer. Extends treasury transfer
+      workflow. Settlement events trigger treasury transfer
+      commands. Does not replace treasury. Does not
+      duplicate treasury transfer logic.
+    layer: L1
+    entities_defined_in: domains/settlement.yaml
+    contracts_with:
+      - commercial
+      - treasury
+      - identity
+      - ledger
+    build_phase: C
+    priority: 12
+    answers_the_question: "Can a commercial obligation be settled?"
+    defines_atomic_value: false
+    classification: EXTENSION
+    amendment: AMD-0005
+    extends: treasury
+
+  certification:
+    name: Certification
+    description: >
+      Evidence generation layer. JDE-compatible settlement
+      evidence packages as first-class governance
+      attestation artifacts. EvidencePackage entity has
+      full state machine lifecycle. Stored in
+      TB_LEDGER.SYSTEM code MEMORANDUM. Option B selected.
+      IPFS/S3 publish is optional boundary adapter only.
+    layer: L1
+    entities_defined_in: domains/certification.yaml
+    contracts_with:
+      - settlement
+      - ledger
+      - governance
+    build_phase: C
+    priority: 13
+    answers_the_question: "Can settlement evidence be certified?"
+    defines_atomic_value: false
+    classification: EXTENSION
+    amendment: AMD-0005
+    extends: governance
+
+  representation:
+    name: Representation
+    description: >
+      Settlement Value Unit output layer. SVU issuance
+      occurs after payment completes settlement. Extends
+      payment output layer. SVU is representation adapter
+      only. Not money. Not currency. Not a deposit.
+      Every SVU traces to certified evidence package.
+    layer: L6
+    entities_defined_in: domains/representation.yaml
+    contracts_with:
+      - certification
+      - payment
+      - ledger
+    build_phase: E
+    priority: 14
+    answers_the_question: "Can a settlement value unit be issued?"
+    defines_atomic_value: false
+    classification: EXTENSION
+    amendment: AMD-0005
+    extends: payment
+
+  gateway:
+    name: Gateway
+    description: >
+      Public verification and traversal layer. Read-model
+      and API observation surface only. No balance impact.
+      No TigerBeetle writes. Exposes full provenance chain
+      for independent verification without SOVR permission.
+    layer: L6
+    entities_defined_in: domains/gateway.yaml
+    contracts_with: []
+    build_phase: E
+    priority: 15
+    answers_the_question: "Can the settlement provenance be independently verified?"
+    defines_atomic_value: false
+    classification: EXTENSION
+    amendment: AMD-0005
+    extends: none
+
 # ============================================================
 # BOUNDARY SYSTEMS
 # ============================================================

@@ -19,7 +19,7 @@ Expected boot:
  SOVR Financial OS — Source of Canonical Events (CE)
 
 🔌 [0] FIRMWARE_POST Node v22 OK
-🔐 [1] BOOTLOADER build_hash 20c57cfb... verified
+🔐 [1] BOOTLOADER build_hash 6e97ae16... verified
 🧠 [2] KERNEL_INIT 10 invariants
 🏦 [3] CORE_DOMAINS vault, ledger, treasury
 🛡️ [4] SECURITY_SUBSYSTEM identity, policy, agent
@@ -85,7 +85,7 @@ Protocol = backend on :3001
 
 ```ts
 import { SOVRClient } from '@sovr/runtime'
-const client = new SOVRClient({apiUrl: 'http://localhost:3001/api/v1', buildHash: '20c57cfb...'})
+const client = new SOVRClient({apiUrl: 'http://localhost:3001/api/v1', buildHash: '6e97ae16...'})
 await fetch('http://localhost:3001/health') // must be HEALTHY
 await client.verifyBuildManifest(buildHash) // unfakeable
 ```
@@ -111,7 +111,7 @@ File: `generated/data/sovr-events.json`
 ```
 PORT=3001
 SOVR_DEV_AUTO_GRANT=true # auto grants caps for demo, disable in prod (only governance can grant per INV-004)
-SOVR_BUILD_HASH=20c57cfb... # optional override
+SOVR_BUILD_HASH=6e97ae16... # optional override
 ```
 
 ## Health Gate

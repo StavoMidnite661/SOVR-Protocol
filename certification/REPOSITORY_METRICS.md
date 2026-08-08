@@ -1,7 +1,7 @@
 # SOVR Protocol — Repository Metrics
 
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 **Protocol Version:** v1.0.0 (FROZEN)  
 
 ---
@@ -44,7 +44,7 @@
 
 | Metric | Value | Verified |
 |---|---|---|
-| Compiler Version | v0.9.0 | ✅ |
+| Compiler Version | v0.6.0 | ✅ |
 | Compilation Passes | 20 | ✅ |
 | Code Generators | 9 | ✅ |
 | IR Nodes | 592 | ✅ |
@@ -52,7 +52,7 @@
 | Generated Artifacts | 104 | ✅ |
 | Registry JSON Files | 11 | ✅ |
 | TLA+ Models Generated | 43 | ✅ |
-| Build Hash | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` | ✅ |
+| Build Hash | `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` | ✅ |
 | Byte-identical Reproducibility | Verified | ✅ |
 
 ---
@@ -61,7 +61,7 @@
 
 | Metric | Value | Verified |
 |---|---|---|
-| Runtime Version | v0.9.0 | ✅ |
+| Runtime Version | v0.6.0 | ✅ |
 | OpenAPI Paths | 44 | ✅ |
 | Boot Runlevels | 8/8 HEALTHY | ✅ |
 | Boot Self-Test | 7/7 PASS | ✅ |

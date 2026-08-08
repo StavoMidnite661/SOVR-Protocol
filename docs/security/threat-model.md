@@ -1,6 +1,6 @@
 # SOVR Protocol — Threat Model
 
-**Version:** 0.9.0  
+**Version:** 0.6.0  
 **Date:** 2026-07-24  
 **Status:** ACTIVE  
 **Classification:** Internal — Security Audit Input

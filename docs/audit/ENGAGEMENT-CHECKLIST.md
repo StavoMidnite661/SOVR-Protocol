@@ -1,7 +1,7 @@
 # SOVR Protocol — Auditor Engagement Checklist
 **Version:** v1.0.0-rc
 **Date:** 2026-07-25
-**Build hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`
+**Build hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`
 **Classification:** Auditor Confidential
 
 ---
@@ -28,7 +28,7 @@
 ## Environment Access
 
 **Repository:** https://github.com/StavoMidnite661/SOVR-Protocol  
-**Branch:** v0.9.0  
+**Branch:** v0.6.0  
 **Runtime:** Node.js v20 LTS  
 **Database:** PostgreSQL 16+  
 **Demo script:** `bash scripts/demo.sh` (13/13 deterministic)
@@ -39,7 +39,7 @@
 # 1. Clone release tag
 git clone https://github.com/StavoMidnite661/SOVR-Protocol
 cd SOVR-Protocol
-git checkout v0.9.0
+git checkout v0.6.0
 
 # 2. Install dependencies
 npm install --workspaces

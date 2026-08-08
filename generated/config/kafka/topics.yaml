@@ -1,5 +1,5 @@
 # SOVR GENERATED — Kafka Topics
-# hash 8ecf2ef9dd3a2edce42f5f2e480ac03728037a0218a6943ff377de7554cc18c9
+# hash 07371e382566f7cb59c13c0bced5fdcedfc4c992695e8997afc745f9c9f854ac
 # Kafka topics — SOVR generated
 # compiler 0.6.0 protocol 1.0.0
 # INV-001 event immutability -> retention PERMANENT for financial/audit
@@ -193,10 +193,21 @@
       "min_in_sync_replicas": 2
     },
     {
-      "name": "sovr.escrow.escrow_account.cancellation_failed",
-      "domain": "escrow",
-      "aggregate": "escrow_account",
-      "event": "escrow.account.cancellation_failed",
+      "name": "sovr.AttestationSigned..",
+      "domain": "AttestationSigned",
+      "aggregate": "",
+      "event": "AttestationSigned",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.CommercialRecordCreated..",
+      "domain": "CommercialRecordCreated",
+      "aggregate": "",
+      "event": "CommercialRecordCreated",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -274,6 +285,17 @@
       "domain": "escrow",
       "aggregate": "escrow_account",
       "event": "escrow.account.released",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.EvidencePackageGenerated..",
+      "domain": "EvidencePackageGenerated",
+      "aggregate": "",
+      "event": "EvidencePackageGenerated",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -1623,6 +1645,17 @@
       "min_in_sync_replicas": 2
     },
     {
+      "name": "sovr.ObligationValidated..",
+      "domain": "ObligationValidated",
+      "aggregate": "",
+      "event": "ObligationValidated",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
       "name": "sovr.payment.execution_plan.planned",
       "domain": "payment",
       "aggregate": "execution_plan",
@@ -2265,6 +2298,61 @@
       "domain": "policy",
       "aggregate": "rule",
       "event": "policy.rule.updated",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.SettlementAuthorized..",
+      "domain": "SettlementAuthorized",
+      "aggregate": "",
+      "event": "SettlementAuthorized",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.SettlementExecuted..",
+      "domain": "SettlementExecuted",
+      "aggregate": "",
+      "event": "SettlementExecuted",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.SettlementFinalized..",
+      "domain": "SettlementFinalized",
+      "aggregate": "",
+      "event": "SettlementFinalized",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.SVUIssued..",
+      "domain": "SVUIssued",
+      "aggregate": "",
+      "event": "SVUIssued",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.SVURedeemed..",
+      "domain": "SVURedeemed",
+      "aggregate": "",
+      "event": "SVURedeemed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,

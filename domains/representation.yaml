@@ -1,0 +1,85 @@
+meta:
+  schema_version: "1.0.0"
+  file_id: "domains/representation"
+  status: "ACTIVE"
+  version: "1.0.0"
+  domain: "representation"
+  owner: "governance"
+  amendment: AMD-0005
+  classification: EXTENSION
+  constitutional_reference: "L6"
+
+domain:
+  id: representation
+  name: Representation
+  description: >
+    Settlement Value Unit output layer. SVU issuance
+    occurs after payment completes settlement. Extends
+    payment output layer. SVU is representation adapter
+    only. Not money. Not currency. Not a deposit.
+    Every SVU traces to certified evidence package.
+  version: "1.0.0"
+  extends: payment
+  svu:
+    full_name: Settlement Value Unit
+    symbol: SVU
+    decimals: 2
+    role: representation_adapter
+  entities:
+    - id: SettlementValueUnit
+      description: >
+        Settlement Value Unit. Programmable representation of
+        a finalized commercial settlement obligation. Extends
+        payment output layer. Created only after certified
+        evidence package exists. Representation adapter only.
+        Not money. Not currency. Not a deposit. Not a security.
+      fields:
+        - id: svu_id
+          type: string
+          format: "SOVR-SVU-{sequence}"
+          immutable: true
+          required: true
+        - id: commercial_obligation_id
+          type: ObligationId
+          domain: commercial
+          required: true
+        - id: settlement_id
+          type: SettlementId
+          domain: settlement
+          required: true
+        - id: evidence_package_id
+          type: PackageId
+          domain: certification
+          required: true
+        - id: evidence_package_hash
+          type: bytes32
+          required: true
+        - id: tigerbeetle_transfer_id
+          type: uint128
+          required: true
+        - id: attestation_id
+          type: string
+          required: true
+        - id: recipient
+          type: address
+          required: true
+        - id: amount_cents
+          type: uint64
+          required: true
+        - id: blockchain_tx_hash
+          type: bytes32
+          required: false
+          populated_on: SVUIssued
+        - id: status
+          type: enum
+          values:
+            - AUTHORIZED
+            - ISSUED
+            - REDEEMED
+            - BURNED
+          required: true
+      invariants:
+        - evidence_package_must_be_signed
+        - multisig_2_of_3_required_before_issuance
+        - amount_plus_supply_must_not_exceed_reserve_cap
+        - full_provenance_chain_must_be_traceable

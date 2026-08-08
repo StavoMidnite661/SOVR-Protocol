@@ -5,7 +5,7 @@
 
 Date: 2026-07-18
 Version: 0.2.0-kernel-working
-Build hash: `20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e`
+Build hash: `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`
 
 ---
 
@@ -43,7 +43,7 @@ Verify:
 
 ```bash
 node packages/compiler/dist/cli.js verify
-# → Reproducible build verified: 20c57cfb56b202ce... (byte-identical)
+# → Reproducible build verified: 6e97ae1656b202ce... (byte-identical)
 ```
 
 Frontend can fetch `/generated/compiler-manifest.yaml` and compare `build_hash` to expected hash baked into SDK. If mismatch → tampered.
@@ -89,7 +89,7 @@ Frontend can fetch `/generated/compiler-manifest.yaml` and compare `build_hash` 
 ```bash
 cd packages/compiler && npm install && npx tsc -p tsconfig.json
 cd ../.. && node packages/compiler/dist/cli.js compile
-# → Generated 62 artifacts (69 files) with build_hash 20c57cfb56b202ce...
+# → Generated 62 artifacts (69 files) with build_hash 6e97ae1656b202ce...
 # → Protocol version 1.0.0, IR nodes 536 edges 404
 # → Diagnostics 27 warnings (failure events intentionally not in catalog)
 # → Reproducible: node packages/compiler/dist/cli.js verify → byte-identical
@@ -137,7 +137,7 @@ No manual typing — compiler generates from YAML. If YAML changes, types change
 ```ts
 import { SOVRClient } from '@sovr/runtime';
 
-const client = new SOVRClient({ apiUrl: 'https://api.sovr.financial/v1', buildHash: '20c57cfb56b202ce...' });
+const client = new SOVRClient({ apiUrl: 'https://api.sovr.financial/v1', buildHash: '6e97ae1656b202ce...' });
 
 const asset = await client.registerAsset({
   assetId: crypto.randomUUID(),
@@ -252,7 +252,7 @@ Prohibition: `ADAPTERS_MAY_NOT_MUTATE_CONSTITUTIONAL_STATE` — all drivers emit
 Frontend can verify runtime derives from exact YAML:
 
 ```ts
-const verified = await client.verifyBuildManifest('20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e');
+const verified = await client.verifyBuildManifest('6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015');
 if (!verified) throw new Error('Runtime tampered — build_hash mismatch');
 ```
 
@@ -370,7 +370,7 @@ It IS the Source of CE:
 cd packages/runtime && npm run build && PORT=3001 node dist/server/index.js
 # -> health at http://localhost:3001/health must be HEALTHY before frontend loads
 curl http://localhost:3001/health
-curl http://localhost:3001/api/v1/manifest | grep build_hash # 20c57cfb...
+curl http://localhost:3001/api/v1/manifest | grep build_hash # 6e97ae16...
 curl http://localhost:3001/api/v1/events?domain=vault
 ```
 
@@ -387,7 +387,7 @@ You now have a working YAML protocol that:
 
 1. **Parses** — 38 protocol frontier YAML -> 244 total valid, 0 parse failures
 2. **Validates** — reference integrity, envelope completeness, gates completeness, invariants
-3. **Compiles** — builds deterministic IR (536 nodes, 404 edges), ir_hash 6e689fa1..., build_hash 20c57cfb56b202... byte-identical verified
+3. **Compiles** — builds deterministic IR (594 nodes, 459 edges), ir_hash 6e689fa1..., build_hash 6e97ae1656b202... byte-identical verified
 4. **Generates** — 69 files with output hashes, build_hash = sha256(sorted inputs + ir_hash + sorted outputs + compiler_version)
 5. **Proves** — byte-identical reproducibility via verify + boot attestation chain build_hash -> boot_hash 87c2a236...
 6. **Unfakeable** — any tampering changes hash; frontend can verify manifest build_hash vs boot-attestation build_hash

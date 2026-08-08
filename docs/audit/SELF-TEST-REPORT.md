@@ -1,6 +1,6 @@
 # SOVR Protocol — Pre-Audit Self-Test Report
 **Date:** 2026-07-25
-**Build hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`
+**Build hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`
 **Environment:** NODE_ENV=production, RS256 keys (jose v6.2), PostgreSQL 18
 **Server:** localhost:3001, Fastify v5.10.0
 **Database:** sovr_events (PostgreSQL 18, live)

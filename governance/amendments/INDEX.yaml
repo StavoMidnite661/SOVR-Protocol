@@ -14,7 +14,7 @@ meta:
   schema_version: "1.0.0"
   protocol_version: "1.0.0"
   target_protocol_version: "1.0.1"
-  total_amendments: 12
+  total_amendments: 13
   source: governance/CONSTITUTIONAL_FINDING_REGISTRY.yaml
 
 amendments:

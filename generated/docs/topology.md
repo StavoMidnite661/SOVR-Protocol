@@ -2,10 +2,43 @@
 ```mermaid
 flowchart TD
   %% Root Domains
+  subgraph ATTESTATIONSIGNED [ATTESTATIONSIGNED Domain]
+    event_AttestationSigned(["EVENT: AttestationSigned"])
+  end
+  subgraph COMMERCIALRECORDCREATED [COMMERCIALRECORDCREATED Domain]
+    event_CommercialRecordCreated(["EVENT: CommercialRecordCreated"])
+  end
+  subgraph EVIDENCEPACKAGEGENERATED [EVIDENCEPACKAGEGENERATED Domain]
+    event_EvidencePackageGenerated(["EVENT: EvidencePackageGenerated"])
+  end
+  subgraph OBLIGATIONVALIDATED [OBLIGATIONVALIDATED Domain]
+    event_ObligationValidated(["EVENT: ObligationValidated"])
+  end
+  subgraph SVUISSUED [SVUISSUED Domain]
+    event_SVUIssued(["EVENT: SVUIssued"])
+  end
+  subgraph SVUREDEEMED [SVUREDEEMED Domain]
+    event_SVURedeemed(["EVENT: SVURedeemed"])
+  end
+  subgraph SETTLEMENTAUTHORIZED [SETTLEMENTAUTHORIZED Domain]
+    event_SettlementAuthorized(["EVENT: SettlementAuthorized"])
+  end
+  subgraph SETTLEMENTEXECUTED [SETTLEMENTEXECUTED Domain]
+    event_SettlementExecuted(["EVENT: SettlementExecuted"])
+  end
+  subgraph SETTLEMENTFINALIZED [SETTLEMENTFINALIZED Domain]
+    event_SettlementFinalized(["EVENT: SettlementFinalized"])
+  end
   subgraph AGENT [AGENT Domain]
     capability_agent_activate(["CAPABILITY: activate"])
     capability_agent_capability_bind(["CAPABILITY: bind"])
     capability_agent_capability_revoke(["CAPABILITY: revoke"])
+  end
+  subgraph CERTIFICATION [CERTIFICATION Domain]
+    state_machine_EvidencePackage(["STATE_MACHINE: EvidencePackage"])
+  end
+  subgraph COMMERCIAL [COMMERCIAL Domain]
+    state_machine_CommercialObligation(["STATE_MACHINE: CommercialObligation"])
   end
   subgraph ESCROW [ESCROW Domain]
     capability_escrow_account_cancel(["CAPABILITY: cancel"])
@@ -52,6 +85,9 @@ flowchart TD
   end
   subgraph SAGA [SAGA Domain]
     command_saga_compensate(["COMMAND: compensate"])
+  end
+  subgraph SETTLEMENT [SETTLEMENT Domain]
+    state_machine_SettlementRecord(["STATE_MACHINE: SettlementRecord"])
   end
   subgraph TREASURY [TREASURY Domain]
     capability_treasury_liquidity_manage(["CAPABILITY: manage"])

@@ -1,9 +1,9 @@
 # SOVR Protocol — Determinism Certification
 
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 **Protocol Version:** v1.0.0 (FROZEN)  
-**Compiler Version:** v0.9.0  
+**Compiler Version:** v0.6.0  
 
 ---
 
@@ -33,10 +33,10 @@ This document certifies that the SOVR Protocol compiler produces byte-identical 
 ```bash
 $ node packages/compiler/dist/cli.js verify
 Verifying generated artifacts against manifest...
-✓ Reproducible build verified: d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512 (byte-identical)
+✓ Reproducible build verified: 6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015 (byte-identical)
 ```
 
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 **Status:** ✅ PASS
 
 ---
@@ -46,10 +46,10 @@ Verifying generated artifacts against manifest...
 ```bash
 $ node packages/compiler/dist/cli.js verify
 Verifying generated artifacts against manifest...
-✓ Reproducible build verified: d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512 (byte-identical)
+✓ Reproducible build verified: 6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015 (byte-identical)
 ```
 
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 **Status:** ✅ PASS
 
 ---
@@ -59,10 +59,10 @@ Verifying generated artifacts against manifest...
 ```bash
 $ node packages/compiler/dist/cli.js verify
 Verifying generated artifacts against manifest...
-✓ Reproducible build verified: d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512 (byte-identical)
+✓ Reproducible build verified: 6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015 (byte-identical)
 ```
 
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 **Status:** ✅ PASS
 
 ---
@@ -71,9 +71,9 @@ Verifying generated artifacts against manifest...
 
 | Run | Build Hash | Status |
 |---|---|---|
-| 1 | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` | ✅ |
-| 2 | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` | ✅ |
-| 3 | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` | ✅ |
+| 1 | `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` | ✅ |
+| 2 | `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` | ✅ |
+| 3 | `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` | ✅ |
 
 **All 3 runs produced identical build hash.**
 
@@ -114,7 +114,7 @@ Verifying generated artifacts against manifest...
 **Deterministic Build:** ✅ VERIFIED  
 **Byte-Identical Output:** ✅ VERIFIED  
 **Reproducibility Rules:** ✅ ALL 10 RULES COMPLIANT  
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`
 
 ---
 

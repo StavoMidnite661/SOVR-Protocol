@@ -2528,8 +2528,154 @@ state_machines:
         condition: none
         emitted_events: [escrow.account.cancelled]
         invalid: false
-      FUNDED_to_CANCELLED:
-        trigger: escrow.account.cancelled
-        condition: none
-        emitted_events: [escrow.account.cancelled]
-        invalid: false
+
+# ============================================================
+# AMD-0005 EXTENSION STATE MACHINES
+# Ratified: 2026-08-05
+# Commercial Settlement Suite
+# Append after existing state machine definitions
+# ============================================================
+
+  CommercialObligation:
+    amendment: AMD-0005
+    domain: commercial
+    entity: CommercialObligation
+    initial_state: DRAFT
+    states:
+      - DRAFT
+      - VALIDATED
+      - SETTLEMENT_REQUESTED
+      - SETTLED
+      - CANCELLED
+      - DISPUTED
+    transitions:
+      - from: DRAFT
+        to: VALIDATED
+        command: ValidateObligation
+        event: ObligationValidated
+        guard: validator_has_authority
+
+      - from: VALIDATED
+        to: SETTLEMENT_REQUESTED
+        command: AuthorizeSettlement
+        event: SettlementAuthorized
+        guard: authorizer_has_settlement_authority
+
+      - from: SETTLEMENT_REQUESTED
+        to: SETTLED
+        event: SettlementFinalized
+        guard: evidence_package_signed
+
+      - from: DRAFT
+        to: CANCELLED
+        command: CancelObligation
+        guard: canceller_has_authority
+
+      - from: VALIDATED
+        to: CANCELLED
+        command: CancelObligation
+        guard: canceller_has_authority
+
+      - from: SETTLED
+        to: DISPUTED
+        command: DisputeSettlement
+        guard: dispute_window_open
+
+  SettlementRecord:
+    amendment: AMD-0005
+    domain: settlement
+    entity: SettlementRecord
+    initial_state: PENDING
+    states:
+      - PENDING
+      - AUTHORIZED
+      - EXECUTING
+      - LEDGER_POSTED
+      - EVIDENCE_GENERATED
+      - FINALIZED
+      - DISPUTED
+      - CANCELLED
+    transitions:
+      - from: PENDING
+        to: AUTHORIZED
+        command: AuthorizeSettlement
+        event: SettlementAuthorized
+        guard: obligation_is_validated
+
+      - from: AUTHORIZED
+        to: EXECUTING
+        command: ExecuteSettlement
+        guard: treasury_transfer_initiated
+
+      - from: EXECUTING
+        to: LEDGER_POSTED
+        event: SettlementExecuted
+        guard: tigerbeetle_transfer_confirmed
+
+      - from: LEDGER_POSTED
+        to: EVIDENCE_GENERATED
+        event: EvidencePackageGenerated
+        guard: all_10_documents_rendered
+
+      - from: EVIDENCE_GENERATED
+        to: FINALIZED
+        event: SettlementFinalized
+        guard: attestation_signed
+
+      - from: FINALIZED
+        to: DISPUTED
+        command: DisputeSettlement
+        guard: dispute_window_open
+
+      - from: [PENDING, AUTHORIZED]
+        to: CANCELLED
+        command: CancelSettlement
+        guard: canceller_has_authority
+
+  EvidencePackage:
+    amendment: AMD-0005
+    domain: certification
+    entity: EvidencePackage
+    storage: TB_LEDGER.SYSTEM
+    storage_code: MEMORANDUM
+    initial_state: PENDING
+    states:
+      - PENDING
+      - GENERATING
+      - GENERATED
+      - VERIFIED
+      - SIGNED
+      - PUBLISHED
+      - ARCHIVED
+    transitions:
+      - from: PENDING
+        to: GENERATING
+        command: GenerateEvidencePackage
+        guard: settlement_is_executed
+
+      - from: GENERATING
+        to: GENERATED
+        event: EvidencePackageGenerated
+        guard: all_10_documents_rendered_and_hashed
+
+      - from: GENERATED
+        to: VERIFIED
+        action: verify_manifest_hash
+        guard: manifest_hash_matches_document_hashes
+
+      - from: VERIFIED
+        to: SIGNED
+        command: SignAttestation
+        event: AttestationSigned
+        guard: attestor_has_authority
+
+      - from: SIGNED
+        to: PUBLISHED
+        command: PublishPackage
+        guard: storage_adapter_available
+        note: Optional boundary adapter. Not required for FINALIZED.
+
+      - from: [SIGNED, PUBLISHED]
+        to: ARCHIVED
+        command: ArchivePackage
+        guard: retention_period_met

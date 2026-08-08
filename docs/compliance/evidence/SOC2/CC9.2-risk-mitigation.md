@@ -3,7 +3,7 @@
 **Control ID:** CC9.2  
 **Control Name:** Risk Mitigation  
 **Framework:** SOC2 Trust Service Criteria (2017)  
-**SOVR Version:** 0.9.0  
+**SOVR Version:** 0.6.0  
 **Evidence Date:** 2026-07-24
 
 ---

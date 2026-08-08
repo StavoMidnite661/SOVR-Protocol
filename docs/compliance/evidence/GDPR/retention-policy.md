@@ -1,7 +1,7 @@
 # GDPR Evidence — Retention Policy
 
 **Framework:** GDPR (EU) 2016/679  
-**SOVR Version:** 0.9.0  
+**SOVR Version:** 0.6.0  
 **Evidence Date:** 2026-07-24
 
 ---

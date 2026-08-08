@@ -5,7 +5,7 @@
 **Protocol Version:** v1.0.0 (FROZEN)
 **Compiler Version:** 0.6.0
 **Runtime Version:** 0.6.0
-**Build Hash:** `2ae816fac5cbe62c6270546bdaa669b079faef6166b4ecd05ce7db37163ed2cd`
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`
 
 ---
 
@@ -35,7 +35,7 @@ D:\sovr-financial-os-protocol-v1.0.0\SOVR-Protocol\
 ├── 03_command-catalog.yaml         # 105 commands with validation rules
 ├── 04_event-catalog.yaml           # 259 events with 21-field envelope
 ├── 05_state-machines.yaml          # 43 state machines
-├── 08_security-capabilities.yaml   # 111 capabilities + scope language
+├── 08_security-capabilities.yaml   # 113 capabilities + scope language
 ├── 09_saga-orchestration.yaml      # Saga definitions + compensation
 ├── 11_governance-amendments.yaml   # Amendment process
 ├── 12_domain-contracts.yaml        # Inter-domain coupling contracts
@@ -134,7 +134,7 @@ A deterministic, content-addressed build system:
 - **Input:** 15 YAML specification files + `domains/*.yaml`
 - **Pipeline:** PARSE → VALIDATE → RESOLVE → TRANSFORM → GENERATE → VERIFY
 - **Output:** `generated/sovr-ir.json` (canonical IR), `generated/registries/*.json`, TypeScript types, OpenAPI spec, Prisma schema, Kafka/Redis configs, TLA+ models
-- **Build Hash:** SHA-256 over canonical JSON — currently `2ae816fa...`
+- **Build Hash:** SHA-256 over canonical JSON — currently `6e97ae16...`
 - **Reproducibility:** Byte-identical across platforms (R1–R10 rules)
 
 ### Runtime (`packages/runtime/`)
@@ -517,7 +517,7 @@ Output: `generated/boot.log`, `generated/boot-manifest.json`, `generated/boot-at
 | Command Catalog | `03_command-catalog.yaml` | 105 commands with validation rules and constitutional gates |
 | State Machines | `05_state-machines.yaml` | 43 state machines for all domain lifecycles |
 | Saga Orchestration | `09_saga-orchestration.yaml` | Multi-domain workflow orchestration with compensation |
-| Security Capabilities | `08_security-capabilities.yaml` | 111 capabilities with scope pattern language |
+| Security Capabilities | `08_security-capabilities.yaml` | 113 capabilities with scope pattern language |
 | Domain Model | `02_domain-model.yaml` | 48 entities across 10 domains |
 | API Service Guide | `docs/guides/PROTOCOL_API_SERVICE_GUIDE.md` | Complete API reference, connection model, verification |
 | Architecture Docs | `docs/architecture/README.md` | C4 context, sequence diagrams, connection model |

@@ -61,7 +61,7 @@ Built: `npm run build && PORT=3001 node dist/server/index.js`
 **Boot Kernel (Linux analogy):**
 
 - 🔌 [0] FIRMWARE_POST — Node version >=20, env isolation R10
-- 🔐 [1] BOOTLOADER — loads `generated/compiler-manifest.yaml`, verifies `build_hash 20c57cfb...`, checks `boot-attestation.json` chain — tamper detection
+- 🔐 [1] BOOTLOADER — loads `generated/compiler-manifest.yaml`, verifies `build_hash 6e97ae16...`, checks `boot-attestation.json` chain — tamper detection
 - 🧠 [2] KERNEL_INIT — 10 invariants INV-001..010, envelope 18 fields, authority 4 actors
 - 🏦 [3] CORE_DOMAINS — vault, ledger, treasury (topological order)
 - 🛡️ [4] SECURITY_SUBSYSTEM — identity, policy pure function deterministic_hash, intent enrichment, agent bounded
@@ -136,7 +136,7 @@ import { SOVRClient } from '@sovr/runtime/src/sdk/client.ts'
 
 const client = new SOVRClient({
   apiUrl: 'http://localhost:3001/api/v1',
-  buildHash: '20c57cfb56b202ce975b4932c06b3c4fe81feaefb2b63eccc11a628e009ebb1e'
+  buildHash: '6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015'
 })
 
 // 1. Wait for HEALTHY — frontend gate
@@ -220,7 +220,7 @@ await fetch('http://localhost:3001/api/v1/vault/reservation', {
 
 **Existing example-frontend updated:**
 
-`example-frontend/src/App.ts` now points to `http://localhost:3001/api/v1` and build_hash `20c57cfb...` instead of `3000`.
+`example-frontend/src/App.ts` now points to `http://localhost:3001/api/v1` and build_hash `6e97ae16...` instead of `3000`.
 
 To run Explorer as operator console:
 
@@ -313,7 +313,7 @@ packages/runtime/src/server/
 generated/data/
   sovr-events.json      — Source of CE durable file, append-only, atomic tmp rename write
 
-example-frontend/src/App.ts — Updated to apiUrl http://localhost:3001/api/v1, buildHash 20c57cfb...
+example-frontend/src/App.ts — Updated to apiUrl http://localhost:3001/api/v1, buildHash 6e97ae16...
 ```
 
 ## Verification — How to prove it works
@@ -321,7 +321,7 @@ example-frontend/src/App.ts — Updated to apiUrl http://localhost:3001/api/v1, 
 ```bash
 # 1 Compile spec -> artifacts
 node packages/compiler/dist/cli.js compile
-# -> build_hash 20c57cfb... byte-identical
+# -> build_hash 6e97ae16... byte-identical
 
 # 2 Boot kernel API service on :3001
 cd packages/runtime && npm run build && PORT=3001 node dist/server/index.js
@@ -329,12 +329,12 @@ cd packages/runtime && npm run build && PORT=3001 node dist/server/index.js
 
 # 3 Health gate — Explorer must wait for this
 curl http://localhost:3001/health
-# -> {"status":"HEALTHY","build_hash":"20c57cfb...","boot_hash":"87c2a236...","runlevel":7,"final_health":"HEALTHY","invariants":10...}
+# -> {"status":"HEALTHY","build_hash":"6e97ae16...","boot_hash":"87c2a236...","runlevel":7,"final_health":"HEALTHY","invariants":10...}
 
 # 4 Manifest chain — unfakeable
 curl http://localhost:3001/api/v1/manifest | jq .build_hash
 curl http://localhost:3001/api/v1/boot-attestation | jq .build_hash
-# -> both must equal 20c57cfb...
+# -> both must equal 6e97ae16...
 
 # 5 Explorer connects via SDK
 curl -X POST http://localhost:3001/api/v1/identity/session -d '{"actor_id":"alice","actor_type":"human"}' | jq .jwt
@@ -483,7 +483,7 @@ This is the update log of what changed to take the kernel from "demo with mocks"
 | Projection engine had loose `startsWith()` dispatch (events leaking across projections) | Tightened to ONLY match explicit `sourceEvents` subscription OR `projection_effect.target` | `projectionEngine.ts:152-167` |
 | Payment rail type had 10 unions, spec has 12 | Extended to all 12: `ACH, FEDNOW, WIRE, RTP, CARD, BLOCKCHAIN, INTERNAL_TRANSFER, STABLECOIN, SWIFT, SEPA, CASH_SETTLEMENT, FUTURE_ADAPTER` | `packages/runtime/src/adapters/RailDriverRegistry.ts` |
 | Boundary adapters were empty interfaces | Full rail driver framework — `BaseRailDriver`, `RailDriverRegistry`, `BoundaryEventBus`, plus 12 rail drivers (ACH, FedNow, Fedwire, RTP, Card, EVM, Stablecoin, SWIFT, SEPA, Price Oracle) and TigerBeetle financial database integration. All drivers emit events only; circuit breaker + retry + audit enforced at base class. | `packages/runtime/src/adapters/` |
-| `example-frontend` App.ts used wrong build hash (`20c57cfb...`) and only printed things | Real HTTP flow: polls `/api/v1/health`, fetches live `/api/v1/manifest`, verifies `build_hash`, calls `createSession` + `grantCapability` + `registerAsset` + `listEvents` + `queryProjection` | `example-frontend/src/App.ts` |
+| `example-frontend` App.ts used wrong build hash (`6e97ae16...`) and only printed things | Real HTTP flow: polls `/api/v1/health`, fetches live `/api/v1/manifest`, verifies `build_hash`, calls `createSession` + `grantCapability` + `registerAsset` + `listEvents` + `queryProjection` | `example-frontend/src/App.ts` |
 | `BootScreen.waitForHealthyBoot()` was `setTimeout(1000)` | Real polling of `/api/v1/health` every 500ms until `final_health === 'HEALTHY'`, with timeout | `example-frontend/src/BootScreen.ts` |
 
 ## New HTTP routes (real)

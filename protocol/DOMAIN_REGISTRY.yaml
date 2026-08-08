@@ -217,6 +217,98 @@ resolution_rules:
     on_failure: REJECT
 
 # ============================================================
+# EXTENSION DOMAINS (AMD-0005 — Commercial Settlement Suite)
+# Ratified: 2026-08-05
+# Classification: EXTENSION — additive only
+# ============================================================
+
+extension_domains:
+
+  commercial:
+    id: commercial
+    name: Commercial
+    amendment: AMD-0005
+    classification: EXTENSION
+    priority: 11
+    extends: vault
+    path: domains/commercial.yaml
+    tigerbeetle_ledger: none
+    balance_impact: false
+    chain_position: ORIGIN
+    description: >
+      Commercial obligation origin layer.
+      Root of all provenance chains.
+
+  settlement:
+    id: settlement
+    name: Settlement
+    amendment: AMD-0005
+    classification: EXTENSION
+    priority: 12
+    extends: treasury
+    path: domains/settlement.yaml
+    tigerbeetle_ledger: references_existing
+    ledger_reference: TB_LEDGER.TREASURY
+    balance_impact: triggers_treasury_transfer
+    chain_position: AUTHORIZATION
+    description: >
+      Settlement workflow layer.
+      Triggers treasury transfers.
+      Does not replace treasury.
+
+  certification:
+    id: certification
+    name: Certification
+    amendment: AMD-0005
+    classification: EXTENSION
+    priority: 13
+    extends: governance
+    path: domains/certification.yaml
+    tigerbeetle_ledger: TB_LEDGER.SYSTEM
+    tigerbeetle_code: MEMORANDUM
+    balance_impact: memorandum_only
+    chain_position: EVIDENCE
+    evidence_option: B
+    description: >
+      Evidence generation layer.
+      EvidencePackage first-class entity.
+      Lifecycle managed inside kernel.
+
+  representation:
+    id: representation
+    name: Representation
+    amendment: AMD-0005
+    classification: EXTENSION
+    priority: 14
+    extends: payment
+    path: domains/representation.yaml
+    tigerbeetle_ledger: references_existing
+    ledger_reference: TB_LEDGER.RESERVE
+    balance_impact: post_payment_only
+    chain_position: REPRESENTATION
+    description: >
+      SVU output layer.
+      Representation adapter only.
+      Extends payment output.
+
+  gateway:
+    id: gateway
+    name: Gateway
+    amendment: AMD-0005
+    classification: EXTENSION
+    priority: 15
+    extends: none
+    path: domains/gateway.yaml
+    tigerbeetle_ledger: none
+    balance_impact: false
+    chain_position: VERIFICATION
+    read_only: true
+    description: >
+      Public verification layer.
+      No writes. No balance impact.
+      Independent traversal surface.
+
+# ============================================================
 # VERSION HISTORY
 # ============================================================
 
@@ -228,3 +320,8 @@ version_history:
       Registry introduced (AMD-0004). audit classified as candidate; kernel/runtime/
       hybrid/system classified as non-domain constructs; agent-runtime recorded as
       alias of agent.
+  - version: "1.0.2"
+    change: >
+      AMD-0005 ratified — 5 extension domains added (commercial, settlement,
+      certification, representation, gateway). Commercial Settlement Suite.
+      Additive extension. Zero frozen files replaced.

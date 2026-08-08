@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "generated_by": "@sovr/compiler v0.6.0",
   "protocol_version": "1.0.0",
-  "ir_hash": "733904b146cf95e755816d4174e9395ff9988a27c9ea4a112acbe0f349227985",
+  "ir_hash": "6327d0523d685ebe4e00fedebd2c4bbe7900be872efbf82348335a0ae740b40d",
   "stats": {
-    "nodes": 594,
-    "edges": 459
+    "nodes": 610,
+    "edges": 462
   },
   "nodes": [
     {
@@ -2079,9 +2079,30 @@
       "properties": {}
     },
     {
+      "id": "domain:certification",
+      "type": "domain",
+      "name": "certification",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "domain:commercial",
+      "type": "domain",
+      "name": "commercial",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "domain:escrow",
       "type": "domain",
       "name": "escrow",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "domain:gateway",
+      "type": "domain",
+      "name": "gateway",
       "version": "1.0.0",
       "properties": {}
     },
@@ -2124,6 +2145,20 @@
       "id": "domain:policy",
       "type": "domain",
       "name": "policy",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "domain:representation",
+      "type": "domain",
+      "name": "representation",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "domain:settlement",
+      "type": "domain",
+      "name": "settlement",
       "version": "1.0.0",
       "properties": {}
     },
@@ -6664,6 +6699,20 @@
       "properties": {}
     },
     {
+      "id": "event:AttestationSigned",
+      "type": "event",
+      "name": "AttestationSigned",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:CommercialRecordCreated",
+      "type": "event",
+      "name": "CommercialRecordCreated",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:escalation.notification.failed",
       "type": "event",
       "name": "escalation.notification.failed",
@@ -6681,13 +6730,6 @@
       "id": "event:escalation.resolution.notification.sent",
       "type": "event",
       "name": "escalation.resolution.notification.sent",
-      "version": "1.0.0",
-      "properties": {}
-    },
-    {
-      "id": "event:escrow.account.cancellation_failed",
-      "type": "event",
-      "name": "escrow.account.cancellation_failed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -6737,6 +6779,13 @@
       "id": "event:escrow.account.released",
       "type": "event",
       "name": "escrow.account.released",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:EvidencePackageGenerated",
+      "type": "event",
+      "name": "EvidencePackageGenerated",
       "version": "1.0.0",
       "properties": {}
     },
@@ -7511,6 +7560,13 @@
       "properties": {}
     },
     {
+      "id": "event:ObligationValidated",
+      "type": "event",
+      "name": "ObligationValidated",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:payment.compensation.completed",
       "type": "event",
       "name": "payment.compensation.completed",
@@ -7955,6 +8011,41 @@
       "id": "event:saga.started",
       "type": "event",
       "name": "saga.started",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SettlementAuthorized",
+      "type": "event",
+      "name": "SettlementAuthorized",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SettlementExecuted",
+      "type": "event",
+      "name": "SettlementExecuted",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SettlementFinalized",
+      "type": "event",
+      "name": "SettlementFinalized",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SVUIssued",
+      "type": "event",
+      "name": "SVUIssued",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SVURedeemed",
+      "type": "event",
+      "name": "SVURedeemed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8512,9 +8603,23 @@
       "properties": {}
     },
     {
+      "id": "state_machine:CommercialObligation",
+      "type": "state_machine",
+      "name": "CommercialObligation",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "state_machine:escrow_account_lifecycle",
       "type": "state_machine",
       "name": "escrow_account_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:EvidencePackage",
+      "type": "state_machine",
+      "name": "EvidencePackage",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8704,6 +8809,13 @@
       "id": "state_machine:saga_lifecycle",
       "type": "state_machine",
       "name": "saga_lifecycle",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "state_machine:SettlementRecord",
+      "type": "state_machine",
+      "name": "SettlementRecord",
       "version": "1.0.0",
       "properties": {}
     },
@@ -10883,6 +10995,16 @@
       "type": "state_machine_governs_entity"
     },
     {
+      "source": "domain:certification",
+      "target": "state_machine:EvidencePackage",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:commercial",
+      "target": "state_machine:CommercialObligation",
+      "type": "state_machine_governs_entity"
+    },
+    {
       "source": "domain:escrow",
       "target": "state_machine:escrow_account_lifecycle",
       "type": "state_machine_governs_entity"
@@ -11025,6 +11147,11 @@
     {
       "source": "domain:policy",
       "target": "state_machine:policy_set_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:settlement",
+      "target": "state_machine:SettlementRecord",
       "type": "state_machine_governs_entity"
     },
     {

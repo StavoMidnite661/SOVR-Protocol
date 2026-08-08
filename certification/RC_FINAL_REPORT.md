@@ -1,15 +1,15 @@
 # SOVR Protocol — Final Release Candidate Report
 
-**Version:** v0.9.0-rc  
+**Version:** v0.6.0  
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 **Protocol Version:** v1.0.0 (FROZEN)  
 
 ---
 
 ## Executive Summary
 
-SOVR Protocol v0.9.0-rc is a **spec-first, compiled financial protocol** ready for external security audit, enterprise procurement, and technical due diligence.
+SOVR Protocol v0.6.0 is a **spec-first, compiled financial protocol** ready for external security audit, enterprise procurement, and technical due diligence.
 
 **Overall Assessment:** **B+ — Production-Ready with Gaps**
 
@@ -78,7 +78,7 @@ SOVR Protocol v0.9.0-rc is a **spec-first, compiled financial protocol** ready f
 | JWT Algorithm | RS256 | ✅ |
 | Rate Limiting | Identity-sovereign | ✅ |
 | Event Store | PostgreSQL + immutable triggers | ✅ |
-| Build Hash | `d27fdbe60290ba976f684bb7d0096b911195776d975bb1da8bdd6c56d835e512` | ✅ |
+| Build Hash | `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` | ✅ |
 
 ---
 
@@ -132,7 +132,7 @@ SOVR Protocol v0.9.0-rc is a **spec-first, compiled financial protocol** ready f
 
 ## Recommendations
 
-### Immediate (v0.9.0-rc)
+### Immediate (v0.6.0)
 1. Complete external security audit
 2. Add _test_output to .gitignore
 3. Remove unused config files (.babelrc, .jshintrc)
@@ -169,7 +169,7 @@ SOVR Protocol v0.9.0-rc is a **spec-first, compiled financial protocol** ready f
 
 ## Conclusion
 
-SOVR Protocol v0.9.0-rc is **ready for external security audit and enterprise evaluation**. The architecture is sound, the compiler is deterministic, the security posture is strong (0 open findings), and the evidence package is comprehensive.
+SOVR Protocol v0.6.0 is **ready for external security audit and enterprise evaluation**. The architecture is sound, the compiler is deterministic, the security posture is strong (0 open findings), and the evidence package is comprehensive.
 
 **Primary gaps are known, tracked, and scheduled for v1.0.0.**
 

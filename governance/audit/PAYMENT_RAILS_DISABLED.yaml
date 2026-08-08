@@ -1,0 +1,59 @@
+payment_runtime:
+  boundary_status: DISABLED
+  directive: SOVR-GENESIS-000002-PHASE9A
+  phase: Phase 8 — Payment Rails Remain Disabled
+
+  rails:
+    ACH:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    FEDNOW:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    WIRE:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    BLOCKCHAIN:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    STABLECOIN:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    RTP:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    CARD:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    SWIFT:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    SEPA:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    CASH_SETTLEMENT:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    INTERNAL_TRANSFER:
+      enabled: false
+      reason: Production credentials and trust relationships not established
+
+    FUTURE_ADAPTER:
+      enabled: false
+      reason: Scaffold only
+
+  runtime_gates:
+    SOVR_KAFKA_ENABLED: false
+    SOVR_REDIS_ENABLED: false
+
+  note: Architecture exists. Production credentials and trust relationships do not.

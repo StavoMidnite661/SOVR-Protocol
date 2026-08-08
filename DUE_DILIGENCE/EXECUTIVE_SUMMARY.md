@@ -3,7 +3,7 @@
 **Protocol Version:** v1.0.0 (FROZEN)  
 **Compiler / Runtime Version:** v0.6.0  
 **Generated:** 2026-07-25T03:11:13-07:00  
-**Build Hash:** `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829`  
+**Build Hash:** `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015`  
 
 ---
 
@@ -36,14 +36,14 @@ SOVR is a **spec-first, compiled financial protocol** with a reference compiler 
 | Commands | 105 | `commands.registry.json` |
 | Events | 259 | `events.registry.json` |
 | State Machines | 43 | `machines.registry.json` |
-| Capabilities | 111 | `capabilities.registry.json` |
+| Capabilities | 113 | `capabilities.registry.json` |
 | Generated artifacts | 147 | compiler output |
 | TLA+ models | 43 (generated, **not** model-checked) | `generated/verification/tla` |
 | Unit tests | 29/29 PASS | `vitest run` |
 | Acceptance suites | 3/3 PASS | `vitest run src/__tests__/acceptance` |
 | Integration tests | 51/55 PASS | 4 fail on unimplemented gate config (TD-002) |
 | Open findings | **26** | `certification/TECHNICAL_DEBT.md` |
-| Build Hash | `fa9486412578cfb3d0a92b96203d23a52861c7816438914a2133b8ca88603829` |
+| Build Hash | `6e97ae164fa847ca4f54d99250a505752d033e9a73c2650c70a1d11c5f1f1015` |
 
 ---
 

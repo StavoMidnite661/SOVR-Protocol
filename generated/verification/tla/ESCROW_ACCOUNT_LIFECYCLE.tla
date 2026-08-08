@@ -27,12 +27,6 @@ CREATED_TO_FUNDED ==
     /\ visited' = visited \cup {"FUNDED"}
 \* Trigger: ESCROW_ACCOUNT_FUNDED
 
-FUNDED_TO_CANCELLED == 
-    /\ state = "FUNDED"
-    /\ state' = "CANCELLED"
-    /\ visited' = visited \cup {"CANCELLED"}
-\* Trigger: ESCROW_ACCOUNT_CANCELLED
-
 FUNDED_TO_RELEASED == 
     /\ state = "FUNDED"
     /\ state' = "RELEASED"
@@ -44,7 +38,7 @@ Terminated ==
     /\ UNCHANGED <<state, visited>>
 
 Next == 
-    CREATED_TO_CANCELLED \/ CREATED_TO_FUNDED \/ FUNDED_TO_CANCELLED \/ FUNDED_TO_RELEASED \/ Terminated
+    CREATED_TO_CANCELLED \/ CREATED_TO_FUNDED \/ FUNDED_TO_RELEASED \/ Terminated
 
 \* INV-006: state is always one the compiled machine declares.
 \* Falsifiable: a transition to an undeclared state breaks this.

@@ -68,7 +68,7 @@ enforce immediately.
 ## Implementation Phases
 
 Phase 1 (v0.8.0): This ADR  
-Phase 2 (v0.9.0): PostgreSQL replication setup  
+Phase 2 (v0.6.0): PostgreSQL replication setup  
 Phase 3 (v1.0.0): Multi-node deployment  
 
 ## Rejected Alternatives

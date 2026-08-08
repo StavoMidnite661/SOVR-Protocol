@@ -139,9 +139,9 @@ Every claim independently recomputed. **Source** = where the claim is made; **Ve
 | C1 | 105 commands | README, exec summary | 105 ✅ |
 | C2 | 259 events | README, exec summary | 259 ✅ |
 | C3 | 43 state machines | README | 43 ✅ |
-| C4 | 111 capabilities | README | 111 ✅ |
+| C4 | 113 capabilities | README | 111 ✅ |
 | C5 | 16 projections | README | 16 in registry ✅ (but see D6) |
-| C6 | IR: 592 nodes / 459 edges | README | 592 / 459 ✅ exact |
+| C6 | IR: 594 nodes / 459 edges | README | 594 / 459 ✅ exact |
 | C7 | Registry integrity 11/11 | README | 11/11 hash + count ✅ |
 | C8 | 39 protocol YAML inputs | README | 39 frontier entries ✅ |
 | C9 | Generated artifacts: 147 | README | 156 files in `generated/`; 147 is a defensible count excluding the 9 non-generator outputs ⚠️ near-match |
@@ -243,7 +243,7 @@ Meanwhile `README.md:170` states the metrics table is *"Verified by `npm run cer
 | Source of truth (`packages/compiler/src/index.ts:88`, `cli.ts:67`, runtime `index.ts:51`) | `0.6.0` |
 | Generated artifact headers (`openapi.yaml`) | `Compiler: 0.6.0` |
 | README "Measured Metrics" table | Compiler 0.6.0, Runtime 0.6.0 |
-| Exec summary | v0.9.0-rc |
+| Exec summary | v0.6.0 |
 
 The README simultaneously badges `v1.0.0-rc` and tabulates `0.6.0` — internally contradictory within one document. `0.6.0` is the truth; `1.0.0` in `package.json` will be embedded into any published artifact.
 

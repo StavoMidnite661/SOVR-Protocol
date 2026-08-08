@@ -1,0 +1,35 @@
+simulation_authorization:
+  directive: SOVR-GENESIS-000002-PHASE9A
+  phase: Phase 9 — Local Simulation Authorization Package
+  status: AUTHORIZED
+
+  boundaries:
+    simulation: YES
+    production: NO
+    value_transfer: NO
+    external_rails: NO
+
+  allowed_activities:
+    - local_runtime_boot
+    - compiler_validation
+    - genesis_ledger_verification
+    - invariant_testing
+    - state_machine_design_review
+    - merkle_audit_surface_preparation
+
+  prohibited_activities:
+    - production_traffic
+    - asset_movement
+    - external_integration
+    - payment_rail_execution
+    - ledger_mutation_outside_test_fixtures
+
+  environment:
+    required: LOCAL_SIMULATION_MODE=true
+    cluster_id: 85465645d45d45e9
+    mode: DEVELOPMENT
+
+  authorization:
+    approved_by: OPERATOR-001
+    approved_at: 2026-08-07T11:17:12-07:00
+    approval_hash: PENDING_GOVERNANCE_RECORD

@@ -21,7 +21,7 @@ This is not a framework where developers write handlers. This is a compiler that
 YAML Constitution (source of truth)
     │
     ▼
-SOVR Compiler v0.9.0 (deterministic, content-addressed)
+SOVR Compiler v0.6.0 (deterministic, content-addressed)
     │   Input:  YAML corpus
     │   Output: Registry ABI v1 (JSON instruction trees)
     │   Hash:   b7d8221b... (content-addressed, byte-identical)
@@ -198,10 +198,10 @@ Proof: Boot attestation chain (build_hash → boot_hash)
 | v0.6.0 | Constitutional Kernel — handlers.ts deleted | ✅ |
 | v0.7.0 | Production Infrastructure — PostgreSQL, RS256, rate limiting | ✅ |
 | v0.8.0 | Identity (W3C DID/VC) + TLA+ formal verification | ✅ |
-| v0.9.0 | Security + Compliance — threat model, SOC2, GDPR | ✅ |
+| v0.6.0 | Security + Compliance — threat model, SOC2, GDPR | ✅ |
 | v1.0.0 | External audit complete — **TARGET** | ⏳ |
 
-**Current state:** v1.0.0 FROZEN (constitutional spec), Runtime v0.9.0, Compiler v0.9.0.
+**Current state:** v1.0.0 FROZEN (constitutional spec), Runtime v0.6.0, Compiler v0.6.0.
 **Build hash:** b7d8221b0d7359a7733791d00cf32622df7b707ff4171c0c1b541d91d7568492
 
 ---

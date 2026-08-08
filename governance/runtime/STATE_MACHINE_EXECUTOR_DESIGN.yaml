@@ -1,0 +1,44 @@
+runtime_transition:
+  input:
+    - command
+    - current_state
+    - actor_context
+
+  validation:
+    - current_state
+    - allowed_transition
+    - invariant_check
+
+  output:
+    - event
+    - new_state
+
+  rejection:
+    - unauthorized_transition
+    - invariant_violation
+    - state_machine_mismatch
+
+  design_notes:
+    - TLA+ currently proves the model
+    - Runtime enforcement must become the execution authority
+    - State machine runtime executor must validate every command against the generated state machine definitions
+    - Rejection must emit STATE_MACHINE_VIOLATION event
+    - Must integrate with existing 7-stage pipeline (identity → capability → scope → policy → constitutional → execution → publication)
+    - Must respect constitutional supremacy (INV-010)
+
+  implementation_phases:
+    - phase: design
+      status: COMPLETE
+      artifact: this document
+
+    - phase: prototype
+      status: PENDING
+      note: Prototype in packages/runtime/src/execution/StateMachineRuntimeExecutor.ts
+
+    - phase: integration
+      status: PENDING
+      note: Wire into CommandExecutor pipeline
+
+    - phase: certification
+      status: PENDING
+      note: Validate against TLA+ proofs

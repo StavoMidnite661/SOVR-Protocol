@@ -15,7 +15,7 @@
   - `package.json`
   - `packages/runtime/package.json`
   - `packages/compiler/package.json`
-- Registry (generated/registries/registry.manifest.json): **105 commands / 259 events / 111 capabilities / 43 state machines**
+- Registry (generated/registries/registry.manifest.json): **105 commands / 259 events / 113 capabilities / 43 state machines**
 - Acceptance suites: **14 suites** (`packages/runtime/src/__tests__/acceptance/suites/`)
 - 10 INV suites present + passing
 - Enforcers: 8 `*Enforcer.ts` + `EventStoreEnforcementWrapper.ts` (9 total)
@@ -59,7 +59,7 @@ Additional suites: Escrow_Lifecycle, StateMachine_Rejection, Constitutional_Proo
 
 | Deliverable | Status | Location |
 |-------------|--------|----------|
-| CHANGELOG.md (full history v0.2.0→v0.9.0 + 1.0.0 "PENDING RELEASE" section) | ✅ Complete | `CHANGELOG.md` |
+| CHANGELOG.md (full history v0.2.0→v0.6.0 + 1.0.0 "PENDING RELEASE" section) | ✅ Complete | `CHANGELOG.md` |
 | Version bumps (all to 1.0.0) | ✅ Staged | root + runtime + compiler `package.json` |
 | GitHub Release Draft | ✅ | `docs/release/GITHUB-RELEASE-DRAFT.md` |
 | RELEASE_NOTES_v1.0.0.md | ✅ | `docs/release/RELEASE_NOTES_v1.0.0.md` |

@@ -7292,15 +7292,171 @@ events:
     data_fields:
       escrow_id: { type: string }
 
-  escrow.account.cancellation_failed:
-    aggregate: escrow_account
-    aggregate_id_field: escrow_id
-    source_domain: escrow
-    version: 1.0.0
-    description: Escrow account cancellation failed
-    retention_class: operational_90d
-    projection_effect: { target: none, operation: no_op }
-    projection_effects: []
-    constitutional_refs: [INV-001]
-    data_fields:
-      escrow_id: { type: string }
+# ============================================================
+# AMD-0005 EXTENSION EVENTS
+# Ratified: 2026-08-05
+# Commercial Settlement Suite
+# Append after existing event definitions
+# ============================================================
+
+  CommercialRecordCreated:
+    amendment: AMD-0005
+    domain: commercial
+    description: >
+      Genesis event of the constitutional chain of custody.
+      Commercial obligation formally recorded in SOVR.
+      Nothing may precede this event in the provenance chain.
+    payload:
+      obligation_id: string
+      vault_asset_reference: AssetId
+      originator: EntityId
+      counterparty: EntityId
+      obligation_type: enum
+      amount_cents: uint64
+      currency: string
+      authorization_reference: string
+      source_document_hash: bytes32
+      timestamp: ISO-8601
+    triggers: none
+    triggered_by: CreateCommercialObligation
+
+  ObligationValidated:
+    amendment: AMD-0005
+    domain: commercial
+    description: >
+      Commercial obligation confirmed valid and eligible
+      for settlement processing.
+    payload:
+      obligation_id: string
+      validated_by: EntityId
+      validation_reference: string
+      timestamp: ISO-8601
+    triggers: none
+    triggered_by: ValidateObligation
+
+  SettlementAuthorized:
+    amendment: AMD-0005
+    domain: settlement
+    description: >
+      Settlement formally authorized. Treasury transfer
+      workflow initiated. Ledger posting imminent.
+    payload:
+      settlement_id: string
+      commercial_obligation_id: string
+      authorized_by: EntityId
+      amount_cents: uint64
+      currency: string
+      timestamp: ISO-8601
+    triggers:
+      - treasury.InitiateTransfer
+    triggered_by: AuthorizeSettlement
+
+  SettlementExecuted:
+    amendment: AMD-0005
+    domain: settlement
+    description: >
+      Settlement workflow completed. TigerBeetle transfer
+      posted. Evidence generation triggered.
+    payload:
+      settlement_id: string
+      commercial_obligation_id: string
+      treasury_transfer_reference: TransferId
+      tigerbeetle_transfer_id: uint128
+      debit_account: uint64
+      credit_account: uint64
+      amount_cents: uint64
+      timestamp: ISO-8601
+    triggers:
+      - GenerateEvidencePackage
+    triggered_by: ExecuteSettlement
+
+  SettlementFinalized:
+    amendment: AMD-0005
+    domain: settlement
+    description: >
+      Settlement confirmed finalized. Evidence package
+      signed. SVU issuance now permitted if required.
+    payload:
+      settlement_id: string
+      commercial_obligation_id: string
+      tigerbeetle_transfer_id: uint128
+      evidence_package_id: string
+      evidence_package_hash: bytes32
+      attestation_id: string
+      timestamp: ISO-8601
+    triggers:
+      - IssueSVU (conditional on representation domain)
+    triggered_by: SignAttestation
+
+  EvidencePackageGenerated:
+    amendment: AMD-0005
+    domain: certification
+    description: >
+      JDE evidence package generated. 10 documents rendered.
+      SHA-256 manifest computed. Awaiting attestor signature.
+    payload:
+      package_id: string
+      settlement_id: string
+      commercial_obligation_id: string
+      tigerbeetle_transfer_id: uint128
+      document_count: integer
+      document_hashes: map
+      manifest_hash: bytes32
+      package_hash: bytes32
+      timestamp: ISO-8601
+    triggers: none
+    triggered_by: GenerateEvidencePackage
+
+  AttestationSigned:
+    amendment: AMD-0005
+    domain: certification
+    description: >
+      Attestor signed evidence package. Constitutional
+      chain of custody verified. SVU issuance unlocked.
+    payload:
+      attestation_id: string
+      package_id: string
+      settlement_id: string
+      attestor: EntityId
+      package_hash: bytes32
+      signature: bytes
+      timestamp: ISO-8601
+    triggers:
+      - SettlementFinalized
+    triggered_by: SignAttestation
+
+  SVUIssued:
+    amendment: AMD-0005
+    domain: representation
+    description: >
+      Settlement Value Units issued with full provenance.
+      Every field traces back through the complete chain.
+    payload:
+      svu_id: string
+      recipient: address
+      amount_cents: uint64
+      commercial_obligation_id: string
+      settlement_id: string
+      evidence_package_id: string
+      evidence_package_hash: bytes32
+      tigerbeetle_transfer_id: uint128
+      attestation_id: string
+      blockchain_tx_hash: bytes32
+      timestamp: ISO-8601
+    triggers: none
+    triggered_by: IssueSVU
+
+  SVURedeemed:
+    amendment: AMD-0005
+    domain: representation
+    description: >
+      SVU redeemed against settlement obligation.
+      Full audit trail preserved. Tokens burned.
+    payload:
+      svu_id: string
+      from_address: address
+      amount_cents: uint64
+      settlement_reference: string
+      timestamp: ISO-8601
+    triggers: none
+    triggered_by: RedeemSVU

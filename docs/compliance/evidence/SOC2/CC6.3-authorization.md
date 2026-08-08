@@ -3,7 +3,7 @@
 **Control ID:** CC6.3  
 **Control Name:** Authorization  
 **Framework:** SOC2 Trust Service Criteria (2017)  
-**SOVR Version:** 0.9.0  
+**SOVR Version:** 0.6.0  
 **Evidence Date:** 2026-07-24
 
 ---
@@ -18,7 +18,7 @@ The entity restricts logical access to system resources to authorized users and 
 
 SOVR enforces authorization through capability-based access control:
 
-1. **Capability Registry:** 111 capabilities defined in `capabilities.registry.json`.
+1. **Capability Registry:** 113 capabilities defined in `capabilities.registry.json`.
 2. **Scope Pattern Language:** `{resource}:{id}:{field}` with wildcard support.
 3. **Pre-Execution Gate:** Capability check runs before every command execution.
 4. **INV-003 Enforcement:** "No actor may exceed granted authority" — runtime enforced.
@@ -30,7 +30,7 @@ SOVR enforces authorization through capability-based access control:
 ### Evidence 1: Capability Registry
 
 **File:** `generated/registries/capabilities.registry.json`  
-**Count:** 111 capabilities
+**Count:** 113 capabilities
 
 **Sample Entries:**
 ```json
@@ -121,7 +121,7 @@ app.post('/api/v1/capabilities/grant', async (req: any) => {
 
 ## Current Gaps
 
-1. **Durable Grants:** Capability grants are in-memory only in v0.8.0. Lost on restart. (Addressed in v0.9.0 via PostgreSQL-backed grants).
+1. **Durable Grants:** Capability grants are in-memory only in v0.8.0. Lost on restart. (Addressed in v0.6.0 via PostgreSQL-backed grants).
 2. **Delegation Depth:** Specified as 0-2 levels, not enforced.
 3. **Capability Revocation:** No revocation endpoint. Grants persist until restart (or process memory overflow).
 

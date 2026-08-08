@@ -2959,3 +2959,303 @@ domains:
             required: true
             description: Escrow account lifecycle state
         reference: domains/escrow.yaml
+
+# ============================================================
+# AMD-0005 EXTENSION ENTITIES
+# Ratified: 2026-08-05
+# Commercial Settlement Suite
+# Append after existing entity definitions
+# ============================================================
+
+  CommercialObligation:
+    amendment: AMD-0005
+    domain: commercial
+    extends: vault.Asset
+    description: >
+      A verified commercial obligation referencing a Vault
+      asset as the obligated value. Root object required
+      before any settlement may occur. Every downstream
+      artifact traces provenance to this entity.
+    fields:
+      obligation_id:
+        type: string
+        format: "SOVR-OBL-{sequence}"
+        immutable: true
+        required: true
+      vault_asset_reference:
+        type: AssetId
+        domain: vault
+        description: References existing Vault asset
+        required: true
+      originator:
+        type: EntityId
+        domain: identity
+        required: true
+      counterparty:
+        type: EntityId
+        domain: identity
+        required: true
+      obligation_type:
+        type: enum
+        values: [PAYMENT, SERVICE, DELIVERY, SETTLEMENT]
+        required: true
+      amount_cents:
+        type: uint64
+        minimum: 1
+        required: true
+      currency:
+        type: string
+        default: USD
+        required: true
+      authorization_reference:
+        type: string
+        required: true
+      source_document_hash:
+        type: bytes32
+        algorithm: SHA-256
+        required: true
+      status:
+        type: enum
+        values:
+          - DRAFT
+          - VALIDATED
+          - SETTLEMENT_REQUESTED
+          - SETTLED
+          - CANCELLED
+          - DISPUTED
+        required: true
+    invariants:
+      - vault_asset_must_exist_before_obligation
+      - originator_must_be_registered_identity
+      - counterparty_must_be_registered_identity
+      - amount_must_not_exceed_vault_asset_value
+
+  SettlementRecord:
+    amendment: AMD-0005
+    domain: settlement
+    extends: treasury.Transfer
+    description: >
+      Formal settlement of a validated commercial obligation.
+      Extends treasury transfer workflow. Does not replace
+      treasury transfer logic. Triggers a treasury transfer
+      command on authorization.
+    fields:
+      settlement_id:
+        type: string
+        format: "SOVR-SETTLEMENT-{sequence}"
+        immutable: true
+        required: true
+      commercial_obligation_id:
+        type: ObligationId
+        domain: commercial
+        required: true
+      treasury_transfer_reference:
+        type: TransferId
+        domain: treasury
+        description: The treasury transfer this triggers
+        required: false
+        populated_on: SettlementExecuted
+      tigerbeetle_transfer_id:
+        type: uint128
+        required: false
+        populated_on: SettlementExecuted
+      counterparty:
+        type: EntityId
+        domain: identity
+        required: true
+      amount_cents:
+        type: uint64
+        required: true
+      currency:
+        type: string
+        default: USD
+        required: true
+      evidence_package_id:
+        type: PackageId
+        domain: certification
+        required: false
+        populated_on: EvidencePackageGenerated
+      status:
+        type: enum
+        values:
+          - PENDING
+          - AUTHORIZED
+          - EXECUTING
+          - LEDGER_POSTED
+          - EVIDENCE_GENERATED
+          - FINALIZED
+          - DISPUTED
+          - CANCELLED
+        required: true
+    invariants:
+      - commercial_obligation_must_be_validated
+      - treasury_transfer_must_complete_before_finalization
+      - evidence_package_must_exist_before_finalization
+
+  EvidencePackage:
+    amendment: AMD-0005
+    domain: certification
+    extends: governance.Attestation
+    storage_option: B
+    description: >
+      JDE-compatible commercial proof artifact. First-class
+      domain entity with full lifecycle state machine.
+      Stored inside constitutional kernel via TB_LEDGER.SYSTEM
+      MEMORANDUM. Generated automatically on SettlementFinalized.
+      IPFS/S3 publish is optional boundary adapter only.
+    tigerbeetle:
+      ledger: TB_LEDGER.SYSTEM
+      code: MEMORANDUM
+    fields:
+      package_id:
+        type: string
+        format: "SOVR-PKG-{sequence}"
+        immutable: true
+        required: true
+      settlement_id:
+        type: SettlementId
+        domain: settlement
+        required: true
+      commercial_obligation_id:
+        type: ObligationId
+        domain: commercial
+        required: true
+      tigerbeetle_transfer_id:
+        type: uint128
+        required: true
+      documents:
+        type: array
+        items: JDEDocument
+        count: 10
+        required: true
+      document_hashes:
+        type: map
+        key: document_index
+        value: bytes32
+        algorithm: SHA-256
+        required: true
+      manifest_hash:
+        type: bytes32
+        algorithm: SHA-256
+        required: true
+      package_hash:
+        type: bytes32
+        algorithm: SHA-256
+        covers: manifest_plus_all_document_hashes
+        required: true
+      attestor:
+        type: EntityId
+        domain: identity
+        required: true
+      signature:
+        type: bytes
+        algorithm: ECDSA
+        covers: package_hash
+        required: false
+        populated_on: AttestationSigned
+      storage_uri:
+        type: string
+        required: false
+        populated_on: PackagePublished
+        note: Optional boundary adapter only
+      status:
+        type: enum
+        values:
+          - PENDING
+          - GENERATING
+          - GENERATED
+          - VERIFIED
+          - SIGNED
+          - PUBLISHED
+          - ARCHIVED
+        required: true
+    jde_document_set:
+      - index: "00"
+        name: MASTER_SETTLEMENT_RECORD
+      - index: "01"
+        name: SETTLEMENT_CONTROL_HEADER
+        jde_system_code: "03B"
+      - index: "02"
+        name: REMITTANCE_ADVICE
+      - index: "03"
+        name: PAYMENT_RECEIPT_RECORD
+      - index: "04"
+        name: OPEN_ITEM_APPLICATION
+      - index: "05"
+        name: ACCOUNT_LEDGER_DETAIL
+      - index: "06"
+        name: BATCH_CONTROL
+      - index: "07"
+        name: AUDIT_TRAIL
+      - index: "08"
+        name: POSTING_INSTRUCTIONS
+      - index: "09"
+        name: ACKNOWLEDGMENT_RECORD
+      - index: "10"
+        name: DOCUMENT_INDEX
+    invariants:
+      - settlement_must_be_finalized_before_package_generated
+      - all_10_documents_required_before_manifest_computed
+      - manifest_hash_must_match_document_hashes
+      - signature_required_before_status_SIGNED
+
+  SettlementValueUnit:
+    amendment: AMD-0005
+    domain: representation
+    extends: payment.PaymentInstrument
+    description: >
+      Settlement Value Unit. Programmable representation of
+      a finalized commercial settlement obligation. Extends
+      payment output layer. Created only after certified
+      evidence package exists. Representation adapter only.
+      Not money. Not currency. Not a deposit. Not a security.
+    fields:
+      svu_id:
+        type: string
+        format: "SOVR-SVU-{sequence}"
+        immutable: true
+        required: true
+      commercial_obligation_id:
+        type: ObligationId
+        domain: commercial
+        required: true
+      settlement_id:
+        type: SettlementId
+        domain: settlement
+        required: true
+      evidence_package_id:
+        type: PackageId
+        domain: certification
+        required: true
+      evidence_package_hash:
+        type: bytes32
+        required: true
+      tigerbeetle_transfer_id:
+        type: uint128
+        required: true
+      attestation_id:
+        type: string
+        required: true
+      recipient:
+        type: address
+        required: true
+      amount_cents:
+        type: uint64
+        required: true
+      blockchain_tx_hash:
+        type: bytes32
+        required: false
+        populated_on: SVUIssued
+      status:
+        type: enum
+        values:
+          - AUTHORIZED
+          - ISSUED
+          - REDEEMED
+          - BURNED
+        required: true
+    invariants:
+      - evidence_package_must_be_signed
+      - multisig_2_of_3_required_before_issuance
+      - amount_plus_supply_must_not_exceed_reserve_cap
+      - full_provenance_chain_must_be_traceable
