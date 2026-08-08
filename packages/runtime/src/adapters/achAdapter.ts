@@ -51,6 +51,7 @@ export class AchAdapter implements PaymentRailAdapter {
       const amountStr = String(amount);
       const feeNum = Math.min(5, Number(amountStr) * 0.001);
       const fees = feeNum.toFixed(2);
+      const correlationId = randomUUID();
       this.store.append({
         event_name: 'payment.rail.prepared',
         aggregate: 'payment_request',
@@ -58,8 +59,8 @@ export class AchAdapter implements PaymentRailAdapter {
         source_domain: 'payment',
         command_id: randomUUID(),
         triggering_command: 'payment.rail.prepare',
-        causation_id: randomUUID(),
-        correlation_id: randomUUID(),
+        causation_id: correlationId,
+        correlation_id: correlationId,
         actor_id: 'adapter.ach',
         identity_context: { identity_id: 'adapter.ach', actor_type: 'external_system' },
         policy_decision_id: randomUUID(),
@@ -78,6 +79,7 @@ export class AchAdapter implements PaymentRailAdapter {
       await this.delay();
       const railExecutionId = `ach-exec-${randomUUID()}`;
       const railReferenceId = `ACH-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+      const correlationId = randomUUID();
       this.store.append({
         event_name: 'payment.rail.executed',
         aggregate: 'payment_request',
@@ -85,8 +87,8 @@ export class AchAdapter implements PaymentRailAdapter {
         source_domain: 'payment',
         command_id: randomUUID(),
         triggering_command: 'payment.rail.execute',
-        causation_id: randomUUID(),
-        correlation_id: randomUUID(),
+        causation_id: correlationId,
+        correlation_id: correlationId,
         actor_id: 'adapter.ach',
         identity_context: { identity_id: 'adapter.ach', actor_type: 'external_system' },
         policy_decision_id: randomUUID(),
@@ -104,6 +106,7 @@ export class AchAdapter implements PaymentRailAdapter {
     return this.circuitBreaker.execute(async () => {
       await this.delay();
       const confirmed = true;
+      const correlationId = randomUUID();
       this.store.append({
         event_name: 'payment.rail.confirmed',
         aggregate: 'payment_request',
@@ -111,8 +114,8 @@ export class AchAdapter implements PaymentRailAdapter {
         source_domain: 'payment',
         command_id: randomUUID(),
         triggering_command: 'payment.rail.confirm',
-        causation_id: randomUUID(),
-        correlation_id: randomUUID(),
+        causation_id: correlationId,
+        correlation_id: correlationId,
         actor_id: 'adapter.ach',
         identity_context: { identity_id: 'adapter.ach', actor_type: 'external_system' },
         policy_decision_id: randomUUID(),
@@ -130,6 +133,7 @@ export class AchAdapter implements PaymentRailAdapter {
     return this.circuitBreaker.execute(async () => {
       await this.delay();
       const reversalRailReferenceId = `ACH-REVERSAL-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+      const correlationId = randomUUID();
       this.store.append({
         event_name: 'payment.compensation.started',
         aggregate: 'payment_request',
@@ -137,8 +141,8 @@ export class AchAdapter implements PaymentRailAdapter {
         source_domain: 'payment',
         command_id: randomUUID(),
         triggering_command: 'payment.compensation.start',
-        causation_id: randomUUID(),
-        correlation_id: randomUUID(),
+        causation_id: correlationId,
+        correlation_id: correlationId,
         actor_id: 'adapter.ach',
         identity_context: { identity_id: 'adapter.ach', actor_type: 'external_system' },
         policy_decision_id: randomUUID(),

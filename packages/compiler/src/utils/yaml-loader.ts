@@ -69,6 +69,11 @@ export function discoverProtocolInputs(rootDir: string): string[] {
     const protoFiles = readdirSync(protocolDir).filter(f => f.endsWith('.yaml'));
     for (const f of protoFiles) candidates.push(join(protocolDir, f));
   } catch {}
+  const simulationDir = join(rootDir, 'governance', 'simulation', 'scenarios');
+  try {
+    const simFiles = readdirSync(simulationDir).filter(f => f.endsWith('.yaml'));
+    for (const f of simFiles) candidates.push(join(simulationDir, f));
+  } catch {}
   // Sort lexicographically for determinism (R2: file lists sorted before hashing)
   candidates.sort();
   return candidates;

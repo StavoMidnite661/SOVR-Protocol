@@ -1,0 +1,59 @@
+# SOVR-GENESIS-000002-PHASE10A.1 SIMULATION AUTHORITY BOUNDARY CERTIFICATE
+# Static analysis proof that SimulationRunner cannot bypass compiler authority.
+
+certificate_id: SOVR-GENESIS-000002-PHASE10A.1-SIMULATION-AUTHORITY-BOUNDARY
+issued_at: 2026-08-07T23:43:00-07:00
+phase: 10A.1
+directive: SOVR-GENESIS-000002-PHASE10A-COMPILER-AUTHORITY-CORRECTION
+scope: packages/runtime/src/simulation/**
+
+status: VERIFIED
+
+raw_yaml_execution:
+  allowed: false
+  detected: false
+  evidence:
+    - "No yaml.parse() found in simulation runtime code"
+    - "No yaml.load() found in simulation runtime code"
+    - "js-yaml import removed from simulation-bootstrap.ts"
+    - "No readFileSync('*.yaml') in simulation execution path"
+    - "Only readFileSync for compiled JSON registry in tests"
+
+direct_event_store_write:
+  allowed: false
+  detected: false
+  evidence:
+    - "No eventStore.append() in simulation runtime code"
+    - "No eventStore.persist() in simulation runtime code"
+    - "SimulationRunner reads events via eventStore.getAll() only"
+    - "Event writes occur exclusively through kernelExecutor.execute()"
+    - "KernelExecutor enforces constitutional gates before event creation"
+
+compiler_registry_required:
+  enabled: true
+  evidence:
+    - "SimulationRunner.run() accepts SimulationScenario interface"
+    - "simulation.test.ts loads from generated/simulation/scenarios.registry.json"
+    - "No YAML parsing in simulation execution layer"
+    - "Compiler generator: packages/compiler/src/generators/simulation.ts"
+    - "Generated output: generated/simulation/scenarios.registry.json"
+
+forbidden_patterns_detected:
+  yaml_parse: 0
+  yaml_load: 0
+  readFileSync_yaml: 0
+  eventStore_append: 0
+  eventStore_persist: 0
+  scenario_command_forEach: 0
+
+verified_components:
+  - path: packages/runtime/src/simulation/simulation-runner.ts
+    status: CLEAN
+  - path: packages/runtime/src/simulation/simulation-bootstrap.ts
+    status: CLEAN
+  - path: packages/runtime/src/simulation/types.ts
+    status: CLEAN
+  - path: packages/runtime/src/simulation/__tests__/simulation.test.ts
+    status: CLEAN (reads compiled registry only)
+
+conclusion: Simulation authority boundary is intact. No alternate execution path exists.

@@ -25,6 +25,7 @@ import { generateTopology } from './generators/topology.js';
 import { generateGuardrails } from './generators/guardrails.js';
 import { generateAgentSandbox } from './generators/agents.js';
 import { generateRegistries } from './generators/registries.js';
+import { generateSimulationRegistry } from './generators/simulation.js';
 import { canonicalJson, buildHashFromParts, sha256 } from './utils/hash.js';
 export * from './pipeline/pass-runner.js';
 export class ProtocolParser {
@@ -146,7 +147,8 @@ export class CompilerRuntime {
                 const topologyFiles = generateTopology(ir);
                 const guardrailFiles = generateGuardrails(ir);
                 const agentSandboxFiles = generateAgentSandbox(ir);
-                const registryFiles = generateRegistries(ir, requireParsed(ctx)).files;
+                const registryFiles = generateRegistries(ir, requireParsed(ctx), ctx.compilerVersion).files;
+                const simulationFiles = generateSimulationRegistry(requireParsed(ctx));
                 ctx.generated = [
                     ...tsFiles,
                     ...openapiFiles,
@@ -162,6 +164,7 @@ export class CompilerRuntime {
                     ...guardrailFiles,
                     ...agentSandboxFiles,
                     ...registryFiles,
+                    ...simulationFiles,
                 ];
             },
             'PASS-016': (ctx) => {

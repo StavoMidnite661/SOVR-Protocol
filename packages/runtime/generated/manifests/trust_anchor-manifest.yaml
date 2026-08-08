@@ -1,0 +1,12 @@
+{
+  "domain": "trust_anchor",
+  "buildId": "2fc77ebc6fd7756f",
+  "generatedAt": "2026-07-17T23:00:40.037Z",
+  "artifacts": [
+    {
+      "file": "events/trust_anchor-events.ts",
+      "hash": "de8436379177d6c3"
+    }
+  ],
+  "sourceHash": "62297e38406e275d"
+}

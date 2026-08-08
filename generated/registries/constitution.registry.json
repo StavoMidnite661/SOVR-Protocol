@@ -1,0 +1,310 @@
+{
+  "abi": "v1",
+  "entries": {
+    "constitution": {
+      "abi": "v1",
+      "authority": {
+        "abi": "v1",
+        "ai_agent": {
+          "abi": "v1",
+          "allowed": [
+            "analyze",
+            "recommend",
+            "execute_approved_workflows",
+            "express_intent_on_behalf_of_principal",
+            "submit_commands_within_granted_capabilities",
+            "query_read_models",
+            "emit_audit_events"
+          ],
+          "description": "AI-driven financial operators operating under constitutional constraints",
+          "forbidden": [
+            "mint_assets",
+            "alter_history",
+            "bypass_policy",
+            "grant_capabilities_to_self_or_others",
+            "modify_constitutional_rules",
+            "modify_governance_settings",
+            "approve_own_commands",
+            "escalate_own_authority"
+          ],
+          "maximum_autonomy": "bounded_execution_within_policy"
+        },
+        "governance": {
+          "abi": "v1",
+          "allowed": [
+            "amend_constitution (subject to amendment process)",
+            "modify_policies",
+            "override_agent_decisions",
+            "audit_all_domains",
+            "emergency_halt",
+            "manage_capabilities",
+            "manage_trust_levels"
+          ],
+          "description": "Constitutional oversight function requiring human consensus",
+          "forbidden": [
+            "modify_immutable_events",
+            "bypass_double_entry",
+            "create_financial_authority_without_audit"
+          ],
+          "maximum_autonomy": "constitutional_authority_with_human_consensus"
+        },
+        "human": {
+          "abi": "v1",
+          "allowed": [
+            "express_intent",
+            "authorize",
+            "approve",
+            "govern",
+            "configure_policy",
+            "initiate_transfer",
+            "manage_own_assets",
+            "delegate_limited_authority"
+          ],
+          "description": "Authenticated human users operating through verified identity",
+          "forbidden": [
+            "modify_events",
+            "alter_ledger_history",
+            "bypass_policy_engine",
+            "grant_unscoped_capabilities"
+          ],
+          "maximum_autonomy": "full_with_policy_governance"
+        },
+        "system": {
+          "abi": "v1",
+          "allowed": [
+            "enforce_invariants",
+            "validate_commands",
+            "evaluate_policies",
+            "rebuild_projections",
+            "emit_system_events",
+            "manage_internal_state"
+          ],
+          "description": "Internal runtime processes that maintain system integrity",
+          "forbidden": [
+            "originate_financial_commands",
+            "modify_business_state",
+            "bypass_validation"
+          ],
+          "maximum_autonomy": "operational_only"
+        }
+      },
+      "conflict_resolution": {
+        "abi": "v1",
+        "principle": "Speed never outranks safety. Autonomy never outranks authority. The system may be slow but it must be correct.\n",
+        "priority_order": [
+          {
+            "abi": "v1",
+            "applies_to": "all_layers",
+            "category": "invariant_preservation",
+            "description": "Constitutional invariants are absolute. They cannot be overridden by any lower priority.",
+            "rank": 1,
+            "resolution": "lower_priority_yields_unconditionally"
+          },
+          {
+            "abi": "v1",
+            "applies_to": [
+              "vault",
+              "treasury",
+              "payment"
+            ],
+            "category": "asset_security",
+            "description": "Physical and digital asset custody, reserve integrity, and collateral protection.",
+            "rank": 2,
+            "resolution": "transaction_blocks_until_resolved"
+          },
+          {
+            "abi": "v1",
+            "applies_to": [
+              "policy",
+              "governance",
+              "payment",
+              "treasury"
+            ],
+            "category": "regulatory_compliance",
+            "description": "Legal and regulatory requirements imposed by external authorities.",
+            "rank": 3,
+            "resolution": "transaction_blocks_until_compliance_verified"
+          },
+          {
+            "abi": "v1",
+            "applies_to": [
+              "ledger",
+              "treasury",
+              "vault"
+            ],
+            "category": "ledger_integrity",
+            "description": "Double-entry balance, audit completeness, event immutability.",
+            "rank": 4,
+            "resolution": "transaction_rejected_if_ledger_cannot_record"
+          },
+          {
+            "abi": "v1",
+            "applies_to": [
+              "treasury",
+              "payment"
+            ],
+            "category": "transaction_completion",
+            "description": "Successfully completing an initiated financial operation.",
+            "rank": 5,
+            "resolution": "retry_with_backoff_then_escalate"
+          },
+          {
+            "abi": "v1",
+            "applies_to": [
+              "treasury",
+              "payment",
+              "ledger"
+            ],
+            "category": "operational_efficiency",
+            "description": "System throughput, latency optimization, resource utilization.",
+            "rank": 6,
+            "resolution": "efficiency_yields_to_higher_priorities"
+          },
+          {
+            "abi": "v1",
+            "applies_to": [
+              "agent",
+              "intent"
+            ],
+            "category": "agent_autonomy",
+            "description": "AI agent ability to act without human intervention.",
+            "rank": 7,
+            "resolution": "agent_escalates_to_human_when_conflict_detected"
+          }
+        ]
+      },
+      "hash": "",
+      "invariants": {
+        "INV-001": {
+          "abi": "v1",
+          "description": "The system of record is an append-only event log. No state may change without a corresponding event. Events, once published, are never modified or deleted.\n",
+          "enforcement_point": "event_store",
+          "id": "INV-001",
+          "name": "event_immutability",
+          "rule": "Every state change requires an immutable event",
+          "violation_action": "halt_system",
+          "violation_severity": "critical"
+        },
+        "INV-002": {
+          "abi": "v1",
+          "description": "Every financial movement must be recorded as a balanced double-entry journal. Total debits must exactly equal total credits for every journal entry. Zero exceptions.\n",
+          "enforcement_point": "ledger_service",
+          "id": "INV-002",
+          "name": "double_entry_balance",
+          "rule": "No ledger mutation without balanced journal entry",
+          "violation_action": "reject_command",
+          "violation_severity": "critical"
+        },
+        "INV-003": {
+          "abi": "v1",
+          "description": "Every command is executed under a specific identity with specific capabilities scoped to specific resources. If the actor lacks the required capability, scope, or condition, the command must be rejected before execution.\n",
+          "enforcement_point": "policy_engine",
+          "id": "INV-003",
+          "name": "authority_boundary",
+          "rule": "No actor may exceed granted authority",
+          "violation_action": "reject_command_and_audit",
+          "violation_severity": "critical"
+        },
+        "INV-004": {
+          "abi": "v1",
+          "description": "AI agents may not create new capabilities, grant capabilities to other actors, modify existing authority boundaries, or escalate their own permissions. Only the Governance domain through human approval may modify authority.\n",
+          "enforcement_point": "security_layer",
+          "id": "INV-004",
+          "name": "agent_financial_authority_prohibition",
+          "rule": "No agent may create, grant, or modify financial authority",
+          "violation_action": "terminate_agent_and_audit",
+          "violation_severity": "critical"
+        },
+        "INV-005": {
+          "abi": "v1",
+          "description": "Every command that affects financial state must emit events that fully describe what happened, who caused it, when it occurred, and what the before/after state was. The audit trail must be queryable by Governance domain.\n",
+          "enforcement_point": "event_store",
+          "id": "INV-005",
+          "name": "audit_trail_completeness",
+          "rule": "Every financial action must produce an auditable event trail",
+          "violation_action": "reject_command",
+          "violation_severity": "critical"
+        },
+        "INV-006": {
+          "abi": "v1",
+          "description": "Events are observations of state changes, not instructions to mutate state. The source of truth is the append-only event log. Projections are derived read models that interpret events but are not themselves authoritative. If a projection disagrees with the event log, the event log is authoritative.\n",
+          "enforcement_point": "projection_engine",
+          "id": "INV-006",
+          "name": "event_describes_does_not_mutate",
+          "rule": "Events do not mutate reality. Events describe reality. Projections interpret reality.",
+          "violation_action": "rebuild_projection",
+          "violation_severity": "critical"
+        },
+        "INV-007": {
+          "abi": "v1",
+          "description": "No optimization for throughput, latency, or efficiency may compromise asset safety, reserve integrity, or custody guarantees. When performance and safety conflict, safety wins unconditionally.\n",
+          "enforcement_point": "constitutional_validator",
+          "id": "INV-007",
+          "name": "value_preservation_priority",
+          "rule": "Value preservation outranks execution speed",
+          "violation_action": "reject_optimization",
+          "violation_severity": "critical"
+        },
+        "INV-008": {
+          "abi": "v1",
+          "description": "Every command must pass through four gates before execution: 1. Identity verification (who is acting) 2. Capability check (is the actor authorized for this action) 3. Scope check (is the actor authorized for this specific resource) 4. Policy evaluation (does this action comply with all active policies) Failure at any gate prevents execution.\n",
+          "enforcement_point": "command_bus",
+          "id": "INV-008",
+          "name": "command_execution_gates",
+          "rule": "No command executes without identity, capability, scope, and policy validation",
+          "violation_action": "reject_command",
+          "violation_severity": "critical"
+        },
+        "INV-009": {
+          "abi": "v1",
+          "description": "When the system cannot determine the definitive state of a financial operation (e.g., external settlement pending, attestation timeout, network partition), the state must be recorded as UNKNOWN or PENDING with full context. The system must never assume success or silently resolve ambiguity.\n",
+          "enforcement_point": "state_machine_engine",
+          "id": "INV-009",
+          "name": "unknown_state_representation",
+          "rule": "Unknown financial states must be represented explicitly, never hidden",
+          "violation_action": "flag_for_governance_review",
+          "violation_severity": "high"
+        },
+        "INV-010": {
+          "abi": "v1",
+          "description": "AI agents operate within the same constitutional constraints as human actors. Agents may not issue commands directly to services that bypass the command bus, policy engine, or audit pipeline. All agent actions must flow through the standard command → policy → execute → event pipeline.\n",
+          "enforcement_point": "agent_runtime",
+          "id": "INV-010",
+          "name": "no_autonomous_constitutional_bypass",
+          "rule": "No autonomous agent may bypass constitutional enforcement",
+          "violation_action": "terminate_agent_and_audit",
+          "violation_severity": "critical"
+        }
+      },
+      "status": "FROZEN",
+      "system": {
+        "abi": "v1",
+        "constitution_version": "1.0.0",
+        "enforcement_model": "compiled_runtime",
+        "name": "SOVR Financial OS",
+        "ratification_date": {
+          "abi": "v1"
+        },
+        "validation_required_before": [
+          "command_execution",
+          "event_publication",
+          "state_transition",
+          "saga_step",
+          "external_call"
+        ],
+        "version": "1.0.0"
+      },
+      "version": "1.0.0"
+    }
+  },
+  "entry_count": 1,
+  "integrity": {
+    "algorithm": "SHA256",
+    "generated_by": {
+      "compiler_version": "0.6.0"
+    },
+    "hash": "c02cb138a501dcbac2a250caf7d64c284609ebc40c092932e6fe6263f8250fc8",
+    "timestamp": "2026-08-08T21:28:11.297Z"
+  },
+  "kind": "constitution"
+}

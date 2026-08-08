@@ -10,6 +10,7 @@
     "typecheck": "npm run --prefix packages/compiler build -- --noEmit && npm run --prefix packages/runtime build -- --noEmit",
     "lint": "npm run typecheck",
     "compile": "node packages/compiler/dist/cli.js compile",
+    "compile:economic": "npm run compile && node scripts/verify-economic-registries.mjs",
     "test": "npm run test:genesis && npm run test:integration",
     "test:genesis": "node packages/compiler/scripts/verify-spec.mjs genesis",
     "test:fault": "node packages/compiler/scripts/verify-spec.mjs fault",
@@ -17,7 +18,23 @@
     "test:integration": "npm run test --prefix packages/runtime",
     "protocol:runtime-audit": "node scripts/runtime-audit.mjs",
     "protocol:formal-verify": "bash scripts/formal-verify.sh",
-    "certify:production": "node scripts/certify-production.mjs"
+    "certify:production": "node scripts/certify-production.mjs",
+    "simulation": "npm run test --prefix packages/runtime -- src/simulation/__tests__/simulation.test.ts",
+    "verify:simulation": "npm run compile && npm run simulation && npm run test --prefix packages/runtime -- src/simulation/__tests__/registry-integrity.test.ts src/simulation/__tests__/compiler-drift.test.ts src/simulation/__tests__/unauthorized-command.test.ts src/simulation/__tests__/capability-boundary.test.ts src/simulation/__tests__/replay-stress.test.ts src/simulation/__tests__/schema-validation.test.ts",
+    "certify:phase10b.1": "npm run compile && npm run typecheck && npm run test:authority && npm run verify:simulation && node scripts/audit-authority.mjs",
+    "certify:phase10b": "npm run compile && npm run typecheck && npm run verify:simulation && npm run test:authority && npm run test:projection && npm run test:economic && npm run test:audit && npm run test:stress && node scripts/audit-authority.mjs",
+    "certify:phase10c": "npm run compile && npm run typecheck && npm run verify:simulation && npm run test:economic && npm run test:settlement && npm run test:ledger && npm run test:reserve && npm run test:replay && npm run test:stress:phase10c && npm run test:lineage && npm run test:settlement:proof && node scripts/audit-authority.mjs",
+    "test:authority": "npm run test --prefix packages/runtime -- src/simulation/__tests__/registry-version.test.ts src/simulation/__tests__/projection-replay.test.ts",
+    "test:projection": "npm run test --prefix packages/runtime -- src/simulation/__tests__/projection-reconstruction.test.ts",
+    "test:economic": "npm run test --prefix packages/runtime -- src/simulation/__tests__/economic-validator.test.ts src/simulation/__tests__/economic-registry.test.ts src/simulation/__tests__/reserve-accounting.test.ts src/simulation/__tests__/economic-lineage.test.ts",
+    "test:settlement": "npm run test --prefix packages/runtime -- src/simulation/__tests__/settlement-state.test.ts src/simulation/__tests__/settlement-proof.test.ts",
+    "test:ledger": "npm run test --prefix packages/runtime -- src/simulation/__tests__/ledger-certification.test.ts",
+    "test:reserve": "npm run test --prefix packages/runtime -- src/simulation/__tests__/reserve-accounting.test.ts",
+    "test:replay": "npm run test --prefix packages/runtime -- src/simulation/__tests__/settlement-replay.test.ts",
+    "test:stress:phase10c": "npm run test --prefix packages/runtime -- src/simulation/__tests__/phase10c-economic-stress.test.ts",
+    "test:lineage": "npm run test --prefix packages/runtime -- src/simulation/__tests__/economic-lineage.test.ts",
+    "test:settlement:proof": "npm run test --prefix packages/runtime -- src/simulation/__tests__/settlement-proof.test.ts",
+    "audit:authority": "node scripts/audit-authority.mjs"
   },
   "version": "0.6.0"
 }

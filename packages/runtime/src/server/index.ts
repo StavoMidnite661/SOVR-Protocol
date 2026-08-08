@@ -14,6 +14,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { loadRuntimeConfig } from './config.js';
+import { loadTestConfig } from '../config/test.config.js';
 import { EventStore } from './eventStore.js';
 import { CapabilityEngine } from './capabilityEngine.js';
 import { ProjectionEngine } from './projectionEngine.js';
@@ -276,21 +277,23 @@ async function bootKernel() {
   // Seed genesis event if store was empty
   const wasEmpty = eventStore.stats().totalEvents === 0;
   if (wasEmpty) {
-    await eventStore.append({
-      event_name: 'saga.started',
-      aggregate: 'saga_instance',
-      aggregate_id: crypto.randomUUID(),
-      source_domain: 'kernel',
-      command_id: crypto.randomUUID(),
-      triggering_command: 'system.boot',
-      causation_id: crypto.randomUUID(),
-      correlation_id: crypto.randomUUID(),
-      actor_id: 'system',
-      identity_context: { identity_id: 'system', actor_type: 'system', session_id: 'boot' },
-      policy_decision_id: crypto.randomUUID(),
-      capability_id: 'system.internal',
-      payload: { boot_stage: 'KERNEL_INIT' },
-      projection_effect: { target: 'none', operation: 'no_op' },
+  const commandId = crypto.randomUUID();
+  const correlationId = crypto.randomUUID();
+  await eventStore.append({
+    event_name: 'saga.started',
+    aggregate: 'saga_instance',
+    aggregate_id: crypto.randomUUID(),
+    source_domain: 'kernel',
+    command_id: commandId,
+    triggering_command: 'system.boot',
+    causation_id: correlationId,
+    correlation_id: correlationId,
+    actor_id: 'system',
+    identity_context: { identity_id: 'system', actor_type: 'system', session_id: 'boot' },
+    policy_decision_id: crypto.randomUUID(),
+    capability_id: 'system.internal',
+    payload: { boot_stage: 'KERNEL_INIT' },
+    projection_effect: { target: 'none', operation: 'no_op' },
       audit: { constitutional_rules_referenced: ['INV-001'], retention_class: 'permanent' },
     });
   }
@@ -381,20 +384,25 @@ async function buildServer() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 
-  await app.register(rateLimit, {
-    global: true,
-    max: 200,
-    timeWindow: '1 minute',
-    keyGenerator: (request: any) => {
-      return request.identityContext?.actor_id ?? request.ip;
-    },
-    errorResponseBuilder: (request: any, context: any) => ({
-      status: 'RATE_LIMITED',
-      error: 'RATE_LIMIT_EXCEEDED',
-      message: `Request limit exceeded. Retry after ${context.after}`,
-      retry_after_ms: context.ttl,
-    }),
-  });
+  const testConfig = config.nodeEnv === 'test' ? loadTestConfig() : null;
+
+  // Global rate limit — disabled in test environment to prevent test interference
+  if (testConfig?.rateLimit.enabled !== false) {
+    await app.register(rateLimit, {
+      global: true,
+      max: 200,
+      timeWindow: '1 minute',
+      keyGenerator: (request: any) => {
+        return request.identityContext?.actor_id ?? request.ip;
+      },
+      errorResponseBuilder: (request: any, context: any) => ({
+        status: 'RATE_LIMITED',
+        error: 'RATE_LIMIT_EXCEEDED',
+        message: `Request limit exceeded. Retry after ${context.after}`,
+        retry_after_ms: context.ttl,
+      }),
+    });
+  }
 
   // WebSocket plugin — only register if it actually loaded (graceful if not installed)
   let wsEnabled = false;
@@ -491,21 +499,24 @@ async function buildServer() {
 
   const financialRateLimiter = new FinancialRateLimiter();
 
-  app.addHook('preHandler', async (request, reply) => {
-    if (request.method === 'POST' && String(request.url).startsWith('/api/v1/') && !String(request.url).includes('/identity/session')) {
-      const ctx = await identityContextFromReq(request);
-      const key = ctx.actor_id;
-      const limit = financialRateLimiter.check(key);
-      if (!limit.allowed) {
-        reply.code(429).send({
-          status: 'RATE_LIMITED',
-          error: 'FINANCIAL_RATE_LIMIT_EXCEEDED',
-          message: 'Financial command rate limit exceeded',
-          retry_after_ms: limit.retryAfterMs,
-        });
+  // Financial rate limiter — disabled in test environment
+  if (testConfig?.rateLimit.enabled !== false) {
+    app.addHook('preHandler', async (request, reply) => {
+      if (request.method === 'POST' && String(request.url).startsWith('/api/v1/') && !String(request.url).includes('/identity/session')) {
+        const ctx = await identityContextFromReq(request);
+        const key = ctx.actor_id;
+        const limit = financialRateLimiter.check(key);
+        if (!limit.allowed) {
+          reply.code(429).send({
+            status: 'RATE_LIMITED',
+            error: 'FINANCIAL_RATE_LIMIT_EXCEEDED',
+            message: 'Financial command rate limit exceeded',
+            retry_after_ms: limit.retryAfterMs,
+          });
+        }
       }
-    }
-  });
+    });
+  }
 
   // ---- HTTP routes ------------------------------------------------------------
 
@@ -674,16 +685,18 @@ async function buildServer() {
       return { error: 'capability_id, actor_id, scope_pattern required' };
     }
     const requester = req.headers['x-actor-id'] || 'governance';
+    const commandId = crypto.randomUUID();
+    const correlationId = crypto.randomUUID();
     capabilityEngine.grant({ capability_id, actor_id, scope_pattern, granted_by: requester, expires_at, conditions });
     const ev = await eventStore.append({
       event_name: 'governance.capability.granted',
       aggregate: 'capability_grant',
       aggregate_id: crypto.randomUUID(),
       source_domain: 'governance',
-      command_id: crypto.randomUUID(),
+      command_id: commandId,
       triggering_command: 'governance.capability.grant',
-      causation_id: crypto.randomUUID(),
-      correlation_id: crypto.randomUUID(),
+      causation_id: correlationId,
+      correlation_id: correlationId,
       actor_id: requester,
       identity_context: { identity_id: requester, actor_type: 'governance' },
       policy_decision_id: crypto.randomUUID(),
@@ -712,6 +725,8 @@ async function buildServer() {
     const sub = actor_id || identity_id || 'actor_human_001';
     const id = identity_id || sub;
     const typ = actor_type || 'human';
+    const commandId = crypto.randomUUID();
+    const correlationId = crypto.randomUUID();
     const jwt_token = await jwt.sign({
       sub,
       actor_type: typ,
@@ -722,10 +737,10 @@ async function buildServer() {
       aggregate: 'session',
       aggregate_id: session_id,
       source_domain: 'identity',
-      command_id: crypto.randomUUID(),
+      command_id: commandId,
       triggering_command: 'identity.session.create',
-      causation_id: crypto.randomUUID(),
-      correlation_id: crypto.randomUUID(),
+      causation_id: correlationId,
+      correlation_id: correlationId,
       actor_id: sub,
       identity_context: { identity_id: id, actor_type: typ, session_id },
       policy_decision_id: crypto.randomUUID(),
@@ -851,6 +866,7 @@ async function buildServer() {
 
     const capability_id = body.capability_id || body.capability || `${domain}.${aggregate}.create`;
     const scope = body.scope || `${domain}.${aggregate}:*`;
+    const correlationId = body.meta?.correlationId || body.correlation_id || crypto.randomUUID();
 
     const commandEnvelope = {
       command_id: body.meta?.commandId || body.command_id || crypto.randomUUID(),
@@ -861,8 +877,8 @@ async function buildServer() {
       identity_context,
       capability_id,
       scope,
-      correlation_id: body.meta?.correlationId || body.correlation_id || crypto.randomUUID(),
-      causation_id: body.meta?.causationId || body.causation_id || crypto.randomUUID(),
+      correlation_id: correlationId,
+      causation_id: body.meta?.causationId || body.causation_id || correlationId,
       meta: body.meta,
     };
 

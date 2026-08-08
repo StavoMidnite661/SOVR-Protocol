@@ -7,7 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { JsonRegistryLoader } from '../authority/authority-loader.js';
 
 export interface CapabilityDef {
   capability_id: string;
@@ -45,15 +45,10 @@ export class CapabilityEngine {
 
   private loadDefinitions() {
     try {
-      const file = path.join(this.protocolRoot, '08_security-capabilities.yaml');
-      if (fs.existsSync(file)) {
-        const doc: any = yaml.load(fs.readFileSync(file, 'utf8'));
-        const caps = doc.capabilities || [];
-        for (const c of caps) {
-          if (c.capability_id) {
-            this.definitions.set(c.capability_id, c);
-          }
-        }
+      const loader = new JsonRegistryLoader();
+      const capabilities = loader.loadCapabilities();
+      for (const [id, def] of Object.entries(capabilities.entries ?? {})) {
+        this.definitions.set(id, def as unknown as CapabilityDef);
       }
       console.log(`🛡️ Capability engine loaded ${this.definitions.size} definitions`);
     } catch (e) {

@@ -1,0 +1,41 @@
+phase: PHASE10C
+directive: SOVR-GENESIS-000002-PHASE10C-DETERMINISTIC-ECONOMIC-SETTLEMENT-DIRECTIVE
+generated_at: "2026-08-08T14:06:22-07:00"
+
+economic_integrity:
+  verified: true
+  evidence: |
+    Reserve Accounting Engine validates opening + deposits - allocations = closing
+    Economic Validator enforces conservation, ledger balance, treasury authorization
+    Economic registries generated: economic.registry.json, settlement.registry.json, reserve.registry.json
+    Failure codes: RESERVE_BALANCE_FAILURE, INSUFFICIENT_LIQUIDITY, UNAUTHORIZED_ALLOCATION, RESERVE_PROOF_FAILURE
+
+ledger_integrity:
+  verified: true
+  evidence: |
+    Double entry certification enforces Total Debits = Total Credits
+    Ledger imbalance rejected with LEDGER_IMBALANCE_DETECTED
+    Balanced ledger entries accepted deterministically
+
+reserve_integrity:
+  verified: true
+  evidence: |
+    Reserve Accounting Engine validates allocation chain: Requested <= Approved <= Reserved <= Available
+    Liquidity coverage validation ensures reserved <= available
+    Deterministic reserve proof generation with SHA256 proof_hash
+
+settlement_determinism:
+  verified: true
+  evidence: |
+    SIM-007-SETTLEMENT-LIFECYCLE exercises full settlement lifecycle
+    100x deterministic replay produces identical event_hash, ledger_hash, reserve_hash, audit_hash
+    Settlement state machine certification validates CREATED -> AUTHORIZED -> RESERVED -> POSTED -> SETTLED -> VERIFIED
+
+authority_boundary:
+  verified: true
+  evidence: |
+    Economic authority originates from compiler-generated registries only
+    Knowledge layer remains compiler_input_only with runtime_access: false
+    No runtime balance mutation, no manual settlement handlers, no hardcoded economic rules
+
+status: READY_FOR_PHASE10D

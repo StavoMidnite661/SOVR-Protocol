@@ -1,0 +1,42 @@
+evidence_binding:
+  scenario_id: SIM-005-TREASURY-CONTROL-LIFECYCLE
+  knowledge_nodes:
+    - id: SOVR-CMD-000023
+      name: treasury.transfer.request
+      source: 03_command-catalog.yaml
+    - id: SOVR-CMD-000024
+      name: treasury.transfer.authorize
+      source: 03_command-catalog.yaml
+    - id: SOVR-CMD-000025
+      name: treasury.transfer.reserve
+      source: 03_command-catalog.yaml
+    - id: SOVR-CMD-000026
+      name: treasury.transfer.execute
+      source: 03_command-catalog.yaml
+
+  compiler_artifacts:
+    - artifact: commands.registry.json
+      path: generated/registries/commands.registry.json
+      integrity: SHA256
+    - artifact: events.registry.json
+      path: generated/registries/events.registry.json
+      integrity: SHA256
+
+  runtime_events:
+    - event: treasury.transfer.requested
+      aggregate: transfer_order
+      consumers: [treasury_projection, audit_projection]
+    - event: treasury.transfer.authorized
+      aggregate: transfer_order
+      consumers: [treasury_projection, audit_projection]
+    - event: treasury.transfer.reserved
+      aggregate: transfer_order
+      consumers: [treasury_projection, vault_projection, audit_projection]
+    - event: treasury.transfer.executing
+      aggregate: transfer_order
+      consumers: [treasury_projection, payment_projection, audit_projection]
+
+  audit_evidence:
+    - proof_package: generated/audit/SIM-005-TREASURY-CONTROL-LIFECYCLE-proof.json
+      generated_by: ProofManifestGenerator
+      contains: [command_sequence, event_sequence, state_transitions, merkle_root, deterministic_hash]

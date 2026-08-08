@@ -38,9 +38,11 @@ import {
 } from '../execution/index.js';
 import { registerAssertionHandlers } from '../boot/assertion-registry.js';
 import { PostgreSQLEventStore } from '../adapters/postgres-event-store.js';
-import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
+import { JsonRegistryLoader } from '../authority/authority-loader.js';
+import { CommandAuthority } from '../authority/command-authority.js';
+import { EventAuthority } from '../authority/event-authority.js';
+import { ConstitutionAuthority } from '../authority/constitution-authority.js';
 
 export interface CommandEnvelope {
   command_id: string;
@@ -117,9 +119,10 @@ interface ExecutionPlan {
 }
 
 export class CommandBus {
-  private commandCatalog: any;
-  private eventCatalog: any;
-  private constitution: any;
+  private commandAuthority!: CommandAuthority;
+  private eventAuthority!: EventAuthority;
+  private constitutionAuthority!: ConstitutionAuthority;
+  private eventCatalog!: { events: Record<string, any>; event_envelope: any };
   private guardrailBus!: GuardrailCommandBus;
   private stateMachineInterpreter!: StateMachineInterpreter;
   private stateRegistry!: StateRegistry;
@@ -142,17 +145,15 @@ export class CommandBus {
   }
 
   private loadCatalogs() {
-    try {
-      this.commandCatalog = yaml.load(fs.readFileSync(path.join(this.protocolRoot, '03_command-catalog.yaml'), 'utf8')) as any;
-      this.eventCatalog = yaml.load(fs.readFileSync(path.join(this.protocolRoot, '04_event-catalog.yaml'), 'utf8')) as any;
-      this.constitution = yaml.load(fs.readFileSync(path.join(this.protocolRoot, '01_constitution.yaml'), 'utf8')) as any;
-    } catch (e) {
-      // Fail-closed: if catalogs cannot be loaded, we cannot enforce INV-008.
-      // The empty catalogs will cause every command to be rejected with VALIDATION errors.
-      console.error('CommandBus catalog load FAILED — running in fail-closed mode:', e);
-      this.commandCatalog = { commands: {} };
-      this.eventCatalog = { events: {}, event_envelope: { fields: {} } };
-    }
+    const loader = new JsonRegistryLoader();
+    const registries = loader.loadAll();
+    this.commandAuthority = new CommandAuthority(registries.commands);
+    this.eventAuthority = new EventAuthority(registries.events, registries.events);
+    this.constitutionAuthority = new ConstitutionAuthority(registries.constitution);
+    this.eventCatalog = {
+      events: registries.events.entries,
+      event_envelope: registries.events.event_envelope,
+    };
   }
 
   private async initializeSpecDrivenExecution() {
@@ -255,7 +256,7 @@ export class CommandBus {
 
   private normalizeCommandEnvelope(cmd: CommandEnvelope): CommandEnvelope {
     const commandName = this.normalizeCommandName(cmd.command_name, cmd.source_domain);
-    const cmdDef = this.commandCatalog.commands?.[commandName];
+    const cmdDef = this.commandAuthority.get(commandName);
     return {
       ...cmd,
       command_name: commandName,
@@ -266,18 +267,18 @@ export class CommandBus {
   }
 
   private normalizeCommandName(name: string, sourceDomain?: string): string {
-    if (this.commandCatalog.commands?.[name]) return name;
+    if (this.commandAuthority.has(name)) return name;
     if (sourceDomain) {
       const prefixed = `${sourceDomain}.${name}`;
-      if (this.commandCatalog.commands?.[prefixed]) return prefixed;
+      if (this.commandAuthority.has(prefixed)) return prefixed;
     }
     return name;
   }
 
   private buildCommandCoverage(): Map<string, CommandCoverage> {
     const map = new Map<string, CommandCoverage>();
-    const exemptions = this.commandCatalog.command_lifecycle_coverage?.lifecycle_exemptions ?? {};
-    for (const [commandName, cmdDef] of Object.entries(this.commandCatalog.commands ?? {}) as Array<[string, any]>) {
+    const exemptions = this.commandAuthority.command_lifecycle_coverage.lifecycle_exemptions;
+    for (const [commandName, cmdDef] of Object.entries(this.commandAuthority.commands) as Array<[string, any]>) {
       const domain = cmdDef.source_domain ?? commandName.split('.')[0];
       const aggregate = cmdDef.aggregate;
       const machine = aggregate ? this.stateMachineInterpreter.getMachineFor(domain, aggregate) : undefined;
@@ -285,7 +286,7 @@ export class CommandBus {
       map.set(commandName, {
         commandName,
         hasMachine: Boolean(machine),
-        isExempt: Boolean(exemption?.lifecycle_exempt ?? cmdDef.lifecycle_exempt),
+        isExempt: Boolean(cmdDef.lifecycle_exempt ?? Boolean(exemption)),
         machine: machine?.name,
         exemption,
       });
@@ -306,7 +307,7 @@ export class CommandBus {
     if (!cmd.identity_context?.identity_id || !cmd.identity_context?.actor_id) {
       return { passed: false, reason: 'UNAUTHENTICATED: missing identity_context' };
     }
-    const cmdDef = this.commandCatalog.commands[cmd.command_name];
+    const cmdDef = this.commandAuthority.get(cmd.command_name);
     if (cmdDef?.issuer?.actor_types && Array.isArray(cmdDef.issuer.actor_types)) {
       if (!cmdDef.issuer.actor_types.includes(cmd.identity_context.actor_type)) {
         return {
@@ -363,7 +364,7 @@ export class CommandBus {
 
   /** Gate 6: Real required_payload validation. Returns the first missing field or null. */
   private validateRequiredPayload(cmd: CommandEnvelope): { ok: true } | { ok: false; missing: string } {
-    const cmdDef = this.commandCatalog.commands[cmd.command_name];
+    const cmdDef = this.commandAuthority.get(cmd.command_name);
     if (!cmdDef) return { ok: true }; // unknown command handled in executeUnknownCommand
     const required: string[] = (cmdDef.required_payload || []).filter((x: any) => typeof x === 'string');
     for (const field of required) {
@@ -396,14 +397,14 @@ export class CommandBus {
   }
 
   private async executeUnknownCommand(cmd: CommandEnvelope, policyDecisionId: string): Promise<{ events: EventEnvelope[]; success: boolean; error?: string; eventsEmitted: number }> {
-    const ev = this.eventStore.append({
+    const ev = await this.eventStore.append({
       event_name: 'system.command.unknown',
       aggregate: cmd.aggregate || 'unknown',
       aggregate_id: cmd.payload?.asset_id || cmd.payload?.order_id || crypto.randomUUID(),
       source_domain: cmd.source_domain || 'unknown',
       command_id: cmd.command_id,
       triggering_command: cmd.command_name,
-      causation_id: cmd.causation_id,
+      causation_id: cmd.correlation_id,
       correlation_id: cmd.correlation_id,
       actor_id: cmd.identity_context.actor_id,
       identity_context: cmd.identity_context,
@@ -417,8 +418,12 @@ export class CommandBus {
   }
 
   private commandSuccessEvents(cmd: CommandEnvelope): string[] {
-    const cmdDef = this.commandCatalog.commands[cmd.command_name];
-    return cmdDef?.resulting_events?.success || cmdDef?.produces_events || [];
+    const cmdDef = this.commandAuthority.get(cmd.command_name);
+    const success = cmdDef?.resulting_events?.success;
+    if (Array.isArray(success)) return success;
+    const produces = cmdDef?.produces_events;
+    if (Array.isArray(produces)) return produces;
+    return [];
   }
 
   private resolveEventAggregateId(cmd: CommandEnvelope, eventDef: any, aggregate: string): string {
@@ -682,7 +687,7 @@ export class CommandBus {
     gates.policy = g4;
     if (!g4.passed) return { status: 'REJECTED', commandId: cmd.command_id, correlationId: cmd.correlation_id, events: [], gates, error: g4.reason };
 
-    if (!this.commandCatalog.commands[cmd.command_name]) {
+    if (!this.commandAuthority.has(cmd.command_name)) {
       const result = await this.executeUnknownCommand(cmd, g4.policy_decision_id!);
       return { status: 'REJECTED', commandId: cmd.command_id, correlationId: cmd.correlation_id, events: result.events, gates, error: result.error, eventsEmitted: result.eventsEmitted };
     }

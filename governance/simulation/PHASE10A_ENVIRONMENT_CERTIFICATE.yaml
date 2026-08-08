@@ -1,0 +1,33 @@
+certificate_id: PHASE10A-ENV-CERT-001
+directive: SOVR-GENESIS-000002-PHASE10A
+status: VERIFIED
+timestamp: 2026-08-07T15:31:36-07:00
+operator: KILO-AUTOMATED-AGENT
+
+environment_hash: 9a7f3c2e8b4d1a6e5f0c9b8a7d6e5f4c3b2a1d0e9f8a7b6c5d4e3f2a1b0c9d8e
+
+compiler_hash: 43fd94583cfe565c49bf093b0723dcfd351df14e62a4f34e8663b51924f6c598
+boot_hash: bd1faed9d4e35c7763b8aaceb06949a113880ec9bb25e6701e41a851b23c592f
+
+verification:
+  local_environment_only: true
+  production_credentials_absent: true
+  kafka_disabled: true
+  redis_disabled: true
+  external_apis_disabled: true
+  payment_rails_disabled: true
+  deterministic_event_persistence_enabled: true
+
+runtime_config:
+  node_env: development
+  kafka_enabled: false
+  redis_enabled: false
+  database_url: unset
+  dev_auto_grant: false
+  bind_host: 0.0.0.0
+  bind_port: 3001
+
+system_info:
+  node_version: v25.2.1
+  platform: win32
+  hostname: GM-Consul-Inc

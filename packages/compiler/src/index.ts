@@ -26,6 +26,7 @@ import { generateTopology } from './generators/topology.js';
 import { generateGuardrails } from './generators/guardrails.js';
 import { generateAgentSandbox } from './generators/agents.js';
 import { generateRegistries } from './generators/registries.js';
+import { generateSimulationRegistry } from './generators/simulation.js';
 import { canonicalJson, buildHashFromParts, sha256 } from './utils/hash.js';
 import { SOVR_IR, Diagnostic } from './ir/types.js';
 
@@ -194,7 +195,8 @@ export class CompilerRuntime {
         const topologyFiles = generateTopology(ir);
         const guardrailFiles = generateGuardrails(ir);
         const agentSandboxFiles = generateAgentSandbox(ir);
-        const registryFiles = generateRegistries(ir, requireParsed(ctx)).files;
+        const registryFiles = generateRegistries(ir, requireParsed(ctx), ctx.compilerVersion).files;
+        const simulationFiles = generateSimulationRegistry(requireParsed(ctx));
         ctx.generated = [
           ...tsFiles,
           ...openapiFiles,
@@ -210,6 +212,7 @@ export class CompilerRuntime {
           ...guardrailFiles,
           ...agentSandboxFiles,
           ...registryFiles,
+          ...simulationFiles,
         ];
       },
 

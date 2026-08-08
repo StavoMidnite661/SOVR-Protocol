@@ -1,0 +1,12 @@
+{
+  "domain": "multi_step",
+  "buildId": "2fc77ebc6fd7756f",
+  "generatedAt": "2026-07-17T23:00:40.038Z",
+  "artifacts": [
+    {
+      "file": "events/multi_step-events.ts",
+      "hash": "c30d68ab12e70b58"
+    }
+  ],
+  "sourceHash": "7304da2641e74102"
+}

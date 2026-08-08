@@ -1,0 +1,614 @@
+{
+  "abi": "v1",
+  "entries": {
+    "treasury.liquidity.allocate": {
+      "abi": "v1",
+      "aggregate": "liquidity_position",
+      "capability": "treasury.liquidity.manage",
+      "command_name": "treasury.liquidity.allocate",
+      "domain": "treasury",
+      "resulting_events": {
+        "conditional": [
+          "treasury.liquidity.warning"
+        ],
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": []
+      }
+    },
+    "treasury.liquidity.check": {
+      "abi": "v1",
+      "aggregate": "liquidity_position",
+      "capability": "treasury.liquidity.read",
+      "command_name": "treasury.liquidity.check",
+      "domain": "treasury",
+      "resulting_events": {
+        "conditional": [
+          "treasury.liquidity.warning"
+        ],
+        "failure": [],
+        "success": []
+      }
+    },
+    "treasury.liquidity.warning": {
+      "abi": "v1",
+      "aggregate": "liquidity_position",
+      "data_fields": {
+        "actor_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "current_available": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "level": {
+          "type": "string"
+        },
+        "threshold": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "triggered_by": {
+          "type": "string"
+        },
+        "warned_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.liquidity.warning"
+    },
+    "treasury.transfer.reserve": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.reserve",
+      "command_name": "treasury.transfer.reserve",
+      "domain": "treasury",
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.reserved"
+        ]
+      }
+    },
+    "treasury.transfer.reserved": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reserved_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "reserved_at": {
+          "type": "timestamp"
+        },
+        "vault_lock_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "vault_reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.reserved"
+    },
+    "vault.collateral.add": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "capability": "vault.collateral.create",
+      "command_name": "vault.collateral.add",
+      "domain": "vault",
+      "resulting_events": {
+        "failure": [
+          "vault.collateral.addition_failed"
+        ],
+        "success": [
+          "vault.collateral.added",
+          "vault.collateral.valued"
+        ]
+      }
+    },
+    "vault.collateral.added": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "added_at": {
+          "type": "timestamp"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "effective_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "gross_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "haircut_applied": {
+          "precision": 6,
+          "type": "decimal"
+        },
+        "obligation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "quality_score": {
+          "precision": 4,
+          "type": "decimal"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.added"
+    },
+    "vault.collateral.addition_failed": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.addition_failed"
+    },
+    "vault.collateral.liquidation_initiated": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "expected_proceeds": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "initiated_at": {
+          "type": "timestamp"
+        },
+        "liquidation_reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.liquidation_initiated"
+    },
+    "vault.collateral.margin_call": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "called_at": {
+          "type": "timestamp"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "current_ratio": {
+          "precision": 6,
+          "type": "decimal"
+        },
+        "deadline": {
+          "type": "timestamp"
+        },
+        "maintenance_ratio": {
+          "precision": 6,
+          "type": "decimal"
+        },
+        "shortfall_amount": {
+          "precision": 18,
+          "type": "decimal"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.margin_call"
+    },
+    "vault.collateral.release_failed": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.release_failed"
+    },
+    "vault.collateral.released": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "release_reason": {
+          "type": "string"
+        },
+        "released_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.released"
+    },
+    "vault.collateral.remove": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "capability": "vault.collateral.release",
+      "command_name": "vault.collateral.remove",
+      "domain": "vault",
+      "resulting_events": {
+        "failure": [
+          "vault.collateral.release_failed"
+        ],
+        "success": [
+          "vault.collateral.released"
+        ]
+      }
+    },
+    "vault.collateral.revaluation_failed": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.revaluation_failed"
+    },
+    "vault.collateral.revalue": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "capability": "vault.collateral.evaluate",
+      "command_name": "vault.collateral.revalue",
+      "domain": "vault",
+      "resulting_events": {
+        "conditional": [
+          "vault.collateral.margin_call"
+        ],
+        "failure": [
+          "vault.collateral.revaluation_failed"
+        ],
+        "success": [
+          "vault.collateral.revalued"
+        ]
+      }
+    },
+    "vault.collateral.revalued": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "new_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "previous_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "revalued_at": {
+          "type": "timestamp"
+        },
+        "valuation_source": {
+          "type": "string"
+        },
+        "value_change": {
+          "precision": 18,
+          "type": "decimal"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.revalued"
+    },
+    "vault.collateral.valued": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "new_effective_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "previous_effective_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "valuation_source": {
+          "type": "string"
+        },
+        "valued_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.valued"
+    },
+    "vault.reserve.create": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "capability": "vault.reserve.create",
+      "command_name": "vault.reserve.create",
+      "domain": "vault",
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.creation_failed"
+        ],
+        "success": [
+          "vault.reserve.created"
+        ]
+      }
+    },
+    "vault.reserve.created": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "actor_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "created_at": {
+          "type": "timestamp"
+        },
+        "expiration": {
+          "type": "timestamp"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.created"
+    },
+    "vault.reserve.creation_failed": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.creation_failed"
+    },
+    "vault.reserve.expire": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "capability": "system.internal",
+      "command_name": "vault.reserve.expire",
+      "domain": "vault",
+      "resulting_events": {
+        "failure": [],
+        "success": [
+          "vault.reserve.expired"
+        ]
+      }
+    },
+    "vault.reserve.expired": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "expired_at": {
+          "type": "timestamp"
+        },
+        "reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.expired"
+    },
+    "vault.reserve.lock": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "capability": "vault.reserve.lock",
+      "command_name": "vault.reserve.lock",
+      "domain": "vault",
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.lock_failed"
+        ],
+        "success": [
+          "vault.reserve.locked"
+        ]
+      }
+    },
+    "vault.reserve.lock_failed": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.lock_failed"
+    },
+    "vault.reserve.locked": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "expected_consuming_transaction_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "lock_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "locked_at": {
+          "type": "timestamp"
+        },
+        "reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.locked"
+    },
+    "vault.reserve.release": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "capability": "vault.reserve.release",
+      "command_name": "vault.reserve.release",
+      "domain": "vault",
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.release_failed"
+        ],
+        "success": [
+          "vault.reserve.released"
+        ]
+      }
+    },
+    "vault.reserve.release_failed": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.release_failed"
+    },
+    "vault.reserve.released": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "release_reason": {
+          "type": "string"
+        },
+        "released_at": {
+          "type": "timestamp"
+        },
+        "reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.released"
+    }
+  },
+  "entry_count": 28,
+  "integrity": {
+    "algorithm": "SHA256",
+    "generated_by": {
+      "compiler_version": "0.6.0"
+    },
+    "hash": "45d3b1e2be5f67001d66b14bb581f67a6a0d55176fbe75193a2c5bb2863a8ac3",
+    "timestamp": "2026-08-08T21:28:11.322Z"
+  },
+  "kind": "reserve",
+  "reserve_policy": "Requested <= Approved <= Reserved <= Available"
+}

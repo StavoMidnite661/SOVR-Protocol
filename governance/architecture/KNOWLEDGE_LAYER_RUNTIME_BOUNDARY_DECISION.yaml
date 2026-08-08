@@ -1,0 +1,44 @@
+knowledge_layer:
+  role: compiler_input_only
+  runtime_access: false
+  authority: compiler_generated_artifacts_only
+  status: APPROVED
+
+  rationale: >
+    The knowledge layer (knowledge/*.yaml) is a constitutional reasoning
+    substrate. It defines object types, global identities, semantic edges,
+    trace paths, evidence links, provenance standards, and graph export
+    formats. These are compiler inputs, not runtime execution authorities.
+
+    The runtime must not read, parse, or interpret knowledge layer files.
+    Runtime authority originates exclusively from compiler-generated artifacts
+    in generated/registries/*.json.
+
+    Integrating the knowledge graph into runtime enforcement would create a
+    second interpretation path, violating the Phase 10A architectural
+    correction and the Phase 10B.1 authority boundary remediation.
+
+  boundaries:
+    allowed_in_runtime:
+      - generated/registries/commands.registry.json
+      - generated/registries/events.registry.json
+      - generated/registries/machines.registry.json
+      - generated/registries/capabilities.registry.json
+      - generated/registries/validation.registry.json
+      - generated/registries/constitution.registry.json
+      - generated/registries/envelopes.registry.json
+      - generated/registries/execution-plans.registry.json
+      - generated/simulation/scenarios.registry.json
+
+    forbidden_in_runtime:
+      - knowledge/*.yaml
+      - protocol/*.yaml
+      - governance/*.yaml
+      - any raw YAML interpretation
+
+  governance:
+    decision_id: ARCH-0001
+    decided_at: "2026-08-08"
+    decided_by: PHASE10B.1_DIRECTIVE
+    ratification_required: false
+    supersedes: none

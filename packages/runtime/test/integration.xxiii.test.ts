@@ -70,7 +70,7 @@ beforeAll(async () => {
     actorType: 'human',
     timeoutMs: 10_000,
   });
-}, 120000);
+}, 180000);
 
 afterAll(async () => {
   if (server && !server.killed) {

@@ -1,0 +1,30 @@
+phase: PHASE10C
+directive: SOVR-GENESIS-000002-PHASE10C-DETERMINISTIC-ECONOMIC-SETTLEMENT-DIRECTIVE
+generated_at: "2026-08-08T14:06:22-07:00"
+
+settlement_integrity:
+  verified: true
+  evidence: |
+    SIM-007-SETTLEMENT-LIFECYCLE validates complete settlement lifecycle
+    State transitions: CREATED -> AUTHORIZED -> RESERVED -> POSTED -> SETTLED -> VERIFIED
+    Illegal transitions rejected with INVALID_STATE_TRANSITION
+    Terminal state protection rejects further commands with FINAL_STATE
+    SettlementProofGenerator produces deterministic audit packages
+    Output: generated/audit/settlements/SETTLEMENT-SIM007-PROOF.json
+
+economic_event_lineage:
+  verified: true
+  evidence: |
+    Every economic event includes economic_context (asset_id, reserve_id, ledger_account, settlement_id)
+    Event lineage reports generated for every simulation run
+    economic-lineage-report.json shows zero orphan_economic_events, zero missing_ledger_entries, zero missing_reserve_links
+    Multi-domain event causality preserved across intent, treasury, ledger, and settlement domains
+
+deterministic_replay:
+  verified: true
+  evidence: |
+    settlement-replay.test.ts runs SIM-007 100 times
+    All 100 executions produce 1 deterministic result
+    Identical event_hash, ledger_hash, reserve_hash, audit_hash across all runs
+
+status: READY_FOR_PHASE10D

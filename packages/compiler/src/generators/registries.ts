@@ -5,37 +5,52 @@ import { ParsedProtocol } from '../pipeline/parse.js';
 
 const ABI = 'v1';
 
+export interface IntegrityBlock {
+  algorithm: 'SHA256';
+  hash: string;
+  generated_by: { compiler_version: string };
+  timestamp: string;
+}
+
 export interface RegistryBundle {
   files: GeneratedFile[];
   entryCounts: Record<string, number>;
 }
 
-export function generateRegistries(ir: SOVR_IR, parsed: ParsedProtocol): RegistryBundle {
+export function generateRegistries(ir: SOVR_IR, parsed: ParsedProtocol, compilerVersion: string = '0.6.0'): RegistryBundle {
   const commandCatalog = find(parsed, '03_command-catalog') ?? {};
   const eventCatalog = find(parsed, '04_event-catalog') ?? {};
   const capabilityCatalog = find(parsed, '08_security-capabilities') ?? {};
   const projectionCatalog = find(parsed, 'projection-engine') ?? {};
   const contractCatalog = find(parsed, '12_domain-contracts') ?? {};
   const protocolManifest = find(parsed, '00_protocol-manifest') ?? {};
+  const constitutionDoc = find(parsed, '01_constitution') ?? {};
+
+  const lifecycleExemptions = commandCatalog.command_lifecycle_coverage?.lifecycle_exemptions ?? {};
 
   const registries: Record<string, any> = {
-    'commands.registry.json': commandRegistry(commandCatalog),
+    'commands.registry.json': commandRegistry(commandCatalog, lifecycleExemptions),
     'machines.registry.json': machineRegistry(ir),
     'validation.registry.json': validationRegistry(commandCatalog),
     'events.registry.json': eventRegistry(eventCatalog),
     'capabilities.registry.json': capabilityRegistry(capabilityCatalog, ir),
+    'constitution.registry.json': constitutionRegistry(constitutionDoc, protocolManifest),
     'projections.registry.json': projectionRegistry(projectionCatalog),
     'execution-plans.registry.json': executionPlansRegistry(protocolManifest),
     'envelopes.registry.json': envelopeRegistry(eventCatalog),
     'schemas.registry.json': schemaRegistry(commandCatalog, eventCatalog),
     'contracts.registry.json': contractsRegistry(contractCatalog),
     'boot.registry.json': bootRegistry(protocolManifest, ir),
+    'economic.registry.json': economicRegistry(commandCatalog, eventCatalog, ir),
+    'settlement.registry.json': settlementRegistry(commandCatalog, eventCatalog, ir),
+    'reserve.registry.json': reserveRegistry(commandCatalog, eventCatalog, ir),
   };
 
   const files: GeneratedFile[] = [];
   const entryCounts: Record<string, number> = {};
   for (const [name, registry] of Object.entries(registries).sort(([a], [b]) => a.localeCompare(b))) {
-    const content = canonicalJson(registry) + '\n';
+    const withInt = withIntegrity(registry, compilerVersion);
+    const content = canonicalJson(withInt) + '\n';
     files.push({
       path: `registries/${name}`,
       content,
@@ -45,7 +60,7 @@ export function generateRegistries(ir: SOVR_IR, parsed: ParsedProtocol): Registr
     entryCounts[name] = registry.entry_count ?? countEntries(registry);
   }
 
-  const wrappers = ['commands', 'machines', 'validation', 'events', 'capabilities'];
+  const wrappers = ['commands', 'machines', 'validation', 'events', 'capabilities', 'constitution'];
   for (const name of wrappers) {
     const body = `import registry from '../registries/${name}.registry.json';\n\nexport default registry;\nexport const ${toCamel(name)}Registry = registry;\n`;
     files.push({
@@ -68,13 +83,31 @@ export function generateRegistries(ir: SOVR_IR, parsed: ParsedProtocol): Registr
   return { files, entryCounts };
 }
 
-function commandRegistry(commandCatalog: any) {
+function withIntegrity(registry: any, compilerVersion: string): any {
+  const hashPayload: any = { ...registry };
+  delete hashPayload.integrity;
+  const hash = sha256(canonicalJson(hashPayload));
+  return {
+    ...registry,
+    integrity: {
+      algorithm: 'SHA256',
+      hash,
+      generated_by: { compiler_version: compilerVersion },
+      timestamp: new Date().toISOString(),
+    },
+  };
+}
+
+function commandRegistry(commandCatalog: any, lifecycleExemptions: any) {
   const entries: Record<string, any> = {};
   for (const [commandName, def] of Object.entries(commandCatalog.commands ?? {}) as Array<[string, any]>) {
+    const exemption = lifecycleExemptions[commandName] ?? (def.lifecycle_exempt ? def : undefined);
+    const sourceDomain = def.source_domain ?? commandName.split('.')[0];
     entries[commandName] = {
       abi: ABI,
       command_name: commandName,
-      domain: def.source_domain ?? commandName.split('.')[0],
+      domain: sourceDomain,
+      source_domain: sourceDomain,
       aggregate: def.aggregate ?? '',
       version: def.version ?? '1.0.0',
       issuer: def.issuer ?? {},
@@ -83,11 +116,20 @@ function commandRegistry(commandCatalog: any) {
       resulting_events: def.resulting_events ?? {},
       validation_rule_ids: (def.validation_rules ?? []).map((r: any) => r.rule),
       constitutional_gates: def.constitutional_gates ?? {},
+      execution_gates: def.execution_gates ?? [],
       lifecycle: def.lifecycle ?? null,
-      lifecycle_exempt: Boolean(def.lifecycle_exempt),
+      lifecycle_exempt: Boolean(def.lifecycle_exempt || exemption?.lifecycle_exempt),
+      lifecycle_exempt_reason: exemption?.lifecycle_exempt_reason ?? def.lifecycle_exempt_reason,
+      lifecycle_exempt_governance_ref: exemption?.lifecycle_exempt_governance_ref ?? def.lifecycle_exempt_governance_ref,
     };
   }
-  return { abi: ABI, kind: 'commands', entry_count: Object.keys(entries).length, entries };
+  const coverage = {
+    schema_version: commandCatalog.command_lifecycle_coverage?.schema_version ?? '1.0.0',
+    fail_on_uncovered: commandCatalog.command_lifecycle_coverage?.fail_on_uncovered ?? true,
+    machine_coverage_rule: commandCatalog.command_lifecycle_coverage?.machine_coverage_rule ?? '',
+    lifecycle_exemptions: lifecycleExemptions,
+  };
+  return { abi: ABI, kind: 'commands', entry_count: Object.keys(entries).length, entries, command_lifecycle_coverage: coverage };
 }
 
 function machineRegistry(ir: SOVR_IR) {
@@ -187,7 +229,8 @@ function eventRegistry(eventCatalog: any) {
   for (const [eventName, def] of Object.entries(eventCatalog.events ?? {}) as Array<[string, any]>) {
     entries[eventName] = { abi: ABI, event_name: eventName, ...withAbi(def) };
   }
-  return { abi: ABI, kind: 'events', entry_count: Object.keys(entries).length, entries };
+  const envelope = eventCatalog.event_envelope ?? {};
+  return { abi: ABI, kind: 'events', entry_count: Object.keys(entries).length, entries, event_envelope: { abi: ABI, ...withAbi(envelope) } };
 }
 
 function capabilityRegistry(capabilityCatalog: any, ir: SOVR_IR) {
@@ -195,6 +238,31 @@ function capabilityRegistry(capabilityCatalog: any, ir: SOVR_IR) {
   const caps = capabilityCatalog.capabilities ?? ir.nodes.filter(n => n.type === 'capability').map((n: any) => ({ capability_id: n.capabilityId, ...n }));
   for (const cap of caps) entries[cap.capability_id] = { abi: ABI, ...withAbi(cap) };
   return { abi: ABI, kind: 'capabilities', entry_count: Object.keys(entries).length, entries };
+}
+
+function constitutionRegistry(constitutionDoc: any, protocolManifest: any) {
+  const invariants = Array.isArray(constitutionDoc.invariants) ? constitutionDoc.invariants : [];
+  const invariantIndex: Record<string, any> = {};
+  for (const inv of invariants) {
+    if (inv?.id) invariantIndex[inv.id] = { abi: ABI, ...withAbi(inv) };
+  }
+  return {
+    abi: ABI,
+    kind: 'constitution',
+    entry_count: 1,
+    entries: {
+      constitution: {
+        abi: ABI,
+        version: constitutionDoc?.meta?.version ?? protocolManifest?.constitution?.version ?? '1.0.0',
+        status: constitutionDoc?.meta?.status ?? 'FROZEN',
+        hash: protocolManifest?.constitution?.lock_hash ?? '',
+        system: withAbi(constitutionDoc.system ?? {}),
+        invariants: invariantIndex,
+        conflict_resolution: withAbi(constitutionDoc.conflict_resolution ?? {}),
+        authority: withAbi(constitutionDoc.authority ?? {}),
+      },
+    },
+  };
 }
 
 function projectionRegistry(projectionCatalog: any) {
@@ -301,4 +369,115 @@ function slug(value: any): string {
 
 function toCamel(value: string): string {
   return value.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+function economicRegistry(commandCatalog: any, eventCatalog: any, ir: SOVR_IR) {
+  const economicDomains = new Set(['treasury', 'ledger', 'vault', 'payment', 'settlement']);
+  const entries: Record<string, any> = {};
+
+  for (const [commandName, def] of Object.entries(commandCatalog.commands ?? {}) as Array<[string, any]>) {
+    const domain = def.source_domain ?? commandName.split('.')[0];
+    if (economicDomains.has(domain)) {
+      entries[commandName] = {
+        abi: ABI,
+        command_name: commandName,
+        domain,
+        aggregate: def.aggregate ?? '',
+        capability: def.authorization_requirements?.capability ?? def.issuer?.minimum_capability ?? `${commandName}`,
+        resulting_events: def.resulting_events ?? {},
+        execution_gates: def.execution_gates ?? [],
+      };
+    }
+  }
+
+  for (const [eventName, def] of Object.entries(eventCatalog.events ?? {}) as Array<[string, any]>) {
+    const domain = def.domain ?? eventName.split('.')[0];
+    if (economicDomains.has(domain)) {
+      entries[eventName] = {
+        abi: ABI,
+        event_name: eventName,
+        domain,
+        aggregate: def.aggregate ?? '',
+        data_fields: def.data_fields ?? {},
+      };
+    }
+  }
+
+  return { abi: ABI, kind: 'economic', entry_count: Object.keys(entries).length, entries, economic_domains: [...economicDomains].sort() };
+}
+
+function settlementRegistry(commandCatalog: any, eventCatalog: any, ir: SOVR_IR) {
+  const entries: Record<string, any> = {};
+
+  for (const [commandName, def] of Object.entries(commandCatalog.commands ?? {}) as Array<[string, any]>) {
+    if (commandName.includes('settlement') || commandName.includes('transfer')) {
+      entries[commandName] = {
+        abi: ABI,
+        command_name: commandName,
+        domain: def.source_domain ?? commandName.split('.')[0],
+        aggregate: def.aggregate ?? '',
+        capability: def.authorization_requirements?.capability ?? `${commandName}`,
+        resulting_events: def.resulting_events ?? {},
+        execution_gates: def.execution_gates ?? [],
+      };
+    }
+  }
+
+  for (const [eventName, def] of Object.entries(eventCatalog.events ?? {}) as Array<[string, any]>) {
+    if (eventName.includes('settlement') || eventName.includes('transfer')) {
+      entries[eventName] = {
+        abi: ABI,
+        event_name: eventName,
+        domain: def.domain ?? eventName.split('.')[0],
+        aggregate: def.aggregate ?? '',
+        data_fields: def.data_fields ?? {},
+      };
+    }
+  }
+
+  const machines = ir.nodes.filter((n: any) => n.type === 'state_machine' && (n.name?.includes('settlement') || n.name?.includes('transfer'))) as any[];
+  const state_machines: Record<string, any> = {};
+  for (const machine of machines) {
+    state_machines[machine.sourceRef ?? machine.name] = {
+      abi: ABI,
+      id: machine.id,
+      domain: machine.domain,
+      aggregate: machine.aggregate,
+      initial_state: machine.initial_state ?? machine.initialState,
+      final_states: machine.final_states ?? machine.finalStates ?? [],
+    };
+  }
+
+  return { abi: ABI, kind: 'settlement', entry_count: Object.keys(entries).length, entries, state_machines, lifecycle: 'CREATED -> AUTHORIZED -> RESERVED -> POSTED -> SETTLED -> VERIFIED' };
+}
+
+function reserveRegistry(commandCatalog: any, eventCatalog: any, ir: SOVR_IR) {
+  const entries: Record<string, any> = {};
+
+  for (const [commandName, def] of Object.entries(commandCatalog.commands ?? {}) as Array<[string, any]>) {
+    if (commandName.includes('reserve') || commandName.includes('liquidity') || commandName.includes('collateral')) {
+      entries[commandName] = {
+        abi: ABI,
+        command_name: commandName,
+        domain: def.source_domain ?? commandName.split('.')[0],
+        aggregate: def.aggregate ?? '',
+        capability: def.authorization_requirements?.capability ?? `${commandName}`,
+        resulting_events: def.resulting_events ?? {},
+      };
+    }
+  }
+
+  for (const [eventName, def] of Object.entries(eventCatalog.events ?? {}) as Array<[string, any]>) {
+    if (eventName.includes('reserve') || eventName.includes('liquidity') || eventName.includes('collateral')) {
+      entries[eventName] = {
+        abi: ABI,
+        event_name: eventName,
+        domain: def.domain ?? eventName.split('.')[0],
+        aggregate: def.aggregate ?? '',
+        data_fields: def.data_fields ?? {},
+      };
+    }
+  }
+
+  return { abi: ABI, kind: 'reserve', entry_count: Object.keys(entries).length, entries, reserve_policy: 'Requested <= Approved <= Reserved <= Available' };
 }

@@ -1,0 +1,39 @@
+policy_id: SOVR-RUNTIME-CAUSATION-001
+
+purpose:
+  enforce_deterministic_event_lineage
+
+rules:
+
+  root_event:
+    definition:
+      no_parent_event_exists: true
+
+    required:
+      causation_id_equals_correlation_id: true
+
+  child_event:
+    definition:
+      parent_event_exists: true
+
+    required:
+      causation_id:
+        must_match:
+          - parent.event_id
+          - parent.command_id
+
+  prohibited:
+    - random_uuid_as_causation
+    - missing_causation_for_child_event
+    - fabricated_parent_reference
+
+enforcement:
+  mode:
+    production: strict
+    development: strict
+
+  failure:
+    action:
+      - reject_event
+      - emit_integrity_failure
+      - preserve_audit_context

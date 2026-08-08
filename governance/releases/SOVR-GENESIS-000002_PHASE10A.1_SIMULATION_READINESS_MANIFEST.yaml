@@ -1,0 +1,41 @@
+# SOVR-GENESIS-000002-PHASE10A.1 SIMULATION READINESS MANIFEST
+# Confirms simulation infrastructure is ready for Phase 10B.
+
+manifest_id: SOVR-GENESIS-000002-PHASE10A.1-READINESS
+date: 2026-08-08
+phase: 10A.1
+
+compiler:
+  version: 0.6.0
+  simulation_generator: packages/compiler/src/generators/simulation.ts
+  registry_output: generated/simulation/scenarios.registry.json
+  integrity_hash: enabled
+  input_files: 47
+  generated_files: 163
+
+simulation_engine:
+  runner: packages/runtime/src/simulation/simulation-runner.ts
+  bootstrap: packages/runtime/src/simulation/simulation-bootstrap.ts
+  kernel_executor: packages/runtime/src/execution/kernel-executor.ts
+  direct_yaml_execution: false
+  raw_yaml_parsing_in_runtime: false
+
+test_suites:
+  simulation_scenarios: 11 tests PASS
+  registry_integrity: 3 tests PASS
+  compiler_drift: 2 tests PASS
+  unauthorized_command: 1 test PASS
+  capability_boundary: 2 tests PASS
+  replay_stress: 1 test PASS
+  schema_validation: 3 tests PASS
+  total: 23 tests PASS
+
+certificates:
+  simulation_authority_boundary: governance/audit/PHASE10A_SIMULATION_AUTHORITY_BOUNDARY_CERTIFICATE.yaml
+  compiler_drift: governance/audit/PHASE10A_COMPILER_DRIFT_CERTIFICATE.yaml
+  replay_stability: governance/audit/PHASE10A_REPLAY_STABILITY_CERTIFICATE.yaml
+  final: governance/releases/SOVR-GENESIS-000002_PHASE10A.1_FINAL_CERTIFICATE.yaml
+  security_boundary: governance/releases/SOVR-GENESIS-000002_PHASE10A.1_SECURITY_BOUNDARY_REPORT.md
+
+readiness: VERIFIED
+phase_10b_authorized: true

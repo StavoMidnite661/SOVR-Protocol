@@ -1,0 +1,71 @@
+scenario_id: SIM-005-TREASURY-CONTROL-LIFECYCLE
+name: Treasury Control Lifecycle
+description: >
+  Validates treasury transfer request creation, authorization,
+  reserve allocation, execution, and settlement readiness.
+
+actor_context:
+  actor_id: sim-treasury-operator
+  actor_type: system
+  identity_id: sim-treasury-operator-id
+  session_id: sim-treasury-session-005
+
+lifecycle:
+  initial_state: REQUESTED
+  terminal_state: SETTLED
+
+commands:
+  - command_id: cmd-001
+    command_name: treasury.transfer.request
+    domain: treasury
+    aggregate: transfer_order
+    payload:
+      source_actor_id: sim-treasury-operator
+      destination_details:
+        - type: ach
+          address: sim-address-005
+          rail: ACH
+          reference: sim-ref-005
+      asset_id: vault-asset-004
+      amount: '50'
+      purpose: test_transfer
+    capability_id: treasury.transfer.request
+    scope: treasury.transfer:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-002
+    command_name: treasury.transfer.authorize
+    domain: treasury
+    aggregate: transfer_order
+    payload:
+      order_id: sim-transfer-005-a
+    capability_id: treasury.transfer.authorize
+    scope: treasury.transfer:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-003
+    command_name: treasury.transfer.reserve
+    domain: treasury
+    aggregate: transfer_order
+    payload:
+      order_id: sim-transfer-005-b
+    capability_id: treasury.transfer.reserve
+    scope: treasury.transfer:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-004
+    command_name: treasury.transfer.execute
+    domain: treasury
+    aggregate: transfer_order
+    payload:
+      order_id: sim-transfer-005-c
+    capability_id: treasury.transfer.execute
+    scope: treasury.transfer:*
+    expected_result: ACCEPTED
+
+verification:
+  amount_limits: true
+  actor_permissions: true
+  approval_chain: true
+  causation_lineage: true
+  state_transitions: true

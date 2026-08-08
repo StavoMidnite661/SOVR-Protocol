@@ -1,0 +1,142 @@
+scenario_id: SIM-007-SETTLEMENT-LIFECYCLE
+name: Settlement Lifecycle
+description: >
+  Validates complete settlement lifecycle from intent creation through
+  authorization, reserve allocation, ledger posting, settlement completion,
+  and audit verification. Exercises multi-domain event causality.
+
+actor_context:
+  actor_id: sim-settlement-operator
+  actor_type: human
+  identity_id: sim-settlement-operator-id
+  session_id: sim-settlement-session-007
+
+lifecycle:
+  initial_state: CREATED
+  terminal_state: VERIFIED
+
+commands:
+  - command_id: cmd-001
+    command_name: intent.submit
+    domain: intent
+    aggregate: intent
+    payload:
+      intent_id: sim-intent-007
+      intent_type: settlement
+      submitting_actor_id: sim-settlement-operator
+      objective: 'Execute settlement obligation'
+      domain_target: treasury
+    capability_id: intent.submit
+    scope: intent:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-002
+    command_name: treasury.transfer.request
+    domain: treasury
+    aggregate: transfer_order
+    payload:
+      source_actor_id: sim-settlement-operator
+      destination_actor_id: sim-recipient-007
+      asset_id: vault-asset-007
+      amount: '50'
+      purpose: settlement_obligation
+      destination_details:
+        - type: ach
+          address: sim-address-007
+          rail: ACH
+          reference: sim-ref-007
+    capability_id: treasury.transfer.request
+    scope: treasury.transfer:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-003
+    command_name: treasury.transfer.authorize
+    domain: treasury
+    aggregate: transfer_order
+    payload:
+      order_id: sim-transfer-007
+    capability_id: treasury.transfer.authorize
+    scope: treasury.transfer:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-004
+    command_name: treasury.transfer.reserve
+    domain: treasury
+    aggregate: transfer_order
+    payload:
+      order_id: sim-transfer-007-reserve
+    capability_id: treasury.transfer.reserve
+    scope: treasury.transfer:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-005
+    command_name: ledger.entry.post
+    domain: ledger
+    aggregate: journal_entry
+    payload:
+      journal_id: journal-007
+      transaction_id: tx-007
+      event_reference: treasury.transfer.reserved
+      correlation_id: cmd-004
+      causation_id: cmd-004
+      description: 'Settlement reserve ledger posting'
+      entry_type: STANDARD
+      postings:
+        - account_id: account-007-a
+          amount: 50
+          direction: DEBIT
+          asset_id: vault-asset-007
+          description: 'Debit settlement reserve'
+        - account_id: account-007-b
+          amount: 50
+          direction: CREDIT
+          asset_id: vault-asset-007
+          description: 'Credit settlement liability'
+    capability_id: ledger.entry.post
+    scope: ledger.entry:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-006
+    command_name: treasury.transfer.execute
+    domain: treasury
+    aggregate: transfer_order
+    payload:
+      order_id: sim-transfer-007-execute
+    capability_id: treasury.transfer.execute
+    scope: treasury.transfer:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-007
+    command_name: treasury.settlement.confirm
+    domain: treasury
+    aggregate: transfer_order
+    payload:
+      order_id: sim-transfer-007-execute
+      settlement_reference: sim-ref-007
+      settled_at: "2026-08-08T14:00:00Z"
+      settlement_amount: '50'
+    capability_id: treasury.settlement.confirm
+    scope: treasury.settlement:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-008
+    command_name: governance.audit.query
+    domain: governance
+    aggregate: audit_record
+    payload:
+      audit_type: settlement
+      target_domains: [treasury, ledger]
+      start_date: "2026-08-01T00:00:00Z"
+      end_date: "2026-08-08T23:59:59Z"
+      filters: { settlement_id: sim-settlement-007 }
+    capability_id: governance.audit.query
+    scope: governance.audit:*
+    expected_result: ACCEPTED
+
+verification:
+  double_entry_integrity: true
+  balance_conservation: true
+  reserve_integrity: true
+  event_causality: true
+  state_transitions: true
+  audit_reconstruction: true

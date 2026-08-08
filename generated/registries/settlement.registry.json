@@ -1,0 +1,526 @@
+{
+  "abi": "v1",
+  "entries": {
+    "payment.settlement.completed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "completed_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "settlement_reference": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.settlement.completed"
+    },
+    "payment.settlement.confirmed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "confirmed_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "settlement_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "settlement_reference": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.settlement.confirmed"
+    },
+    "payment.settlement.failed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.settlement.failed"
+    },
+    "treasury.settlement.confirm": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.settlement.confirm",
+      "command_name": "treasury.settlement.confirm",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.settled",
+          "treasury.settlement.confirmed"
+        ]
+      }
+    },
+    "treasury.settlement.confirmed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "confirmed_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "settlement_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "settlement_rail": {
+          "type": "string"
+        },
+        "settlement_reference": {
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.settlement.confirmed"
+    },
+    "treasury.transfer.authorize": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.authorize",
+      "command_name": "treasury.transfer.authorize",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.authorized"
+        ]
+      }
+    },
+    "treasury.transfer.authorized": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "authorized_at": {
+          "type": "timestamp"
+        },
+        "authorized_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "policy_result": {
+          "type": "string"
+        },
+        "rules_applied": {
+          "type": "array"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.authorized"
+    },
+    "treasury.transfer.cancel": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.cancel",
+      "command_name": "treasury.transfer.cancel",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.rejected"
+        ]
+      }
+    },
+    "treasury.transfer.compensate": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.compensate",
+      "command_name": "treasury.transfer.compensate",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.compensation_required"
+        ]
+      }
+    },
+    "treasury.transfer.compensation_required": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "compensation_saga_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "compensation_step": {
+          "type": "string"
+        },
+        "governance_approval_required": {
+          "type": "boolean"
+        },
+        "initiated_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "vault_resolution_required": {
+          "type": "boolean"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.compensation_required"
+    },
+    "treasury.transfer.execute": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.execute",
+      "command_name": "treasury.transfer.execute",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "conditional": [
+          "treasury.transfer.settled",
+          "treasury.transfer.failed"
+        ],
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.executing"
+        ]
+      }
+    },
+    "treasury.transfer.executing": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "executing_at": {
+          "type": "timestamp"
+        },
+        "instruction_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "max_attempts": {
+          "type": "integer"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "payment_rail": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": "integer"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.executing"
+    },
+    "treasury.transfer.expired": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "expiration_reason": {
+          "type": "string"
+        },
+        "expired_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "state_at_expiration": {
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.expired"
+    },
+    "treasury.transfer.failed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "error_code": {
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_stage": {
+          "type": "string"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.failed"
+    },
+    "treasury.transfer.rejected": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "error_code": {
+          "type": "string"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "rejected_at": {
+          "type": "timestamp"
+        },
+        "rejection_stage": {
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.rejected"
+    },
+    "treasury.transfer.request": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.request",
+      "command_name": "treasury.transfer.request",
+      "domain": "treasury",
+      "execution_gates": [
+        {
+          "config": {
+            "amountPayloadKey": "amount",
+            "currency": "USD",
+            "maxAmount": "50"
+          },
+          "description": "Enforce constitutional amount limit for treasury transfers",
+          "fatal": true,
+          "gate_id": "amount_within_limit",
+          "type": "AMOUNT_WITHIN_LIMIT"
+        }
+      ],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.requested"
+        ]
+      }
+    },
+    "treasury.transfer.requested": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "destination_details": {
+          "type": "object"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "requested_at": {
+          "type": "timestamp"
+        },
+        "source_actor_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.requested"
+    },
+    "treasury.transfer.reserve": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.reserve",
+      "command_name": "treasury.transfer.reserve",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.reserved"
+        ]
+      }
+    },
+    "treasury.transfer.reserved": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reserved_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "reserved_at": {
+          "type": "timestamp"
+        },
+        "vault_lock_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "vault_reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.reserved"
+    },
+    "treasury.transfer.settled": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "settled_at": {
+          "type": "timestamp"
+        },
+        "settlement_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "settlement_reference": {
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.settled"
+    },
+    "vault.ownership.transfer": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "capability": "vault.asset.verify",
+      "command_name": "vault.ownership.transfer",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.verification_failed"
+        ],
+        "success": [
+          "vault.asset.verified"
+        ]
+      }
+    },
+    "vault.ownership.transferred": {
+      "abi": "v1",
+      "aggregate": "ownership",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "authorized_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "new_owner_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "previous_owner_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "transferred_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.ownership.transferred"
+    },
+    "vault.transfer.request": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "capability": "vault.reserve.create",
+      "command_name": "vault.transfer.request",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.creation_failed"
+        ],
+        "success": [
+          "vault.reserve.created"
+        ]
+      }
+    }
+  },
+  "entry_count": 23,
+  "integrity": {
+    "algorithm": "SHA256",
+    "generated_by": {
+      "compiler_version": "0.6.0"
+    },
+    "hash": "29fe1736743604298b28a79169d7a7f7d981d7ed19aaf292f07c9695c483e9fa",
+    "timestamp": "2026-08-08T21:28:11.326Z"
+  },
+  "kind": "settlement",
+  "lifecycle": "CREATED -> AUTHORIZED -> RESERVED -> POSTED -> SETTLED -> VERIFIED",
+  "state_machines": {}
+}

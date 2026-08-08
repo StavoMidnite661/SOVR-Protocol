@@ -1,0 +1,117 @@
+# SOVR Simulation Scenario Schema
+# Authoritative schema for controlled simulation scenarios.
+# This schema is compiled by the SOVR compiler into generated/simulation/.
+# DO NOT manually edit compiled output.
+
+SimulationScenario:
+  id:
+    type: string
+    required: true
+    pattern: "^[A-Z]{2,}-[0-9]{3,}$"
+
+  name:
+    type: string
+    required: true
+
+  version:
+    type: string
+    required: true
+    default: "1.0.0"
+
+  amendment:
+    type: string
+    required: false
+
+  description:
+    type: string
+    required: true
+
+  actors:
+    type: array
+    required: true
+    items:
+      actor_id:
+        type: string
+        required: true
+      actor_type:
+        type: string
+        required: true
+        enum: [human, ai_agent, governance, system, external_system]
+      identity_id:
+        type: string
+        required: true
+      session_id:
+        type: string
+        required: false
+
+  initial_state:
+    type: object
+    required: false
+
+  commands:
+    type: array
+    required: true
+    items:
+      command_id:
+        type: string
+        required: true
+      command_name:
+        type: string
+        required: true
+      domain:
+        type: string
+        required: true
+      aggregate:
+        type: string
+        required: true
+      payload:
+        type: object
+        required: true
+      capability_id:
+        type: string
+        required: false
+      scope:
+        type: string
+        required: false
+      expected_result:
+        type: string
+        required: false
+        enum: [ACCEPTED, REJECTED]
+      expected_error_type:
+        type: string
+        required: false
+        enum: [CAPABILITY_BOUNDARY_VIOLATION, CAUSATION_BROKEN, EXECUTION_GATE_FAILED, STATE_MACHINE_TRANSITION_REJECTED]
+
+  expected_events:
+    type: array
+    required: false
+    items:
+      event_name:
+        type: string
+        required: true
+      aggregate_id:
+        type: string
+        required: false
+
+  expected_failures:
+    type: array
+    required: false
+    items:
+      command_id:
+        type: string
+        required: true
+      error_type:
+        type: string
+        required: true
+
+  invariants:
+    type: array
+    required: false
+    items:
+      invariant:
+        type: string
+        required: true
+      required:
+        type: boolean
+        required: false
+        default: true

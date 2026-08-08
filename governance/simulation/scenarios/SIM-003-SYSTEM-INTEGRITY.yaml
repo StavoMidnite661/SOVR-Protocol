@@ -1,0 +1,71 @@
+scenario_id: SIM-003-SYSTEM-INTEGRITY
+name: System Integrity Verification
+description: >
+  Verifies event store integrity, merkle audit, and causation
+  chain across multiple command executions. Tests that the
+  simulation engine correctly captures and hashes all events.
+
+actor_context:
+  actor_id: sim-integrity-operator
+  actor_type: human
+  identity_id: sim-integrity-operator-id
+  session_id: sim-integrity-session-001
+
+lifecycle:
+  initial_state: INIT
+  terminal_state: REGISTERED
+
+commands:
+  - command_id: cmd-001
+    command_name: vault.asset.register
+    domain: vault
+    aggregate: asset
+    payload:
+      asset_id: integrity-asset-001
+      asset_type: tokenized_asset
+      issuer_id: sim-integrity-operator
+      ownership_id: sim-integrity-operator
+      custody_provider: sovr_internal
+      custody_location: sovr_internal_vault_1
+      native_unit: wei
+      precision: 18
+      valuation_source: internal
+      reserve_ratio: '1.0'
+      face_value: '5000'
+      quantity: '100'
+    capability_id: vault.asset.create
+    scope: vault.asset:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-002
+    command_name: ledger.entry.post
+    domain: ledger
+    aggregate: journal_entry
+    payload:
+      journal_id: journal-001
+      transaction_id: tx-001
+      event_reference: vault.asset.registered
+      correlation_id: cmd-001
+      causation_id: cmd-001
+      description: 'Initial ledger entry for integrity verification'
+      entry_type: STANDARD
+      postings:
+        - account_id: 'account-001'
+          amount: 5000
+          direction: DEBIT
+          asset_id: integrity-asset-001
+          description: 'Debit posting for asset registration'
+        - account_id: 'account-002'
+          amount: 5000
+          direction: CREDIT
+          asset_id: integrity-asset-001
+          description: 'Credit posting for asset registration'
+    capability_id: ledger.entry.post
+    scope: ledger.entry:*
+    expected_result: ACCEPTED
+
+verification:
+  event_sequence_valid: true
+  merkle_root_generated: true
+  causation_chain_intact: true
+  audit_trail_complete: true

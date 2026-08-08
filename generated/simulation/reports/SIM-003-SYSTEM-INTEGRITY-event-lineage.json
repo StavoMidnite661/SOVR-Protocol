@@ -1,0 +1,26 @@
+{
+  "scenario_id": "SIM-003-SYSTEM-INTEGRITY",
+  "events": [
+    {
+      "event_id": "deadbeef-dead-0000-9d171800-000000000000",
+      "command_id": "cmd-001",
+      "correlation_id": "cmd-001",
+      "causation_id": "cmd-001",
+      "economic_context": {
+        "asset_id": "integrity-asset-001"
+      }
+    },
+    {
+      "event_id": "409ac756--7a14750f-c2b2ae35-9d171800-000012345678",
+      "command_id": "cmd-002",
+      "correlation_id": "cmd-002",
+      "causation_id": "cmd-002",
+      "economic_context": {}
+    }
+  ],
+  "orphan_events": 0,
+  "broken_chains": 0,
+  "missing_ledger_entries": 0,
+  "missing_reserve_links": 0,
+  "verified": true
+}

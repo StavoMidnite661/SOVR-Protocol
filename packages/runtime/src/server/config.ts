@@ -7,7 +7,6 @@
 
 import fs from 'fs';
 import path from 'path';
-import yaml from 'js-yaml';
 
 export interface RuntimeConfig {
   protocolRoot: string;
@@ -81,7 +80,7 @@ export function loadRuntimeConfig(protocolRoot: string): RuntimeConfig {
     if (fs.existsSync(manifestPath)) {
       const raw = fs.readFileSync(manifestPath, 'utf8');
       try { compilerManifest = JSON.parse(raw); }
-      catch { compilerManifest = yaml.load(raw) as any; }
+      catch { compilerManifest = JSON.parse(raw.replace(/^---[\s\S]*?\n/, '')); }
       buildHash = compilerManifest.build_hash || buildHash;
     }
   } catch (e) {

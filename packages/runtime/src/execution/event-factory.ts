@@ -53,7 +53,7 @@ export class EventFactory {
       source_domain: sourceDomain,
       command_id: params.command.command_id,
       triggering_command: params.command.command_name,
-      causation_id: params.command.command_id,
+      causation_id: params.command.correlation_id,
       correlation_id: params.command.correlation_id,
       actor_id: params.actor.actor_id,
       identity_context: params.actor,

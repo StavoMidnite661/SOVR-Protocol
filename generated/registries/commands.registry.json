@@ -1,5 +1,82 @@
 {
   "abi": "v1",
+  "command_lifecycle_coverage": {
+    "fail_on_uncovered": true,
+    "lifecycle_exemptions": {
+      "agent.governance.override": {
+        "exemption_category": "ADMINISTRATIVE",
+        "exemption_reason": "Governance override is an administrative safety operation with independent audit trail.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Governance override is an administrative safety operation with independent audit trail."
+      },
+      "governance.audit.query": {
+        "exemption_category": "READ_ONLY",
+        "exemption_reason": "Audit query reads event/projection history only.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Audit query reads event/projection history only."
+      },
+      "governance.emergency.halt": {
+        "exemption_category": "ADMINISTRATIVE",
+        "exemption_reason": "Emergency halt is constitutional system-control operation also reflected in system health lifecycle.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Emergency halt is constitutional system-control operation also reflected in system health lifecycle."
+      },
+      "governance.emergency.lift": {
+        "exemption_category": "ADMINISTRATIVE",
+        "exemption_reason": "Emergency lift is constitutional system-control operation also reflected in system health lifecycle.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Emergency lift is constitutional system-control operation also reflected in system health lifecycle."
+      },
+      "governance.oversight.review": {
+        "exemption_category": "READ_ONLY",
+        "exemption_reason": "Oversight review records governance observation without lifecycle ownership in v0.6.0.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Oversight review records governance observation without lifecycle ownership in v0.6.0."
+      },
+      "governance.policy_rule.review": {
+        "exemption_category": "CROSS_CUTTING",
+        "exemption_reason": "Policy rule review is a governance cross-cutting control over policy lifecycle.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Policy rule review is a governance cross-cutting control over policy lifecycle."
+      },
+      "payment.adapter.disable": {
+        "exemption_category": "ADMINISTRATIVE",
+        "exemption_reason": "Adapter disable is administrative rail safety control; payment adapter lifecycle is separately specified.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Adapter disable is administrative rail safety control; payment adapter lifecycle is separately specified."
+      },
+      "payment.receipt.issue": {
+        "exemption_category": "NOTIFICATION",
+        "exemption_reason": "Receipt issuance is notification/audit output after payment state is already represented.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Receipt issuance is notification/audit output after payment state is already represented."
+      },
+      "saga.compensate": {
+        "exemption_category": "CROSS_CUTTING",
+        "exemption_reason": "Saga compensation is orchestrator-level cross-cutting behavior governed by saga lifecycle.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Saga compensation is orchestrator-level cross-cutting behavior governed by saga lifecycle."
+      },
+      "treasury.liquidity.check": {
+        "exemption_category": "READ_ONLY",
+        "exemption_reason": "Liquidity check reads available liquidity and emits no authoritative aggregate lifecycle transition.",
+        "lifecycle_exempt": true,
+        "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+        "lifecycle_exempt_reason": "Liquidity check reads available liquidity and emits no authoritative aggregate lifecycle transition."
+      }
+    },
+    "machine_coverage_rule": "source_domain_and_aggregate_match_state_machine",
+    "schema_version": "1.0.0"
+  },
   "entries": {
     "agent.activate": {
       "abi": "v1",
@@ -18,6 +95,7 @@
         "policy_required": true
       },
       "domain": "agent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -28,6 +106,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "agent",
       "validation_rule_ids": [
         "registration_must_exist",
         "governance_review_must_be_approved",
@@ -52,6 +131,7 @@
         "policy_required": true
       },
       "domain": "agent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -62,6 +142,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "agent",
       "validation_rule_ids": [
         "agent_must_exist_and_be_active",
         "capability_must_be_recognized",
@@ -86,6 +167,7 @@
         "policy_required": true
       },
       "domain": "agent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -96,6 +178,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "agent",
       "validation_rule_ids": [
         "binding_must_exist",
         "binding_must_be_active"
@@ -119,6 +202,7 @@
         "policy_required": true
       },
       "domain": "agent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "ai_agent",
@@ -130,6 +214,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "agent",
       "validation_rule_ids": [
         "agent_must_be_active",
         "intent_must_be_valid",
@@ -157,6 +242,7 @@
         "policy_required": true
       },
       "domain": "agent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -164,9 +250,12 @@
         "minimum_capability": "agent.governance.override"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Governance override is an administrative safety operation with independent audit trail.",
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "agent",
       "validation_rule_ids": [
         "agent_must_exist",
         "override_type_must_be_recognized",
@@ -192,6 +281,7 @@
         "policy_required": true
       },
       "domain": "agent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -202,6 +292,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "agent",
       "validation_rule_ids": [
         "agent_must_exist",
         "quota_values_must_be_positive",
@@ -226,6 +317,7 @@
         "policy_required": true
       },
       "domain": "agent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -237,6 +329,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "agent",
       "validation_rule_ids": [
         "agent_type_must_be_recognized",
         "model_type_must_not_be_empty",
@@ -260,6 +353,7 @@
         "policy_required": true
       },
       "domain": "agent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -282,6 +376,7 @@
           "agent.terminated"
         ]
       },
+      "source_domain": "agent",
       "validation_rule_ids": [
         "agent_must_be_active_or_executing"
       ],
@@ -304,6 +399,7 @@
         "policy_required": true
       },
       "domain": "agent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -314,6 +410,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "agent",
       "validation_rule_ids": [
         "agent_must_exist",
         "agent_must_be_in_operational_state",
@@ -341,6 +438,7 @@
         "policy_required": true
       },
       "domain": "escrow",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -365,6 +463,7 @@
           "escrow.account.cancelled"
         ]
       },
+      "source_domain": "escrow",
       "validation_rule_ids": [
         "escrow_id_required",
         "cancellation_reason_required"
@@ -391,6 +490,7 @@
         "policy_required": true
       },
       "domain": "escrow",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -419,6 +519,7 @@
           "escrow.account.created"
         ]
       },
+      "source_domain": "escrow",
       "validation_rule_ids": [
         "escrow_id_required",
         "parties_required",
@@ -448,6 +549,7 @@
         "policy_required": true
       },
       "domain": "escrow",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -472,6 +574,7 @@
           "escrow.account.funded"
         ]
       },
+      "source_domain": "escrow",
       "validation_rule_ids": [
         "escrow_id_required",
         "amount_positive"
@@ -498,6 +601,19 @@
         "policy_required": true
       },
       "domain": "escrow",
+      "execution_gates": [
+        {
+          "config": {
+            "amountPayloadKey": "amount",
+            "currency": "USD",
+            "maxAmount": "50"
+          },
+          "description": "Enforce constitutional amount limit for escrow release",
+          "fatal": true,
+          "gate_id": "amount_within_limit",
+          "type": "AMOUNT_WITHIN_LIMIT"
+        }
+      ],
       "issuer": {
         "actor_types": [
           "human",
@@ -522,6 +638,7 @@
           "escrow.account.released"
         ]
       },
+      "source_domain": "escrow",
       "validation_rule_ids": [
         "escrow_id_required",
         "release_proof_required"
@@ -545,6 +662,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -571,6 +689,7 @@
           "governance.amendment.proposed"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "amendment_number_unique",
         "section_valid",
@@ -596,6 +715,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -615,6 +735,7 @@
           "governance.amendment.ratified"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "amendment_must_exist",
         "amendment_must_be_approved",
@@ -640,6 +761,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -648,7 +770,9 @@
         "minimum_capability": "governance.audit.query"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Audit query reads event/projection history only.",
       "required_payload": [
         "audit_type",
         "target_domains",
@@ -664,6 +788,7 @@
           "governance.audit.queried"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "time_range_valid",
         "target_domains_specified"
@@ -687,6 +812,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -710,6 +836,7 @@
           "governance.capability.granted"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "capability_exists",
         "target_actor_exists",
@@ -735,6 +862,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -756,6 +884,7 @@
           "governance.capability.revoked"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "capability_grant_exists",
         "not_governance_only_capability"
@@ -779,6 +908,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -786,7 +916,9 @@
         "minimum_capability": "governance.emergency.halt"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Emergency halt is constitutional system-control operation also reflected in system health lifecycle.",
       "required_payload": [
         "co_triggered_by",
         "trigger_reason",
@@ -801,6 +933,7 @@
           "governance.emergency_halt.issued"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "two_distinct_governors",
         "valid_trigger_condition",
@@ -825,6 +958,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -832,7 +966,9 @@
         "minimum_capability": "governance.emergency.halt"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Emergency lift is constitutional system-control operation also reflected in system health lifecycle.",
       "required_payload": [
         "halt_id",
         "lift_reason"
@@ -845,6 +981,7 @@
           "governance.emergency_halt.lifted"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "halt_must_be_active",
         "two_distinct_governors",
@@ -869,6 +1006,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -891,6 +1029,7 @@
           "governance.escalation.resolved"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "escalation_must_exist",
         "escalation_must_be_pending",
@@ -915,6 +1054,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -923,7 +1063,9 @@
         "minimum_capability": "governance.oversight.review"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Oversight review records governance observation without lifecycle ownership in v0.6.0.",
       "required_payload": [
         "audit_type",
         "review_scope",
@@ -937,6 +1079,7 @@
           "governance.oversight.reviewed"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "review_scope_defined"
       ],
@@ -959,6 +1102,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -967,7 +1111,9 @@
         "minimum_capability": "governance.policy.review"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Policy rule review is a governance cross-cutting control over policy lifecycle.",
       "required_payload": [
         "rule_id",
         "review_decision",
@@ -981,6 +1127,7 @@
           "governance.policy_rule.review_requested"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "policy_rule_must_exist",
         "policy_rule_must_be_draft",
@@ -1005,6 +1152,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1027,6 +1175,7 @@
           "governance.proposal.approved"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "proposal_must_exist",
         "proposal_must_be_pending",
@@ -1050,6 +1199,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1072,6 +1222,7 @@
           "governance.proposal.rejected"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "proposal_must_not_be_implemented"
       ],
@@ -1092,6 +1243,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1114,6 +1266,7 @@
           "governance.proposal.approved"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "proposal_must_be_approved"
       ],
@@ -1136,6 +1289,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1157,6 +1311,7 @@
           "governance.proposal.rejected"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "proposal_must_exist",
         "proposal_must_be_pending",
@@ -1182,6 +1337,7 @@
         "policy_required": true
       },
       "domain": "governance",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1209,6 +1365,7 @@
           "governance.proposal.submitted"
         ]
       },
+      "source_domain": "governance",
       "validation_rule_ids": [
         "proposal_type_must_be_recognized",
         "target_domain_must_be_valid",
@@ -1234,6 +1391,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -1245,6 +1403,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "actor_must_be_revoked"
       ],
@@ -1267,6 +1426,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -1277,6 +1437,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "actor_type_must_be_recognized",
         "display_name_must_not_be_empty",
@@ -1301,6 +1462,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -1311,6 +1473,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "actor_must_be_active_or_suspended",
         "revocation_reason_must_be_provided"
@@ -1334,6 +1497,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -1344,6 +1508,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "actor_must_be_active",
         "suspension_reason_must_be_provided"
@@ -1367,6 +1532,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -1377,6 +1543,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "actor_must_be_in_pending_verification_state",
         "governance_must_have_verify_authority"
@@ -1400,6 +1567,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -1411,6 +1579,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "identity_must_exist_and_be_active",
         "credential_type_must_be_recognized",
@@ -1435,6 +1604,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -1446,6 +1616,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "credential_must_exist",
         "credential_must_be_active",
@@ -1470,6 +1641,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1482,6 +1654,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "delegator_must_be_active",
         "delegate_must_be_active",
@@ -1507,6 +1680,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -1518,6 +1692,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "delegation_must_exist",
         "delegation_must_be_active",
@@ -1542,6 +1717,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1557,6 +1733,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "valid_credentials_required",
         "identity_must_be_active",
@@ -1581,6 +1758,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1596,6 +1774,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "session_must_exist_and_be_active"
       ],
@@ -1618,6 +1797,7 @@
         "policy_required": true
       },
       "domain": "identity",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -1628,6 +1808,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "identity",
       "validation_rule_ids": [
         "anchor_type_must_be_recognized",
         "public_key_material_must_be_valid",
@@ -1652,6 +1833,7 @@
         "policy_required": true
       },
       "domain": "intent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -1662,6 +1844,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "intent",
       "validation_rule_ids": [
         "intent_must_exist",
         "intent_must_be_in_terminal_state"
@@ -1685,6 +1868,7 @@
         "policy_required": true
       },
       "domain": "intent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1697,6 +1881,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "intent",
       "validation_rule_ids": [
         "intent_must_exist",
         "intent_must_be_in_cancellable_state",
@@ -1721,6 +1906,7 @@
         "policy_required": true
       },
       "domain": "intent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system",
@@ -1733,6 +1919,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "intent",
       "validation_rule_ids": [
         "intent_must_exist",
         "intent_must_be_ready",
@@ -1758,6 +1945,7 @@
         "policy_required": true
       },
       "domain": "intent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -1768,6 +1956,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "intent",
       "validation_rule_ids": [
         "intent_must_exist",
         "intent_must_be_in_enrichable_state",
@@ -1792,6 +1981,7 @@
         "policy_required": true
       },
       "domain": "intent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system",
@@ -1803,6 +1993,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "intent",
       "validation_rule_ids": [
         "intent_must_exist",
         "intent_must_be_ready",
@@ -1828,6 +2019,7 @@
         "policy_required": true
       },
       "domain": "intent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1840,6 +2032,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "intent",
       "validation_rule_ids": [
         "intent_type_must_be_multi_step",
         "steps_array_must_be_non_empty",
@@ -1864,6 +2057,7 @@
         "policy_required": true
       },
       "domain": "intent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -1879,6 +2073,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "intent",
       "validation_rule_ids": [
         "actor_must_exist_and_be_active",
         "policy_decision_must_allow",
@@ -1904,6 +2099,7 @@
         "policy_required": true
       },
       "domain": "intent",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -1914,6 +2110,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "intent",
       "validation_rule_ids": [
         "intent_must_exist",
         "intent_must_be_in_validatable_state",
@@ -1938,6 +2135,7 @@
         "policy_required": true
       },
       "domain": "ledger",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -1966,6 +2164,7 @@
           "ledger.account.created"
         ]
       },
+      "source_domain": "ledger",
       "validation_rule_ids": [
         "account_code_unique",
         "account_type_recognized",
@@ -1991,6 +2190,7 @@
         "policy_required": true
       },
       "domain": "ledger",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -2011,6 +2211,7 @@
           "ledger.account.frozen"
         ]
       },
+      "source_domain": "ledger",
       "validation_rule_ids": [
         "account_exists",
         "account_is_active",
@@ -2036,6 +2237,7 @@
         "policy_required": true
       },
       "domain": "ledger",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -2066,6 +2268,7 @@
           "ledger.entry.corrected"
         ]
       },
+      "source_domain": "ledger",
       "validation_rule_ids": [
         "original_entry_exists",
         "original_entry_posted_or_settled",
@@ -2092,6 +2295,7 @@
         "policy_required": true
       },
       "domain": "ledger",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -2129,6 +2333,7 @@
           "ledger.entry.posted"
         ]
       },
+      "source_domain": "ledger",
       "validation_rule_ids": [
         "at_least_two_postings",
         "all_accounts_exist_and_active",
@@ -2160,6 +2365,7 @@
         "policy_required": true
       },
       "domain": "ledger",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -2181,6 +2387,7 @@
           "ledger.entry.reversed"
         ]
       },
+      "source_domain": "ledger",
       "validation_rule_ids": [
         "original_entry_exists",
         "original_entry_posted_or_settled",
@@ -2207,6 +2414,7 @@
         "policy_required": true
       },
       "domain": "ledger",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -2229,6 +2437,7 @@
           "ledger.journal.created"
         ]
       },
+      "source_domain": "ledger",
       "validation_rule_ids": [
         "journal_name_unique_within_ledger",
         "domain_must_be_recognized",
@@ -2253,6 +2462,7 @@
         "policy_required": true
       },
       "domain": "ledger",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -2275,6 +2485,7 @@
           "ledger.period.closed"
         ]
       },
+      "source_domain": "ledger",
       "validation_rule_ids": [
         "period_exists",
         "period_is_open",
@@ -2301,6 +2512,7 @@
         "policy_required": true
       },
       "domain": "ledger",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -2325,6 +2537,7 @@
           "ledger.reconciliation.completed"
         ]
       },
+      "source_domain": "ledger",
       "validation_rule_ids": [
         "reconciliation_exists",
         "reconciliation_in_resolvable_state",
@@ -2350,6 +2563,7 @@
         "policy_required": true
       },
       "domain": "ledger",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -2375,6 +2589,7 @@
           "ledger.reconciliation.started"
         ]
       },
+      "source_domain": "ledger",
       "validation_rule_ids": [
         "no_conflicting_reconciliation",
         "source_data_available",
@@ -2397,6 +2612,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -2406,7 +2622,9 @@
         "minimum_capability": "payment.execution.compensate"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Adapter disable is administrative rail safety control; payment adapter lifecycle is separately specified.",
       "required_payload": [
         "adapter_id",
         "disable_reason"
@@ -2419,6 +2637,7 @@
           "payment.request.cancelled"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "adapter_must_be_registered"
       ],
@@ -2441,6 +2660,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system",
@@ -2462,6 +2682,7 @@
           "payment.compensation.started"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "payment_must_exist",
         "payment_must_be_in_compensatable_state",
@@ -2486,6 +2707,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -2510,6 +2732,7 @@
           "payment.rail.confirmed"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "payment_must_exist",
         "payment_must_be_in_confirming_state",
@@ -2534,6 +2757,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -2553,6 +2777,7 @@
           "payment.execution.started"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "payment_must_exist",
         "payment_must_have_execution_plan",
@@ -2578,6 +2803,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -2601,6 +2827,7 @@
           "payment.execution.planned"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "payment_must_exist",
         "payment_must_be_in_planning_state",
@@ -2623,6 +2850,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -2646,6 +2874,7 @@
           "payment.execution.planned"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "payment_request_must_be_approved"
       ],
@@ -2668,6 +2897,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -2675,7 +2905,9 @@
         "minimum_capability": "payment.receipt.issue"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Receipt issuance is notification/audit output after payment state is already represented.",
       "required_payload": [
         "payment_request_id",
         "rail_reference_id",
@@ -2692,6 +2924,7 @@
           "payment.receipt.issued"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "payment_must_be_settled",
         "rail_reference_required",
@@ -2716,6 +2949,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system",
@@ -2739,6 +2973,7 @@
           "payment.reconciliation.completed"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "reconciliation_must_exist",
         "reconciliation_must_be_active"
@@ -2762,6 +2997,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system",
@@ -2783,6 +3019,7 @@
           "payment.reconciliation.started"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "payment_must_exist",
         "payment_must_be_in_reconcilable_state"
@@ -2806,6 +3043,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -2827,6 +3065,7 @@
           "payment.request.cancelled"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "payment_must_exist",
         "payment_must_be_cancellable",
@@ -2851,6 +3090,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -2877,6 +3117,7 @@
           "payment.request.created"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "source_transfer_must_exist",
         "amount_must_match_transfer",
@@ -2902,6 +3143,7 @@
         "policy_required": true
       },
       "domain": "policy",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -2912,6 +3154,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "policy",
       "validation_rule_ids": [
         "regulation_id_must_not_be_empty",
         "jurisdiction_must_not_be_empty"
@@ -2935,6 +3178,7 @@
         "policy_required": true
       },
       "domain": "policy",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -2946,6 +3190,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "policy",
       "validation_rule_ids": [
         "escalation_must_exist",
         "escalation_must_be_in_resolvable_state",
@@ -2970,6 +3215,7 @@
         "policy_required": true
       },
       "domain": "policy",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -2980,6 +3226,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "policy",
       "validation_rule_ids": [
         "rule_must_exist",
         "rule_must_be_in_draft_state",
@@ -3004,6 +3251,7 @@
         "policy_required": true
       },
       "domain": "policy",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -3014,6 +3262,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "policy",
       "validation_rule_ids": [
         "rule_name_must_be_unique",
         "category_must_be_recognized",
@@ -3038,6 +3287,7 @@
         "policy_required": true
       },
       "domain": "policy",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -3048,6 +3298,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "policy",
       "validation_rule_ids": [
         "rule_must_exist",
         "rule_must_be_active"
@@ -3071,6 +3322,7 @@
         "policy_required": true
       },
       "domain": "policy",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -3081,6 +3333,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "policy",
       "validation_rule_ids": [
         "rule_must_exist",
         "version_must_be_incremented",
@@ -3105,6 +3358,7 @@
         "policy_required": true
       },
       "domain": "policy",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance"
@@ -3115,6 +3369,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "policy",
       "validation_rule_ids": [
         "all_rule_ids_must_exist_and_be_active",
         "evaluation_strategy_must_be_recognized"
@@ -3138,6 +3393,7 @@
         "policy_required": true
       },
       "domain": "policy",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -3153,6 +3409,7 @@
       "lifecycle_exempt": false,
       "required_payload": [],
       "resulting_events": {},
+      "source_domain": "policy",
       "validation_rule_ids": [
         "authorization_context_id_required",
         "command_id_required",
@@ -3175,6 +3432,7 @@
         "policy_required": true
       },
       "domain": "payment",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -3182,7 +3440,9 @@
         "minimum_capability": "system.internal"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Saga compensation is orchestrator-level cross-cutting behavior governed by saga lifecycle.",
       "required_payload": [
         "saga_id",
         "failed_step_id"
@@ -3195,6 +3455,7 @@
           "payment.execution.compensated"
         ]
       },
+      "source_domain": "payment",
       "validation_rule_ids": [
         "saga_must_be_failed_or_cancelling"
       ],
@@ -3217,6 +3478,7 @@
         "policy_required": true
       },
       "domain": "treasury",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -3242,6 +3504,7 @@
         ],
         "success": []
       },
+      "source_domain": "treasury",
       "validation_rule_ids": [
         "source_has_sufficient_liquidity",
         "allocation_purpose_valid",
@@ -3268,6 +3531,7 @@
         "policy_required": true
       },
       "domain": "treasury",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -3278,7 +3542,9 @@
         "minimum_capability": "treasury.liquidity.read"
       },
       "lifecycle": null,
-      "lifecycle_exempt": false,
+      "lifecycle_exempt": true,
+      "lifecycle_exempt_governance_ref": "ADR-COMP-015",
+      "lifecycle_exempt_reason": "Liquidity check reads available liquidity and emits no authoritative aggregate lifecycle transition.",
       "required_payload": [
         "actor_id",
         "asset_id"
@@ -3290,6 +3556,7 @@
         "failure": [],
         "success": []
       },
+      "source_domain": "treasury",
       "validation_rule_ids": [
         "actor_exists",
         "scope_matches_actor"
@@ -3313,6 +3580,7 @@
         "policy_required": true
       },
       "domain": "treasury",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system",
@@ -3337,6 +3605,7 @@
           "treasury.settlement.confirmed"
         ]
       },
+      "source_domain": "treasury",
       "validation_rule_ids": [
         "transfer_in_settleable_state",
         "settlement_reference_provided",
@@ -3362,6 +3631,7 @@
         "policy_required": true
       },
       "domain": "treasury",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -3382,6 +3652,7 @@
           "treasury.transfer.authorized"
         ]
       },
+      "source_domain": "treasury",
       "validation_rule_ids": [
         "transfer_in_requested_state",
         "transfer_not_expired",
@@ -3408,6 +3679,7 @@
         "policy_required": true
       },
       "domain": "treasury",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -3430,6 +3702,7 @@
           "treasury.transfer.rejected"
         ]
       },
+      "source_domain": "treasury",
       "validation_rule_ids": [
         "transfer_in_cancellable_state",
         "cancellation_reason_provided",
@@ -3455,6 +3728,7 @@
         "policy_required": true
       },
       "domain": "treasury",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -3476,6 +3750,7 @@
           "treasury.transfer.compensation_required"
         ]
       },
+      "source_domain": "treasury",
       "validation_rule_ids": [
         "transfer_in_compensatable_state",
         "compensation_step_defined",
@@ -3501,6 +3776,7 @@
         "policy_required": true
       },
       "domain": "treasury",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -3524,6 +3800,7 @@
           "treasury.transfer.executing"
         ]
       },
+      "source_domain": "treasury",
       "validation_rule_ids": [
         "transfer_in_reserved_state",
         "vault_lock_still_active",
@@ -3549,6 +3826,19 @@
         "policy_required": true
       },
       "domain": "treasury",
+      "execution_gates": [
+        {
+          "config": {
+            "amountPayloadKey": "amount",
+            "currency": "USD",
+            "maxAmount": "50"
+          },
+          "description": "Enforce constitutional amount limit for treasury transfers",
+          "fatal": true,
+          "gate_id": "amount_within_limit",
+          "type": "AMOUNT_WITHIN_LIMIT"
+        }
+      ],
       "issuer": {
         "actor_types": [
           "human",
@@ -3581,6 +3871,7 @@
           "treasury.transfer.requested"
         ]
       },
+      "source_domain": "treasury",
       "validation_rule_ids": [
         "source_actor_exists_and_active",
         "destination_actor_valid",
@@ -3607,6 +3898,7 @@
         "policy_required": true
       },
       "domain": "treasury",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -3626,6 +3918,7 @@
           "treasury.transfer.reserved"
         ]
       },
+      "source_domain": "treasury",
       "validation_rule_ids": [
         "transfer_in_authorized_state",
         "authorization_not_expired",
@@ -3651,6 +3944,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "governance",
@@ -3678,6 +3972,7 @@
           "vault.reconciliation.started"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "no_concurrent_reconciliation",
         "external_data_provided"
@@ -3701,6 +3996,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -3730,6 +4026,7 @@
           "vault.asset.registered"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "asset_id_must_be_globally_unique",
         "asset_type_must_be_recognized",
@@ -3757,6 +4054,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -3778,6 +4076,7 @@
           "vault.asset.rejected"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "asset_must_exist",
         "asset_must_be_rejectable",
@@ -3802,6 +4101,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -3827,6 +4127,7 @@
           "vault.custody.attested"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "asset_must_exist",
         "asset_must_be_in_registered_state",
@@ -3850,6 +4151,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -3873,6 +4175,7 @@
           "vault.asset.rejected"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "asset_must_exist"
       ],
@@ -3895,6 +4198,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human"
@@ -3917,6 +4221,7 @@
           "vault.collateral.valued"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "asset_must_be_eligible_for_collateral",
         "ownership_must_be_verified",
@@ -3943,6 +4248,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -3964,6 +4270,7 @@
           "vault.collateral.released"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "collateral_must_exist",
         "release_conditions_must_be_met",
@@ -3988,6 +4295,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system",
@@ -4014,6 +4322,7 @@
           "vault.collateral.revalued"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "collateral_must_exist",
         "valuation_source_must_be_trusted",
@@ -4036,6 +4345,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -4059,6 +4369,7 @@
           "vault.asset.verified"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "asset_must_be_verified"
       ],
@@ -4081,6 +4392,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -4105,6 +4417,7 @@
           "vault.reserve.created"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "asset_must_be_available",
         "actor_must_have_reserve_control",
@@ -4133,6 +4446,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system"
@@ -4150,6 +4464,7 @@
           "vault.reserve.expired"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "reservation_must_exist",
         "reservation_must_be_expirable",
@@ -4174,6 +4489,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -4196,6 +4512,7 @@
           "vault.reserve.locked"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "reservation_must_exist",
         "reservation_must_be_pending",
@@ -4221,6 +4538,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -4243,6 +4561,7 @@
           "vault.reserve.released"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "reservation_must_exist",
         "reservation_must_be_releasable",
@@ -4265,6 +4584,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -4288,6 +4608,7 @@
           "vault.transaction.release_authorized"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "transaction_must_be_funded"
       ],
@@ -4308,6 +4629,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -4328,6 +4650,7 @@
           "vault.transaction.failed"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "transaction_must_be_cancellable"
       ],
@@ -4348,6 +4671,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -4371,6 +4695,7 @@
           "vault.transaction.closed"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "transaction_must_be_authorized"
       ],
@@ -4391,6 +4716,19 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [
+        {
+          "config": {
+            "amountPayloadKey": "amount",
+            "currency": "USD",
+            "maxAmount": "50"
+          },
+          "description": "Enforce constitutional amount limit for vault transaction funding",
+          "fatal": true,
+          "gate_id": "amount_within_limit",
+          "type": "AMOUNT_WITHIN_LIMIT"
+        }
+      ],
       "issuer": {
         "actor_types": [
           "human",
@@ -4414,6 +4752,7 @@
           "vault.transaction.funding_requested"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "transaction_must_exist"
       ],
@@ -4434,6 +4773,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "human",
@@ -4458,6 +4798,7 @@
           "vault.reserve.created"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "source_must_have_balance"
       ],
@@ -4480,6 +4821,7 @@
         "policy_required": true
       },
       "domain": "vault",
+      "execution_gates": [],
       "issuer": {
         "actor_types": [
           "system",
@@ -4508,6 +4850,7 @@
           "vault.valuation.updated"
         ]
       },
+      "source_domain": "vault",
       "validation_rule_ids": [
         "asset_must_exist",
         "source_must_be_trusted",
@@ -4518,5 +4861,13 @@
     }
   },
   "entry_count": 105,
+  "integrity": {
+    "algorithm": "SHA256",
+    "generated_by": {
+      "compiler_version": "0.6.0"
+    },
+    "hash": "ab58df9972efc64091454c09937ab0e47fa8b3f78d7eff1053bb92cb4b884395",
+    "timestamp": "2026-08-08T21:28:11.295Z"
+  },
   "kind": "commands"
 }

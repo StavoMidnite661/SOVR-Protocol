@@ -1,0 +1,695 @@
+{
+  "abi_version": "v1",
+  "entry_count": 7,
+  "integrity": {
+    "algorithm": "SHA256",
+    "generated_by": {
+      "compiler_version": "0.6.0"
+    },
+    "hash": "6fa9adbcbab1d728181ebb553db9f4e20506de635725249b7927fb96a879953f",
+    "timestamp": "2026-08-08T21:28:11.333Z"
+  },
+  "scenarios": {
+    "SIM-001-VAULT-FUNDING-LIFECYCLE": {
+      "actors": [
+        {
+          "actor_id": "sim-vault-operator",
+          "actor_type": "human",
+          "identity_id": "sim-vault-operator-id",
+          "session_id": "sim-vault-session-001"
+        }
+      ],
+      "commands": [
+        {
+          "aggregate": "asset",
+          "capability_id": "vault.asset.create",
+          "command_id": "cmd-001",
+          "command_name": "vault.asset.register",
+          "domain": "vault",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "asset_id": "vault-asset-001",
+            "asset_type": "stablecoin",
+            "custody_location": "sovr_internal_vault_1",
+            "custody_provider": "sovr_internal",
+            "face_value": "1000",
+            "issuer_id": "sim-vault-operator",
+            "native_unit": "wei",
+            "ownership_id": "sim-vault-operator",
+            "precision": 18,
+            "quantity": "1000",
+            "reserve_ratio": "1.0",
+            "valuation_source": "internal"
+          },
+          "scope": "vault.asset:*"
+        }
+      ],
+      "compiled_at": "2026-08-08T21:28:11.332Z",
+      "description": "Creates a vault asset and verifies the event chain. Tests execution gates, amount limits, and audit completeness.\n",
+      "integrity": {
+        "algorithm": "SHA256",
+        "generated_by": {
+          "compiler_version": "0.6.0"
+        },
+        "hash": "e687e111d5f3d8277cfafc88db75d226fe0eb0d0788cde765270b68533367786",
+        "timestamp": "2026-08-08T21:28:11.332Z"
+      },
+      "lifecycle": {
+        "initial_state": "INIT",
+        "terminal_state": "REGISTERED"
+      },
+      "name": "Vault Funding Lifecycle",
+      "scenario_id": "SIM-001-VAULT-FUNDING-LIFECYCLE",
+      "source_file": "governance/simulation/scenarios/SIM-001-VAULT-FUNDING-LIFECYCLE.yaml",
+      "version": "1.0.0"
+    },
+    "SIM-002-TREASURY-TRANSFER-APPROVAL": {
+      "actors": [
+        {
+          "actor_id": "sim-treasury-operator",
+          "actor_type": "human",
+          "identity_id": "sim-treasury-operator-id",
+          "session_id": "sim-treasury-session-001"
+        }
+      ],
+      "commands": [
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.request",
+          "command_id": "cmd-001",
+          "command_name": "treasury.transfer.request",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount": "25",
+            "asset_id": "vault-asset-001",
+            "destination_actor_id": "sim-recipient",
+            "destination_details": [
+              {
+                "address": "sim-address",
+                "rail": "ACH",
+                "reference": "sim-ref-001",
+                "type": "ach"
+              }
+            ],
+            "purpose": "test_transfer",
+            "source_actor_id": "sim-treasury-operator"
+          },
+          "scope": "treasury.transfer:*"
+        },
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.authorize",
+          "command_id": "cmd-002",
+          "command_name": "treasury.transfer.authorize",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "authorization_reference": "auth-ref-001",
+            "order_id": "sim-transfer-001"
+          },
+          "scope": "treasury.transfer:*"
+        }
+      ],
+      "compiled_at": "2026-08-08T21:28:11.332Z",
+      "description": "Tests treasury transfer workflow with capability validation, policy evaluation, and causation chain preservation.\n",
+      "integrity": {
+        "algorithm": "SHA256",
+        "generated_by": {
+          "compiler_version": "0.6.0"
+        },
+        "hash": "2b276fa7e65fd2303583639c0a7545f70a656097f243647e18796d8e62ae8f40",
+        "timestamp": "2026-08-08T21:28:11.332Z"
+      },
+      "lifecycle": {
+        "initial_state": "INIT",
+        "terminal_state": "REQUESTED"
+      },
+      "name": "Treasury Transfer Approval",
+      "scenario_id": "SIM-002-TREASURY-TRANSFER-APPROVAL",
+      "source_file": "governance/simulation/scenarios/SIM-002-TREASURY-TRANSFER-APPROVAL.yaml",
+      "version": "1.0.0"
+    },
+    "SIM-003-SYSTEM-INTEGRITY": {
+      "actors": [
+        {
+          "actor_id": "sim-integrity-operator",
+          "actor_type": "human",
+          "identity_id": "sim-integrity-operator-id",
+          "session_id": "sim-integrity-session-001"
+        }
+      ],
+      "commands": [
+        {
+          "aggregate": "asset",
+          "capability_id": "vault.asset.create",
+          "command_id": "cmd-001",
+          "command_name": "vault.asset.register",
+          "domain": "vault",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "asset_id": "integrity-asset-001",
+            "asset_type": "tokenized_asset",
+            "custody_location": "sovr_internal_vault_1",
+            "custody_provider": "sovr_internal",
+            "face_value": "5000",
+            "issuer_id": "sim-integrity-operator",
+            "native_unit": "wei",
+            "ownership_id": "sim-integrity-operator",
+            "precision": 18,
+            "quantity": "100",
+            "reserve_ratio": "1.0",
+            "valuation_source": "internal"
+          },
+          "scope": "vault.asset:*"
+        },
+        {
+          "aggregate": "journal_entry",
+          "capability_id": "ledger.entry.post",
+          "command_id": "cmd-002",
+          "command_name": "ledger.entry.post",
+          "domain": "ledger",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "causation_id": "cmd-001",
+            "correlation_id": "cmd-001",
+            "description": "Initial ledger entry for integrity verification",
+            "entry_type": "STANDARD",
+            "event_reference": "vault.asset.registered",
+            "journal_id": "journal-001",
+            "postings": [
+              {
+                "account_id": "account-001",
+                "amount": 5000,
+                "asset_id": "integrity-asset-001",
+                "description": "Debit posting for asset registration",
+                "direction": "DEBIT"
+              },
+              {
+                "account_id": "account-002",
+                "amount": 5000,
+                "asset_id": "integrity-asset-001",
+                "description": "Credit posting for asset registration",
+                "direction": "CREDIT"
+              }
+            ],
+            "transaction_id": "tx-001"
+          },
+          "scope": "ledger.entry:*"
+        }
+      ],
+      "compiled_at": "2026-08-08T21:28:11.332Z",
+      "description": "Verifies event store integrity, merkle audit, and causation chain across multiple command executions. Tests that the simulation engine correctly captures and hashes all events.\n",
+      "integrity": {
+        "algorithm": "SHA256",
+        "generated_by": {
+          "compiler_version": "0.6.0"
+        },
+        "hash": "5f7b7a32faaef6b255bc191556ffecc975e76eec786d80c98e86793f87c0db19",
+        "timestamp": "2026-08-08T21:28:11.332Z"
+      },
+      "lifecycle": {
+        "initial_state": "INIT",
+        "terminal_state": "REGISTERED"
+      },
+      "name": "System Integrity Verification",
+      "scenario_id": "SIM-003-SYSTEM-INTEGRITY",
+      "source_file": "governance/simulation/scenarios/SIM-003-SYSTEM-INTEGRITY.yaml",
+      "version": "1.0.0"
+    },
+    "SIM-004-ASSET-RESERVE-LIFECYCLE": {
+      "actors": [
+        {
+          "actor_id": "sim-vault-operator",
+          "actor_type": "human",
+          "identity_id": "sim-vault-operator-id",
+          "session_id": "sim-vault-session-004"
+        }
+      ],
+      "commands": [
+        {
+          "aggregate": "asset",
+          "capability_id": "vault.asset.create",
+          "command_id": "cmd-001",
+          "command_name": "vault.asset.register",
+          "domain": "vault",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "asset_id": "vault-asset-004",
+            "asset_type": "stablecoin",
+            "custody_location": "sovr_internal_vault_1",
+            "custody_provider": "sovr_internal",
+            "face_value": "5000",
+            "issuer_id": "sim-vault-operator",
+            "native_unit": "wei",
+            "ownership_id": "sim-vault-operator",
+            "precision": 18,
+            "quantity": "5000",
+            "reserve_ratio": "1.0",
+            "valuation_source": "internal"
+          },
+          "scope": "vault.asset:*"
+        },
+        {
+          "aggregate": "asset",
+          "capability_id": "vault.asset.verify",
+          "command_id": "cmd-002",
+          "command_name": "vault.asset.verify",
+          "domain": "vault",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "asset_id": "vault-asset-004",
+            "attestation_proof": "proof-004",
+            "attester_id": "sim-custodian",
+            "verification_method": "internal_attestation"
+          },
+          "scope": "vault.asset:*"
+        },
+        {
+          "aggregate": "reservation",
+          "capability_id": "vault.reserve.create",
+          "command_id": "cmd-003",
+          "command_name": "vault.reserve.create",
+          "domain": "vault",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount": "2500",
+            "asset_id": "vault-asset-004",
+            "expiration": "2026-12-31T23:59:59Z",
+            "purpose": "test_reserve"
+          },
+          "scope": "vault.reserve:*"
+        },
+        {
+          "aggregate": "reservation",
+          "capability_id": "vault.reserve.lock",
+          "command_id": "cmd-004",
+          "command_name": "vault.reserve.lock",
+          "domain": "vault",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount": "2500",
+            "asset_id": "vault-asset-004",
+            "expected_consuming_transaction_id": "sim-tx-004",
+            "expiration": "2026-12-31T23:59:59Z",
+            "purpose": "test_reserve",
+            "reservation_id": "sim-reserve-004"
+          },
+          "scope": "vault.reserve:*"
+        }
+      ],
+      "compiled_at": "2026-08-08T21:28:11.332Z",
+      "description": "Validates asset registration, custody attestation, reserve creation, reserve locking, and complete audit lineage across vault aggregates.\n",
+      "integrity": {
+        "algorithm": "SHA256",
+        "generated_by": {
+          "compiler_version": "0.6.0"
+        },
+        "hash": "d890ea2ebff51b09294db8466fdc547dcef5ed13b06f4b081ab60b83590240a3",
+        "timestamp": "2026-08-08T21:28:11.332Z"
+      },
+      "lifecycle": {
+        "initial_state": "REGISTERED",
+        "terminal_state": "LOCKED"
+      },
+      "name": "Asset Reserve Lifecycle",
+      "scenario_id": "SIM-004-ASSET-RESERVE-LIFECYCLE",
+      "source_file": "governance/simulation/scenarios/SIM-004-ASSET-RESERVE-LIFECYCLE.yaml",
+      "version": "1.0.0"
+    },
+    "SIM-005-TREASURY-CONTROL-LIFECYCLE": {
+      "actors": [
+        {
+          "actor_id": "sim-treasury-operator",
+          "actor_type": "system",
+          "identity_id": "sim-treasury-operator-id",
+          "session_id": "sim-treasury-session-005"
+        }
+      ],
+      "commands": [
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.request",
+          "command_id": "cmd-001",
+          "command_name": "treasury.transfer.request",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount": "50",
+            "asset_id": "vault-asset-004",
+            "destination_details": [
+              {
+                "address": "sim-address-005",
+                "rail": "ACH",
+                "reference": "sim-ref-005",
+                "type": "ach"
+              }
+            ],
+            "purpose": "test_transfer",
+            "source_actor_id": "sim-treasury-operator"
+          },
+          "scope": "treasury.transfer:*"
+        },
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.authorize",
+          "command_id": "cmd-002",
+          "command_name": "treasury.transfer.authorize",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "order_id": "sim-transfer-005-a"
+          },
+          "scope": "treasury.transfer:*"
+        },
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.reserve",
+          "command_id": "cmd-003",
+          "command_name": "treasury.transfer.reserve",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "order_id": "sim-transfer-005-b"
+          },
+          "scope": "treasury.transfer:*"
+        },
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.execute",
+          "command_id": "cmd-004",
+          "command_name": "treasury.transfer.execute",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "order_id": "sim-transfer-005-c"
+          },
+          "scope": "treasury.transfer:*"
+        }
+      ],
+      "compiled_at": "2026-08-08T21:28:11.332Z",
+      "description": "Validates treasury transfer request creation, authorization, reserve allocation, execution, and settlement readiness.\n",
+      "integrity": {
+        "algorithm": "SHA256",
+        "generated_by": {
+          "compiler_version": "0.6.0"
+        },
+        "hash": "25271b270369ad28d4936cd01ed7c9abcb7252959c758c8ed0ac6b6fd8d2704b",
+        "timestamp": "2026-08-08T21:28:11.332Z"
+      },
+      "lifecycle": {
+        "initial_state": "REQUESTED",
+        "terminal_state": "SETTLED"
+      },
+      "name": "Treasury Control Lifecycle",
+      "scenario_id": "SIM-005-TREASURY-CONTROL-LIFECYCLE",
+      "source_file": "governance/simulation/scenarios/SIM-005-TREASURY-CONTROL-LIFECYCLE.yaml",
+      "version": "1.0.0"
+    },
+    "SIM-006-LEDGER-RECONCILIATION-LIFECYCLE": {
+      "actors": [
+        {
+          "actor_id": "sim-ledger-operator",
+          "actor_type": "governance",
+          "identity_id": "sim-ledger-operator-id",
+          "session_id": "sim-ledger-session-006"
+        }
+      ],
+      "commands": [
+        {
+          "aggregate": "journal",
+          "capability_id": "ledger.journal.manage",
+          "command_id": "cmd-001",
+          "command_name": "ledger.journal.create",
+          "domain": "ledger",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "description": "Simulation journal for reconciliation lifecycle",
+            "domain": "vault",
+            "journal_id": "sim-journal-006",
+            "ledger_id": "ledger-006",
+            "name": "sim-journal-006"
+          },
+          "scope": "ledger.journal:*"
+        },
+        {
+          "aggregate": "journal_entry",
+          "capability_id": "ledger.entry.post",
+          "command_id": "cmd-002",
+          "command_name": "ledger.entry.post",
+          "domain": "ledger",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "causation_id": "cmd-001",
+            "correlation_id": "cmd-001",
+            "description": "Initial ledger entry for reconciliation verification",
+            "entry_type": "STANDARD",
+            "event_reference": "vault.asset.registered",
+            "journal_id": "ledger-006",
+            "postings": [
+              {
+                "account_id": "account-006-a",
+                "amount": 5000,
+                "asset_id": "vault-asset-004",
+                "description": "Debit posting for reconciliation",
+                "direction": "DEBIT"
+              },
+              {
+                "account_id": "account-006-b",
+                "amount": 5000,
+                "asset_id": "vault-asset-004",
+                "description": "Credit posting for reconciliation",
+                "direction": "CREDIT"
+              }
+            ],
+            "transaction_id": "tx-006"
+          },
+          "scope": "ledger.entry:*"
+        },
+        {
+          "aggregate": "reconciliation",
+          "capability_id": "ledger.reconcile",
+          "command_id": "cmd-003",
+          "command_name": "ledger.reconciliation.start",
+          "domain": "ledger",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "reconciliation_id": "sim-recon-006",
+            "scope": "ledger-006",
+            "source_data": "simulation-reconciliation-006",
+            "type": "internal_audit"
+          },
+          "scope": "ledger.reconciliation:*"
+        },
+        {
+          "aggregate": "reconciliation",
+          "capability_id": "ledger.reconcile",
+          "command_id": "cmd-004",
+          "command_name": "ledger.reconciliation.resolve",
+          "domain": "ledger",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "correction_postings": [],
+            "reconciliation_id": "sim-recon-006",
+            "resolution_method": "automatic_match"
+          },
+          "scope": "ledger.reconciliation:*"
+        }
+      ],
+      "compiled_at": "2026-08-08T21:28:11.332Z",
+      "description": "Validates accounting truth, ledger mutation controls, reconciliation, and audit proof across ledger aggregates.\n",
+      "integrity": {
+        "algorithm": "SHA256",
+        "generated_by": {
+          "compiler_version": "0.6.0"
+        },
+        "hash": "cb769d0272ebbd3bcb109337b3e39669afe97bf2e57ce5da245891139f94ca6a",
+        "timestamp": "2026-08-08T21:28:11.333Z"
+      },
+      "lifecycle": {
+        "initial_state": "ACTIVE",
+        "terminal_state": "RECONCILED"
+      },
+      "name": "Ledger Reconciliation Lifecycle",
+      "scenario_id": "SIM-006-LEDGER-RECONCILIATION-LIFECYCLE",
+      "source_file": "governance/simulation/scenarios/SIM-006-LEDGER-RECONCILIATION-LIFECYCLE.yaml",
+      "version": "1.0.0"
+    },
+    "SIM-007-SETTLEMENT-LIFECYCLE": {
+      "actors": [
+        {
+          "actor_id": "sim-settlement-operator",
+          "actor_type": "human",
+          "identity_id": "sim-settlement-operator-id",
+          "session_id": "sim-settlement-session-007"
+        }
+      ],
+      "commands": [
+        {
+          "aggregate": "intent",
+          "capability_id": "intent.submit",
+          "command_id": "cmd-001",
+          "command_name": "intent.submit",
+          "domain": "intent",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "domain_target": "treasury",
+            "intent_id": "sim-intent-007",
+            "intent_type": "settlement",
+            "objective": "Execute settlement obligation",
+            "submitting_actor_id": "sim-settlement-operator"
+          },
+          "scope": "intent:*"
+        },
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.request",
+          "command_id": "cmd-002",
+          "command_name": "treasury.transfer.request",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount": "50",
+            "asset_id": "vault-asset-007",
+            "destination_actor_id": "sim-recipient-007",
+            "destination_details": [
+              {
+                "address": "sim-address-007",
+                "rail": "ACH",
+                "reference": "sim-ref-007",
+                "type": "ach"
+              }
+            ],
+            "purpose": "settlement_obligation",
+            "source_actor_id": "sim-settlement-operator"
+          },
+          "scope": "treasury.transfer:*"
+        },
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.authorize",
+          "command_id": "cmd-003",
+          "command_name": "treasury.transfer.authorize",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "order_id": "sim-transfer-007"
+          },
+          "scope": "treasury.transfer:*"
+        },
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.reserve",
+          "command_id": "cmd-004",
+          "command_name": "treasury.transfer.reserve",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "order_id": "sim-transfer-007-reserve"
+          },
+          "scope": "treasury.transfer:*"
+        },
+        {
+          "aggregate": "journal_entry",
+          "capability_id": "ledger.entry.post",
+          "command_id": "cmd-005",
+          "command_name": "ledger.entry.post",
+          "domain": "ledger",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "causation_id": "cmd-004",
+            "correlation_id": "cmd-004",
+            "description": "Settlement reserve ledger posting",
+            "entry_type": "STANDARD",
+            "event_reference": "treasury.transfer.reserved",
+            "journal_id": "journal-007",
+            "postings": [
+              {
+                "account_id": "account-007-a",
+                "amount": 50,
+                "asset_id": "vault-asset-007",
+                "description": "Debit settlement reserve",
+                "direction": "DEBIT"
+              },
+              {
+                "account_id": "account-007-b",
+                "amount": 50,
+                "asset_id": "vault-asset-007",
+                "description": "Credit settlement liability",
+                "direction": "CREDIT"
+              }
+            ],
+            "transaction_id": "tx-007"
+          },
+          "scope": "ledger.entry:*"
+        },
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.transfer.execute",
+          "command_id": "cmd-006",
+          "command_name": "treasury.transfer.execute",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "order_id": "sim-transfer-007-execute"
+          },
+          "scope": "treasury.transfer:*"
+        },
+        {
+          "aggregate": "transfer_order",
+          "capability_id": "treasury.settlement.confirm",
+          "command_id": "cmd-007",
+          "command_name": "treasury.settlement.confirm",
+          "domain": "treasury",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "order_id": "sim-transfer-007-execute",
+            "settled_at": "2026-08-08T14:00:00Z",
+            "settlement_amount": "50",
+            "settlement_reference": "sim-ref-007"
+          },
+          "scope": "treasury.settlement:*"
+        },
+        {
+          "aggregate": "audit_record",
+          "capability_id": "governance.audit.query",
+          "command_id": "cmd-008",
+          "command_name": "governance.audit.query",
+          "domain": "governance",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "audit_type": "settlement",
+            "end_date": "2026-08-08T23:59:59Z",
+            "filters": {
+              "settlement_id": "sim-settlement-007"
+            },
+            "start_date": "2026-08-01T00:00:00Z",
+            "target_domains": [
+              "treasury",
+              "ledger"
+            ]
+          },
+          "scope": "governance.audit:*"
+        }
+      ],
+      "compiled_at": "2026-08-08T21:28:11.333Z",
+      "description": "Validates complete settlement lifecycle from intent creation through authorization, reserve allocation, ledger posting, settlement completion, and audit verification. Exercises multi-domain event causality.\n",
+      "integrity": {
+        "algorithm": "SHA256",
+        "generated_by": {
+          "compiler_version": "0.6.0"
+        },
+        "hash": "8df1d5d190e2ed00135af38719aaf12d0ea2411ff79439fb066d19f80ec07a54",
+        "timestamp": "2026-08-08T21:28:11.333Z"
+      },
+      "lifecycle": {
+        "initial_state": "CREATED",
+        "terminal_state": "VERIFIED"
+      },
+      "name": "Settlement Lifecycle",
+      "scenario_id": "SIM-007-SETTLEMENT-LIFECYCLE",
+      "source_file": "governance/simulation/scenarios/SIM-007-SETTLEMENT-LIFECYCLE.yaml",
+      "version": "1.0.0"
+    }
+  }
+}

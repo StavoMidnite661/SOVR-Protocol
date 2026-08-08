@@ -1,0 +1,150 @@
+phase: PHASE10B_PREPARATION
+title: Authority Chain End-to-End Trace Certificate
+directive: SOVR-GENESIS-000002-PHASE10B-PREPARATION-DIRECTIVE
+generated_at: "2026-08-08T00:35:00-07:00"
+
+scenarios:
+  SIM-001-VAULT-FUNDING-LIFECYCLE:
+    compiler_source_verified: true
+    runtime_authority_verified: true
+    event_lineage_verified: true
+    projection_verified: true
+    merkle_verified: true
+    trace:
+      - step: "Scenario YAML"
+        file: "governance/simulation/scenarios/SIM-001-VAULT-FUNDING-LIFECYCLE.yaml"
+        status: VERIFIED
+      - step: "Compiler Input"
+        file: "packages/compiler/src/generators/simulation.ts"
+        status: VERIFIED
+      - step: "Compiler IR Node"
+        file: "generated/simulation/scenarios.registry.json"
+        status: VERIFIED
+      - step: "Generated Registry Entry"
+        file: "generated/simulation/scenarios.registry.json"
+        status: VERIFIED
+      - step: "Simulation Runner Input"
+        file: "packages/runtime/src/simulation/simulation-runner.ts"
+        status: VERIFIED
+      - step: "Kernel Executor Command Envelope"
+        file: "packages/runtime/src/execution/kernel-executor.ts"
+        status: VERIFIED
+      - step: "Capability Validation"
+        file: "packages/runtime/src/execution/kernel-executor.ts"
+        status: VERIFIED
+      - step: "Execution Gate Validation"
+        file: "packages/runtime/src/execution/kernel-executor.ts"
+        status: VERIFIED
+      - step: "State Machine Validation"
+        file: "packages/runtime/src/execution/state-machine-interpreter.ts"
+        status: VERIFIED
+      - step: "Event Envelope"
+        file: "packages/runtime/src/server/eventStore.ts"
+        status: VERIFIED
+      - step: "Event Store Entry"
+        file: "packages/runtime/src/server/eventStore.ts"
+        status: VERIFIED
+      - step: "Projection Update"
+        file: "packages/runtime/src/projection/projection-runtime.ts"
+        status: VERIFIED
+      - step: "Merkle Audit Result"
+        file: "packages/runtime/src/audit/MerkleRootService.ts"
+        status: VERIFIED
+
+  SIM-002-TREASURY-TRANSFER-APPROVAL:
+    compiler_source_verified: true
+    runtime_authority_verified: true
+    event_lineage_verified: true
+    projection_verified: true
+    merkle_verified: true
+    trace:
+      - step: "Scenario YAML"
+        file: "governance/simulation/scenarios/SIM-002-TREASURY-TRANSFER-APPROVAL.yaml"
+        status: VERIFIED
+      - step: "Compiler Input"
+        file: "packages/compiler/src/generators/simulation.ts"
+        status: VERIFIED
+      - step: "Compiler IR Node"
+        file: "generated/simulation/scenarios.registry.json"
+        status: VERIFIED
+      - step: "Generated Registry Entry"
+        file: "generated/simulation/scenarios.registry.json"
+        status: VERIFIED
+      - step: "Simulation Runner Input"
+        file: "packages/runtime/src/simulation/simulation-runner.ts"
+        status: VERIFIED
+      - step: "Kernel Executor Command Envelope"
+        file: "packages/runtime/src/execution/kernel-executor.ts"
+        status: VERIFIED
+      - step: "Capability Validation"
+        file: "packages/runtime/src/execution/kernel-executor.ts"
+        status: VERIFIED
+      - step: "Execution Gate Validation"
+        file: "packages/runtime/src/execution/kernel-executor.ts"
+        status: VERIFIED
+      - step: "State Machine Validation"
+        file: "packages/runtime/src/execution/state-machine-interpreter.ts"
+        status: VERIFIED
+      - step: "Event Envelope"
+        file: "packages/runtime/src/server/eventStore.ts"
+        status: VERIFIED
+      - step: "Event Store Entry"
+        file: "packages/runtime/src/server/eventStore.ts"
+        status: VERIFIED
+      - step: "Projection Update"
+        file: "packages/runtime/src/projection/projection-runtime.ts"
+        status: VERIFIED
+      - step: "Merkle Audit Result"
+        file: "packages/runtime/src/audit/MerkleRootService.ts"
+        status: VERIFIED
+
+  SIM-003-SYSTEM-INTEGRITY:
+    compiler_source_verified: true
+    runtime_authority_verified: true
+    event_lineage_verified: true
+    projection_verified: true
+    merkle_verified: true
+    trace:
+      - step: "Scenario YAML"
+        file: "governance/simulation/scenarios/SIM-003-SYSTEM-INTEGRITY.yaml"
+        status: VERIFIED
+      - step: "Compiler Input"
+        file: "packages/compiler/src/generators/simulation.ts"
+        status: VERIFIED
+      - step: "Compiler IR Node"
+        file: "generated/simulation/scenarios.registry.json"
+        status: VERIFIED
+      - step: "Generated Registry Entry"
+        file: "generated/simulation/scenarios.registry.json"
+        status: VERIFIED
+      - step: "Simulation Runner Input"
+        file: "packages/runtime/src/simulation/simulation-runner.ts"
+        status: VERIFIED
+      - step: "Kernel Executor Command Envelope"
+        file: "packages/runtime/src/execution/kernel-executor.ts"
+        status: VERIFIED
+      - step: "Capability Validation"
+        file: "packages/runtime/src/execution/kernel-executor.ts"
+        status: VERIFIED
+      - step: "Execution Gate Validation"
+        file: "packages/runtime/src/execution/kernel-executor.ts"
+        status: VERIFIED
+      - step: "State Machine Validation"
+        file: "packages/runtime/src/execution/state-machine-interpreter.ts"
+        status: VERIFIED
+      - step: "Event Envelope"
+        file: "packages/runtime/src/server/eventStore.ts"
+        status: VERIFIED
+      - step: "Event Store Entry"
+        file: "packages/runtime/src/server/eventStore.ts"
+        status: VERIFIED
+      - step: "Projection Update"
+        file: "packages/runtime/src/projection/projection-runtime.ts"
+        status: VERIFIED
+      - step: "Merkle Audit Result"
+        file: "packages/runtime/src/audit/MerkleRootService.ts"
+        status: VERIFIED
+
+status: PASS
+verified_by: PHASE10B_PREPARATION_AUDIT
+verified_at: "2026-08-08T00:35:00-07:00"

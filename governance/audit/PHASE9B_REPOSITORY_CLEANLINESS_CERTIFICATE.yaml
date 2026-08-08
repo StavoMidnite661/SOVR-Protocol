@@ -1,0 +1,5 @@
+status: VERIFIED
+external_environment_artifacts_removed: true
+arena_contamination_removed: true
+machine_specific_paths_removed: true
+production_credentials_present: false

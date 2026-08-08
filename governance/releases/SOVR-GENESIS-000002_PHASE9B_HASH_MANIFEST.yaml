@@ -1,0 +1,11 @@
+compiler_version: v0.6.0
+build_hash: 43fd94583cfe565c49bf093b0723dcfd351df14e62a4f34e8663b51924f6c598
+boot_hash: bd1faed9d4e35c7763b8aaceb06949a113880ec9bb25e6701e41a851b23c592f
+
+certifications:
+  repository_cleanliness: VERIFIED
+  compiler_authority: VERIFIED
+  artifact_determinism: PASS
+  boot_provenance: VERIFIED
+  strict_causation: VERIFIED
+  integration_suite: PASS

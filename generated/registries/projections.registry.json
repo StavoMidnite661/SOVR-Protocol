@@ -1392,5 +1392,13 @@
     }
   },
   "entry_count": 16,
+  "integrity": {
+    "algorithm": "SHA256",
+    "generated_by": {
+      "compiler_version": "0.6.0"
+    },
+    "hash": "2439cf7c5288b351435ef65852402cdfa1a4aa96c6a77620f9050b768d17ab8d",
+    "timestamp": "2026-08-08T21:28:11.321Z"
+  },
   "kind": "projections"
 }

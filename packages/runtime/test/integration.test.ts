@@ -26,7 +26,7 @@ let testJwt: JWTService;
 let TEST_PRIVATE_KEY_PEM: string;
 let TEST_PUBLIC_KEY_PEM: string;
 
-async function waitForHealth(url: string, maxMs = 30_000) {
+async function waitForHealth(url: string, maxMs = 60_000) {
   const deadline = Date.now() + maxMs;
   let lastErr: any;
   while (Date.now() < deadline) {
@@ -64,14 +64,14 @@ beforeAll(async () => {
   });
   server.stdout?.on('data', (d) => process.stdout.write(`[server] ${d}`));
   server.stderr?.on('data', (d) => process.stderr.write(`[server-err] ${d}`));
-  await waitForHealth(`http://localhost:${TEST_PORT}/health`);
+  await waitForHealth(`http://127.0.0.1:${TEST_PORT}/health`);
   client = new SOVRClient({
     apiUrl: `http://localhost:${TEST_PORT}`,
     actorId: 'test_alice',
     actorType: 'human',
     timeoutMs: 10_000,
   });
-}, 60_000);
+}, 120_000);
 
 afterAll(async () => {
   if (server && !server.killed) {

@@ -1,0 +1,12 @@
+{
+  "domain": "liquidity",
+  "buildId": "2fc77ebc6fd7756f",
+  "generatedAt": "2026-07-17T23:00:40.036Z",
+  "artifacts": [
+    {
+      "file": "events/liquidity-events.ts",
+      "hash": "b614821778563934"
+    }
+  ],
+  "sourceHash": "2aea2b44332efa66"
+}

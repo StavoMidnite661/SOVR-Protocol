@@ -1,0 +1,84 @@
+scenario_id: SIM-004-ASSET-RESERVE-LIFECYCLE
+name: Asset Reserve Lifecycle
+description: >
+  Validates asset registration, custody attestation, reserve creation,
+  reserve locking, and complete audit lineage across vault aggregates.
+
+actor_context:
+  actor_id: sim-vault-operator
+  actor_type: human
+  identity_id: sim-vault-operator-id
+  session_id: sim-vault-session-004
+
+lifecycle:
+  initial_state: REGISTERED
+  terminal_state: LOCKED
+
+commands:
+  - command_id: cmd-001
+    command_name: vault.asset.register
+    domain: vault
+    aggregate: asset
+    payload:
+      asset_id: vault-asset-004
+      asset_type: stablecoin
+      issuer_id: sim-vault-operator
+      ownership_id: sim-vault-operator
+      custody_provider: sovr_internal
+      custody_location: sovr_internal_vault_1
+      native_unit: wei
+      precision: 18
+      valuation_source: internal
+      reserve_ratio: '1.0'
+      face_value: '5000'
+      quantity: '5000'
+    capability_id: vault.asset.create
+    scope: vault.asset:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-002
+    command_name: vault.asset.verify
+    domain: vault
+    aggregate: asset
+    payload:
+      asset_id: vault-asset-004
+      attester_id: sim-custodian
+      attestation_proof: proof-004
+      verification_method: internal_attestation
+    capability_id: vault.asset.verify
+    scope: vault.asset:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-003
+    command_name: vault.reserve.create
+    domain: vault
+    aggregate: reservation
+    payload:
+      asset_id: vault-asset-004
+      amount: '2500'
+      expiration: '2026-12-31T23:59:59Z'
+      purpose: test_reserve
+    capability_id: vault.reserve.create
+    scope: vault.reserve:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-004
+    command_name: vault.reserve.lock
+    domain: vault
+    aggregate: reservation
+    payload:
+      reservation_id: sim-reserve-004
+      expected_consuming_transaction_id: sim-tx-004
+      asset_id: vault-asset-004
+      amount: '2500'
+      expiration: '2026-12-31T23:59:59Z'
+      purpose: test_reserve
+    capability_id: vault.reserve.lock
+    scope: vault.reserve:*
+    expected_result: ACCEPTED
+
+verification:
+  event_lineage: true
+  capability_validation: true
+  state_transition_validation: true
+  deterministic_replay: true

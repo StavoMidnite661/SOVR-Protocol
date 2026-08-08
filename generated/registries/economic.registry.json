@@ -1,0 +1,3795 @@
+{
+  "abi": "v1",
+  "economic_domains": [
+    "ledger",
+    "payment",
+    "settlement",
+    "treasury",
+    "vault"
+  ],
+  "entries": {
+    "SettlementAuthorized": {
+      "abi": "v1",
+      "aggregate": "",
+      "data_fields": {},
+      "domain": "settlement",
+      "event_name": "SettlementAuthorized"
+    },
+    "SettlementExecuted": {
+      "abi": "v1",
+      "aggregate": "",
+      "data_fields": {},
+      "domain": "settlement",
+      "event_name": "SettlementExecuted"
+    },
+    "SettlementFinalized": {
+      "abi": "v1",
+      "aggregate": "",
+      "data_fields": {},
+      "domain": "settlement",
+      "event_name": "SettlementFinalized"
+    },
+    "ledger.account.closed": {
+      "abi": "v1",
+      "aggregate": "account",
+      "data_fields": {
+        "account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "closed_at": {
+          "type": "timestamp"
+        },
+        "closed_by": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.account.closed"
+    },
+    "ledger.account.create": {
+      "abi": "v1",
+      "aggregate": "account",
+      "capability": "ledger.account.manage",
+      "command_name": "ledger.account.create",
+      "domain": "ledger",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "ledger.account.creation_failed"
+        ],
+        "success": [
+          "ledger.account.created"
+        ]
+      }
+    },
+    "ledger.account.created": {
+      "abi": "v1",
+      "aggregate": "account",
+      "data_fields": {
+        "account_code": {
+          "type": "string"
+        },
+        "account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "account_name": {
+          "type": "string"
+        },
+        "account_type": {
+          "type": "enum",
+          "values": [
+            "ASSET",
+            "LIABILITY",
+            "EQUITY",
+            "REVENUE",
+            "EXPENSE",
+            "MEMORANDUM",
+            "RESERVE",
+            "COLLATERAL"
+          ]
+        },
+        "created_at": {
+          "type": "timestamp"
+        },
+        "domain_ownership": {
+          "type": "string"
+        },
+        "normal_balance": {
+          "type": "enum",
+          "values": [
+            "DEBIT",
+            "CREDIT",
+            "NONE"
+          ]
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.account.created"
+    },
+    "ledger.account.creation_failed": {
+      "abi": "v1",
+      "aggregate": "account",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.account.creation_failed"
+    },
+    "ledger.account.freeze": {
+      "abi": "v1",
+      "aggregate": "account",
+      "capability": "ledger.account.manage",
+      "command_name": "ledger.account.freeze",
+      "domain": "ledger",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "ledger.account.freeze_failed"
+        ],
+        "success": [
+          "ledger.account.frozen"
+        ]
+      }
+    },
+    "ledger.account.freeze_failed": {
+      "abi": "v1",
+      "aggregate": "account",
+      "data_fields": {
+        "account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.account.freeze_failed"
+    },
+    "ledger.account.frozen": {
+      "abi": "v1",
+      "aggregate": "account",
+      "data_fields": {
+        "account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "frozen_at": {
+          "type": "timestamp"
+        },
+        "frozen_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.account.frozen"
+    },
+    "ledger.entry.correct": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "capability": "ledger.entry.correct",
+      "command_name": "ledger.entry.correct",
+      "domain": "ledger",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "ledger.entry.correction_failed"
+        ],
+        "success": [
+          "ledger.entry.corrected"
+        ]
+      }
+    },
+    "ledger.entry.corrected": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "data_fields": {
+        "approved_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "corrected_at": {
+          "type": "timestamp"
+        },
+        "correction_description": {
+          "type": "string"
+        },
+        "entry_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "journal_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "original_entry_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "postings": {
+          "account_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "amount": {
+            "precision": 18,
+            "type": "decimal"
+          },
+          "direction": {
+            "type": "enum",
+            "values": [
+              "DEBIT",
+              "CREDIT"
+            ]
+          },
+          "posting_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.entry.corrected"
+    },
+    "ledger.entry.correction_failed": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "data_fields": {
+        "entry_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "journal_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.entry.correction_failed"
+    },
+    "ledger.entry.post": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "capability": "ledger.entry.post",
+      "command_name": "ledger.entry.post",
+      "domain": "ledger",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "ledger.entry.rejected"
+        ],
+        "success": [
+          "ledger.entry.posted"
+        ]
+      }
+    },
+    "ledger.entry.posted": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "data_fields": {
+        "actor_context": {
+          "actor_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "actor_type": {
+            "type": "enum"
+          },
+          "identity_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "values": [
+            "human",
+            "organization",
+            "ai_agent",
+            "service_account",
+            "governance",
+            "external_system",
+            "system"
+          ]
+        },
+        "authorization_context": {
+          "capability": {
+            "type": "string"
+          },
+          "policy_result": {
+            "type": "enum",
+            "values": [
+              "APPROVE",
+              "DENY",
+              "REQUIRE_APPROVAL"
+            ]
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "balance_after": {
+          "account_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "new_balance": {
+            "precision": 18,
+            "type": "decimal"
+          }
+        },
+        "correlation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "entry_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "entry_type": {
+          "type": "enum",
+          "values": [
+            "STANDARD",
+            "REVERSAL",
+            "CORRECTION",
+            "CLOSING",
+            "ADJUSTMENT"
+          ]
+        },
+        "event_reference": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "journal_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "posted_at": {
+          "type": "timestamp"
+        },
+        "posting_count": {
+          "type": "integer"
+        },
+        "postings": {
+          "account_code": {
+            "type": "string"
+          },
+          "account_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "amount": {
+            "precision": 18,
+            "type": "decimal"
+          },
+          "asset_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "direction": {
+            "type": "enum",
+            "values": [
+              "DEBIT",
+              "CREDIT"
+            ]
+          },
+          "posting_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "total_credits": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "total_debits": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "transaction_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.entry.posted"
+    },
+    "ledger.entry.rejected": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "data_fields": {
+        "actor_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "entry_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "failed_validation_rules": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "journal_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rejected_at": {
+          "type": "timestamp"
+        },
+        "rejection_reason": {
+          "type": "string"
+        },
+        "transaction_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.entry.rejected"
+    },
+    "ledger.entry.rejection_failed": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "data_fields": {
+        "entry_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "journal_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.entry.rejection_failed"
+    },
+    "ledger.entry.reversal_failed": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.entry.reversal_failed"
+    },
+    "ledger.entry.reverse": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "capability": "ledger.entry.reverse",
+      "command_name": "ledger.entry.reverse",
+      "domain": "ledger",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "ledger.entry.reversal_failed"
+        ],
+        "success": [
+          "ledger.entry.reversed"
+        ]
+      }
+    },
+    "ledger.entry.reversed": {
+      "abi": "v1",
+      "aggregate": "journal_entry",
+      "data_fields": {
+        "balance_after": {
+          "account_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "new_balance": {
+            "precision": 18,
+            "type": "decimal"
+          }
+        },
+        "entry_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "journal_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "original_entry_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "postings": {
+          "account_id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "amount": {
+            "precision": 18,
+            "type": "decimal"
+          },
+          "direction": {
+            "type": "enum",
+            "values": [
+              "DEBIT",
+              "CREDIT"
+            ]
+          },
+          "posting_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "reversal_reason": {
+          "type": "string"
+        },
+        "reversed_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.entry.reversed"
+    },
+    "ledger.journal.create": {
+      "abi": "v1",
+      "aggregate": "journal",
+      "capability": "ledger.journal.manage",
+      "command_name": "ledger.journal.create",
+      "domain": "ledger",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "ledger.journal.creation_failed"
+        ],
+        "success": [
+          "ledger.journal.created"
+        ]
+      }
+    },
+    "ledger.journal.created": {
+      "abi": "v1",
+      "aggregate": "journal",
+      "data_fields": {
+        "created_at": {
+          "type": "timestamp"
+        },
+        "description": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "journal_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.journal.created"
+    },
+    "ledger.journal.creation_failed": {
+      "abi": "v1",
+      "aggregate": "journal",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.journal.creation_failed"
+    },
+    "ledger.period.close": {
+      "abi": "v1",
+      "aggregate": "accounting_period",
+      "capability": "ledger.period.manage",
+      "command_name": "ledger.period.close",
+      "domain": "ledger",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "ledger.period.close_failed"
+        ],
+        "success": [
+          "ledger.period.closing",
+          "ledger.entry.posted",
+          "ledger.period.closed"
+        ]
+      }
+    },
+    "ledger.period.close_failed": {
+      "abi": "v1",
+      "aggregate": "accounting_period",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "period_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.period.close_failed"
+    },
+    "ledger.period.closed": {
+      "abi": "v1",
+      "aggregate": "accounting_period",
+      "data_fields": {
+        "closed_at": {
+          "type": "timestamp"
+        },
+        "closing_entry_ids": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "period_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.period.closed"
+    },
+    "ledger.period.closing": {
+      "abi": "v1",
+      "aggregate": "accounting_period",
+      "data_fields": {
+        "closing_entries": {
+          "entry_id": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "ledger_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "period_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "started_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.period.closing"
+    },
+    "ledger.reconciliation.completed": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "adjustment_entry_id": {
+          "format": "uuid",
+          "required": false,
+          "type": "string"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "resolution_method": {
+          "type": "enum",
+          "values": [
+            "auto_tolerance",
+            "adjustment",
+            "escalation",
+            "no_action_needed"
+          ]
+        },
+        "resolved_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.reconciliation.completed"
+    },
+    "ledger.reconciliation.mismatch_detected": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "actual_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "affected_accounts": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "detected_at": {
+          "type": "timestamp"
+        },
+        "discrepancy_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "expected_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "severity": {
+          "type": "enum",
+          "values": [
+            "none",
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.reconciliation.mismatch_detected"
+    },
+    "ledger.reconciliation.resolution_failed": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.reconciliation.resolution_failed"
+    },
+    "ledger.reconciliation.resolve": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "capability": "ledger.reconcile",
+      "command_name": "ledger.reconciliation.resolve",
+      "domain": "ledger",
+      "execution_gates": [],
+      "resulting_events": {
+        "conditional": [
+          "ledger.entry.corrected"
+        ],
+        "failure": [
+          "ledger.reconciliation.resolution_failed"
+        ],
+        "success": [
+          "ledger.reconciliation.completed"
+        ]
+      }
+    },
+    "ledger.reconciliation.start": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "capability": "ledger.reconcile",
+      "command_name": "ledger.reconciliation.start",
+      "domain": "ledger",
+      "execution_gates": [],
+      "resulting_events": {
+        "conditional": [
+          "ledger.reconciliation.mismatch_detected"
+        ],
+        "failure": [
+          "ledger.reconciliation.start_failed"
+        ],
+        "success": [
+          "ledger.reconciliation.started"
+        ]
+      }
+    },
+    "ledger.reconciliation.start_failed": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.reconciliation.start_failed"
+    },
+    "ledger.reconciliation.started": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "initiated_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        },
+        "started_at": {
+          "type": "timestamp"
+        },
+        "type": {
+          "type": "enum",
+          "values": [
+            "internal",
+            "vault_reconciliation",
+            "treasury_reconciliation",
+            "external_reconciliation"
+          ]
+        }
+      },
+      "domain": "ledger",
+      "event_name": "ledger.reconciliation.started"
+    },
+    "payment.adapter.disable": {
+      "abi": "v1",
+      "aggregate": "execution",
+      "capability": "payment.execution.compensate",
+      "command_name": "payment.adapter.disable",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.compensation_failed"
+        ],
+        "success": [
+          "payment.request.cancelled"
+        ]
+      }
+    },
+    "payment.compensation.completed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reversal_rail_reference_id": {
+          "required": false,
+          "type": "string"
+        },
+        "state": {
+          "type": "enum",
+          "values": [
+            "REVERSED"
+          ]
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.compensation.completed"
+    },
+    "payment.compensation.start_failed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.compensation.start_failed"
+    },
+    "payment.compensation.started": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "compensation_strategy": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "state": {
+          "type": "enum",
+          "values": [
+            "COMPENSATING"
+          ]
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.compensation.started"
+    },
+    "payment.compensation.timed_out": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "timed_out_at": {
+          "type": "timestamp"
+        },
+        "timeout_ms": {
+          "type": "integer"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.compensation.timed_out"
+    },
+    "payment.execution.compensate": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "capability": "payment.execution.compensate",
+      "command_name": "payment.execution.compensate",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.compensation.start_failed"
+        ],
+        "success": [
+          "payment.compensation.started"
+        ]
+      }
+    },
+    "payment.execution.compensated": {
+      "abi": "v1",
+      "aggregate": "execution",
+      "data_fields": {
+        "compensated_at": {
+          "type": "timestamp"
+        },
+        "execution_id": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.compensated"
+    },
+    "payment.execution.compensation_failed": {
+      "abi": "v1",
+      "aggregate": "execution",
+      "data_fields": {
+        "execution_id": {
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.compensation_failed"
+    },
+    "payment.execution.completed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "actual_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "fees": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_reference_id": {
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "state": {
+          "type": "enum",
+          "values": [
+            "RECONCILING"
+          ]
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.completed"
+    },
+    "payment.execution.confirm": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "capability": "payment.execution.confirm",
+      "command_name": "payment.execution.confirm",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.confirmation_failed",
+          "payment.rail.failed"
+        ],
+        "success": [
+          "payment.execution.completed",
+          "payment.rail.confirmed"
+        ]
+      }
+    },
+    "payment.execution.confirmation_failed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.confirmation_failed"
+    },
+    "payment.execution.execute": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "capability": "payment.execution.execute",
+      "command_name": "payment.execution.execute",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.start_failed"
+        ],
+        "success": [
+          "payment.execution.started"
+        ]
+      }
+    },
+    "payment.execution.failed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "failure_phase": {
+          "type": "enum"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "state": {
+          "type": "enum",
+          "values": [
+            "FAILED"
+          ]
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.failed"
+    },
+    "payment.execution.plan": {
+      "abi": "v1",
+      "aggregate": "execution_plan",
+      "capability": "payment.execution.plan",
+      "command_name": "payment.execution.plan",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.planning_failed"
+        ],
+        "success": [
+          "payment.execution.planned"
+        ]
+      }
+    },
+    "payment.execution.planned": {
+      "abi": "v1",
+      "aggregate": "execution_plan",
+      "data_fields": {
+        "compensation_strategy": {
+          "type": "string"
+        },
+        "confidence_score": {
+          "precision": 4,
+          "type": "decimal"
+        },
+        "estimated_settlement_time_ms": {
+          "type": "integer"
+        },
+        "execution_plan_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "selected_rail": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.planned"
+    },
+    "payment.execution.planning_failed": {
+      "abi": "v1",
+      "aggregate": "execution_plan",
+      "data_fields": {
+        "execution_plan_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.planning_failed"
+    },
+    "payment.execution.prepare": {
+      "abi": "v1",
+      "aggregate": "execution",
+      "capability": "payment.execution.plan",
+      "command_name": "payment.execution.prepare",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.planning_failed"
+        ],
+        "success": [
+          "payment.execution.planned"
+        ]
+      }
+    },
+    "payment.execution.settled": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "settled_at": {
+          "type": "timestamp"
+        },
+        "settlement_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "settlement_reference": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.settled"
+    },
+    "payment.execution.start_failed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.start_failed"
+    },
+    "payment.execution.started": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "adapter_phase": {
+          "type": "enum",
+          "values": [
+            "EXECUTE"
+          ]
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.execution.started"
+    },
+    "payment.rail.confirmation_timed_out": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "timed_out_at": {
+          "type": "timestamp"
+        },
+        "timeout_ms": {
+          "type": "integer"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.confirmation_timed_out"
+    },
+    "payment.rail.confirmed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "confirmed_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "fees": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "fx_rate": {
+          "precision": 8,
+          "required": false,
+          "type": "decimal"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_reference_id": {
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.confirmed"
+    },
+    "payment.rail.confirming": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "confirming_at": {
+          "type": "timestamp"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.confirming"
+    },
+    "payment.rail.executed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_execution_id": {
+          "type": "string"
+        },
+        "rail_reference_id": {
+          "required": false,
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "submitted_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.executed"
+    },
+    "payment.rail.executing": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "executing_at": {
+          "type": "timestamp"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_execution_id": {
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.executing"
+    },
+    "payment.rail.execution_timed_out": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "timed_out_at": {
+          "type": "timestamp"
+        },
+        "timeout_ms": {
+          "type": "integer"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.execution_timed_out"
+    },
+    "payment.rail.failed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "error_code": {
+          "type": "string"
+        },
+        "error_message": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_execution_id": {
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.failed"
+    },
+    "payment.rail.prepare_timed_out": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "timed_out_at": {
+          "type": "timestamp"
+        },
+        "timeout_ms": {
+          "type": "integer"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.prepare_timed_out"
+    },
+    "payment.rail.prepared": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_metadata": {
+          "required": false,
+          "type": "object"
+        },
+        "rail_preparation_id": {
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.prepared"
+    },
+    "payment.rail.preparing": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "preparing_at": {
+          "type": "timestamp"
+        },
+        "rail_preparation_id": {
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.preparing"
+    },
+    "payment.rail.validated": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "rail_validation_id": {
+          "type": "string"
+        },
+        "validated_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.validated"
+    },
+    "payment.rail.validating": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "rail_validation_id": {
+          "type": "string"
+        },
+        "validating_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.validating"
+    },
+    "payment.rail.validation_timed_out": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "timed_out_at": {
+          "type": "timestamp"
+        },
+        "timeout_ms": {
+          "type": "integer"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.rail.validation_timed_out"
+    },
+    "payment.receipt.issuance_failed": {
+      "abi": "v1",
+      "aggregate": "execution_receipt",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "receipt_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.receipt.issuance_failed"
+    },
+    "payment.receipt.issue": {
+      "abi": "v1",
+      "aggregate": "execution_receipt",
+      "capability": "payment.receipt.issue",
+      "command_name": "payment.receipt.issue",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.receipt.issuance_failed"
+        ],
+        "success": [
+          "payment.receipt.issued"
+        ]
+      }
+    },
+    "payment.receipt.issued": {
+      "abi": "v1",
+      "aggregate": "execution_receipt",
+      "data_fields": {
+        "amount_executed": {
+          "type": "object"
+        },
+        "constitutional_compliance_attestation": {
+          "type": "enum"
+        },
+        "fees": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_reference_id": {
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "receipt_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.receipt.issued"
+    },
+    "payment.reconciliation.complete": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "capability": "payment.reconciliation.complete",
+      "command_name": "payment.reconciliation.complete",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.reconciliation.completion_failed"
+        ],
+        "success": [
+          "payment.reconciliation.completed"
+        ]
+      }
+    },
+    "payment.reconciliation.completed": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "discrepancy_amount": {
+          "precision": 18,
+          "required": false,
+          "type": "decimal"
+        },
+        "matched": {
+          "type": "boolean"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "resolved_by": {
+          "format": "uuid",
+          "required": false,
+          "type": "string"
+        },
+        "status": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.reconciliation.completed"
+    },
+    "payment.reconciliation.completion_failed": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.reconciliation.completion_failed"
+    },
+    "payment.reconciliation.discrepancy": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "actual_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "discrepancy_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "expected_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "severity": {
+          "type": "enum",
+          "values": [
+            "LOW",
+            "MEDIUM",
+            "HIGH",
+            "CRITICAL"
+          ]
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.reconciliation.discrepancy"
+    },
+    "payment.reconciliation.start": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "capability": "payment.reconciliation.initiate",
+      "command_name": "payment.reconciliation.start",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.reconciliation.start_failed"
+        ],
+        "success": [
+          "payment.reconciliation.started"
+        ]
+      }
+    },
+    "payment.reconciliation.start_failed": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.reconciliation.start_failed"
+    },
+    "payment.reconciliation.started": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "type": "enum"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "trigger_type": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.reconciliation.started"
+    },
+    "payment.reconciliation.timed_out": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "timed_out_at": {
+          "type": "timestamp"
+        },
+        "timeout_ms": {
+          "type": "integer"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.reconciliation.timed_out"
+    },
+    "payment.request.cancel": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "capability": "payment.request.cancel",
+      "command_name": "payment.request.cancel",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.request.cancellation_failed"
+        ],
+        "success": [
+          "payment.request.cancelled"
+        ]
+      }
+    },
+    "payment.request.cancellation_failed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.request.cancellation_failed"
+    },
+    "payment.request.cancelled": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "cancelled_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "state": {
+          "type": "enum",
+          "values": [
+            "CANCELLED"
+          ]
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.request.cancelled"
+    },
+    "payment.request.create": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "capability": "payment.request.create",
+      "command_name": "payment.request.create",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.request.creation_failed"
+        ],
+        "success": [
+          "payment.request.created"
+        ]
+      }
+    },
+    "payment.request.created": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "amount": {
+          "type": "object"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "rail_type": {
+          "required": false,
+          "type": "enum"
+        },
+        "source_transfer_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "state": {
+          "type": "enum"
+        },
+        "urgency": {
+          "type": "enum"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.request.created"
+    },
+    "payment.request.creation_failed": {
+      "abi": "v1",
+      "aggregate": "payment_request",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "payment_request_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.request.creation_failed"
+    },
+    "payment.settlement.completed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "completed_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "settlement_reference": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.settlement.completed"
+    },
+    "payment.settlement.confirmed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "confirmed_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "settlement_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "settlement_reference": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.settlement.confirmed"
+    },
+    "payment.settlement.failed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "type": "string"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.settlement.failed"
+    },
+    "saga.compensate": {
+      "abi": "v1",
+      "aggregate": "saga_execution",
+      "capability": "system.internal",
+      "command_name": "saga.compensate",
+      "domain": "payment",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "payment.execution.compensation_failed"
+        ],
+        "success": [
+          "payment.execution.compensated"
+        ]
+      }
+    },
+    "treasury.liquidity.allocate": {
+      "abi": "v1",
+      "aggregate": "liquidity_position",
+      "capability": "treasury.liquidity.manage",
+      "command_name": "treasury.liquidity.allocate",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "conditional": [
+          "treasury.liquidity.warning"
+        ],
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": []
+      }
+    },
+    "treasury.liquidity.check": {
+      "abi": "v1",
+      "aggregate": "liquidity_position",
+      "capability": "treasury.liquidity.read",
+      "command_name": "treasury.liquidity.check",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "conditional": [
+          "treasury.liquidity.warning"
+        ],
+        "failure": [],
+        "success": []
+      }
+    },
+    "treasury.liquidity.warning": {
+      "abi": "v1",
+      "aggregate": "liquidity_position",
+      "data_fields": {
+        "actor_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "current_available": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "level": {
+          "type": "string"
+        },
+        "threshold": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "triggered_by": {
+          "type": "string"
+        },
+        "warned_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.liquidity.warning"
+    },
+    "treasury.settlement.confirm": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.settlement.confirm",
+      "command_name": "treasury.settlement.confirm",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.settled",
+          "treasury.settlement.confirmed"
+        ]
+      }
+    },
+    "treasury.settlement.confirmed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "confirmed_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "settlement_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "settlement_rail": {
+          "type": "string"
+        },
+        "settlement_reference": {
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.settlement.confirmed"
+    },
+    "treasury.transfer.authorize": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.authorize",
+      "command_name": "treasury.transfer.authorize",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.authorized"
+        ]
+      }
+    },
+    "treasury.transfer.authorized": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "authorized_at": {
+          "type": "timestamp"
+        },
+        "authorized_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "policy_result": {
+          "type": "string"
+        },
+        "rules_applied": {
+          "type": "array"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.authorized"
+    },
+    "treasury.transfer.cancel": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.cancel",
+      "command_name": "treasury.transfer.cancel",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.rejected"
+        ]
+      }
+    },
+    "treasury.transfer.compensate": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.compensate",
+      "command_name": "treasury.transfer.compensate",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.compensation_required"
+        ]
+      }
+    },
+    "treasury.transfer.compensation_required": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "compensation_saga_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "compensation_step": {
+          "type": "string"
+        },
+        "governance_approval_required": {
+          "type": "boolean"
+        },
+        "initiated_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "vault_resolution_required": {
+          "type": "boolean"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.compensation_required"
+    },
+    "treasury.transfer.execute": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.execute",
+      "command_name": "treasury.transfer.execute",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "conditional": [
+          "treasury.transfer.settled",
+          "treasury.transfer.failed"
+        ],
+        "failure": [
+          "treasury.transfer.failed"
+        ],
+        "success": [
+          "treasury.transfer.executing"
+        ]
+      }
+    },
+    "treasury.transfer.executing": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "executing_at": {
+          "type": "timestamp"
+        },
+        "instruction_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "max_attempts": {
+          "type": "integer"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "payment_rail": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": "integer"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.executing"
+    },
+    "treasury.transfer.expired": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "expiration_reason": {
+          "type": "string"
+        },
+        "expired_at": {
+          "type": "timestamp"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "state_at_expiration": {
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.expired"
+    },
+    "treasury.transfer.failed": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "error_code": {
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "failure_stage": {
+          "type": "string"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.failed"
+    },
+    "treasury.transfer.rejected": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "error_code": {
+          "type": "string"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "rejected_at": {
+          "type": "timestamp"
+        },
+        "rejection_stage": {
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.rejected"
+    },
+    "treasury.transfer.request": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.request",
+      "command_name": "treasury.transfer.request",
+      "domain": "treasury",
+      "execution_gates": [
+        {
+          "config": {
+            "amountPayloadKey": "amount",
+            "currency": "USD",
+            "maxAmount": "50"
+          },
+          "description": "Enforce constitutional amount limit for treasury transfers",
+          "fatal": true,
+          "gate_id": "amount_within_limit",
+          "type": "AMOUNT_WITHIN_LIMIT"
+        }
+      ],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.requested"
+        ]
+      }
+    },
+    "treasury.transfer.requested": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "destination_details": {
+          "type": "object"
+        },
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "requested_at": {
+          "type": "timestamp"
+        },
+        "source_actor_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.requested"
+    },
+    "treasury.transfer.reserve": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "capability": "treasury.transfer.reserve",
+      "command_name": "treasury.transfer.reserve",
+      "domain": "treasury",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "treasury.transfer.rejected"
+        ],
+        "success": [
+          "treasury.transfer.reserved"
+        ]
+      }
+    },
+    "treasury.transfer.reserved": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reserved_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "reserved_at": {
+          "type": "timestamp"
+        },
+        "vault_lock_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "vault_reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.reserved"
+    },
+    "treasury.transfer.settled": {
+      "abi": "v1",
+      "aggregate": "transfer_order",
+      "data_fields": {
+        "order_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "settled_at": {
+          "type": "timestamp"
+        },
+        "settlement_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "settlement_reference": {
+          "type": "string"
+        }
+      },
+      "domain": "treasury",
+      "event_name": "treasury.transfer.settled"
+    },
+    "vault.asset.impaired": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "detected_at": {
+          "type": "timestamp"
+        },
+        "impaired_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "impairment_reason": {
+          "type": "string"
+        },
+        "previous_value": {
+          "precision": 18,
+          "type": "decimal"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.asset.impaired"
+    },
+    "vault.asset.reconcile": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "capability": "vault.reconcile",
+      "command_name": "vault.asset.reconcile",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "conditional": [
+          "vault.reconciliation.completed",
+          "vault.reconciliation.discrepancy_found"
+        ],
+        "failure": [
+          "vault.reconciliation.failed"
+        ],
+        "success": [
+          "vault.reconciliation.started"
+        ]
+      }
+    },
+    "vault.asset.register": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "capability": "vault.asset.create",
+      "command_name": "vault.asset.register",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.registration_failed"
+        ],
+        "success": [
+          "vault.asset.registered"
+        ]
+      }
+    },
+    "vault.asset.registered": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "asset_type": {
+          "type": "enum",
+          "values": [
+            "cash",
+            "stablecoin",
+            "tokenized_asset",
+            "collateral_position",
+            "liquidity_position",
+            "external_claim"
+          ]
+        },
+        "beneficial_owner_id": {
+          "format": "uuid",
+          "required": false,
+          "type": "string"
+        },
+        "custody_location": {
+          "type": "string"
+        },
+        "custody_provider": {
+          "type": "enum",
+          "values": [
+            "sovr_internal",
+            "on_chain",
+            "external_bank",
+            "third_party"
+          ]
+        },
+        "face_value": {
+          "precision": 2,
+          "required": false,
+          "type": "decimal"
+        },
+        "issuer_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "native_unit": {
+          "type": "string"
+        },
+        "ownership_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "precision": {
+          "type": "integer"
+        },
+        "quantity": {
+          "precision": 18,
+          "required": false,
+          "type": "decimal"
+        },
+        "registered_at": {
+          "type": "timestamp"
+        },
+        "reserve_ratio": {
+          "precision": 4,
+          "type": "decimal"
+        },
+        "risk_classification": {
+          "type": "enum",
+          "values": [
+            "minimal",
+            "low",
+            "medium",
+            "medium_to_high",
+            "high"
+          ]
+        },
+        "valuation_source": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.asset.registered"
+    },
+    "vault.asset.registration_failed": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.asset.registration_failed"
+    },
+    "vault.asset.reject": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "capability": "vault.asset.verify",
+      "command_name": "vault.asset.reject",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.rejection_failed"
+        ],
+        "success": [
+          "vault.asset.rejected"
+        ]
+      }
+    },
+    "vault.asset.rejected": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "rejected_at": {
+          "type": "timestamp"
+        },
+        "rejector_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.asset.rejected"
+    },
+    "vault.asset.rejection_failed": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.asset.rejection_failed"
+    },
+    "vault.asset.verification_failed": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "data_fields": {
+        "asset_id": {
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.asset.verification_failed"
+    },
+    "vault.asset.verified": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "attestation_proof_hash": {
+          "type": "string"
+        },
+        "verification_method": {
+          "type": "enum",
+          "values": [
+            "on_chain_balance_proof",
+            "off_chain_custodian_statement",
+            "internal_ledger_confirmation"
+          ]
+        },
+        "verified_at": {
+          "type": "timestamp"
+        },
+        "verifier_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.asset.verified"
+    },
+    "vault.asset.verify": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "capability": "vault.asset.verify",
+      "command_name": "vault.asset.verify",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.rejected"
+        ],
+        "success": [
+          "vault.asset.verified",
+          "vault.custody.attested"
+        ]
+      }
+    },
+    "vault.asset.write_down": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "data_fields": {
+        "approved_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "new_book_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "previous_book_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "write_down_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "written_down_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.asset.write_down"
+    },
+    "vault.collateral.add": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "capability": "vault.collateral.create",
+      "command_name": "vault.collateral.add",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.collateral.addition_failed"
+        ],
+        "success": [
+          "vault.collateral.added",
+          "vault.collateral.valued"
+        ]
+      }
+    },
+    "vault.collateral.added": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "added_at": {
+          "type": "timestamp"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "effective_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "gross_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "haircut_applied": {
+          "precision": 6,
+          "type": "decimal"
+        },
+        "obligation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "quality_score": {
+          "precision": 4,
+          "type": "decimal"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.added"
+    },
+    "vault.collateral.addition_failed": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.addition_failed"
+    },
+    "vault.collateral.liquidation_initiated": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "expected_proceeds": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "initiated_at": {
+          "type": "timestamp"
+        },
+        "liquidation_reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.liquidation_initiated"
+    },
+    "vault.collateral.margin_call": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "called_at": {
+          "type": "timestamp"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "current_ratio": {
+          "precision": 6,
+          "type": "decimal"
+        },
+        "deadline": {
+          "type": "timestamp"
+        },
+        "maintenance_ratio": {
+          "precision": 6,
+          "type": "decimal"
+        },
+        "shortfall_amount": {
+          "precision": 18,
+          "type": "decimal"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.margin_call"
+    },
+    "vault.collateral.release_failed": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.release_failed"
+    },
+    "vault.collateral.released": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "release_reason": {
+          "type": "string"
+        },
+        "released_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.released"
+    },
+    "vault.collateral.remove": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "capability": "vault.collateral.release",
+      "command_name": "vault.collateral.remove",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.collateral.release_failed"
+        ],
+        "success": [
+          "vault.collateral.released"
+        ]
+      }
+    },
+    "vault.collateral.revaluation_failed": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.revaluation_failed"
+    },
+    "vault.collateral.revalue": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "capability": "vault.collateral.evaluate",
+      "command_name": "vault.collateral.revalue",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "conditional": [
+          "vault.collateral.margin_call"
+        ],
+        "failure": [
+          "vault.collateral.revaluation_failed"
+        ],
+        "success": [
+          "vault.collateral.revalued"
+        ]
+      }
+    },
+    "vault.collateral.revalued": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "new_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "previous_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "revalued_at": {
+          "type": "timestamp"
+        },
+        "valuation_source": {
+          "type": "string"
+        },
+        "value_change": {
+          "precision": 18,
+          "type": "decimal"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.revalued"
+    },
+    "vault.collateral.valued": {
+      "abi": "v1",
+      "aggregate": "collateral",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "new_effective_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "previous_effective_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "valuation_source": {
+          "type": "string"
+        },
+        "valued_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.collateral.valued"
+    },
+    "vault.custody.attested": {
+      "abi": "v1",
+      "aggregate": "custody",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "attestation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "attestation_proof_hash": {
+          "type": "string"
+        },
+        "attestation_valid_until": {
+          "type": "timestamp"
+        },
+        "attested_at": {
+          "type": "timestamp"
+        },
+        "custody_provider": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.custody.attested"
+    },
+    "vault.custody.proof_expired": {
+      "abi": "v1",
+      "aggregate": "custody",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "attestation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "custody_provider": {
+          "type": "string"
+        },
+        "expired_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.custody.proof_expired"
+    },
+    "vault.ownership.transfer": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "capability": "vault.asset.verify",
+      "command_name": "vault.ownership.transfer",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.asset.verification_failed"
+        ],
+        "success": [
+          "vault.asset.verified"
+        ]
+      }
+    },
+    "vault.ownership.transferred": {
+      "abi": "v1",
+      "aggregate": "ownership",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "authorized_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "new_owner_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "previous_owner_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "transferred_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.ownership.transferred"
+    },
+    "vault.reconciliation.completed": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "completed_at": {
+          "type": "timestamp"
+        },
+        "items_reconciled": {
+          "type": "integer"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reconciliation.completed"
+    },
+    "vault.reconciliation.discrepancy_found": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "actual_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "detected_at": {
+          "type": "timestamp"
+        },
+        "discrepancy_amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "expected_value": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "severity": {
+          "type": "enum",
+          "values": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reconciliation.discrepancy_found"
+    },
+    "vault.reconciliation.failed": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reconciliation.failed"
+    },
+    "vault.reconciliation.started": {
+      "abi": "v1",
+      "aggregate": "reconciliation",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "initiated_by": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reconciliation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "scope": {
+          "type": "enum",
+          "values": [
+            "single_asset",
+            "actor_holdings",
+            "full_vault"
+          ]
+        },
+        "started_at": {
+          "type": "timestamp"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reconciliation.started"
+    },
+    "vault.reserve.create": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "capability": "vault.reserve.create",
+      "command_name": "vault.reserve.create",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.creation_failed"
+        ],
+        "success": [
+          "vault.reserve.created"
+        ]
+      }
+    },
+    "vault.reserve.created": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "actor_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "created_at": {
+          "type": "timestamp"
+        },
+        "expiration": {
+          "type": "timestamp"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.created"
+    },
+    "vault.reserve.creation_failed": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.creation_failed"
+    },
+    "vault.reserve.expire": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "capability": "system.internal",
+      "command_name": "vault.reserve.expire",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [],
+        "success": [
+          "vault.reserve.expired"
+        ]
+      }
+    },
+    "vault.reserve.expired": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "expired_at": {
+          "type": "timestamp"
+        },
+        "reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.expired"
+    },
+    "vault.reserve.lock": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "capability": "vault.reserve.lock",
+      "command_name": "vault.reserve.lock",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.lock_failed"
+        ],
+        "success": [
+          "vault.reserve.locked"
+        ]
+      }
+    },
+    "vault.reserve.lock_failed": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.lock_failed"
+    },
+    "vault.reserve.locked": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "expected_consuming_transaction_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "lock_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "locked_at": {
+          "type": "timestamp"
+        },
+        "reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.locked"
+    },
+    "vault.reserve.release": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "capability": "vault.reserve.release",
+      "command_name": "vault.reserve.release",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.release_failed"
+        ],
+        "success": [
+          "vault.reserve.released"
+        ]
+      }
+    },
+    "vault.reserve.release_failed": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.release_failed"
+    },
+    "vault.reserve.released": {
+      "abi": "v1",
+      "aggregate": "reservation",
+      "data_fields": {
+        "amount": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "release_reason": {
+          "type": "string"
+        },
+        "released_at": {
+          "type": "timestamp"
+        },
+        "reservation_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.reserve.released"
+    },
+    "vault.transaction.authorize_release": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "capability": "vault.reserve.lock",
+      "command_name": "vault.transaction.authorize_release",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.transaction.failed"
+        ],
+        "success": [
+          "vault.transaction.release_pending",
+          "vault.transaction.release_authorized"
+        ]
+      }
+    },
+    "vault.transaction.cancel": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "capability": "vault.reserve.release",
+      "command_name": "vault.transaction.cancel",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [],
+        "success": [
+          "vault.transaction.failed"
+        ]
+      }
+    },
+    "vault.transaction.closed": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "data_fields": {
+        "closed_at": {
+          "type": "timestamp"
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.transaction.closed"
+    },
+    "vault.transaction.created": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "data_fields": {
+        "created_at": {
+          "type": "timestamp"
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.transaction.created"
+    },
+    "vault.transaction.disburse": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "capability": "vault.reserve.consume",
+      "command_name": "vault.transaction.disburse",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.transaction.failed"
+        ],
+        "success": [
+          "vault.transaction.disbursed",
+          "vault.transaction.closed"
+        ]
+      }
+    },
+    "vault.transaction.disbursed": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "data_fields": {
+        "disbursed_at": {
+          "type": "timestamp"
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.transaction.disbursed"
+    },
+    "vault.transaction.failed": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.transaction.failed"
+    },
+    "vault.transaction.fund": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "capability": "vault.reserve.create",
+      "command_name": "vault.transaction.fund",
+      "domain": "vault",
+      "execution_gates": [
+        {
+          "config": {
+            "amountPayloadKey": "amount",
+            "currency": "USD",
+            "maxAmount": "50"
+          },
+          "description": "Enforce constitutional amount limit for vault transaction funding",
+          "fatal": true,
+          "gate_id": "amount_within_limit",
+          "type": "AMOUNT_WITHIN_LIMIT"
+        }
+      ],
+      "resulting_events": {
+        "failure": [
+          "vault.transaction.failed"
+        ],
+        "success": [
+          "vault.transaction.funding_requested"
+        ]
+      }
+    },
+    "vault.transaction.funded": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "data_fields": {
+        "funded_at": {
+          "type": "timestamp"
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.transaction.funded"
+    },
+    "vault.transaction.funding_pending": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "data_fields": {
+        "pending_at": {
+          "type": "timestamp"
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.transaction.funding_pending"
+    },
+    "vault.transaction.funding_requested": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "data_fields": {
+        "requested_at": {
+          "type": "timestamp"
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.transaction.funding_requested"
+    },
+    "vault.transaction.release_authorized": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "data_fields": {
+        "authorized_at": {
+          "type": "timestamp"
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.transaction.release_authorized"
+    },
+    "vault.transaction.release_pending": {
+      "abi": "v1",
+      "aggregate": "transaction",
+      "data_fields": {
+        "pending_at": {
+          "type": "timestamp"
+        },
+        "transaction_id": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.transaction.release_pending"
+    },
+    "vault.transfer.request": {
+      "abi": "v1",
+      "aggregate": "asset",
+      "capability": "vault.reserve.create",
+      "command_name": "vault.transfer.request",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "vault.reserve.creation_failed"
+        ],
+        "success": [
+          "vault.reserve.created"
+        ]
+      }
+    },
+    "vault.valuation.update": {
+      "abi": "v1",
+      "aggregate": "valuation",
+      "capability": "vault.valuation.manage",
+      "command_name": "vault.valuation.update",
+      "domain": "vault",
+      "execution_gates": [],
+      "resulting_events": {
+        "conditional": [
+          "vault.asset.impaired"
+        ],
+        "failure": [
+          "vault.valuation.update_failed"
+        ],
+        "success": [
+          "vault.valuation.updated"
+        ]
+      }
+    },
+    "vault.valuation.update_failed": {
+      "abi": "v1",
+      "aggregate": "valuation",
+      "data_fields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.valuation.update_failed"
+    },
+    "vault.valuation.updated": {
+      "abi": "v1",
+      "aggregate": "valuation",
+      "data_fields": {
+        "asset_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "new_valuation": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "previous_valuation": {
+          "precision": 18,
+          "type": "decimal"
+        },
+        "source_type": {
+          "type": "enum",
+          "values": [
+            "oracle",
+            "internal_pricing",
+            "market_feed",
+            "manual"
+          ]
+        },
+        "updated_at": {
+          "type": "timestamp"
+        },
+        "valuation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "valuation_source": {
+          "type": "string"
+        }
+      },
+      "domain": "vault",
+      "event_name": "vault.valuation.updated"
+    }
+  },
+  "entry_count": 168,
+  "integrity": {
+    "algorithm": "SHA256",
+    "generated_by": {
+      "compiler_version": "0.6.0"
+    },
+    "hash": "41c8fc06bb888fa535b809c8dd22c65e27b0166be9965daab7c521368b4ca187",
+    "timestamp": "2026-08-08T21:28:11.300Z"
+  },
+  "kind": "economic"
+}

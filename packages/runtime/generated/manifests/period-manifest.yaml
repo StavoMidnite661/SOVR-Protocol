@@ -1,0 +1,12 @@
+{
+  "domain": "period",
+  "buildId": "2fc77ebc6fd7756f",
+  "generatedAt": "2026-07-17T23:00:40.036Z",
+  "artifacts": [
+    {
+      "file": "events/period-events.ts",
+      "hash": "b70e9389e6bbb533"
+    }
+  ],
+  "sourceHash": "43d8b7b73efa1128"
+}

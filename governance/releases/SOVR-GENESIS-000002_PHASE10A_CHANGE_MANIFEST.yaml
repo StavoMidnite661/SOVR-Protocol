@@ -1,0 +1,21 @@
+phase:
+  name: PHASE10A
+  mode: CONTROLLED_SIMULATION
+
+production:
+  enabled: false
+
+external_integrations:
+  enabled: false
+
+payment_rails:
+  enabled: false
+
+ledger:
+  production_mutation: false
+
+frozen_protocol:
+  modified: false
+
+simulation_only:
+  true

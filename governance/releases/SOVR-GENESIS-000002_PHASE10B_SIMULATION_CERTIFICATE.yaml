@@ -1,0 +1,18 @@
+phase: PHASE10B
+directive: SOVR-GENESIS-000002-PHASE10B-CONTROLLED-SIMULATION-EXPANSION-DIRECTIVE
+generated_at: "2026-08-08T04:40:00-07:00"
+
+simulation_dataset:
+  status: VERIFIED
+  scenario_count: 6
+  scenarios:
+    - SIM-001-VAULT-FUNDING-LIFECYCLE
+    - SIM-002-TREASURY-TRANSFER-APPROVAL
+    - SIM-003-SYSTEM-INTEGRITY
+    - SIM-004-ASSET-RESERVE-LIFECYCLE
+    - SIM-005-TREASURY-CONTROL-LIFECYCLE
+    - SIM-006-LEDGER-RECONCILIATION-LIFECYCLE
+  evidence: |
+    governance/simulation/scenarios/ contains 6 compiled scenario YAML files
+    All scenarios pass simulation runner with success=true
+    Compiler-generated scenarios.registry.json validates integrity hashes

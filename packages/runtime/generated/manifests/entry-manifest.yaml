@@ -1,0 +1,12 @@
+{
+  "domain": "entry",
+  "buildId": "2fc77ebc6fd7756f",
+  "generatedAt": "2026-07-17T23:00:40.036Z",
+  "artifacts": [
+    {
+      "file": "events/entry-events.ts",
+      "hash": "68f857ada851f4fe"
+    }
+  ],
+  "sourceHash": "4765958498f0f6aa"
+}

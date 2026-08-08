@@ -1,0 +1,42 @@
+evidence_binding:
+  scenario_id: SIM-006-LEDGER-RECONCILIATION-LIFECYCLE
+  knowledge_nodes:
+    - id: SOVR-CMD-000014
+      name: ledger.journal.create
+      source: 03_command-catalog.yaml
+    - id: SOVR-CMD-000015
+      name: ledger.entry.post
+      source: 03_command-catalog.yaml
+    - id: SOVR-CMD-000018
+      name: ledger.reconciliation.start
+      source: 03_command-catalog.yaml
+    - id: SOVR-CMD-000019
+      name: ledger.reconciliation.resolve
+      source: 03_command-catalog.yaml
+
+  compiler_artifacts:
+    - artifact: commands.registry.json
+      path: generated/registries/commands.registry.json
+      integrity: SHA256
+    - artifact: events.registry.json
+      path: generated/registries/events.registry.json
+      integrity: SHA256
+
+  runtime_events:
+    - event: ledger.journal.created
+      aggregate: journal
+      consumers: [ledger_projection, audit_projection]
+    - event: ledger.entry.posted
+      aggregate: journal_entry
+      consumers: [ledger_projection, audit_projection, governance_projection, vault_projection]
+    - event: ledger.reconciliation.started
+      aggregate: reconciliation
+      consumers: [ledger_projection, audit_projection, governance_projection]
+    - event: ledger.reconciliation.completed
+      aggregate: reconciliation
+      consumers: [ledger_projection, audit_projection, governance_projection]
+
+  audit_evidence:
+    - proof_package: generated/audit/SIM-006-LEDGER-RECONCILIATION-LIFECYCLE-proof.json
+      generated_by: ProofManifestGenerator
+      contains: [command_sequence, event_sequence, state_transitions, merkle_root, deterministic_hash]

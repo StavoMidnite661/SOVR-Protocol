@@ -1136,6 +1136,15 @@ commands:
     resulting_events:
       success: [treasury.transfer.requested]
       failure: [treasury.transfer.rejected]
+    execution_gates:
+      - gate_id: amount_within_limit
+        type: AMOUNT_WITHIN_LIMIT
+        fatal: true
+        description: Enforce constitutional amount limit for treasury transfers
+        config:
+          amountPayloadKey: amount
+          maxAmount: "50"
+          currency: USD
     failure_conditions:
       - source_actor_not_found
       - destination_invalid
@@ -3597,6 +3606,15 @@ commands:
     resulting_events:
       success: [vault.transaction.funding_requested]
       failure: [vault.transaction.failed]
+    execution_gates:
+      - gate_id: amount_within_limit
+        type: AMOUNT_WITHIN_LIMIT
+        fatal: true
+        description: Enforce constitutional amount limit for vault transaction funding
+        config:
+          amountPayloadKey: amount
+          maxAmount: "50"
+          currency: USD
     constitutional_gates:
       identity_required: true
       policy_required: true
@@ -4034,6 +4052,15 @@ commands:
     resulting_events:
       success: [escrow.account.released]
       failure: [escrow.account.release_failed]
+    execution_gates:
+      - gate_id: amount_within_limit
+        type: AMOUNT_WITHIN_LIMIT
+        fatal: true
+        description: Enforce constitutional amount limit for escrow release
+        config:
+          amountPayloadKey: amount
+          maxAmount: "50"
+          currency: USD
     lifecycle:
       machine: escrow_account_lifecycle
       trigger: escrow.account.release

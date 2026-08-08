@@ -1,0 +1,12 @@
+{
+  "domain": "enriching",
+  "buildId": "2fc77ebc6fd7756f",
+  "generatedAt": "2026-07-17T23:00:40.038Z",
+  "artifacts": [
+    {
+      "file": "events/enriching-events.ts",
+      "hash": "4171b11151aa00d0"
+    }
+  ],
+  "sourceHash": "aa0b24295e313b36"
+}

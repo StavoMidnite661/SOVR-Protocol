@@ -1,0 +1,13 @@
+phase: PHASE10B
+directive: SOVR-GENESIS-000002-PHASE10B-CONTROLLED-SIMULATION-EXPANSION-DIRECTIVE
+generated_at: "2026-08-08T04:40:00-07:00"
+
+audit_reconstruction:
+  status: VERIFIED
+  evidence: |
+    AuditReconstructor generates deterministic proof packages per scenario
+    EvidenceCollector binds knowledge nodes -> compiler artifacts -> runtime events
+    TimelineBuilder extracts state transitions from event payloads
+    ProofManifestGenerator produces JSON proof with merkle_root and deterministic_hash
+    Output: generated/audit/SIM-00X-proof.json
+    governance/evidence/ contains scenario evidence bindings

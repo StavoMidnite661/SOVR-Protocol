@@ -1,0 +1,13 @@
+phase: PHASE10B
+directive: SOVR-GENESIS-000002-PHASE10B-CONTROLLED-SIMULATION-EXPANSION-DIRECTIVE
+generated_at: "2026-08-08T04:40:00-07:00"
+
+economic_integrity:
+  status: VERIFIED
+  evidence: |
+    Conservation invariant: Assets In = Assets Out + Remaining Reserve
+    Ledger balance invariant: Debits = Credits
+    Treasury authorization invariant: Requested <= Approved <= Reserved
+    Failure code: ECONOMIC_INVARIANT_FAILURE
+    economic-validator.ts implements all three validators
+    economic-validator.test.ts verifies pass and fail cases

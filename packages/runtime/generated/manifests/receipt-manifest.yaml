@@ -1,0 +1,12 @@
+{
+  "domain": "receipt",
+  "buildId": "2fc77ebc6fd7756f",
+  "generatedAt": "2026-07-17T23:00:40.039Z",
+  "artifacts": [
+    {
+      "file": "events/receipt-events.ts",
+      "hash": "a85399702c5d2c7f"
+    }
+  ],
+  "sourceHash": "bebb46bc52b348cf"
+}

@@ -1,0 +1,7 @@
+compiler_version: v0.6.0
+
+run_1_hash: dd1a7938d334e1cf47042c2b4a0a27cde10e800dd3279660206501d40a017aa4
+run_2_hash: dd1a7938d334e1cf47042c2b4a0a27cde10e800dd3279660206501d40a017aa4
+
+deterministic:
+  status: PASS

@@ -15,7 +15,8 @@
     "test:genesis": "node scripts/verify-spec.mjs genesis",
     "test:fault": "node scripts/verify-spec.mjs fault",
     "test:stress": "node scripts/verify-spec.mjs stress",
-    "test:integration": "node scripts/verify-spec.mjs integration"
+    "test:integration": "node scripts/verify-spec.mjs integration",
+    "test:authority": "vitest run test/compiler-authority.test.ts"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
@@ -24,7 +25,8 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/js-yaml": "^4.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^3.2.7"
   },
   "engines": {
     "node": ">=20.0.0"

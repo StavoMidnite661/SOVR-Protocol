@@ -1,0 +1,22 @@
+phase:
+  name: PHASE9B
+  status: COMPLETE
+
+environment:
+  local_only: true
+  production_enabled: false
+
+ledger:
+  mutation_enabled: false
+
+payments:
+  enabled: false
+
+external_integrations:
+  enabled: false
+
+compiler_authority:
+  verified: true
+
+runtime_enforcement:
+  verified: true

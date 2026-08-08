@@ -1,0 +1,75 @@
+phase: PHASE10B
+directive: SOVR-GENESIS-000002-PHASE10B-CONTROLLED-SIMULATION-EXPANSION-DIRECTIVE
+generated_at: "2026-08-08T05:00:00-07:00"
+
+status: COMPLETED
+
+summary:
+  simulation_dataset:
+    status: VERIFIED
+    scenario_count: 6
+    scenarios:
+      - SIM-001-VAULT-FUNDING-LIFECYCLE
+      - SIM-002-TREASURY-TRANSFER-APPROVAL
+      - SIM-003-SYSTEM-INTEGRITY
+      - SIM-004-ASSET-RESERVE-LIFECYCLE
+      - SIM-005-TREASURY-CONTROL-LIFECYCLE
+      - SIM-006-LEDGER-RECONCILIATION-LIFECYCLE
+
+  state_machine_execution:
+    status: VERIFIED
+    evidence: |
+      StateMachineInterpreter executes deterministic transitions from compiled IR
+      Valid transitions pass, illegal transitions rejected, terminal states protected
+      Simulation bootstrap configured with allowUnresolvedConditions for simulation-only guard bypass
+
+  projection_reconstruction:
+    status: VERIFIED
+    evidence: |
+      projection-reconstruction.test.ts verifies identical projection state after genesis rebuild
+      vault_asset_view projection reconstructed deterministically from event log
+
+  economic_integrity:
+    status: VERIFIED
+    evidence: |
+      Conservation invariant: Assets In = Assets Out + Remaining Reserve
+      Ledger balance invariant: Debits = Credits
+      Treasury authorization invariant: Requested <= Approved <= Reserved
+      economic-validator.ts implements all three validators
+      economic-validator.test.ts verifies pass and fail cases
+
+  audit_reconstruction:
+    status: VERIFIED
+    evidence: |
+      AuditReconstructor generates deterministic proof packages per scenario
+      EvidenceCollector binds knowledge nodes -> compiler artifacts -> runtime events
+      TimelineBuilder extracts state transitions from event payloads
+      ProofManifestGenerator produces JSON proof with merkle_root and deterministic_hash
+      governance/evidence/ contains scenario evidence bindings
+
+  deterministic_stress:
+    status: VERIFIED
+    evidence: |
+      100 iterations per scenario (SIM-001..SIM-006) produce identical deterministic hashes
+      Merkle roots, event counts, and projection hashes are identical across all runs
+      phase10b-stress.test.ts validates determinism under repeated execution
+
+  compiler_authority:
+    status: VERIFIED
+    evidence: |
+      All scenarios compiled from YAML to generated/simulation/scenarios.registry.json
+      Build hash: 09734126c095917581400b39ee2a3e8bff5e21a34df1cdfe05a6fdebe282c3aa
+      No new runtime rules added; all behavior derives from Protocol Specification
+
+  knowledge_layer_boundary:
+    status: APPROVED
+    evidence: |
+      knowledge layer is compiler input only
+      runtime_access: false
+      Evidence bindings in governance/evidence/ trace knowledge nodes to runtime artifacts
+
+  certificates:
+    - governance/releases/SOVR-GENESIS-000002_PHASE10B_SIMULATION_CERTIFICATE.yaml
+    - governance/releases/SOVR-GENESIS-000002_PHASE10B_STATE_CERTIFICATE.yaml
+    - governance/releases/SOVR-GENESIS-000002_PHASE10B_ECONOMIC_CERTIFICATE.yaml
+    - governance/releases/SOVR-GENESIS-000002_PHASE10B_AUDIT_CERTIFICATE.yaml

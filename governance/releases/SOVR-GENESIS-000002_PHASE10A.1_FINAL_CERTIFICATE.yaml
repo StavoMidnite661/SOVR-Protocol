@@ -1,0 +1,69 @@
+# SOVR-GENESIS-000002-PHASE10A.1 FINAL CERTIFICATE
+# Adversarial validation of compiler-authority simulation architecture.
+
+certificate_id: SOVR-GENESIS-000002-PHASE10A.1-FINAL
+issued_at: 2026-08-08T00:05:00-07:00
+phase: 10A.1
+directive: SOVR-GENESIS-000002-PHASE10A-COMPILER-AUTHORITY-CORRECTION
+build_hash: 2bd5cbe421c56c498210c529cf678655576467b7e89bac311e92d070b2b8ff2a
+
+status: VERIFIED
+
+validation_results:
+  simulation_authority_boundary:
+    status: PASS
+    raw_yaml_execution_detected: false
+    direct_event_store_write_detected: false
+    compiler_registry_required: true
+
+  registry_tampering:
+    status: PASS
+    tampered_command_name_rejected: true
+    tampered_scenario_id_rejected: true
+    intact_scenario_accepted: true
+    error_type: AUTHORITY_REGISTRY_INTEGRITY_FAILURE
+
+  compiler_drift:
+    status: PASS
+    yaml_modification_detected: true
+    hash_restored_on_revert: true
+
+  unauthorized_command_injection:
+    status: PASS
+    unknown_command_rejected: true
+    rejection_reason: UNKNOWN_COMMAND
+
+  capability_boundary:
+    status: PASS
+    ai_agent_rejected_for_human_command: true
+    human_rejected_for_system_command: true
+    error_type: UNAUTHORIZED ACTOR TYPE
+
+  deterministic_replay:
+    status: PASS
+    runs: 100
+    unique_hashes: 1
+    event_hash_identical: true
+    merkle_root_identical: true
+    state_hash_identical: true
+
+  schema_validation:
+    status: PASS
+    all_scenarios_have_required_fields: true
+    all_commands_exist_in_registry: true
+    all_events_exist_in_registry: true
+
+  ci_verification:
+    status: PASS
+    verify:simulation_command: npm run verify:simulation
+    compile: PASS
+    simulation: PASS
+    registry_integrity: PASS
+    compiler_drift: PASS
+    unauthorized_command: PASS
+    capability_boundary: PASS
+    replay_stress: PASS
+    schema_validation: PASS
+
+final_status: VERIFIED
+phase_10b_authorized: true

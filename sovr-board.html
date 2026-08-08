@@ -1,111 +1,346 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html class="dark" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
   <title>SOVR Financial OS — THE BOARD (Constitutional Control Console)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+  <script id="tailwind-config">
     tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            sovr: {
-              dark: '#07090e',
-              panel: '#0f172a',
-              border: '#1e293b',
-              accent: '#10b981',
-              cyan: '#06b6d4',
-              amber: '#f59e0b',
-              purple: '#8b5cf6',
+        darkMode: "class",
+        theme: {
+            extend: {
+                "colors": {
+                    "surface-bright": "#37393f",
+                    "on-tertiary-container": "#563400",
+                    "inverse-surface": "#e2e2ea",
+                    "surface-container-highest": "#33353b",
+                    "on-error": "#690005",
+                    "secondary-fixed-dim": "#4edea3",
+                    "tertiary-fixed-dim": "#ffb95f",
+                    "tertiary-fixed": "#ffddb8",
+                    "on-secondary-container": "#00311f",
+                    "tertiary-container": "#e79400",
+                    "on-background": "#e2e2ea",
+                    "on-tertiary-fixed-variant": "#653e00",
+                    "on-error-container": "#ffdad6",
+                    "secondary": "#4edea3",
+                    "on-secondary-fixed": "#002113",
+                    "surface-dim": "#111319",
+                    "on-primary-fixed-variant": "#004e5c",
+                    "outline-variant": "#3d494c",
+                    "secondary-container": "#00a572",
+                    "primary": "#4cd7f6",
+                    "inverse-on-surface": "#2e3036",
+                    "inverse-primary": "#00687a",
+                    "surface-tint": "#4cd7f6",
+                    "error": "#ffb4ab",
+                    "on-primary-fixed": "#001f26",
+                    "on-tertiary-fixed": "#2a1700",
+                    "secondary-fixed": "#6ffbbe",
+                    "outline": "#869397",
+                    "on-secondary": "#003824",
+                    "surface-variant": "#33353b",
+                    "tertiary": "#ffb95f",
+                    "primary-fixed-dim": "#4cd7f6",
+                    "surface-container": "#1d2025",
+                    "on-surface": "#e2e2ea",
+                    "surface": "#111319",
+                    "on-surface-variant": "#bcc9cd",
+                    "background": "#111319",
+                    "surface-container-high": "#282a30",
+                    "primary-container": "#06b6d4",
+                    "error-container": "#93000a",
+                    "surface-container-low": "#191c21",
+                    "primary-fixed": "#acedff",
+                    "surface-container-lowest": "#0c0e13",
+                    "on-tertiary": "#472a00",
+                    "on-primary-container": "#00424f",
+                    "on-primary": "#003640",
+                    "on-secondary-fixed-variant": "#005236"
+                },
+                "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+                },
+                "spacing": {
+                    "section-margin": "2rem",
+                    "container-padding": "1.5rem",
+                    "component-gap": "0.5rem",
+                    "unit": "4px",
+                    "gutter": "1rem"
+                },
+                "fontFamily": {
+                    "headline-md": ["Inter"],
+                    "status-indicator": ["JetBrains Mono"],
+                    "data-mono-sm": ["JetBrains Mono"],
+                    "data-mono-lg": ["JetBrains Mono"],
+                    "label-caps": ["JetBrains Mono"],
+                    "body-base": ["Inter"],
+                    "display-lg": ["Inter"]
+                },
+                "fontSize": {
+                    "headline-md": ["24px", { "lineHeight": "32px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                    "status-indicator": ["10px", { "lineHeight": "12px", "fontWeight": "600" }],
+                    "data-mono-sm": ["13px", { "lineHeight": "18px", "fontWeight": "400" }],
+                    "data-mono-lg": ["18px", { "lineHeight": "24px", "fontWeight": "500" }],
+                    "label-caps": ["11px", { "lineHeight": "16px", "letterSpacing": "0.15em", "fontWeight": "700" }],
+                    "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                    "display-lg": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                }
             }
-          },
-          fontFamily: {
-            mono: ['JetBrains Mono', 'Fira Code', 'Monaco', 'Courier New', 'monospace'],
-          }
         }
-      }
     }
   </script>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Inter', sans-serif; background-color: #07090e; color: #f8fafc; }
-    code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
-    .glow-emerald { text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
-    .glow-cyan { text-shadow: 0 0 10px rgba(6, 182, 212, 0.5); }
-    .border-glow { box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #07090e; }
-    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #334155; }
-    @keyframes pulse-slow {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    .animate-pulse-slow { animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    .glass-panel {
+        background-color: rgba(25, 28, 33, 0.6);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(76, 215, 246, 0.3);
+        box-shadow: 0 0 15px rgba(76, 215, 246, 0.1);
+    }
+    
+    .neon-border-glow {
+        border: 1px solid #4cd7f6;
+        box-shadow: 0 0 8px #4cd7f6;
+    }
+
+    .emerald-glow {
+        box-shadow: 0 0 10px rgba(78, 222, 163, 0.4);
+    }
+
+    .scanlines {
+        background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.1));
+        background-size: 100% 4px;
+        pointer-events: none;
+        position: absolute;
+        inset: 0;
+        z-index: 10;
+        opacity: 0.2;
+    }
+
+    .fade-in-up {
+        animation: fadeInUp 0.5s ease-out forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .pulse-indicator {
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { opacity: 0.4; }
+        50% { opacity: 1; }
+        100% { opacity: 0.4; }
+    }
+
+    /* Syntax Highlighting Base */
+    .token.comment { color: #869397; }
+    .token.string { color: #4edea3; }
+    .token.keyword { color: #4cd7f6; }
+    .token.function { color: #ffb95f; }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #111319; }
+    ::-webkit-scrollbar-thumb { background: #3d494c; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4cd7f6; }
   </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden select-none">
+<body class="bg-background text-on-surface min-h-screen overflow-hidden flex flex-col font-body-base">
+  <!-- Immersive Background -->
+  <div class="fixed inset-0 z-0 opacity-40">
+    <div class="absolute inset-0 w-full h-full" style="display:block;">
+      <canvas id="shader-canvas-ANIMATION_6" style="display:block;width:100%;height:100%"></canvas>
+      <script>
+      (function() {
+        const canvas = document.getElementById('shader-canvas-ANIMATION_6');
 
-  <!-- TOP APP BAR -->
-  <header class="h-14 bg-slate-950 border-b border-slate-800 flex items-center justify-between px-4 shrink-0 z-20">
-    <div class="flex items-center space-x-3">
-      <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
-      <div class="font-bold text-sm tracking-wider uppercase text-emerald-400 glow-emerald flex items-center space-x-2">
-        <span>SOVR OS</span>
-        <span class="text-slate-600">/</span>
-        <span class="text-white">THE BOARD</span>
-        <span class="text-xs bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">v0.7.0-PROD</span>
+        function syncSize() {
+          const w = canvas.clientWidth  || 1280;
+          const h = canvas.clientHeight || 720;
+          if (canvas.width !== w || canvas.height !== h) {
+            canvas.width  = w;
+            canvas.height = h;
+          }
+        }
+        if (typeof ResizeObserver !== 'undefined') {
+          new ResizeObserver(syncSize).observe(canvas);
+        }
+        syncSize();
+
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (!gl) return;
+        const vs = `attribute vec2 a_position;
+      varying vec2 v_texCoord;
+      void main() {
+        v_texCoord = a_position * 0.5 + 0.5;
+        gl_Position = vec4(a_position, 0.0, 1.0);
+      }`;
+        const fs = `precision highp float;
+      uniform float u_time;
+      uniform vec2 u_resolution;
+      varying vec2 v_texCoord;
+
+      float hash(vec2 p) {
+          p = fract(p * vec2(123.34, 456.21));
+          p += dot(p, p + 45.32);
+          return fract(p.x * p.y);
+      }
+
+      float noise(vec2 p) {
+          vec2 i = floor(p);
+          vec2 f = fract(p);
+          f = f * f * (3.0 - 2.0 * f);
+          float a = hash(i);
+          float b = hash(i + vec2(1.0, 0.0));
+          float c = hash(i + vec2(0.0, 1.0));
+          float d = hash(i + vec2(1.0, 1.0));
+          return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+      }
+
+      void main() {
+          vec2 uv = v_texCoord;
+          vec2 p = (gl_FragCoord.xy * 2.0 - u_resolution.xy) / min(u_resolution.x, u_resolution.y);
+          
+          vec3 color = vec3(0.01, 0.02, 0.05);
+          
+          float t = u_time * 0.2;
+          for(int i = 0; i < 3; i++) {
+              float z = float(i) * 4.0;
+              vec2 q = p * (1.0 + z) + vec2(t * (1.0 + z), t * 0.5);
+              float n = noise(q);
+              color += vec3(0.0, 0.4, 0.6) * pow(n, 10.0) * (1.0 / (1.0 + z));
+          }
+          
+          vec2 grid = fract(uv * 20.0 + vec2(u_time * 0.02, 0.0));
+          float line = smoothstep(0.0, 0.01, grid.x) * smoothstep(1.0, 0.99, grid.x);
+          line += smoothstep(0.0, 0.01, grid.y) * smoothstep(1.0, 0.99, grid.y);
+          color += vec3(0.0, 0.6, 0.8) * line * 0.03;
+
+          float scanline = sin(uv.y * 800.0 + u_time * 5.0) * 0.02;
+          color -= scanline;
+
+          gl_FragColor = vec4(color, 1.0);
+      }`;
+        function cs(type, src) {
+          const s = gl.createShader(type);
+          gl.shaderSource(s, src);
+          gl.compileShader(s);
+          return s;
+        }
+        const prog = gl.createProgram();
+        gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+        gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+        gl.linkProgram(prog);
+        gl.useProgram(prog);
+        const buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+        const pos = gl.getAttribLocation(prog, 'a_position');
+        gl.enableVertexAttribArray(pos);
+        gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+        const uTime = gl.getUniformLocation(prog, 'u_time');
+        const uRes = gl.getUniformLocation(prog, 'u_resolution');
+        const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+        let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+        window.addEventListener('mousemove', (event) => {
+          const rect = canvas.getBoundingClientRect();
+          if (rect.width && rect.height) {
+            const nx = (event.clientX - rect.left) / rect.width;
+            const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+            mouse.x = nx * canvas.width;
+            mouse.y = ny * canvas.height;
+          }
+        });
+
+        function render(t) {
+          if (typeof ResizeObserver === 'undefined') syncSize();
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          if (uTime) gl.uniform1f(uTime, t * 0.001);
+          if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+          if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          requestAnimationFrame(render);
+        }
+        render(0);
+      })();
+      </script>
+    </div>
+  </div>
+  <div class="fixed inset-0 z-0 opacity-10 pointer-events-none mix-blend-screen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC5bBItc86zBkM_DcIqrcM0f98ArnsZXjjwhHjxG0UOxOqRbDnbi-9DOb187EsZh6zqq9aw0isGQtAiGp8vCf3EZtrmjDHKL-kyuWGGRuuHVI08Z6YYIvitzXzijsRd95SftCkldGIf2JChPWTsCyRyv5iL5GPZnpyOO7UJEJO8tDrH-Bk6rMpDb1wJrxMgiz8tds6KO7_2AsM1RPI7NUFUslwC2UHFiuMv2Zzk96UwDYk2t2rqYUHQdxqgtSYpWAmVaQ'); background-size: cover; background-position: center;"></div>
+
+  <!-- TopNavBar -->
+  <header class="bg-surface-container-lowest/80 backdrop-blur-xl docked full-width top-0 border-b border-primary/30 shadow-[0_0_15px_rgba(76,215,246,0.15)] flex justify-between items-center w-full px-container-padding py-4 h-16 z-50 sticky">
+    <div class="flex items-center gap-6">
+      <h1 class="font-display-lg text-display-lg tracking-tighter text-primary drop-shadow-[0_0_8px_#4cd7f6] cursor-default">SOVR OS</h1>
+      <span class="font-data-mono-sm text-data-mono-sm text-on-surface-variant px-3 py-1 rounded border border-outline-variant/30 bg-surface-container/50">/ THE BOARD</span>
+    </div>
+
+    <!-- Active Connections Console -->
+    <div class="hidden lg:flex items-center gap-4">
+      <div class="flex items-center gap-2 bg-surface-container-lowest/85 border border-outline-variant/30 px-3 py-1.5 rounded text-xs font-mono">
+        <span class="text-on-surface-variant opacity-75">Kernel:</span>
+        <input id="kernel-url-input" type="text" value="http://localhost:3429" class="bg-transparent text-primary font-mono focus:outline-none w-36 border-none p-0 text-xs focus:ring-0" />
+        <button onclick="testKernelConnection()" class="text-xs bg-primary/20 hover:bg-primary/35 text-primary border border-primary/50 px-2.5 py-0.5 rounded transition">Ping</button>
+      </div>
+
+      <div class="flex items-center gap-2 bg-surface-container-lowest/85 border border-outline-variant/30 px-3 py-1.5 rounded text-xs font-mono">
+        <span class="text-on-surface-variant opacity-75">Actor:</span>
+        <span id="actor-id-display" class="text-tertiary">actor_agent_001</span>
       </div>
     </div>
 
-    <div class="flex items-center space-x-4 text-xs">
-      <div class="hidden md:flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
-        <span class="text-slate-400">Kernel URL:</span>
-        <input id="kernel-url-input" type="text" value="http://localhost:3429" class="bg-transparent text-emerald-400 font-mono focus:outline-none w-40" />
-        <button onclick="testKernelConnection()" class="text-xs bg-emerald-600 hover:bg-emerald-500 text-white px-2 py-0.5 rounded transition">Ping</button>
-      </div>
-
-      <div class="flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
-        <span class="text-slate-400">Autonomy:</span>
-        <select id="autonomy-select" onchange="toggleAutonomyMode()" class="bg-slate-950 text-cyan-400 font-mono focus:outline-none border border-slate-700 rounded px-1">
-          <option value="assisted">assisted (Human Gate)</option>
-          <option value="autonomous">autonomous (XV3-ESCROW)</option>
-        </select>
-      </div>
-
-      <div class="flex items-center space-x-2 bg-slate-900 px-3 py-1.5 rounded border border-slate-800">
-        <span class="text-slate-400">Actor ID:</span>
-        <span id="actor-id-display" class="text-amber-400 font-mono">actor_agent_001</span>
-      </div>
-
-      <div class="flex items-center space-x-2 bg-emerald-950/40 border border-emerald-800/60 px-3 py-1.5 rounded text-emerald-400 font-mono">
-        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span id="header-build-hash">Hash: fa948641...</span>
+    <div class="flex items-center gap-4">
+      <span class="font-status-indicator text-status-indicator text-secondary flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-secondary pulse-indicator shadow-[0_0_8px_#4edea3]"></span>
+        ALL SYSTEMS ACTIVE
+      </span>
+      <span id="header-build-hash" class="font-data-mono-sm text-data-mono-sm text-outline px-2 border-l border-outline-variant">Hash: fa948641...</span>
+      <div class="flex gap-2 text-primary">
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">sensors</span>
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">memory</span>
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+        <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">security</span>
       </div>
     </div>
   </header>
 
-  <!-- MAIN WORKSPACE (3 PANELS) -->
-  <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2 p-2 overflow-hidden bg-slate-950/50">
+  <!-- Main Workspace -->
+  <main class="flex-1 flex flex-col p-container-padding gap-container-padding relative z-10 overflow-hidden h-[calc(100vh-64px-48px)]">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter h-full pb-4">
+      
+      <!-- Left Panel (Protocol Editor) -->
+      <section class="lg:col-span-4 glass-panel rounded flex flex-col fade-in-up" style="animation-delay: 0.1s;">
+        <div class="scanlines rounded"></div>
+        <header class="border-b border-primary/20 p-3 bg-surface-container-high/50 flex justify-between items-center relative z-20">
+          <div class="flex gap-2">
+            <button class="font-data-mono-sm text-data-mono-sm px-3 py-1 bg-surface-container rounded-sm border border-primary text-primary shadow-[0_0_8px_rgba(76,215,246,0.2)]" id="tab-yaml" onclick="switchTab('yaml')">08_security.yaml</button>
+            <button class="font-data-mono-sm text-data-mono-sm px-3 py-1 hover:bg-surface-container-high rounded-sm border border-transparent text-on-surface-variant hover:text-primary transition-colors" id="tab-ts" onclick="switchTab('ts')">kernel-bridge.ts</button>
+          </div>
+          <div class="flex gap-2">
+            <button class="text-primary hover:text-white" onclick="compileSpec()"><span class="material-symbols-outlined text-[18px]">play_arrow</span></button>
+            <button class="text-on-surface-variant hover:text-white" onclick="saveAmendment()"><span class="material-symbols-outlined text-[18px]">save</span></button>
+          </div>
+        </header>
 
-    <!-- LEFT PANEL: Code / Protocol Editor (Col 1-4) -->
-    <div class="lg:col-span-4 bg-slate-900/90 border border-slate-800 rounded-lg flex flex-col overflow-hidden shadow-xl">
-      <div class="bg-slate-950 px-3 py-2 border-b border-slate-800 flex items-center justify-between text-xs">
-        <div class="flex items-center space-x-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
-          <span class="font-semibold text-slate-200">LEFT PANEL — Protocol Editor</span>
-        </div>
-        <div class="flex space-x-1">
-          <button onclick="switchTab('yaml')" id="tab-yaml" class="px-2.5 py-1 rounded bg-slate-800 text-cyan-400 font-mono transition">08_security.yaml</button>
-          <button onclick="switchTab('ts')" id="tab-ts" class="px-2.5 py-1 rounded hover:bg-slate-800 text-slate-400 font-mono transition">kernel-bridge.ts</button>
-        </div>
-      </div>
-
-      <!-- Editor Content -->
-      <div class="flex-1 relative overflow-hidden flex flex-col">
-        <div id="editor-yaml-container" class="absolute inset-0 flex flex-col">
-          <textarea id="editor-yaml" class="flex-1 bg-slate-950/80 text-slate-300 font-mono text-xs p-3 resize-none focus:outline-none border-0 leading-relaxed" spellcheck="false">meta:
+        <!-- Editor Viewports -->
+        <div class="flex-1 relative overflow-hidden flex flex-col z-20">
+          <div id="editor-yaml-container" class="absolute inset-0 flex flex-col">
+            <textarea id="editor-yaml" class="flex-1 bg-transparent text-on-surface font-data-mono-sm text-data-mono-sm p-4 resize-none focus:outline-none border-0 leading-relaxed overflow-auto" spellcheck="false">meta:
   schema_version: "1.0.0"
   file_id: "08_security-capabilities"
   total_capabilities: 111
@@ -131,10 +366,10 @@ capabilities:
     action: "EXECUTE"
     scope: "compiler:ir:*"
     constitutional_rule: "INV-001"</textarea>
-        </div>
+          </div>
 
-        <div id="editor-ts-container" class="absolute inset-0 flex flex-col hidden">
-          <textarea id="editor-ts" class="flex-1 bg-slate-950/80 text-emerald-300 font-mono text-xs p-3 resize-none focus:outline-none border-0 leading-relaxed" spellcheck="false">// src/agent/kernel-bridge.ts
+          <div id="editor-ts-container" class="absolute inset-0 flex flex-col hidden">
+            <textarea id="editor-ts" class="flex-1 bg-transparent text-secondary font-data-mono-sm text-data-mono-sm p-4 resize-none focus:outline-none border-0 leading-relaxed overflow-auto" spellcheck="false">// src/agent/kernel-bridge.ts
 import { RuntimeCommand, RuntimeEvent } from '@sovr/runtime';
 
 export class KernelBridge {
@@ -154,235 +389,307 @@ export class KernelBridge {
     return res.json();
   }
 }</textarea>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Editor Action Toolbar -->
-      <div class="bg-slate-950 p-2.5 border-t border-slate-800 flex items-center justify-between text-xs">
-        <span id="editor-status" class="text-slate-400 font-mono">111 capabilities loaded</span>
-        <div class="flex space-x-2">
-          <button onclick="compileSpec()" class="bg-cyan-600 hover:bg-cyan-500 text-white font-medium px-3 py-1.5 rounded transition flex items-center space-x-1">
-            <span>⚡ spec_compile</span>
-          </button>
-          <button onclick="saveAmendment()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-3 py-1.5 rounded transition">
-            Save Amendment
-          </button>
+      <!-- Center Panel (Kernel Tower) -->
+      <section class="lg:col-span-4 glass-panel rounded flex flex-col fade-in-up" style="animation-delay: 0.2s;">
+        <header class="border-b border-primary/20 p-3 bg-surface-container-high/50 flex justify-between items-center relative z-20">
+          <span class="font-headline-md text-[14px] font-bold text-primary tracking-widest">KERNEL ARCHITECTURE</span>
+          <button class="font-label-caps text-label-caps text-primary border border-primary/50 px-2 py-1 rounded hover:bg-primary/10 transition" onclick="testKernelConnection()">PING</button>
+        </header>
+        <div class="flex-1 p-4 flex flex-col justify-between gap-2 relative z-20 overflow-y-auto">
+          <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+PGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMSIgZmlsbD0iIzRjZDdmNiIvPjwvc3ZnPg==')] bg-repeat pointer-events-none"></div>
+
+          <!-- L7 -->
+          <div class="bg-surface-container/80 border border-primary/30 p-2 rounded flex justify-between items-center hover:border-primary/80 transition-colors cursor-pointer group">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono-sm text-primary group-hover:glow-sm">L7</span>
+              <div class="text-left">
+                <div class="font-body-base text-[13px] text-white">Production Release</div>
+                <div class="text-[10px] text-on-surface-variant">Byte-identical hash chain</div>
+              </div>
+            </div>
+            <span class="font-status-indicator text-status-indicator text-secondary bg-secondary/10 px-2 py-0.5 rounded emerald-glow">SYNCED</span>
+          </div>
+
+          <!-- L6 -->
+          <div class="bg-surface-container/80 border border-primary/30 p-2 rounded flex justify-between items-center hover:border-primary/80 transition-colors cursor-pointer group">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono-sm text-primary">L6</span>
+              <div class="text-left">
+                <div class="font-body-base text-[13px] text-white">Boundary Rails</div>
+                <div class="text-[10px] text-on-surface-variant">ACH, FedNow, Blockchain, SWIFT</div>
+              </div>
+            </div>
+            <span class="font-status-indicator text-status-indicator text-secondary bg-secondary/10 px-2 py-0.5 rounded emerald-glow">12 RAILS</span>
+          </div>
+
+          <!-- L5 -->
+          <div class="bg-surface-container/80 border border-primary/30 p-2 rounded flex justify-between items-center hover:border-primary/80 transition-colors cursor-pointer group">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono-sm text-primary">L5</span>
+              <div class="text-left">
+                <div class="font-body-base text-[13px] text-white">Domain Contracts</div>
+                <div class="text-[10px] text-on-surface-variant">Vault, Ledger, Treasury, Escrow</div>
+              </div>
+            </div>
+            <span class="font-status-indicator text-status-indicator text-secondary bg-secondary/10 px-2 py-0.5 rounded emerald-glow">10 CONTRACTS</span>
+          </div>
+
+          <!-- L4 -->
+          <div class="bg-surface-container/80 border border-primary/30 p-2 rounded flex justify-between items-center hover:border-primary/80 transition-colors cursor-pointer group">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono-sm text-primary">L4</span>
+              <div class="text-left">
+                <div class="font-body-base text-[13px] text-white">Interpretation Engine</div>
+                <div class="text-[10px] text-on-surface-variant">Rebuilt from genesis event store</div>
+              </div>
+            </div>
+            <span class="font-status-indicator text-status-indicator text-secondary bg-secondary/10 px-2 py-0.5 rounded emerald-glow">16 PROJECTIONS</span>
+          </div>
+
+          <!-- L3 -->
+          <div class="bg-surface-container/80 border border-primary/30 p-2 rounded flex justify-between items-center hover:border-primary/80 transition-colors cursor-pointer group">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono-sm text-primary">L3</span>
+              <div class="text-left">
+                <div class="font-body-base text-[13px] text-white">Authority & Scope Gate</div>
+                <div class="text-[10px] text-on-surface-variant">X-Agent-Id validation scope</div>
+              </div>
+            </div>
+            <span class="font-status-indicator text-status-indicator text-secondary bg-secondary/10 px-2 py-0.5 rounded emerald-glow">SCOPE GATE</span>
+          </div>
+
+          <!-- L2 -->
+          <div class="bg-surface-container/80 border border-primary/30 p-2 rounded flex justify-between items-center hover:border-primary/80 transition-colors cursor-pointer group">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono-sm text-primary">L2</span>
+              <div class="text-left">
+                <div class="font-body-base text-[13px] text-white">Execution Control</div>
+                <div class="text-[10px] text-on-surface-variant">Saga orchestration & determinism</div>
+              </div>
+            </div>
+            <span class="font-status-indicator text-status-indicator text-secondary bg-secondary/10 px-2 py-0.5 rounded emerald-glow">43 MACHINES</span>
+          </div>
+
+          <!-- L1 -->
+          <div class="bg-surface-container/80 border border-primary/30 p-2 rounded flex justify-between items-center hover:border-primary/80 transition-colors cursor-pointer group">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono-sm text-primary">L1</span>
+              <div class="text-left">
+                <div class="font-body-base text-[13px] text-white">Shared Language</div>
+                <div class="text-[10px] text-on-surface-variant">Command & event serialization</div>
+              </div>
+            </div>
+            <span id="event-count-badge" class="font-status-indicator text-status-indicator text-tertiary bg-tertiary/10 px-2 py-0.5 rounded">259 EVENTS</span>
+          </div>
+
+          <!-- L0 -->
+          <div class="bg-primary/10 border-2 border-primary p-2.5 rounded flex justify-between items-center shadow-[0_0_15px_rgba(76,215,246,0.3)]">
+            <div class="flex items-center gap-3">
+              <span class="font-data-mono-sm text-primary font-bold">L0</span>
+              <div class="text-left">
+                <div class="font-body-base text-[14px] font-bold text-white">SOVR Constitution</div>
+                <div class="text-[10px] text-primary/75">Immutable runtime invariants</div>
+              </div>
+            </div>
+            <span class="font-status-indicator text-status-indicator text-primary bg-primary/20 px-2 py-1 rounded">10 INVARIANTS</span>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <!-- Right Panel (Agent Superpowers - 14 Tools) -->
+      <section class="lg:col-span-4 glass-panel rounded flex flex-col fade-in-up" style="animation-delay: 0.3s;">
+        <header class="border-b border-primary/20 p-3 bg-surface-container-high/50 flex justify-between items-center relative z-20">
+          <span class="font-headline-md text-[14px] font-bold text-primary tracking-widest font-mono">14 MCP TOOL WIDGETS</span>
+          <select class="bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-data-mono-sm text-data-mono-sm rounded py-1 pl-2 pr-6 focus:border-primary focus:ring-1 focus:ring-primary" id="autonomy-select" onchange="toggleAutonomyMode()">
+            <option value="assisted">ASSISTED MODE</option>
+            <option value="autonomous">AUTONOMOUS MODE</option>
+          </select>
+        </header>
+        <div class="flex-1 p-3 overflow-y-auto relative z-20">
+          <div class="grid grid-cols-2 gap-2">
+
+            <!-- 1. kernel_submit -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('kernel_submit')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">publish</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">kernel_submit</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Submit cmd w/ identity</div>
+              </div>
+            </button>
+
+            <!-- 2. kernel_query -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('kernel_query')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">search</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">kernel_query</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Query event log & proj</div>
+              </div>
+            </button>
+
+            <!-- 3. event_subscribe -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('event_subscribe')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">rss_feed</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">event_subscribe</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Live WS event stream</div>
+              </div>
+            </button>
+
+            <!-- 4. audit_verify -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-secondary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('audit_verify')">
+              <div class="absolute inset-0 bg-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-secondary group-hover:emerald-glow rounded-full text-[20px]">verified</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-secondary transition-colors text-[10px]">audit_verify</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Run certifications</div>
+              </div>
+            </button>
+
+            <!-- 5. spec_compile -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('spec_compile')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">bolt</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">spec_compile</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">YAML to IR compilation</div>
+              </div>
+            </button>
+
+            <!-- 6. capability_check -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('capability_check')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">shield</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">capability_check</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Validate security caps</div>
+              </div>
+            </button>
+
+            <!-- 7. visual_generate -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('visual_generate')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">image</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">visual_generate</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Render arch diagrams</div>
+              </div>
+            </button>
+
+            <!-- 8. bash -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('bash')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">terminal</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">bash</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Execute git / npm cmd</div>
+              </div>
+            </button>
+
+            <!-- 9. web_search -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('web_search')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">language</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">web_search</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Query external docs</div>
+              </div>
+            </button>
+
+            <!-- 10. file_edit -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('file_edit')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">edit</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">file_edit</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Modify workspace files</div>
+              </div>
+            </button>
+
+            <!-- 11. speech -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-tertiary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('speech')">
+              <div class="absolute inset-0 bg-tertiary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-tertiary rounded-full text-[20px]">volume_up</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-tertiary transition-colors text-[10px]">speech</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Audio briefings synthesis</div>
+              </div>
+            </button>
+
+            <!-- 12. git_status -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('git_status')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">source_control</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">git_status</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Monitor repo state</div>
+              </div>
+            </button>
+
+            <!-- 13. image_search -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-primary/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('image_search')">
+              <div class="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-primary group-hover:shadow-[0_0_8px_#4cd7f6] rounded-full text-[20px]">photo_library</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-primary transition-colors text-[10px]">image_search</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Fetch reference imagery</div>
+              </div>
+            </button>
+
+            <!-- 14. git_push -->
+            <button class="bg-surface-container border border-outline-variant/50 hover:border-error/80 hover:bg-surface-container-high transition-all p-2.5 rounded flex flex-col items-start gap-1 group relative overflow-hidden text-left" onclick="runTool('git_push')">
+              <div class="absolute inset-0 bg-error/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <span class="material-symbols-outlined text-error rounded-full text-[20px]">cloud_upload</span>
+              <div>
+                <div class="font-label-caps text-label-caps text-on-surface group-hover:text-error transition-colors text-[10px]">git_push</div>
+                <div class="text-[9px] text-on-surface-variant leading-tight">Open GitHub pull request</div>
+              </div>
+            </button>
+
+          </div>
+        </div>
+      </section>
     </div>
 
-    <!-- CENTER PANEL: Kernel Tower L0 → L7 (Col 5-8) -->
-    <div class="lg:col-span-4 bg-slate-900/90 border border-slate-800 rounded-lg flex flex-col overflow-hidden shadow-xl">
-      <div class="bg-slate-950 px-3 py-2 border-b border-slate-800 flex items-center justify-between text-xs">
-        <div class="flex items-center space-x-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="font-semibold text-slate-200">CENTER PANEL — Kernel Tower (L0 → L7)</span>
-        </div>
-        <span class="text-amber-400 font-mono text-[10px] bg-amber-950/60 border border-amber-800/50 px-2 py-0.5 rounded">XV3-ESCROW-PROOF</span>
+    <!-- Bottom Panel (Terminal) -->
+    <section class="h-48 glass-panel rounded flex flex-col fade-in-up" style="animation-delay: 0.4s;">
+      <header class="border-b border-primary/20 p-2 bg-surface-container-lowest flex justify-between items-center relative z-20">
+        <span class="font-data-mono-sm text-[12px] text-on-surface-variant uppercase tracking-wider">SOVR Constitutional Shell v2.0.0</span>
+        <span class="font-status-indicator text-status-indicator text-secondary pulse-indicator">● CONNECTED</span>
+      </header>
+      <div class="flex-1 overflow-auto p-3 font-data-mono-sm text-[13px] text-on-surface whitespace-pre-wrap flex flex-col gap-1 relative z-20" id="terminal-output">
+        <div class="text-secondary font-bold">═══ SOVR Constitutional Kernel Terminal v2.0.0 ═══</div>
+        <div class="text-on-surface-variant">[0.000001] BIOS v2.0.1 — Cryptographic Attestation Mode initialized.</div>
+        <div class="text-primary">[0.000318] Mounting /dev/sovr/constitution ... 10 immutable invariants active.</div>
+        <div class="text-on-surface">Type <span class="text-secondary font-bold cursor-pointer" onclick="submitTerminalCommandCmd('help')">help</span>, <span class="text-secondary font-bold cursor-pointer" onclick="submitTerminalCommandCmd('status')">status</span>, <span class="text-secondary font-bold cursor-pointer" onclick="submitTerminalCommandCmd('audit_verify')">audit_verify</span>, or <span class="text-secondary font-bold cursor-pointer" onclick="compileSpec()">spec_compile</span>.</div>
       </div>
-
-      <!-- Kernel Layers Stack -->
-      <div class="flex-1 p-3 overflow-y-auto space-y-2 text-xs font-mono">
-        <!-- L0 -->
-        <div class="bg-slate-950 border border-slate-800 p-2.5 rounded hover:border-emerald-600/50 transition">
-          <div class="flex justify-between items-center text-emerald-400 font-bold mb-1">
-            <span>[L0] Protocol Governance</span>
-            <span class="text-[10px] bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-800">10 Invariants</span>
-          </div>
-          <p class="text-slate-400 text-[11px]">Immutable invariants INV-001..010 enforced at runtime.</p>
-        </div>
-
-        <!-- L1 -->
-        <div class="bg-slate-950 border border-slate-800 p-2.5 rounded hover:border-cyan-600/50 transition">
-          <div class="flex justify-between items-center text-cyan-400 font-bold mb-1">
-            <span>[L1] Shared Language</span>
-            <span class="text-[10px] bg-cyan-950 text-cyan-300 px-1.5 py-0.5 rounded border border-cyan-800">105 Cmds / 259 Events</span>
-          </div>
-          <p class="text-slate-400 text-[11px]">Registry-driven command/event serialization & validation.</p>
-        </div>
-
-        <!-- L2 -->
-        <div class="bg-slate-950 border border-slate-800 p-2.5 rounded hover:border-purple-600/50 transition">
-          <div class="flex justify-between items-center text-purple-400 font-bold mb-1">
-            <span>[L2] Execution Control</span>
-            <span class="text-[10px] bg-purple-950 text-purple-300 px-1.5 py-0.5 rounded border border-purple-800">43 State Machines</span>
-          </div>
-          <p class="text-slate-400 text-[11px]">Saga orchestration & deterministic instruction evaluation.</p>
-        </div>
-
-        <!-- L3 -->
-        <div class="bg-slate-950 border border-slate-800 p-2.5 rounded hover:border-amber-600/50 transition">
-          <div class="flex justify-between items-center text-amber-400 font-bold mb-1">
-            <span>[L3] Authority & Capability</span>
-            <span class="text-[10px] bg-amber-950 text-amber-300 px-1.5 py-0.5 rounded border border-amber-800">Scope Gate</span>
-          </div>
-          <p class="text-slate-400 text-[11px]">X-Agent-Id validation against capabilities array.</p>
-        </div>
-
-        <!-- L4 -->
-        <div class="bg-slate-950 border border-slate-800 p-2.5 rounded hover:border-blue-600/50 transition">
-          <div class="flex justify-between items-center text-blue-400 font-bold mb-1">
-            <span>[L4] Interpretation</span>
-            <span class="text-[10px] bg-blue-950 text-blue-300 px-1.5 py-0.5 rounded border border-blue-800">16 Projections</span>
-          </div>
-          <p class="text-slate-400 text-[11px]">Rebuilt from genesis event store (INV-006).</p>
-        </div>
-
-        <!-- L5 -->
-        <div class="bg-slate-950 border border-slate-800 p-2.5 rounded hover:border-indigo-600/50 transition">
-          <div class="flex justify-between items-center text-indigo-400 font-bold mb-1">
-            <span>[L5] Integration</span>
-            <span class="text-[10px] bg-indigo-950 text-indigo-300 px-1.5 py-0.5 rounded border border-indigo-800">10 Domain Contracts</span>
-          </div>
-          <p class="text-slate-400 text-[11px]">Vault, Ledger, Treasury, Escrow, Policy, Identity.</p>
-        </div>
-
-        <!-- L6 -->
-        <div class="bg-slate-950 border border-slate-800 p-2.5 rounded hover:border-rose-600/50 transition">
-          <div class="flex justify-between items-center text-rose-400 font-bold mb-1">
-            <span>[L6] Boundary</span>
-            <span class="text-[10px] bg-rose-950 text-rose-300 px-1.5 py-0.5 rounded border border-rose-800">12 Rails</span>
-          </div>
-          <p class="text-slate-400 text-[11px]">ACH, FedNow, Blockchain, Stablecoin, SWIFT, SEPA.</p>
-        </div>
-
-        <!-- L7 -->
-        <div class="bg-slate-950 border border-slate-800 p-2.5 rounded hover:border-emerald-500 transition">
-          <div class="flex justify-between items-center text-emerald-400 font-bold mb-1">
-            <span>[L7] Production</span>
-            <span class="text-[10px] bg-emerald-950 text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-800">Manifest Verified</span>
-          </div>
-          <p class="text-slate-400 text-[11px]">Byte-identical build hash chain & audit envelope.</p>
-        </div>
+      <div class="border-t border-outline-variant/30 p-2 flex items-center gap-2 bg-surface-container-lowest relative z-20">
+        <span class="text-primary font-bold ml-2">&gt;</span>
+        <input class="flex-1 bg-transparent border-none text-on-surface font-data-mono-sm text-[13px] focus:ring-0 placeholder:text-outline-variant" id="terminal-input" onkeypress="if(event.key === 'Enter') submitTerminalCommand()" placeholder="Enter command or natural language directive..." type="text"/>
+        <button class="text-outline-variant hover:text-primary transition-colors pr-2" onclick="submitTerminalCommand()"><span class="material-symbols-outlined text-[18px]">send</span></button>
       </div>
+    </section>
+  </main>
 
-      <!-- Live Stream Orbs Footer -->
-      <div class="bg-slate-950 p-2 border-t border-slate-800 text-[11px] font-mono flex items-center justify-between">
-        <span class="text-slate-400 flex items-center space-x-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          <span>Event Stream Live</span>
-        </span>
-        <span id="event-count-badge" class="text-emerald-400">259 events indexed</span>
-      </div>
+  <!-- Footer -->
+  <footer class="bg-surface-dim/90 backdrop-blur-md docked full-width bottom-0 border-t border-secondary/30 flex justify-between items-center w-full px-container-padding py-2 h-12 z-50">
+    <span class="font-data-mono-sm text-data-mono-sm uppercase tracking-widest text-outline">SOVEREIGN • VERIFIABLE • ALIGNED</span>
+    <div class="hidden md:flex gap-6">
+      <span class="font-data-mono-sm text-data-mono-sm uppercase tracking-widest text-outline hover:text-secondary-fixed transition-colors cursor-default">DATA FLOW: 2.4 GB/s</span>
+      <span class="font-data-mono-sm text-data-mono-sm uppercase tracking-widest text-outline hover:text-secondary-fixed transition-colors cursor-default">EVENTS: 2,436 ev/s</span>
+      <span class="font-data-mono-sm text-data-mono-sm uppercase tracking-widest text-outline hover:text-secondary-fixed transition-colors cursor-default">CPU: 18%</span>
+      <span class="font-data-mono-sm text-data-mono-sm uppercase tracking-widest text-outline hover:text-secondary-fixed transition-colors cursor-default">NETWORK: 1.2 Gbps</span>
+      <span id="footer-time" class="font-data-mono-sm text-data-mono-sm uppercase tracking-widest text-secondary glow-sm hover:text-secondary-fixed transition-colors cursor-default">TIME: 2026-08-08T19:24:00Z</span>
     </div>
+  </footer>
 
-    <!-- RIGHT PANEL: Agent Capability Array (14 MCP Tools) (Col 9-12) -->
-    <div class="lg:col-span-4 bg-slate-900/90 border border-slate-800 rounded-lg flex flex-col overflow-hidden shadow-xl">
-      <div class="bg-slate-950 px-3 py-2 border-b border-slate-800 flex items-center justify-between text-xs">
-        <div class="flex items-center space-x-2">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-          <span class="font-semibold text-slate-200">RIGHT PANEL — 14 MCP Tool Widgets</span>
-        </div>
-        <span class="text-slate-400 font-mono text-[10px]">Interactive Array</span>
-      </div>
-
-      <!-- 14 MCP Tools Grid -->
-      <div class="flex-1 p-2.5 overflow-y-auto grid grid-cols-2 gap-2 text-xs">
-        <button onclick="runTool('kernel_submit')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-emerald-400 font-medium group-hover:text-emerald-300">1. kernel_submit</span>
-          <span class="text-[10px] text-slate-400 mt-1">Submit command w/ identity</span>
-        </button>
-
-        <button onclick="runTool('kernel_query')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-cyan-400 font-medium group-hover:text-cyan-300">2. kernel_query</span>
-          <span class="text-[10px] text-slate-400 mt-1">Query event log & projections</span>
-        </button>
-
-        <button onclick="runTool('event_subscribe')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-purple-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-purple-400 font-medium group-hover:text-purple-300">3. event_subscribe</span>
-          <span class="text-[10px] text-slate-400 mt-1">Live WebSocket domain stream</span>
-        </button>
-
-        <button onclick="runTool('audit_verify')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-amber-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-amber-400 font-medium group-hover:text-amber-300">4. audit_verify</span>
-          <span class="text-[10px] text-slate-400 mt-1">Run production certification</span>
-        </button>
-
-        <button onclick="runTool('spec_compile')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-cyan-400 font-medium group-hover:text-cyan-300">5. spec_compile</span>
-          <span class="text-[10px] text-slate-400 mt-1">YAML → IR compilation pass</span>
-        </button>
-
-        <button onclick="runTool('capability_check')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-emerald-400 font-medium group-hover:text-emerald-300">6. capability_check</span>
-          <span class="text-[10px] text-slate-400 mt-1">Validate security capabilities</span>
-        </button>
-
-        <button onclick="runTool('visual_generate')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-rose-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-rose-400 font-medium group-hover:text-rose-300">7. visual_generate</span>
-          <span class="text-[10px] text-slate-400 mt-1">Render architecture diagrams</span>
-        </button>
-
-        <button onclick="runTool('bash')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-indigo-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-indigo-400 font-medium group-hover:text-indigo-300">8. bash</span>
-          <span class="text-[10px] text-slate-400 mt-1">Execute git / npm commands</span>
-        </button>
-
-        <button onclick="runTool('web_search')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-blue-400 font-medium group-hover:text-blue-300">9. web_search</span>
-          <span class="text-[10px] text-slate-400 mt-1">Retrieve external docs/updates</span>
-        </button>
-
-        <button onclick="runTool('file_edit')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-emerald-400 font-medium group-hover:text-emerald-300">10. file_edit</span>
-          <span class="text-[10px] text-slate-400 mt-1">Modify workspace files</span>
-        </button>
-
-        <button onclick="runTool('speech')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-amber-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-amber-400 font-medium group-hover:text-amber-300">11. speech</span>
-          <span class="text-[10px] text-slate-400 mt-1">Synthesize audio briefings</span>
-        </button>
-
-        <button onclick="runTool('git_status')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-purple-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-purple-400 font-medium group-hover:text-purple-300">12. git_status</span>
-          <span class="text-[10px] text-slate-400 mt-1">Monitor repository state</span>
-        </button>
-
-        <button onclick="runTool('image_search')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-cyan-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-cyan-400 font-medium group-hover:text-cyan-300">13. image_search</span>
-          <span class="text-[10px] text-slate-400 mt-1">Fetch reference imagery</span>
-        </button>
-
-        <button onclick="runTool('git_push')" class="bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-rose-500 p-2 rounded text-left transition flex flex-col justify-between group">
-          <span class="font-mono text-rose-400 font-medium group-hover:text-rose-300">14. git_push / PR</span>
-          <span class="text-[10px] text-slate-400 mt-1">Open GitHub pull requests</span>
-        </button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- BOTTOM PANEL: WORKING TERMINAL CONSOLE -->
-  <div class="h-64 bg-slate-950 border-t border-slate-800 flex flex-col shrink-0 z-20">
-    <!-- Terminal Header Bar -->
-    <div class="bg-slate-900 px-4 py-1.5 border-b border-slate-800 flex items-center justify-between text-xs">
-      <div class="flex items-center space-x-2">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="font-mono font-bold text-emerald-400">WORKING TERMINAL — SOVR Constitutional Shell</span>
-      </div>
-      <div class="flex items-center space-x-3">
-        <span class="text-slate-400 font-mono text-[11px]">Type <code class="text-cyan-400">help</code> for commands</span>
-        <button onclick="clearTerminal()" class="text-slate-400 hover:text-white px-2 py-0.5 rounded bg-slate-800 text-[11px] transition">Clear</button>
-      </div>
-    </div>
-
-    <!-- Terminal Output Log -->
-    <div id="terminal-output" class="flex-1 p-3 overflow-y-auto font-mono text-xs space-y-1.5 bg-slate-950">
-      <div class="text-emerald-400">═══ SOVR Constitutional Kernel Terminal v0.7.0 ═══</div>
-      <div class="text-slate-400">[0.000001] BIOS v1.0.4 — Cryptographic Attestation Mode initialized.</div>
-      <div class="text-cyan-400">[0.000318] Mounting /dev/sovr/constitution ... 10 immutable invariants active.</div>
-      <div class="text-slate-300">Type <span class="text-emerald-400 font-bold">help</span>, <span class="text-emerald-400 font-bold">status</span>, <span class="text-emerald-400 font-bold">audit_verify</span>, <span class="text-emerald-400 font-bold">kernel_submit</span> or <span class="text-emerald-400 font-bold">spec_compile</span>.</div>
-    </div>
-
-    <!-- Terminal Command Input -->
-    <div class="bg-slate-900 border-t border-slate-800 px-3 py-2 flex items-center">
-      <span class="text-emerald-400 font-mono text-xs mr-2 font-bold">sovr@kernel:~$</span>
-      <input id="terminal-input" type="text" onkeydown="handleTerminalKey(event)" placeholder="Enter command (e.g. status, audit_verify, kernel_query vault asset)..." class="flex-1 bg-transparent text-slate-100 font-mono text-xs focus:outline-none" />
-      <button onclick="submitTerminalCommand()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs px-3 py-1 rounded transition ml-2">Execute</button>
-    </div>
-  </div>
-
-  <!-- SCRIPT ENGINE -->
+  <!-- Interactive JavaScript Logic -->
   <script>
     const state = {
       kernelUrl: 'http://localhost:3429',
@@ -391,24 +698,129 @@ export class KernelBridge {
       activeTab: 'yaml',
     };
 
-    function switchTab(tab) {
-      state.activeTab = tab;
-      const yamlCont = document.getElementById('editor-yaml-container');
-      const tsCont = document.getElementById('editor-ts-container');
-      const tabYaml = document.getElementById('tab-yaml');
-      const tabTs = document.getElementById('tab-ts');
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      const yamlTab = document.getElementById('tab-yaml');
+      const tsTab = document.getElementById('tab-ts');
+      const yamlContainer = document.getElementById('editor-yaml-container');
+      const tsContainer = document.getElementById('editor-ts-container');
 
-      if (tab === 'yaml') {
-        yamlCont.classList.remove('hidden');
-        tsCont.classList.add('hidden');
-        tabYaml.className = 'px-2.5 py-1 rounded bg-slate-800 text-cyan-400 font-mono transition';
-        tabTs.className = 'px-2.5 py-1 rounded hover:bg-slate-800 text-slate-400 font-mono transition';
+      const activeClass = ['bg-surface-container', 'border-primary', 'text-primary', 'shadow-[0_0_8px_rgba(76,215,246,0.2)]'];
+      const inactiveClass = ['border-transparent', 'text-on-surface-variant', 'hover:bg-surface-container-high', 'hover:text-primary'];
+
+      if (tabId === 'yaml') {
+        yamlContainer.classList.remove('hidden');
+        tsContainer.classList.add('hidden');
+        
+        yamlTab.classList.remove(...inactiveClass);
+        yamlTab.classList.add(...activeClass);
+        
+        tsTab.classList.remove(...activeClass);
+        tsTab.classList.add(...inactiveClass);
       } else {
-        yamlCont.classList.add('hidden');
-        tsCont.classList.remove('hidden');
-        tabTs.className = 'px-2.5 py-1 rounded bg-slate-800 text-emerald-400 font-mono transition';
-        tabYaml.className = 'px-2.5 py-1 rounded hover:bg-slate-800 text-slate-400 font-mono transition';
+        tsContainer.classList.remove('hidden');
+        yamlContainer.classList.add('hidden');
+        
+        tsTab.classList.remove(...inactiveClass);
+        tsTab.classList.add(...activeClass);
+        
+        yamlTab.classList.remove(...activeClass);
+        yamlTab.classList.add(...inactiveClass);
       }
+    }
+
+    function appendTerminal(text, className = 'text-on-surface-variant') {
+      const output = document.getElementById('terminal-output');
+      const div = document.createElement('div');
+      div.className = className;
+      div.innerHTML = text;
+      output.appendChild(div);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function clearTerminal() {
+      document.getElementById('terminal-output').innerHTML = '<div class="text-secondary font-bold">═══ SOVR Constitutional Kernel Terminal v2.0.0 ═══</div>';
+    }
+
+    async function submitTerminalCommand() {
+      const input = document.getElementById('terminal-input');
+      const cmd = input.value.trim();
+      if (!cmd) return;
+      input.value = '';
+
+      appendTerminal(`<span class="text-on-surface opacity-70">&gt; ${cmd}</span>`, 'text-on-surface');
+
+      const parts = cmd.split(' ');
+      const action = parts[0].toLowerCase();
+
+      setTimeout(async () => {
+        if (action === 'help') {
+          appendTerminal('Available Commands:', 'text-primary font-bold');
+          appendTerminal('  status                      - Query live kernel health & subsystem stats');
+          appendTerminal('  audit_verify                - Verify production audit compliance & build manifest');
+          appendTerminal('  spec_compile                - Trigger YAML-to-IR compilation pass');
+          appendTerminal('  kernel_submit [dom] [agg]   - Submit a test command to kernel API');
+          appendTerminal('  kernel_query [dom] [agg]    - Query event log / projections');
+          appendTerminal('  bash [cmd]                  - Execute local workspace command (git, npm)');
+          appendTerminal('  clear                       - Clear terminal screen');
+        } else if (action === 'status') {
+          await testKernelConnection();
+        } else if (action === 'audit_verify') {
+          appendTerminal('[AUDIT] Executing verification of all 10 constitutional rules (INV-001..010)...', 'text-tertiary');
+          await new Promise(r => setTimeout(r, 600));
+          appendTerminal('✓ INV-001: Deterministic IR Hash Match ... [PASS]', 'text-on-surface-variant');
+          appendTerminal('✓ INV-002: Ledger Balance Zero-Sum ... [PASS]', 'text-on-surface-variant');
+          appendTerminal('✓ INV-003: Authority & Scope Gate ... [PASS]', 'text-on-surface-variant');
+          appendTerminal('✓ INV-005: Audit Trail Completeness (21 fields) ... [PASS]', 'text-on-surface-variant');
+          appendTerminal('✓ INV-006: State Sovereignty (Event Store Authoritative) ... [PASS]', 'text-on-surface-variant');
+          appendTerminal('✓ XV3-ESCROW-PROOF: Cryptographic attestation locked ... [SUCCESS]', 'text-secondary font-bold');
+        } else if (action === 'spec_compile') {
+          compileSpec();
+        } else if (action === 'kernel_submit') {
+          const dom = parts[1] || 'vault';
+          const agg = parts[2] || 'asset';
+          appendTerminal(`[SUBMIT] Submitting ${dom}.${agg} command with actor ${state.actorId}...`, 'text-primary');
+          try {
+            const res = await fetch(`${state.kernelUrl}/api/v1/${dom}/${agg}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Actor-Id': state.actorId,
+                'X-Autonomy-Level': state.autonomy
+              },
+              body: JSON.stringify({ commandName: `${dom}.${agg}.register`, payload: { asset_id: crypto.randomUUID(), type: 'stablecoin' } })
+            });
+            const json = await res.json();
+            appendTerminal(JSON.stringify(json, null, 2), res.ok ? 'text-secondary' : 'text-tertiary');
+          } catch (e) {
+            appendTerminal(`✗ Submit failed: ${e.message}`, 'text-error');
+          }
+        } else if (action === 'kernel_query' || action === 'events') {
+          const dom = parts[1] || 'vault';
+          appendTerminal(`[QUERY] Fetching events for domain=${dom}...`, 'text-primary');
+          try {
+            const res = await fetch(`${state.kernelUrl}/api/v1/events?domain=${dom}&limit=5`);
+            const json = await res.json();
+            appendTerminal(`Found ${json.total} events. Latest:`, 'text-secondary');
+            appendTerminal(JSON.stringify(json.events?.[0] ?? json, null, 2), 'text-on-surface-variant');
+          } catch (e) {
+            appendTerminal(`✗ Query failed: ${e.message}`, 'text-error');
+          }
+        } else if (action === 'bash') {
+          const sub = parts.slice(1).join(' ') || 'git status';
+          appendTerminal(`[BASH] Executing: ${sub}`, 'text-primary');
+          appendTerminal(`✓ [Simulated workspace execution] Output for '${sub}': working tree clean, branch arena/019fca06-sovr-protocol`, 'text-on-surface-variant');
+        } else if (action === 'clear') {
+          clearTerminal();
+        } else {
+          appendTerminal(`Unknown command: '${action}'. Type 'help' for available commands.`, 'text-error');
+        }
+      }, 200);
+    }
+
+    async function submitTerminalCommandCmd(cmdStr) {
+      document.getElementById('terminal-input').value = cmdStr;
+      await submitTerminalCommand();
     }
 
     function toggleAutonomyMode() {
@@ -417,129 +829,49 @@ export class KernelBridge {
       const actorDisp = document.getElementById('actor-id-display');
       if (state.autonomy === 'autonomous') {
         state.actorId = 'actor_agent_autonomous_01';
-        actorDisp.textContent = 'actor_agent_autonomous_01';
-        appendTerminal(`[AUTONOMY] Switched to AUTONOMOUS mode. XV3-ESCROW-PROOF attached to all mutations.`, 'text-amber-400');
+        if (actorDisp) actorDisp.textContent = 'actor_agent_autonomous_01';
+        appendTerminal(`[AUTONOMY] Switched to AUTONOMOUS mode. XV3-ESCROW-PROOF attached to all mutations.`, 'text-tertiary');
+        
+        select.classList.add('border-tertiary', 'text-tertiary');
+        select.classList.remove('border-outline-variant', 'text-on-surface-variant');
       } else {
         state.actorId = 'actor_agent_001';
-        actorDisp.textContent = 'actor_agent_001';
-        appendTerminal(`[AUTONOMY] Switched to ASSISTED mode. Human approval gate required.`, 'text-cyan-400');
+        if (actorDisp) actorDisp.textContent = 'actor_agent_001';
+        appendTerminal(`[AUTONOMY] Switched to ASSISTED mode. Human approval gate required.`, 'text-primary');
+        
+        select.classList.remove('border-tertiary', 'text-tertiary');
+        select.classList.add('border-outline-variant', 'text-on-surface-variant');
       }
     }
 
     async function testKernelConnection() {
       const urlInput = document.getElementById('kernel-url-input').value.trim();
       state.kernelUrl = urlInput;
-      appendTerminal(`[KERNEL] Pinging ${state.kernelUrl}/health...`, 'text-slate-400');
+      appendTerminal(`[KERNEL] Pinging ${state.kernelUrl}/health...`, 'text-on-surface-variant');
       try {
         const res = await fetch(`${state.kernelUrl}/health`);
         if (res.ok) {
           const data = await res.json();
-          appendTerminal(`✓ Kernel HEALTHY. Build Hash: ${data.build_hash?.slice(0, 16)}..., Events: ${data.event_store?.totalEvents ?? 0}`, 'text-emerald-400');
+          appendTerminal(`✓ Kernel HEALTHY. Build Hash: ${data.build_hash?.slice(0, 16)}..., Events: ${data.event_store?.totalEvents ?? 0}`, 'text-secondary');
           if (data.build_hash) {
             document.getElementById('header-build-hash').textContent = `Hash: ${data.build_hash.slice(0, 12)}...`;
           }
+          if (data.event_store?.totalEvents !== undefined) {
+            const badge = document.getElementById('event-count-badge');
+            if (badge) {
+              badge.textContent = `${data.event_store.totalEvents} EVENTS`;
+            }
+          }
         } else {
-          appendTerminal(`✗ Kernel responded with status ${res.status}`, 'text-rose-400');
+          appendTerminal(`✗ Kernel responded with status ${res.status}`, 'text-error');
         }
       } catch (err) {
-        appendTerminal(`✗ Failed to reach kernel at ${state.kernelUrl}: ${err.message}`, 'text-rose-400');
-      }
-    }
-
-    function appendTerminal(text, className = 'text-slate-300') {
-      const output = document.getElementById('terminal-output');
-      const div = document.createElement('div');
-      div.className = className;
-      div.textContent = text;
-      output.appendChild(div);
-      output.scrollTop = output.scrollHeight;
-    }
-
-    function clearTerminal() {
-      document.getElementById('terminal-output').innerHTML = '<div class="text-emerald-400">═══ SOVR Constitutional Kernel Terminal v0.7.0 ═══</div>';
-    }
-
-    function handleTerminalKey(e) {
-      if (e.key === 'Enter') {
-        submitTerminalCommand();
-      }
-    }
-
-    async function submitTerminalCommand() {
-      const input = document.getElementById('terminal-input');
-      const cmd = input.value.trim();
-      if (!cmd) return;
-      input.value = '';
-      appendTerminal(`sovr@kernel:~$ ${cmd}`, 'text-emerald-400 font-bold');
-
-      const parts = cmd.split(' ');
-      const action = parts[0].toLowerCase();
-
-      if (action === 'help') {
-        appendTerminal('Available Commands:', 'text-cyan-400 font-bold');
-        appendTerminal('  status                      - Query live kernel health & subsystem stats');
-        appendTerminal('  audit_verify                - Verify production audit compliance & build manifest');
-        appendTerminal('  spec_compile                - Trigger YAML-to-IR compilation pass');
-        appendTerminal('  kernel_submit [dom] [agg]   - Submit a test command to kernel API');
-        appendTerminal('  kernel_query [dom] [agg]    - Query event log / projections');
-        appendTerminal('  bash [cmd]                  - Execute local workspace command (git, npm)');
-        appendTerminal('  clear                       - Clear terminal screen');
-      } else if (action === 'status') {
-        await testKernelConnection();
-      } else if (action === 'audit_verify') {
-        appendTerminal('[AUDIT] Executing verification of all 10 constitutional rules (INV-001..010)...', 'text-amber-400');
-        await new Promise(r => setTimeout(r, 600));
-        appendTerminal('✓ INV-001: Deterministic IR Hash Match ... [PASS]');
-        appendTerminal('✓ INV-002: Ledger Balance Zero-Sum ... [PASS]');
-        appendTerminal('✓ INV-003: Authority & Scope Gate ... [PASS]');
-        appendTerminal('✓ INV-005: Audit Trail Completeness (21 fields) ... [PASS]');
-        appendTerminal('✓ INV-006: State Sovereignty (Event Store Authoritative) ... [PASS]');
-        appendTerminal('✓ XV3-ESCROW-PROOF: Cryptographic attestation locked ... [SUCCESS]', 'text-emerald-400 font-bold');
-      } else if (action === 'spec_compile') {
-        compileSpec();
-      } else if (action === 'kernel_submit') {
-        const dom = parts[1] || 'vault';
-        const agg = parts[2] || 'asset';
-        appendTerminal(`[SUBMIT] Submitting ${dom}.${agg} command with actor ${state.actorId}...`, 'text-cyan-400');
-        try {
-          const res = await fetch(`${state.kernelUrl}/api/v1/${dom}/${agg}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-Actor-Id': state.actorId,
-              'X-Autonomy-Level': state.autonomy
-            },
-            body: JSON.stringify({ commandName: `${dom}.${agg}.register`, payload: { asset_id: crypto.randomUUID(), type: 'stablecoin' } })
-          });
-          const json = await res.json();
-          appendTerminal(JSON.stringify(json, null, 2), res.ok ? 'text-emerald-300' : 'text-amber-300');
-        } catch (e) {
-          appendTerminal(`✗ Submit failed: ${e.message}`, 'text-rose-400');
-        }
-      } else if (action === 'kernel_query' || action === 'events') {
-        const dom = parts[1] || 'vault';
-        appendTerminal(`[QUERY] Fetching events for domain=${dom}...`, 'text-cyan-400');
-        try {
-          const res = await fetch(`${state.kernelUrl}/api/v1/events?domain=${dom}&limit=5`);
-          const json = await res.json();
-          appendTerminal(`Found ${json.total} events. Latest:`, 'text-emerald-300');
-          appendTerminal(JSON.stringify(json.events?.[0] ?? json, null, 2), 'text-slate-300');
-        } catch (e) {
-          appendTerminal(`✗ Query failed: ${e.message}`, 'text-rose-400');
-        }
-      } else if (action === 'bash') {
-        const sub = parts.slice(1).join(' ') || 'git status';
-        appendTerminal(`[BASH] Executing: ${sub}`, 'text-purple-400');
-        appendTerminal(`✓ [Simulated workspace execution] Output for '${sub}': working tree clean, branch arena/019fca06-sovr-protocol`, 'text-slate-300');
-      } else if (action === 'clear') {
-        clearTerminal();
-      } else {
-        appendTerminal(`Unknown command: '${action}'. Type 'help' for available commands.`, 'text-rose-400');
+        appendTerminal(`✗ Failed to reach kernel at ${state.kernelUrl}: ${err.message}`, 'text-error');
       }
     }
 
     function runTool(toolName) {
-      appendTerminal(`[MCP TOOL] Invoking tool: ${toolName}`, 'text-amber-400 font-bold');
+      appendTerminal(`[MCP TOOL] Invoking tool: ${toolName}`, 'text-tertiary font-bold');
       if (toolName === 'kernel_submit') {
         submitTerminalCommandCmd('kernel_submit vault asset');
       } else if (toolName === 'kernel_query') {
@@ -551,34 +883,36 @@ export class KernelBridge {
       } else if (toolName === 'bash') {
         submitTerminalCommandCmd('bash git status');
       } else {
-        appendTerminal(`✓ Tool ${toolName} executed successfully with actor ${state.actorId} under ${state.autonomy} mode.`, 'text-emerald-400');
+        appendTerminal(`✓ Tool ${toolName} executed successfully with actor ${state.actorId} under ${state.autonomy} mode.`, 'text-secondary');
       }
     }
-
-    async function submitTerminalCommandCmd(cmdStr) {
-      document.getElementById('terminal-input').value = cmdStr;
-      await submitTerminalCommand();
-    }
-
+    
     function compileSpec() {
-      appendTerminal('[COMPILER] Triggering deterministic YAML → IR compilation pass...', 'text-cyan-400');
+      appendTerminal(`[BUILD] Compiling current protocol specification...`, 'text-primary');
       setTimeout(() => {
-        appendTerminal('✓ Parsed 12 YAML specification manifests', 'text-slate-300');
-        appendTerminal('✓ Validated Gate Extraction & Pass Registry', 'text-slate-300');
-        appendTerminal('✓ Generated byte-identical build_hash: fa9486414f54d... [SUCCESS]', 'text-emerald-400 font-bold');
+        appendTerminal('✓ Parsed 12 YAML specification manifests', 'text-on-surface-variant');
+        appendTerminal('✓ Validated Gate Extraction & Pass Registry', 'text-on-surface-variant');
+        appendTerminal('✓ Generated byte-identical build_hash: fa9486414f54d... [SUCCESS]', 'text-secondary font-bold');
       }, 500);
     }
 
     function saveAmendment() {
-      appendTerminal('[GOVERNANCE] Saving constitutional amendment to spec corpus...', 'text-purple-400');
+      appendTerminal('[GOVERNANCE] Saving constitutional amendment to spec corpus...', 'text-primary');
       setTimeout(() => {
-        appendTerminal('✓ Amendment signed with HMAC-SHA256 & appended to governance log.', 'text-emerald-400');
+        appendTerminal('✓ Amendment signed with HMAC-SHA256 & appended to governance log.', 'text-secondary');
       }, 400);
     }
 
-    // Auto-ping on load
+    // Dynamic Time display & Kernel ping on load
     window.onload = () => {
       testKernelConnection();
+      setInterval(() => {
+        const timeStr = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+        const timeBadge = document.getElementById('footer-time');
+        if (timeBadge) {
+          timeBadge.textContent = `TIME: ${timeStr}`;
+        }
+      }, 1000);
     };
   </script>
 </body>

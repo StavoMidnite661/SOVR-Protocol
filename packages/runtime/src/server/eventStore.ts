@@ -90,13 +90,15 @@ export class EventStore {
   private aggregateIndex = new Map<string, EventEnvelope[]>();
   private persistencePath?: string;
   private publisher?: EventPublisher;
-  // When true (default), genesis-like events whose causation parent is not in the store
-  // are accepted with a warning. When false, append() throws. Production should use strict mode.
   private strictCausation: boolean;
+  private idGenerator?: () => string;
+  private timestampGenerator?: () => string;
 
-  constructor(persistencePath?: string, opts: { strictCausation?: boolean } = {}) {
+  constructor(persistencePath?: string, opts: { strictCausation?: boolean; idGenerator?: () => string; timestampGenerator?: () => string } = {}) {
     this.persistencePath = persistencePath;
-    this.strictCausation = opts.strictCausation ?? true; // strict mode enforced per Phase 9A
+    this.strictCausation = opts.strictCausation ?? true;
+    this.idGenerator = opts.idGenerator;
+    this.timestampGenerator = opts.timestampGenerator;
     if (persistencePath) this.load();
   }
 
@@ -159,8 +161,8 @@ export class EventStore {
   }
 
   private buildEnvelope(input: AppendInput): EventEnvelope {
-    const event_id = crypto.randomUUID();
-    const now = new Date().toISOString();
+    const event_id = this.idGenerator ? this.idGenerator() : crypto.randomUUID();
+    const now = this.timestampGenerator ? this.timestampGenerator() : new Date().toISOString();
     const envelope: EventEnvelope = {
       event_id,
       event_name: input.event_name,

@@ -1,0 +1,12 @@
+{
+  "domain": "account",
+  "buildId": "2fc77ebc6fd7756f",
+  "generatedAt": "2026-07-17T23:00:40.036Z",
+  "artifacts": [
+    {
+      "file": "events/account-events.ts",
+      "hash": "6ccd54b8c53f9a34"
+    }
+  ],
+  "sourceHash": "ca02cd5bd462e63e"
+}

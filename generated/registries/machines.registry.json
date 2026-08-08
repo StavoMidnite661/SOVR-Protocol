@@ -3708,5 +3708,13 @@
     }
   },
   "entry_count": 46,
+  "integrity": {
+    "algorithm": "SHA256",
+    "generated_by": {
+      "compiler_version": "0.6.0"
+    },
+    "hash": "321e4792aed10fbcec77b94ff752faf369b2d8ba10a44b6f8bb031a8879bde1b",
+    "timestamp": "2026-08-08T21:28:11.319Z"
+  },
   "kind": "machines"
 }

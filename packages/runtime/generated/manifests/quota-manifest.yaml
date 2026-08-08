@@ -1,0 +1,12 @@
+{
+  "domain": "quota",
+  "buildId": "2fc77ebc6fd7756f",
+  "generatedAt": "2026-07-17T23:00:40.038Z",
+  "artifacts": [
+    {
+      "file": "events/quota-events.ts",
+      "hash": "3b6b819eabfcff6f"
+    }
+  ],
+  "sourceHash": "00fb0627fcfdda80"
+}

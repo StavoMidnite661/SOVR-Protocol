@@ -1,0 +1,45 @@
+evidence_binding:
+  scenario_id: SIM-004-ASSET-RESERVE-LIFECYCLE
+  knowledge_nodes:
+    - id: SOVR-CMD-000001
+      name: vault.asset.register
+      source: 03_command-catalog.yaml
+    - id: SOVR-CMD-000003
+      name: vault.asset.verify
+      source: 03_command-catalog.yaml
+    - id: SOVR-CMD-000005
+      name: vault.reserve.create
+      source: 03_command-catalog.yaml
+    - id: SOVR-CMD-000006
+      name: vault.reserve.lock
+      source: 03_command-catalog.yaml
+
+  compiler_artifacts:
+    - artifact: commands.registry.json
+      path: generated/registries/commands.registry.json
+      integrity: SHA256
+    - artifact: events.registry.json
+      path: generated/registries/events.registry.json
+      integrity: SHA256
+
+  runtime_events:
+    - event: vault.asset.registered
+      aggregate: asset
+      consumers: [vault_projection, audit_projection]
+    - event: vault.asset.verified
+      aggregate: asset
+      consumers: [vault_projection, audit_projection, treasury_projection]
+    - event: vault.custody.attested
+      aggregate: custody
+      consumers: [vault_projection, audit_projection]
+    - event: vault.reserve.created
+      aggregate: reservation
+      consumers: [vault_projection, treasury_projection]
+    - event: vault.reserve.locked
+      aggregate: reservation
+      consumers: [vault_projection, treasury_projection, payment_projection]
+
+  audit_evidence:
+    - proof_package: generated/audit/SIM-004-ASSET-RESERVE-LIFECYCLE-proof.json
+      generated_by: ProofManifestGenerator
+      contains: [command_sequence, event_sequence, state_transitions, merkle_root, deterministic_hash]

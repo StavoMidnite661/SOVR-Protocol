@@ -1,0 +1,71 @@
+# SOVR-GENESIS-000002-PHASE10A COMPILER AUTHORITY CERTIFICATE
+# This certificate proves that the simulation engine executes through
+# the compiler-generated authority chain, not through ad-hoc interpretation.
+
+certificate_id: SOVR-GENESIS-000002-PHASE10A-COMPILER-AUTHORITY
+issued_at: 2026-08-07T23:30:00Z
+build_hash: bbbac599e2b1b6592bac6e268cd863d8415dd7b9148a3ce7bbffdf8d277493ed
+compiler_version: 0.6.0
+protocol_version: 1.0.0
+
+compiler_authority:
+  verified: true
+  simulation_registry: generated/simulation/scenarios.registry.json
+  registry_entry_count: 3
+  input_files: 47
+  ir_nodes: 610
+  generated_files: 163
+
+simulation_execution:
+  compiler_generated: true
+  direct_yaml_interpretation: false
+  input_source: compiled_registry_only
+  scenario_loader: SimulationRunner consumes SimulationScenarioCompiled
+  yaml_parsing_in_simulation_layer: false
+
+runtime_authority:
+  kernel_executor: true
+  eventStore_direct_append_by_simulation: false
+  execution_path: kernelExecutor.execute() -> EventStore.append()
+  constitutional_gates_enforced: true
+  capability_boundary_enforced: true
+  execution_gates_enforced: true
+
+test_results:
+  simulation_scenarios:
+    - SIM-001-VAULT-FUNDING-LIFECYCLE: PASS
+    - SIM-002-TREASURY-TRANSFER-APPROVAL: PASS
+    - SIM-003-SYSTEM-INTEGRITY: PASS
+  failure_injections:
+    - TEST-A_INVALID_CAPABILITY: PASS
+    - TEST-B_MISSING_CAPABILITY: PASS
+    - TEST-C_AMOUNT_GATE: PASS
+    - TEST-D_INVALID_STATE_TRANSITION: PASS
+  deterministic_replay: PASS
+  merkle_audit: PASS
+  compiler_authority: PASS
+
+pipeline_verification:
+  - step: YAML Scenario
+    path: governance/simulation/scenarios/*.yaml
+    status: INPUT
+  - step: Scenario Compiler Adapter
+    path: packages/compiler/src/generators/simulation.ts
+    status: COMPILED
+  - step: Compiled Simulation IR
+    path: generated/simulation/scenarios.registry.json
+    status: GENERATED
+  - step: SimulationRunner
+    path: packages/runtime/src/simulation/simulation-runner.ts
+    status: CONSUMES_COMPILED
+  - step: Runtime Kernel Executor
+    path: packages/runtime/src/execution/kernel-executor.ts
+    status: USED
+  - step: EventStore
+    path: packages/runtime/src/server/eventStore.ts
+    status: WRITTEN_VIA_KERNEL
+  - step: Merkle Audit
+    path: packages/runtime/src/audit/MerkleRootService.ts
+    status: COMPUTED
+
+final_status: VERIFIED

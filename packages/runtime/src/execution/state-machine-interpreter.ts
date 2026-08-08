@@ -1,12 +1,10 @@
 // ============================================================
-// SOVR Runtime — YAML/IR State Machine Interpreter
+// SOVR Runtime — IR State Machine Interpreter
 // Executes protocol state transitions deterministically from the
-// compiled IR state_machine nodes, with source YAML fallback for
-// v0.2 IR nodes that only carry source references.
+// compiled IR state_machine nodes.
 // ============================================================
 
 import fs from 'fs';
-import yaml from 'js-yaml';
 import { VELASTEvaluator } from './vel-ast-evaluator.js';
 
 export interface CompiledIR {
@@ -109,22 +107,19 @@ export class StateMachineInterpreter {
 
   static fromFiles(
     irPath: string,
-    stateMachinesYamlPath?: string,
+    _stateMachinesYamlPath?: string,
     options: StateMachineInterpreterOptions = {}
   ): StateMachineInterpreter {
     const ir = fs.existsSync(irPath) ? JSON.parse(fs.readFileSync(irPath, 'utf8')) as CompiledIR : { nodes: [] };
-    const source = stateMachinesYamlPath && fs.existsSync(stateMachinesYamlPath)
-      ? yaml.load(fs.readFileSync(stateMachinesYamlPath, 'utf8')) as any
-      : undefined;
-    return StateMachineInterpreter.fromIR(ir, source, options);
+    return StateMachineInterpreter.fromIR(ir, undefined, options);
   }
 
   static fromIR(
     ir: CompiledIR,
-    sourceStateMachines?: any,
+    _sourceStateMachines?: any,
     options: StateMachineInterpreterOptions = {}
   ): StateMachineInterpreter {
-    const sourceMachines = sourceStateMachines?.state_machines ?? sourceStateMachines ?? {};
+    const sourceMachines: Record<string, any> = {};
     const irNodes = (ir.nodes ?? []).filter(n => n.type === 'state_machine');
     const machines: StateMachineDefinition[] = [];
 

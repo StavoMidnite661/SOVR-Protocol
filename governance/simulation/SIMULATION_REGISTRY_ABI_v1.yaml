@@ -1,0 +1,194 @@
+registry:
+  version: v1
+  description: Simulation Registry ABI v1 — compiler-generated authority artifact for deterministic simulation execution
+
+required_fields:
+  - scenario_id
+  - name
+  - actors
+  - commands
+  - integrity_hash
+
+field_definitions:
+  scenario_id:
+    type: string
+    required: true
+    description: Unique identifier for the simulation scenario
+    pattern: "^SIM-[0-9]{3}[-A-Z0-9]*$"
+
+  name:
+    type: string
+    required: true
+    description: Human-readable scenario name
+
+  version:
+    type: string
+    required: false
+    default: "1.0.0"
+    description: Scenario version
+
+  amendment:
+    type: string
+    required: false
+    description: Amendment reference if scenario was added via amendment
+
+  description:
+    type: string
+    required: true
+    description: Detailed description of scenario purpose and flow
+
+  actors:
+    type: array
+    required: true
+    description: List of actors participating in the scenario
+    items:
+      type: object
+      required_fields:
+        - actor_id
+        - actor_type
+        - identity_id
+      optional_fields:
+        - session_id
+
+  initial_state:
+    type: object
+    required: false
+    description: Declared initial state for lifecycle validation
+
+  lifecycle:
+    type: object
+    required: false
+    description: State lifecycle definition for lifecycle validation
+    fields:
+      initial_state:
+        type: string
+        required: true
+        description: Expected starting state
+      terminal_state:
+        type: string
+        required: true
+        description: Expected ending state
+
+  commands:
+    type: array
+    required: true
+    description: Ordered list of commands to execute
+    items:
+      type: object
+      required_fields:
+        - command_id
+        - command_name
+        - domain
+        - aggregate
+        - payload
+      optional_fields:
+        - capability_id
+        - scope
+        - expected_result
+        - expected_error_type
+
+  expected_events:
+    type: array
+    required: false
+    description: Expected events to be emitted
+    items:
+      type: object
+      required_fields:
+        - event_name
+      optional_fields:
+        - aggregate_id
+
+  expected_failures:
+    type: array
+    required: false
+    description: Expected command failures
+    items:
+      type: object
+      required_fields:
+        - command_id
+        - error_type
+
+  invariants:
+    type: array
+    required: false
+    description: Invariants that must hold after execution
+    items:
+      type: object
+      required_fields:
+        - invariant
+      optional_fields:
+        - required
+
+  source_file:
+    type: string
+    required: true
+    description: Source YAML file path
+
+  compiled_at:
+    type: string
+    required: true
+    description: ISO-8601 timestamp of compilation
+
+  integrity_hash:
+    type: string
+    required: true
+    description: SHA256 hash of canonicalized scenario content (excluding integrity_hash itself)
+
+command_requirements:
+  command_name:
+    required: true
+    description: Must reference a valid command from the compiler-generated commands.registry.json
+
+  payload:
+    required: true
+    description: Must contain all required fields as defined in 03_command-catalog.yaml
+
+  domain:
+    required: true
+    description: Must match a valid protocol domain
+
+  aggregate:
+    required: true
+    description: Must match a valid aggregate within the domain
+
+integrity:
+  algorithm: SHA256
+  canonicalization: JSON
+  description: integrity_hash = sha256(canonicalJson(scenario_excluding_integrity_hash))
+
+validation_rules:
+  - rule: abi_version_check
+    description: Runtime must verify abi_version is in supported_versions list
+    reject_code: UNSUPPORTED_SIMULATION_REGISTRY_ABI
+
+  - rule: integrity_hash_check
+    description: Runtime must verify integrity_hash matches canonicalized content
+    reject_code: AUTHORITY_REGISTRY_INTEGRITY_FAILURE
+
+  - rule: command_registry_check
+    description: Runtime must verify all command_names exist in commands.registry.json
+    reject_code: AUTHORITY_REGISTRY_INTEGRITY_FAILURE
+
+  - rule: required_fields_check
+    description: Runtime must verify all required_fields are present
+    reject_code: AUTHORITY_REGISTRY_INTEGRITY_FAILURE
+
+  - rule: lifecycle_check
+    description: Runtime must verify scenario declares lifecycle if lifecycle_validation is enabled
+    reject_code: INVALID_STATE_TRANSITION
+
+supported_versions:
+  - v1
+
+runtime_constraints:
+  forbidden_patterns:
+    - "yaml.parse()"
+    - "yaml.load()"
+    - "readFileSync(*.yaml)"
+    - "eventStore.append() outside kernelExecutor"
+    - "scenario.commands.forEach() with manual interpretation"
+  description: These patterns must not exist in packages/runtime/src/simulation/ or packages/runtime/src/execution/
+
+status: FROZEN
+frozen_at: "2026-08-08T00:35:00-07:00"
+frozen_by: PHASE10B_PREPARATION_DIRECTIVE

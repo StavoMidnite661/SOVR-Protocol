@@ -45,6 +45,7 @@ export class KernelValidationError extends Error { constructor(readonly code: st
 export class KernelCapabilityViolationError extends Error { constructor(message: string) { super(message); this.name = 'KernelCapabilityViolationError'; } }
 export class KernelIdentityViolationError extends Error { constructor(message: string) { super(message); this.name = 'KernelIdentityViolationError'; } }
 export class InvalidStateTransitionError extends Error { constructor(message: string) { super(message); this.name = 'InvalidStateTransitionError'; } }
+export class AuthorityRegistryIntegrityError extends Error { constructor(message: string) { super(message); this.name = 'AuthorityRegistryIntegrityError'; } }
 
 export class KernelExecutor {
   private readonly authorityEnforcer: AuthorityBoundaryEnforcer
@@ -386,7 +387,7 @@ export class KernelExecutor {
       source_domain: String(eventDef.source_domain ?? request.source_domain),
       command_id: request.command_id,
       triggering_command: request.command_name,
-      causation_id: request.command_id,
+      causation_id: request.correlation_id,
       correlation_id: request.correlation_id,
       actor_id: request.identity_context.actor_id,
       identity_context: request.identity_context,

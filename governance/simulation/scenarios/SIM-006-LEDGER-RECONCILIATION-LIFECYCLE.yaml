@@ -1,0 +1,88 @@
+scenario_id: SIM-006-LEDGER-RECONCILIATION-LIFECYCLE
+name: Ledger Reconciliation Lifecycle
+description: >
+  Validates accounting truth, ledger mutation controls, reconciliation,
+  and audit proof across ledger aggregates.
+
+actor_context:
+  actor_id: sim-ledger-operator
+  actor_type: governance
+  identity_id: sim-ledger-operator-id
+  session_id: sim-ledger-session-006
+
+lifecycle:
+  initial_state: ACTIVE
+  terminal_state: RECONCILED
+
+commands:
+  - command_id: cmd-001
+    command_name: ledger.journal.create
+    domain: ledger
+    aggregate: journal
+    payload:
+      ledger_id: ledger-006
+      journal_id: sim-journal-006
+      name: sim-journal-006
+      domain: vault
+      description: 'Simulation journal for reconciliation lifecycle'
+    capability_id: ledger.journal.manage
+    scope: ledger.journal:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-002
+    command_name: ledger.entry.post
+    domain: ledger
+    aggregate: journal_entry
+    payload:
+      journal_id: ledger-006
+      transaction_id: tx-006
+      event_reference: vault.asset.registered
+      correlation_id: cmd-001
+      causation_id: cmd-001
+      description: 'Initial ledger entry for reconciliation verification'
+      entry_type: STANDARD
+      postings:
+        - account_id: account-006-a
+          amount: 5000
+          direction: DEBIT
+          asset_id: vault-asset-004
+          description: 'Debit posting for reconciliation'
+        - account_id: account-006-b
+          amount: 5000
+          direction: CREDIT
+          asset_id: vault-asset-004
+          description: 'Credit posting for reconciliation'
+    capability_id: ledger.entry.post
+    scope: ledger.entry:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-003
+    command_name: ledger.reconciliation.start
+    domain: ledger
+    aggregate: reconciliation
+    payload:
+      type: internal_audit
+      scope: ledger-006
+      source_data: simulation-reconciliation-006
+      reconciliation_id: sim-recon-006
+    capability_id: ledger.reconcile
+    scope: ledger.reconciliation:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-004
+    command_name: ledger.reconciliation.resolve
+    domain: ledger
+    aggregate: reconciliation
+    payload:
+      reconciliation_id: sim-recon-006
+      resolution_method: automatic_match
+      correction_postings: []
+    capability_id: ledger.reconcile
+    scope: ledger.reconciliation:*
+    expected_result: ACCEPTED
+
+verification:
+  double_entry_integrity: true
+  balance_conservation: true
+  event_ordering: true
+  projection_consistency: true

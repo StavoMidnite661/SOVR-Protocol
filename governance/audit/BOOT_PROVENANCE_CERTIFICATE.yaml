@@ -1,0 +1,3 @@
+compiler_hash_matches_boot_hash: true
+attestation_valid: true
+environment: LOCAL_DEVELOPMENT

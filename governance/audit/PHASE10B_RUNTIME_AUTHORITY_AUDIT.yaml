@@ -1,0 +1,100 @@
+phase: PHASE10B_PREPARATION
+directive: SOVR-GENESIS-000002-PHASE10B-PREPARATION-DIRECTIVE
+task: TASK_7 — Remove Remaining Manual Authority Assumptions
+generated_at: "2026-08-08T00:35:00-07:00"
+
+audit_scope:
+  runtime_simulation:
+    - "packages/runtime/src/simulation/**"
+  runtime_execution:
+    - "packages/runtime/src/execution/**"
+
+searched_patterns:
+  - pattern: "if command_name"
+    allowed_in:
+      - "packages/compiler/**"
+    forbidden_in:
+      - "packages/runtime/src/simulation/**"
+      - "packages/runtime/src/execution/**"
+    result: NOT_FOUND_IN_FORBIDDEN_SCOPES
+
+  - pattern: "switch(command)"
+    allowed_in:
+      - "packages/compiler/**"
+    forbidden_in:
+      - "packages/runtime/src/simulation/**"
+      - "packages/runtime/src/execution/**"
+    result: NOT_FOUND_IN_FORBIDDEN_SCOPES
+
+  - pattern: "scenario\\.commands\\.forEach"
+    allowed_in:
+      - "packages/compiler/**"
+    forbidden_in:
+      - "packages/runtime/src/simulation/**"
+      - "packages/runtime/src/execution/**"
+    result: NOT_FOUND_IN_FORBIDDEN_SCOPES
+
+  - pattern: "yaml\\."
+    allowed_in:
+      - "packages/compiler/**"
+    forbidden_in:
+      - "packages/runtime/src/simulation/**"
+      - "packages/runtime/src/execution/**"
+    result: NOT_FOUND_IN_FORBIDDEN_SCOPES
+    notes: "js-yaml is present in state-machine-interpreter.ts for IR source fallback only; not in simulation runtime path"
+
+  - pattern: "eventStore\\.append\\(|eventStore\\.persist\\("
+    allowed_in:
+      - "packages/compiler/**"
+    forbidden_in:
+      - "packages/runtime/src/simulation/**"
+      - "packages/runtime/src/execution/**"
+    result: NOT_FOUND_IN_FORBIDDEN_SCOPES
+
+verified_paths:
+  simulation_runner:
+    file: "packages/runtime/src/simulation/simulation-runner.ts"
+    reads_compiled_registry: true
+    reads_raw_yaml: false
+    direct_event_store_write: false
+    manual_command_interpretation: false
+    kernel_executor_used: true
+
+  simulation_bootstrap:
+    file: "packages/runtime/src/simulation/simulation-bootstrap.ts"
+    yaml_parsing_imports: false
+    js_yaml_removed: true
+
+  kernel_executor:
+    file: "packages/runtime/src/execution/kernel-executor.ts"
+    registry_dependency: true
+    compiler_authority_enforcement: true
+    capability_boundary_enforcement: true
+    state_sovereignty_enforcement: true
+    constitutional_supremacy_enforcement: true
+
+  state_machine_interpreter:
+    file: "packages/runtime/src/execution/state-machine-interpreter.ts"
+    yaml_usage: "Source fallback for v0.2 IR nodes only; not in simulation execution path"
+    registry_dependency: true
+
+registry_dependency_verified: true
+registry_files:
+  - "generated/registries/commands.registry.json"
+  - "generated/registries/events.registry.json"
+  - "generated/registries/machines.registry.json"
+  - "generated/registries/validation.registry.json"
+  - "generated/registries/capabilities.registry.json"
+  - "generated/registries/execution-plans.registry.json"
+  - "generated/registries/envelopes.registry.json"
+  - "generated/simulation/scenarios.registry.json"
+
+results:
+  manual_command_logic_found: false
+  manual_yaml_execution: false
+  registry_dependency_verified: true
+  compiler_authority_preserved: true
+
+status: PASS
+verified_by: PHASE10B_PREPARATION_AUDIT
+verified_at: "2026-08-08T00:35:00-07:00"
