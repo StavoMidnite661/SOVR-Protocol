@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ReserveAccountingEngine } from '../reserve-accounting.js';
+import { ReserveAccountingEngine } from '../../economic/reserve-accounting.js';
 
 describe('Phase 10C Reserve Accounting Engine', () => {
   const engine = new ReserveAccountingEngine();

@@ -21,10 +21,9 @@ describe('Phase 10C Settlement Proof Generation', () => {
     const registry = loadCompiledRegistry();
     const compiled = registry['SIM-007-SETTLEMENT-LIFECYCLE'];
     const scenario = {
-      scenario_id: 'PROOF-GEN-001',
+      scenario_id: 'SIM-007-SETTLEMENT-LIFECYCLE',
       commands: compiled.commands,
       actor_context: compiled.actors[0],
-      lifecycle: { initial_state: 'CREATED', terminal_state: 'VERIFIED' },
       seed: 0xDEADBEEF,
     };
 
@@ -33,10 +32,10 @@ describe('Phase 10C Settlement Proof Generation', () => {
 
     const proof = proofGenerator.generate(scenario.scenario_id, report.result.event_hashes.map((h, i) => ({
       event_id: `evt-${i}`,
-      event_name: i === 0 ? 'intent.received' : i === 7 ? 'treasury.settlement.confirmed' : 'treasury.transfer.reserved',
+      event_name: i === 0 ? 'intent.received' : i === 4 ? 'ledger.entry.posted' : i === 7 ? 'treasury.settlement.confirmed' : 'treasury.transfer.reserved',
       aggregate_id: `agg-${i}`,
       correlation_id: scenario.commands[i]?.command_id ?? `cmd-${i}`,
-      payload: i === 7 ? { settlement_id: 'sim-settlement-007', settlement_reference: 'sim-ref-007', settlement_amount: '5000' } : { order_id: `sim-transfer-${i}` },
+      payload: i === 7 ? { settlement_id: 'sim-settlement-007', settlement_reference: 'sim-ref-007', settlement_amount: '5000' } : i === 4 ? { transaction_id: 'tx-007', postings: [{ account_id: 'account-007-a', amount: 50, direction: 'DEBIT' }] } : { order_id: `sim-transfer-${i}` },
       projection_effect: { target: 'treasury_projection' },
     })), scenario.commands);
 
@@ -47,7 +46,7 @@ describe('Phase 10C Settlement Proof Generation', () => {
     expect(proof.reserve_changes.length).toBeGreaterThan(0);
 
     proofGenerator.write(proof);
-    const proofPath = join(ROOT, 'generated', 'audit', 'settlements', 'SETTLEMENT-PROOF-GEN-001-PROOF.json');
+    const proofPath = join(ROOT, 'generated', 'audit', 'settlements', `SETTLEMENT-${scenario.scenario_id.replace(/[^A-Z0-9]/g, '')}-PROOF.json`);
     expect(require('fs').existsSync(proofPath)).toBe(true);
   });
 });

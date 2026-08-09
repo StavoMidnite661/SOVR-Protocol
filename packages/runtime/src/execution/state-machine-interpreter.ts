@@ -253,11 +253,14 @@ export class StateMachineInterpreter {
 
   private findTransitions(machine: StateMachineDefinition, currentState: string, trigger: string): Array<{ name: string; from: string; to: string; transition: TransitionDefinition }> {
     const found: Array<{ name: string; from: string; to: string; transition: TransitionDefinition }> = [];
+    const emittedTarget = trigger ? [trigger] : [];
     for (const [name, transition] of Object.entries(machine.transitions)) {
       const endpoints = transitionEndpoints(name, transition);
       if (!endpoints) continue;
       const transitionTrigger = transition.trigger ?? transition.command;
-      if (endpoints.from === currentState && transitionTrigger === trigger) {
+      const matchesTrigger = endpoints.from === currentState && transitionTrigger === trigger;
+      const matchesEmitted = !matchesTrigger && endpoints.from === currentState && Array.isArray(transition.emitted_events) && transition.emitted_events.some((e: string) => emittedTarget.includes(e));
+      if (matchesTrigger || matchesEmitted) {
         found.push({ name, from: endpoints.from, to: endpoints.to, transition });
       }
     }

@@ -34,6 +34,12 @@ commands:
     command_name: treasury.transfer.request
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-007
+    actor_context:
+      actor_id: sim-treasury-authority
+      actor_type: system
+      identity_id: sim-treasury-authority-id
+      session_id: sim-treasury-session-007
     payload:
       source_actor_id: sim-settlement-operator
       destination_actor_id: sim-recipient-007
@@ -45,6 +51,7 @@ commands:
           address: sim-address-007
           rail: ACH
           reference: sim-ref-007
+      order_id: sim-transfer-007
     capability_id: treasury.transfer.request
     scope: treasury.transfer:*
     expected_result: ACCEPTED
@@ -53,6 +60,12 @@ commands:
     command_name: treasury.transfer.authorize
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-007
+    actor_context:
+      actor_id: sim-treasury-authority
+      actor_type: system
+      identity_id: sim-treasury-authority-id
+      session_id: sim-treasury-session-007
     payload:
       order_id: sim-transfer-007
     capability_id: treasury.transfer.authorize
@@ -63,8 +76,14 @@ commands:
     command_name: treasury.transfer.reserve
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-007
+    actor_context:
+      actor_id: sim-treasury-authority
+      actor_type: system
+      identity_id: sim-treasury-authority-id
+      session_id: sim-treasury-session-007
     payload:
-      order_id: sim-transfer-007-reserve
+      order_id: sim-transfer-007
     capability_id: treasury.transfer.reserve
     scope: treasury.transfer:*
     expected_result: ACCEPTED
@@ -73,6 +92,12 @@ commands:
     command_name: ledger.entry.post
     domain: ledger
     aggregate: journal_entry
+    aggregate_id: journal-007
+    actor_context:
+      actor_id: sim-ledger-authority
+      actor_type: system
+      identity_id: sim-ledger-authority-id
+      session_id: sim-ledger-session-007
     payload:
       journal_id: journal-007
       transaction_id: tx-007
@@ -100,8 +125,14 @@ commands:
     command_name: treasury.transfer.execute
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-007
+    actor_context:
+      actor_id: sim-settlement-authority
+      actor_type: system
+      identity_id: sim-settlement-authority-id
+      session_id: sim-settlement-session-007
     payload:
-      order_id: sim-transfer-007-execute
+      order_id: sim-transfer-007
     capability_id: treasury.transfer.execute
     scope: treasury.transfer:*
     expected_result: ACCEPTED
@@ -110,8 +141,14 @@ commands:
     command_name: treasury.settlement.confirm
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-007
+    actor_context:
+      actor_id: sim-settlement-authority
+      actor_type: system
+      identity_id: sim-settlement-authority-id
+      session_id: sim-settlement-session-007
     payload:
-      order_id: sim-transfer-007-execute
+      order_id: sim-transfer-007
       settlement_reference: sim-ref-007
       settled_at: "2026-08-08T14:00:00Z"
       settlement_amount: '50'
@@ -123,6 +160,11 @@ commands:
     command_name: governance.audit.query
     domain: governance
     aggregate: audit_record
+    actor_context:
+      actor_id: sim-governance-verifier
+      actor_type: governance
+      identity_id: sim-governance-verifier-id
+      session_id: sim-governance-session-007
     payload:
       audit_type: settlement
       target_domains: [treasury, ledger]

@@ -1,0 +1,40 @@
+phase: PHASE10E
+directive: SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE
+artifact: TIGERBEETLE_POST_WRITE_CERTIFICATE
+generated_at: "PENDING_GENESIS_EXECUTION"
+
+genesis_execution:
+  executed: false
+  executed_at: null
+  executed_by: null
+
+accounts:
+  created_count: 0
+  expected_count: 8
+  verified_count: 0
+  deterministic_ids_verified: false
+
+transfers:
+  created_count: 0
+  expected_count: 1
+  verified_count: 0
+  genesis_heartbeat_present: false
+
+read_back:
+  performed: false
+  account_count_match: false
+  transfer_count_match: false
+  no_unexpected_records: false
+
+audit:
+  merkle_root: ""
+  deterministic_hash: ""
+  ceremony_report: generated/audit/tigerbeetle-genesis-ceremony.json
+
+safety:
+  customer_assets_touched: false
+  external_payments_touched: false
+  production_settlement_touched: false
+  scope_limited_to_genesis: true
+
+status: PENDING_GENESIS_EXECUTION

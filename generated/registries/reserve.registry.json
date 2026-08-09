@@ -607,7 +607,7 @@
       "compiler_version": "0.6.0"
     },
     "hash": "45d3b1e2be5f67001d66b14bb581f67a6a0d55176fbe75193a2c5bb2863a8ac3",
-    "timestamp": "2026-08-08T21:28:11.322Z"
+    "timestamp": "2026-08-09T00:16:33.882Z"
   },
   "kind": "reserve",
   "reserve_policy": "Requested <= Approved <= Reserved <= Available"

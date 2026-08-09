@@ -1,0 +1,100 @@
+{
+  "schema_version": "1.0.0",
+  "phase": "PHASE10E",
+  "directive": "SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE",
+  "genesis_operation": {
+    "type": "genesis_only",
+    "authorized_by": "governance/tigerbeetle/REAL_WRITE_AUTHORIZATION.yaml",
+    "certificate_required": "governance/tigerbeetle/TIGERBEETLE_POST_WRITE_CERTIFICATE.yaml"
+  },
+  "accounts": [
+    {
+      "sovr_id": "SOVR-ACCOUNT-000001",
+      "tigerbeetle_id": 404771,
+      "ledger": 0,
+      "purpose": "SYSTEM_RESERVE_POOL",
+      "state": "GENESIS",
+      "ownership_domain": "sovr_treasury",
+      "currency": "USD"
+    },
+    {
+      "sovr_id": "SOVR-ACCOUNT-000002",
+      "tigerbeetle_id": 327102,
+      "ledger": 0,
+      "purpose": "TREASURY_OPERATING",
+      "state": "GENESIS",
+      "ownership_domain": "sovr_treasury",
+      "currency": "USD"
+    },
+    {
+      "sovr_id": "SOVR-ACCOUNT-000003",
+      "tigerbeetle_id": 689728,
+      "ledger": 0,
+      "purpose": "SETTLEMENT_CLEARING",
+      "state": "GENESIS",
+      "ownership_domain": "sovr_settlement",
+      "currency": "USD"
+    },
+    {
+      "sovr_id": "SOVR-ACCOUNT-000004",
+      "tigerbeetle_id": 346086,
+      "ledger": 0,
+      "purpose": "OBLIGATION_TRACKING",
+      "state": "GENESIS",
+      "ownership_domain": "sovr_governance",
+      "currency": "USD"
+    },
+    {
+      "sovr_id": "SOVR-ACCOUNT-000005",
+      "tigerbeetle_id": 536681,
+      "ledger": 0,
+      "purpose": "EXPENSE_RECONCILIATION",
+      "state": "GENESIS",
+      "ownership_domain": "sovr_ledger",
+      "currency": "USD"
+    },
+    {
+      "sovr_id": "SOVR-ACCOUNT-000006",
+      "tigerbeetle_id": 441831,
+      "ledger": 0,
+      "purpose": "ASSET_VAULT",
+      "state": "GENESIS",
+      "ownership_domain": "sovr_vault",
+      "currency": "USD"
+    },
+    {
+      "sovr_id": "SOVR-ACCOUNT-000007",
+      "tigerbeetle_id": 657844,
+      "ledger": 0,
+      "purpose": "LIABILITY_ACCRUAL",
+      "state": "GENESIS",
+      "ownership_domain": "sovr_ledger",
+      "currency": "USD"
+    },
+    {
+      "sovr_id": "SOVR-ACCOUNT-000008",
+      "tigerbeetle_id": 941698,
+      "ledger": 0,
+      "purpose": "PAYMENT_RAIL",
+      "state": "GENESIS",
+      "ownership_domain": "sovr_payment",
+      "currency": "USD"
+    }
+  ],
+  "genesis_transfer": {
+    "id": "genesis-heartbeat-001",
+    "debit_account_id": 404771,
+    "credit_account_id": 327102,
+    "amount": 1,
+    "currency": "USD",
+    "code": "GENESIS_HEARTBEAT",
+    "timeout": 0,
+    "purpose": "proof_of_life"
+  },
+  "verification": {
+    "expected_account_count": 8,
+    "expected_transfer_count": 1,
+    "deterministic_ids_verified": true,
+    "read_back_required": true
+  }
+}

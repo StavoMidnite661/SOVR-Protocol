@@ -353,6 +353,9 @@ export class KernelExecutor {
       for (const t of transitions) {
         const trigger = t.trigger ?? t.event ?? t.command;
         if (t.from === currentState && trigger === eventName) return { name: `${t.from}_to_${t.to}`, from: t.from, to: t.to };
+        if (t.from === currentState && Array.isArray(t.emitted_events) && t.emitted_events.includes(eventName)) {
+          return { name: `${t.from}_to_${t.to}`, from: t.from, to: t.to };
+        }
       }
       return undefined;
     }
@@ -361,6 +364,9 @@ export class KernelExecutor {
       const endpoints = this.transitionEndpoints(name, t);
       const trigger = t?.trigger ?? t?.event ?? t?.command;
       if (endpoints && endpoints.from === currentState && trigger === eventName) return { name, from: endpoints.from, to: endpoints.to };
+      if (endpoints && endpoints.from === currentState && Array.isArray(t?.emitted_events) && t.emitted_events.includes(eventName)) {
+        return { name, from: endpoints.from, to: endpoints.to };
+      }
     }
     return undefined;
   }

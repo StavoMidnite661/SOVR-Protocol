@@ -1,0 +1,26 @@
+phase: PHASE10D
+directive: SOVR-GENESIS-000002-PHASE10D-TIGERBEETLE-CONTROLLED-DEPLOYMENT-DIRECTIVE
+artifact: PHASE10D_LEDGER_COMPATIBILITY_CERTIFICATE
+generated_at: "2026-08-08T15:41:03-07:00"
+
+compatibility:
+  account_schema_mapped: PASS
+  event_to_transfer_mapping: PASS
+  deterministic_id_generation: PASS
+  currency_ledger_match: PASS
+  amount_conservation: PASS
+
+validation:
+  adapter_boundary_enforced: PASS
+  runtime_never_calls_tigerbeetle_directly: PASS
+  read_only_first: PASS
+  shadow_execution_verified: PASS
+
+artifacts:
+  tigerbeetle_client: packages/runtime/src/ledger/tigerbeetle/tigerbeetle-client.ts
+  account_mapper: packages/runtime/src/ledger/tigerbeetle/account-mapper.ts
+  transfer_mapper: packages/runtime/src/ledger/tigerbeetle/transfer-mapper.ts
+  ledger_adapter: packages/runtime/src/ledger/tigerbeetle/ledger-adapter.ts
+  shadow_ledger: packages/runtime/src/ledger/tigerbeetle/shadow-ledger.ts
+
+status: PASS

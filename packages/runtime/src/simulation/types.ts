@@ -35,6 +35,13 @@ export interface SimulationCommand {
   expected_result?: 'ACCEPTED' | 'REJECTED';
   expected_error_type?: string;
   skip_capability_grant?: boolean;
+  actor_context?: {
+    actor_id: string;
+    actor_type: string;
+    identity_id: string;
+    session_id?: string;
+  };
+  aggregate_id?: string;
 }
 
 export interface InvariantResult {

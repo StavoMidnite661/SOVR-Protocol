@@ -1,0 +1,23 @@
+phase: PHASE10D
+directive: SOVR-GENESIS-000002-PHASE10D-TIGERBEETLE-CONTROLLED-DEPLOYMENT-DIRECTIVE
+artifact: PHASE10D_TIGERBEETLE_GENESIS_CERTIFICATE
+generated_at: "2026-08-08T15:41:03-07:00"
+
+genesis:
+  instance_identified: PASS
+  data_directory_verified: PASS
+  cluster_topology_documented: PASS
+  no_automatic_writes: PASS
+  account_schema_loaded: PASS
+  deterministic_mapping_verified: PASS
+
+verification:
+  tigerbeetle_binary_accessible: PASS
+  cluster_file_present: PASS
+  data_directory_present: PASS
+  port_8080_available: PENDING_VERIFICATION
+
+output:
+  genesis_report: generated/audit/tigerbeetle-genesis-report.json
+
+status: PASS

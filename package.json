@@ -24,6 +24,8 @@
     "certify:phase10b.1": "npm run compile && npm run typecheck && npm run test:authority && npm run verify:simulation && node scripts/audit-authority.mjs",
     "certify:phase10b": "npm run compile && npm run typecheck && npm run verify:simulation && npm run test:authority && npm run test:projection && npm run test:economic && npm run test:audit && npm run test:stress && node scripts/audit-authority.mjs",
     "certify:phase10c": "npm run compile && npm run typecheck && npm run verify:simulation && npm run test:economic && npm run test:settlement && npm run test:ledger && npm run test:reserve && npm run test:replay && npm run test:stress:phase10c && npm run test:lineage && npm run test:settlement:proof && node scripts/audit-authority.mjs",
+    "certify:phase10d": "npm run compile && npm run typecheck && npm run test:tigerbeetle && npm run test:ledger:adapter && npm run test:replay:tigerbeetle && node scripts/audit-tigerbeetle.mjs",
+    "certify:phase10e": "npm run compile && npm run typecheck && npm run verify:simulation && npm run test:tigerbeetle && npm run test:replay:tigerbeetle && npm run test:genesis:ceremony && node scripts/audit-phase10e.mjs",
     "test:authority": "npm run test --prefix packages/runtime -- src/simulation/__tests__/registry-version.test.ts src/simulation/__tests__/projection-replay.test.ts",
     "test:projection": "npm run test --prefix packages/runtime -- src/simulation/__tests__/projection-reconstruction.test.ts",
     "test:economic": "npm run test --prefix packages/runtime -- src/simulation/__tests__/economic-validator.test.ts src/simulation/__tests__/economic-registry.test.ts src/simulation/__tests__/reserve-accounting.test.ts src/simulation/__tests__/economic-lineage.test.ts",
@@ -34,7 +36,13 @@
     "test:stress:phase10c": "npm run test --prefix packages/runtime -- src/simulation/__tests__/phase10c-economic-stress.test.ts",
     "test:lineage": "npm run test --prefix packages/runtime -- src/simulation/__tests__/economic-lineage.test.ts",
     "test:settlement:proof": "npm run test --prefix packages/runtime -- src/simulation/__tests__/settlement-proof.test.ts",
-    "audit:authority": "node scripts/audit-authority.mjs"
+    "test:tigerbeetle": "npm run test --prefix packages/runtime -- src/ledger/tigerbeetle/__tests__/genesis.test.ts src/ledger/tigerbeetle/__tests__/shadow-execution.test.ts",
+    "test:ledger:adapter": "npm run test --prefix packages/runtime -- src/ledger/tigerbeetle/__tests__/genesis.test.ts",
+    "test:replay:tigerbeetle": "npm run test --prefix packages/runtime -- src/ledger/tigerbeetle/__tests__/tigerbeetle-replay.test.ts",
+    "audit:authority": "node scripts/audit-authority.mjs",
+    "audit:tigerbeetle": "node scripts/audit-tigerbeetle.mjs",
+    "audit:phase10e": "node scripts/audit-phase10e.mjs",
+    "test:genesis:ceremony": "npm run test --prefix packages/runtime -- src/ledger/tigerbeetle/__tests__/genesis-ceremony.test.ts"
   },
   "version": "0.6.0"
 }

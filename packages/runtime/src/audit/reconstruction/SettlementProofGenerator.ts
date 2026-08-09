@@ -53,6 +53,8 @@ export class SettlementProofGenerator {
       scenario_id: partial.scenario_id ?? scenarioId,
       settlement_id: settlementId,
       build_hash: partial.build_hash ?? 'unknown',
+      commands: [],
+      events: [],
       command_sequence: partial.command_sequence ?? [],
       event_sequence: partial.event_sequence ?? [],
       ledger_entries: ledgerEntries,

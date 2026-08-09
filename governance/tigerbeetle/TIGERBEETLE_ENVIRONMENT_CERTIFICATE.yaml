@@ -1,0 +1,41 @@
+phase: PHASE10D
+directive: SOVR-GENESIS-000002-PHASE10D-TIGERBEETLE-CONTROLLED-DEPLOYMENT-DIRECTIVE
+artifact: TIGERBEETLE_ENVIRONMENT_CERTIFICATE
+generated_at: "2026-08-08T15:41:03-07:00"
+
+cluster:
+  cluster_id: sovr-dev-tigerbeetle-001
+  replica_count: 1
+  tigerbeetle_version: "0.18.0"
+  data_directory: D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data
+  port: 8080
+  cluster_file: D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle
+
+authority:
+  instance_status: IDENTIFIED
+  provenance: local_development
+  approved_for_phase10d: true
+  production_traffic: DISABLED
+  external_financial_movement: DISABLED
+  asset_settlement: DISABLED
+
+integrity:
+  data_hash: "PENDING_GENESIS_VERIFICATION"
+  timestamp: "2026-08-08T15:41:03-07:00"
+  binary_path: D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/tigerbeetle.exe
+  binary_size_bytes: 23337984
+  topology_file: D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle
+
+constraints:
+  read_only_first: true
+  no_automatic_writes: true
+  no_customer_funds: true
+  no_external_payments: true
+  no_production_keys: true
+  no_mainnet_settlement: true
+  no_automatic_account_creation: true
+  no_automatic_migration: true
+  no_ledger_repair: true
+  no_modifying_data_files: true
+
+status: READY_FOR_ADAPTER_CERTIFICATION

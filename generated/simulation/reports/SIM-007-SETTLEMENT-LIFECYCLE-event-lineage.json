@@ -19,13 +19,41 @@
     },
     {
       "event_id": "e2c34d9d-bd77615-85655c6a-9d171800-00002468acf0",
+      "command_id": "cmd-004",
+      "correlation_id": "cmd-004",
+      "causation_id": "cmd-004",
+      "economic_context": {}
+    },
+    {
+      "event_id": "040bd3c4--6e3ca4b6-48180a9f-9d171800-0000369d0368",
       "command_id": "cmd-005",
       "correlation_id": "cmd-005",
       "causation_id": "cmd-005",
       "economic_context": {}
     },
     {
-      "event_id": "040bd3c4--6e3ca4b6-48180a9f-9d171800-0000369d0368",
+      "event_id": "a670580b-17af8fdc-acab8d4-9d171800-000048d159e0",
+      "command_id": "cmd-006",
+      "correlation_id": "cmd-006",
+      "causation_id": "cmd-006",
+      "economic_context": {}
+    },
+    {
+      "event_id": "c9b8de72--6265c251-cd7d6709-9d171800-00005b05b058",
+      "command_id": "cmd-007",
+      "correlation_id": "cmd-007",
+      "causation_id": "cmd-007",
+      "economic_context": {}
+    },
+    {
+      "event_id": "6be164b9-2386d563-9030153e-9d171800-00006d3a06d0",
+      "command_id": "cmd-007",
+      "correlation_id": "cmd-007",
+      "causation_id": "cmd-007",
+      "economic_context": {}
+    },
+    {
+      "event_id": "8d29eae0--568dfa3c-52e2c373-9d171800-00007f6e5d48",
       "command_id": "cmd-008",
       "correlation_id": "cmd-008",
       "causation_id": "cmd-008",

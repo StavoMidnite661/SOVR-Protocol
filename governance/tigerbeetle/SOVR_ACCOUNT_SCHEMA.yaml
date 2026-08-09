@@ -1,0 +1,102 @@
+phase: PHASE10D
+directive: SOVR-GENESIS-000002-PHASE10D-TIGERBEETLE-CONTROLLED-DEPLOYMENT-DIRECTIVE
+artifact: SOVR_ACCOUNT_SCHEMA
+generated_at: "2026-08-08T15:41:03-07:00"
+
+description: >
+  Genesis mapping between SOVR Financial OS account concepts
+  and TigerBeetle Account identifiers. Every TigerBeetle account
+  must have a SOVR identity, purpose, ledger ID, ownership domain,
+  and lifecycle state.
+
+schema_version: "1.0.0"
+
+accounts:
+
+  - sovr_id: SOVR-ACCOUNT-000001
+    tigerbeetle_id: 0
+    ledger: 0
+    purpose: SYSTEM_RESERVE_POOL
+    state: GENESIS
+    ownership_domain: sovr_treasury
+    currency: USD
+    historical_code: ""
+
+  - sovr_id: SOVR-ACCOUNT-000002
+    tigerbeetle_id: 1
+    ledger: 0
+    purpose: TREASURY_OPERATING
+    state: GENESIS
+    ownership_domain: sovr_treasury
+    currency: USD
+    historical_code: ""
+
+  - sovr_id: SOVR-ACCOUNT-000003
+    tigerbeetle_id: 2
+    ledger: 0
+    purpose: SETTLEMENT_CLEARING
+    state: GENESIS
+    ownership_domain: sovr_settlement
+    currency: USD
+    historical_code: ""
+
+  - sovr_id: SOVR-ACCOUNT-000004
+    tigerbeetle_id: 3
+    ledger: 0
+    purpose: OBLIGATION_TRACKING
+    state: GENESIS
+    ownership_domain: sovr_governance
+    currency: USD
+    historical_code: ""
+
+  - sovr_id: SOVR-ACCOUNT-000005
+    tigerbeetle_id: 4
+    ledger: 0
+    purpose: EXPENSE_RECONCILIATION
+    state: GENESIS
+    ownership_domain: sovr_ledger
+    currency: USD
+    historical_code: ""
+
+  - sovr_id: SOVR-ACCOUNT-000006
+    tigerbeetle_id: 5
+    ledger: 0
+    purpose: ASSET_VAULT
+    state: GENESIS
+    ownership_domain: sovr_vault
+    currency: USD
+    historical_code: ""
+
+  - sovr_id: SOVR-ACCOUNT-000007
+    tigerbeetle_id: 6
+    ledger: 0
+    purpose: LIABILITY_ACCRUAL
+    state: GENESIS
+    ownership_domain: sovr_ledger
+    currency: USD
+    historical_code: ""
+
+  - sovr_id: SOVR-ACCOUNT-000008
+    tigerbeetle_id: 7
+    ledger: 0
+    purpose: PAYMENT_RAIL
+    state: GENESIS
+    ownership_domain: sovr_payment
+    currency: USD
+    historical_code: ""
+
+lifecycle_states:
+  - GENESIS
+  - ACTIVE
+  - SUSPENDED
+  - CLOSED
+
+validation_rules:
+  - rule: every_tigerbeetle_account_has_sovr_identity
+    description: Each TigerBeetle account ID must map to a declared SOVR account identity.
+  - rule: deterministic_id_generation
+    description: TigerBeetle IDs must be derived deterministically from SOVR account schema.
+  - rule: ledger_zero_for_genesis
+    description: Genesis accounts use ledger ID 0 until migrated to operational ledger.
+
+status: READY_FOR_ADAPTER_IMPLEMENTATION

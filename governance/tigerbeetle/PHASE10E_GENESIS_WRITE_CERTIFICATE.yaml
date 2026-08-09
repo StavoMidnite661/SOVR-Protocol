@@ -1,0 +1,23 @@
+phase: PHASE10E
+directive: SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE
+artifact: PHASE10E_GENESIS_WRITE_CERTIFICATE
+generated_at: "2026-08-08T16:07:38-07:00"
+
+genesis_write:
+  status: PENDING
+  accounts_created: 0
+  transfers_created: 0
+  read_back_verified: false
+  deterministic_hash: ""
+
+prerequisites:
+  all_phase10d_certificates_pass: true
+  typecheck_clean: true
+  simulation_baseline_pass: true
+  real_write_authorization_enabled: true
+
+output:
+  genesis_ceremony_report: generated/audit/tigerbeetle-genesis-ceremony.json
+  post_write_certificate: governance/tigerbeetle/TIGERBEETLE_POST_WRITE_CERTIFICATE.yaml
+
+status: READY_FOR_GENESIS_CEREMONY

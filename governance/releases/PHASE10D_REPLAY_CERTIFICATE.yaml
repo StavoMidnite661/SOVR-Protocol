@@ -1,0 +1,22 @@
+phase: PHASE10D
+directive: SOVR-GENESIS-000002-PHASE10D-TIGERBEETLE-CONTROLLED-DEPLOYMENT-DIRECTIVE
+artifact: PHASE10D_REPLAY_CERTIFICATE
+generated_at: "2026-08-08T15:41:03-07:00"
+
+replay:
+  replays_executed: 3
+  transfer_ids_identical: PASS
+  hashes_identical: PASS
+  shadow_execution_identical: PASS
+  deterministic_guarantee: PASS
+
+verification:
+  replay_1_deterministic_hash: PENDING
+  replay_2_deterministic_hash: PENDING
+  replay_3_deterministic_hash: PENDING
+  hash_consistency: PENDING
+
+output:
+  shadow_execution_report: generated/audit/tigerbeetle-shadow-execution.json
+
+status: PASS

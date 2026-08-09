@@ -1,0 +1,48 @@
+phase: PHASE10E
+directive: SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE
+artifact: REAL_WRITE_AUTHORIZATION
+generated_at: "2026-08-08T16:07:38-07:00"
+
+authorization:
+  enabled: true
+  authorized_operation: genesis_only
+  scope:
+    accounts:
+      create: true
+    transfers:
+      create: true
+  prohibited:
+    customer_assets: true
+    external_payments: true
+    production_settlement: true
+    customer_balances: true
+    off_ramp_systems: true
+    production_keys: true
+
+requirements:
+  genesis_verified: true
+  replay_verified: true
+  audit_verified: true
+  shadow_execution_passed: true
+  compatibility_certified: true
+  typecheck_clean: true
+  simulation_baseline_pass: true
+
+required_certificates:
+  - TIGERBEETLE_ENVIRONMENT_CERTIFICATE.yaml
+  - SOVR_ACCOUNT_SCHEMA.yaml
+  - PHASE10D_LEDGER_COMPATIBILITY_CERTIFICATE.yaml
+  - PHASE10D_TIGERBEETLE_GENESIS_CERTIFICATE.yaml
+  - PHASE10D_REPLAY_CERTIFICATE.yaml
+  - PHASE10E_GENESIS_WRITE_MANIFEST.yaml
+  - PHASE10E_POST_WRITE_CERTIFICATE.yaml
+
+enable_conditions:
+  all_certificates_pass: true
+  human_authorization: true
+  production_traffic_disabled: true
+  external_financial_movement_disabled: true
+  asset_settlement_disabled: true
+  genesis_only_scope: true
+
+status: GENESIS_WRITES_ENABLED

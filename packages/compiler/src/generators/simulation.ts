@@ -30,6 +30,13 @@ export interface SimulationScenarioCompiled {
     scope?: string;
     expected_result?: string;
     expected_error_type?: string;
+    actor_context?: {
+      actor_id: string;
+      actor_type: string;
+      identity_id: string;
+      session_id?: string;
+    };
+    aggregate_id?: string;
   }>;
   expected_events?: Array<{
     event_name: string;
@@ -103,6 +110,8 @@ export function generateSimulationRegistry(parsed: ParsedProtocol): GeneratedFil
         scope: cmd.scope,
         expected_result: cmd.expected_result,
         expected_error_type: cmd.expected_error_type,
+        actor_context: cmd.actor_context,
+        aggregate_id: cmd.aggregate_id,
       })),
       expected_events: raw.expected_events,
       expected_failures: raw.expected_failures,

@@ -1,0 +1,285 @@
+{
+  "scenario_id": "SIM-007-SETTLEMENT-LIFECYCLE",
+  "settlement_id": "sim-settlement-007",
+  "build_hash": "unknown",
+  "commands": [],
+  "events": [],
+  "command_sequence": [
+    {
+      "aggregate": "intent",
+      "capability_id": "intent.submit",
+      "command_id": "cmd-001",
+      "command_name": "intent.submit",
+      "domain": "intent",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "domain_target": "treasury",
+        "intent_id": "sim-intent-007",
+        "intent_type": "settlement",
+        "objective": "Execute settlement obligation",
+        "submitting_actor_id": "sim-settlement-operator"
+      },
+      "scope": "intent:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-treasury-authority",
+        "actor_type": "system",
+        "identity_id": "sim-treasury-authority-id",
+        "session_id": "sim-treasury-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.transfer.request",
+      "command_id": "cmd-002",
+      "command_name": "treasury.transfer.request",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "amount": "50",
+        "asset_id": "vault-asset-007",
+        "destination_actor_id": "sim-recipient-007",
+        "destination_details": [
+          {
+            "address": "sim-address-007",
+            "rail": "ACH",
+            "reference": "sim-ref-007",
+            "type": "ach"
+          }
+        ],
+        "order_id": "sim-transfer-007",
+        "purpose": "settlement_obligation",
+        "source_actor_id": "sim-settlement-operator"
+      },
+      "scope": "treasury.transfer:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-treasury-authority",
+        "actor_type": "system",
+        "identity_id": "sim-treasury-authority-id",
+        "session_id": "sim-treasury-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.transfer.authorize",
+      "command_id": "cmd-003",
+      "command_name": "treasury.transfer.authorize",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "order_id": "sim-transfer-007"
+      },
+      "scope": "treasury.transfer:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-treasury-authority",
+        "actor_type": "system",
+        "identity_id": "sim-treasury-authority-id",
+        "session_id": "sim-treasury-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.transfer.reserve",
+      "command_id": "cmd-004",
+      "command_name": "treasury.transfer.reserve",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "order_id": "sim-transfer-007"
+      },
+      "scope": "treasury.transfer:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-ledger-authority",
+        "actor_type": "system",
+        "identity_id": "sim-ledger-authority-id",
+        "session_id": "sim-ledger-session-007"
+      },
+      "aggregate": "journal_entry",
+      "aggregate_id": "journal-007",
+      "capability_id": "ledger.entry.post",
+      "command_id": "cmd-005",
+      "command_name": "ledger.entry.post",
+      "domain": "ledger",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "causation_id": "cmd-004",
+        "correlation_id": "cmd-004",
+        "description": "Settlement reserve ledger posting",
+        "entry_type": "STANDARD",
+        "event_reference": "treasury.transfer.reserved",
+        "journal_id": "journal-007",
+        "postings": [
+          {
+            "account_id": "account-007-a",
+            "amount": 50,
+            "asset_id": "vault-asset-007",
+            "description": "Debit settlement reserve",
+            "direction": "DEBIT"
+          },
+          {
+            "account_id": "account-007-b",
+            "amount": 50,
+            "asset_id": "vault-asset-007",
+            "description": "Credit settlement liability",
+            "direction": "CREDIT"
+          }
+        ],
+        "transaction_id": "tx-007"
+      },
+      "scope": "ledger.entry:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-settlement-authority",
+        "actor_type": "system",
+        "identity_id": "sim-settlement-authority-id",
+        "session_id": "sim-settlement-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.transfer.execute",
+      "command_id": "cmd-006",
+      "command_name": "treasury.transfer.execute",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "order_id": "sim-transfer-007"
+      },
+      "scope": "treasury.transfer:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-settlement-authority",
+        "actor_type": "system",
+        "identity_id": "sim-settlement-authority-id",
+        "session_id": "sim-settlement-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.settlement.confirm",
+      "command_id": "cmd-007",
+      "command_name": "treasury.settlement.confirm",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "order_id": "sim-transfer-007",
+        "settled_at": "2026-08-08T14:00:00Z",
+        "settlement_amount": "50",
+        "settlement_reference": "sim-ref-007"
+      },
+      "scope": "treasury.settlement:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-governance-verifier",
+        "actor_type": "governance",
+        "identity_id": "sim-governance-verifier-id",
+        "session_id": "sim-governance-session-007"
+      },
+      "aggregate": "audit_record",
+      "capability_id": "governance.audit.query",
+      "command_id": "cmd-008",
+      "command_name": "governance.audit.query",
+      "domain": "governance",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "audit_type": "settlement",
+        "end_date": "2026-08-08T23:59:59Z",
+        "filters": {
+          "settlement_id": "sim-settlement-007"
+        },
+        "start_date": "2026-08-01T00:00:00Z",
+        "target_domains": [
+          "treasury",
+          "ledger"
+        ]
+      },
+      "scope": "governance.audit:*"
+    }
+  ],
+  "event_sequence": [
+    {
+      "event_id": "evt-0",
+      "event_name": "intent.received",
+      "aggregate_id": "agg-0"
+    },
+    {
+      "event_id": "evt-1",
+      "event_name": "treasury.transfer.reserved",
+      "aggregate_id": "agg-1"
+    },
+    {
+      "event_id": "evt-2",
+      "event_name": "treasury.transfer.reserved",
+      "aggregate_id": "agg-2"
+    },
+    {
+      "event_id": "evt-3",
+      "event_name": "treasury.transfer.reserved",
+      "aggregate_id": "agg-3"
+    },
+    {
+      "event_id": "evt-4",
+      "event_name": "ledger.entry.posted",
+      "aggregate_id": "agg-4"
+    },
+    {
+      "event_id": "evt-5",
+      "event_name": "treasury.transfer.reserved",
+      "aggregate_id": "agg-5"
+    },
+    {
+      "event_id": "evt-6",
+      "event_name": "treasury.transfer.reserved",
+      "aggregate_id": "agg-6"
+    },
+    {
+      "event_id": "evt-7",
+      "event_name": "treasury.settlement.confirmed",
+      "aggregate_id": "agg-7"
+    }
+  ],
+  "ledger_entries": [
+    {
+      "event_id": "evt-4",
+      "transaction_id": "tx-007",
+      "postings": [
+        {
+          "account_id": "account-007-a",
+          "amount": 50,
+          "direction": "DEBIT"
+        }
+      ]
+    }
+  ],
+  "reserve_changes": [
+    {
+      "event_id": "evt-1",
+      "order_id": "sim-transfer-1"
+    },
+    {
+      "event_id": "evt-2",
+      "order_id": "sim-transfer-2"
+    },
+    {
+      "event_id": "evt-3",
+      "order_id": "sim-transfer-3"
+    },
+    {
+      "event_id": "evt-5",
+      "order_id": "sim-transfer-5"
+    },
+    {
+      "event_id": "evt-6",
+      "order_id": "sim-transfer-6"
+    }
+  ],
+  "state_transitions": [],
+  "projection_hash": "aa1806febc25cf0088272dcfeaddb93f60bb3f0f6a8e901dbc2faf91781b1a2d",
+  "merkle_root": "e7991259ac1273842cdb5681e9ddf8b77c5db991fc293eae66e203d9f73cc971",
+  "deterministic_hash": "8fd87a5fcced7cf1ff04f4a910b021c16654f207b853efed80df6d77c34e8abd"
+}

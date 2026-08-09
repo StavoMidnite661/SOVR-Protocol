@@ -93,7 +93,7 @@ export class SimulationRunner {
 
     for (const cmd of scenario.commands) {
       try {
-        const aggregateId = cmd.command_id;
+        const aggregateId = cmd.aggregate_id ?? cmd.command_id;
         const machine = stateMachineInterpreter.getMachineFor(cmd.domain, cmd.aggregate);
         if (machine) {
           const currentState = aggregateStates.get(aggregateId) ?? machine.initialState;
@@ -129,11 +129,12 @@ export class SimulationRunner {
 
         const capabilityId = cmd.capability_id ?? `${cmd.domain}.${cmd.aggregate}.create`;
         const scope = cmd.scope ?? `${cmd.domain}.${cmd.aggregate}:*`;
+        const effectiveActor = cmd.actor_context ?? scenario.actor_context;
 
         if (!cmd.skip_capability_grant) {
           capabilityEngine.grant({
             capability_id: capabilityId,
-            actor_id: scenario.actor_context.actor_id,
+            actor_id: effectiveActor.actor_id,
             scope_pattern: scope,
             granted_by: 'simulation',
           });
@@ -146,10 +147,10 @@ export class SimulationRunner {
           source_domain: cmd.domain,
           payload: cmd.payload,
           identity_context: {
-            identity_id: scenario.actor_context.identity_id,
-            actor_id: scenario.actor_context.actor_id,
-            actor_type: scenario.actor_context.actor_type,
-            session_id: scenario.actor_context.session_id ?? `sim-${scenario.scenario_id}`,
+            identity_id: effectiveActor.identity_id,
+            actor_id: effectiveActor.actor_id,
+            actor_type: effectiveActor.actor_type,
+            session_id: effectiveActor.session_id ?? scenario.actor_context.session_id ?? `sim-${scenario.scenario_id}`,
           },
           capability_id: capabilityId,
           scope: scope,
