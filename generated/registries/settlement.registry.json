@@ -518,7 +518,7 @@
       "compiler_version": "0.6.0"
     },
     "hash": "29fe1736743604298b28a79169d7a7f7d981d7ed19aaf292f07c9695c483e9fa",
-    "timestamp": "2026-08-09T00:16:33.888Z"
+    "timestamp": "2026-08-09T16:35:56.842Z"
   },
   "kind": "settlement",
   "lifecycle": "CREATED -> AUTHORIZED -> RESERVED -> POSTED -> SETTLED -> VERIFIED",

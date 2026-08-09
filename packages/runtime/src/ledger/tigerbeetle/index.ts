@@ -1,4 +1,5 @@
-export { TigerBeetleClient } from './tigerbeetle-client.js';
+export { TigerBeetleCliClient } from './tigerbeetle-cli-client.js';
+export { TigerBeetleNativeClient } from './tigerbeetle-native-client.js';
 export { AccountMapper } from './account-mapper.js';
 export { TransferMapper } from './transfer-mapper.js';
 export { LedgerAdapter } from './ledger-adapter.js';

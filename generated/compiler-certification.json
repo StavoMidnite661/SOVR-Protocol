@@ -1,9 +1,9 @@
 {
-  "build_hash": "5c7ce3d058834d5b611555ee8e72ce85518771eff94a46ef1ffb68155f50ee02",
+  "build_hash": "66608b37da938d7fed16c894d134f4cdfc830ffbf55ee7ede0995dbfc40ab571",
   "deterministic_proof": {
     "identical": true,
-    "run_1_hash": "50d783652856d1b6f6317c6f2c797a1d5be2ce711377952e864787521756c9dd",
-    "run_2_hash": "50d783652856d1b6f6317c6f2c797a1d5be2ce711377952e864787521756c9dd"
+    "run_1_hash": "2ff9b3c839e3f06dc4fdb4181db2ecef4e1999277e894ff84f75da33cea2d3a7",
+    "run_2_hash": "2ff9b3c839e3f06dc4fdb4181db2ecef4e1999277e894ff84f75da33cea2d3a7"
   },
   "input_hashes": {
     "00_protocol-manifest.yaml": "0dad6a686c26a85d7df99b84f90b4611626bd31e9f878d45b88362a73cd2af71",
@@ -61,20 +61,20 @@
   "ir_hash": "6327d0523d685ebe4e00fedebd2c4bbe7900be872efbf82348335a0ae740b40d",
   "legal_notice": "SOVR Protocol compiler certification artifact. Proprietary — all rights reserved.",
   "registry_hashes": {
-    "boot.registry.json": "fc67c22cd317731a81c4a39a1aa407f44e51b68163b4163f73451206b98b4c0a",
-    "capabilities.registry.json": "563b8e0d1b6cbca93a735b7b5a7516e395f297f769be37d39e931eee91f95ee6",
-    "commands.registry.json": "09d610eb993eef238f4101bc5fa7ff2eeb850a3884dee089df09bf20ce7cbb59",
-    "constitution.registry.json": "a9a0cc829a6faeec05f4bf45c8cf15c2c1c3717b6766e4462d7bee84ef56b648",
-    "contracts.registry.json": "faed96cc4be8e3a24e85e8b1c19ced8103517a69d91105eb9d5e73f54bdcd806",
-    "economic.registry.json": "ec0734705c8e918c676d28e24d1f84e2b75cf88df1278db8371f2083ae139ede",
-    "envelopes.registry.json": "dda49cb6cd1b01d82d6b7e8f5d147e8c487079069a2b0a45b05d5aca1575a40b",
-    "events.registry.json": "b2879ca333c2456e9e9bf6ef3cdf28bbe486140b28d086d47965a490ba1e8c6b",
-    "execution-plans.registry.json": "1f7d7b041f0bce4fac92c10dbc41a638da49ea4e710e1564f232e6524e5f6027",
-    "machines.registry.json": "e07612e5eb27355b44a62d27582a091cdc1e58fce3af0f5f2521403da39fd079",
-    "projections.registry.json": "4347e9083fb92729baa2ae636bf9d427e63c115a26b7e15f12ce8cc079c6428e",
-    "reserve.registry.json": "e2d0c493efe77823c36517c7bd19f66759883429db81b99a2c026e31658f6ca7",
-    "schemas.registry.json": "5165b4bee461d512068beb04224591e24ee229aa2b500e0bbc79fb0216ca7b28",
-    "settlement.registry.json": "b029088430e21c87890f770192af4829b27c6468d0ac540286538a67789fd37c",
-    "validation.registry.json": "7614d47df3849e86a76f8e123613caa16777de11d79e5dd191cdf0cb3a54cefb"
+    "boot.registry.json": "b55ecbb1ddfa1e3bebbf3354a1d7d5dc7a7c62b9dd944b89c2a6299869cbd868",
+    "capabilities.registry.json": "0833b6c2672f78f512356fbe218b351a58d9cdda94e3fc3a54f7fcfe157b3d12",
+    "commands.registry.json": "1bd7720844a6527cb6cfcb3577ab8ad3760f0f0a808761393fb6edeba9eb535b",
+    "constitution.registry.json": "1cd5ad3484bb962c7da46cd34c43583fdb21aa2eb6c89ad0e58603602497530d",
+    "contracts.registry.json": "3985e42b34fcf374c6e1ddd2d60911d66425cfd68ad51e154a270f62d5157d74",
+    "economic.registry.json": "c938d1aa6933fb9d9b75e7f20e3b239cf39ea89454aeb2eefd111f9e8aafadf8",
+    "envelopes.registry.json": "79043413ce4974d909605bfc314fcf63a517afcee78028f1104b921017a9e3b4",
+    "events.registry.json": "b8430880c8e569c0078b381f64fe7569256ed79ab4115f939fc172faa979ab43",
+    "execution-plans.registry.json": "56fa3158f305cd6c9c94b9305aaaa2b6379c77608668bd1785ed6fc0a82f9e55",
+    "machines.registry.json": "7275725e2af8a1aa4b67d3c5146749a17798356993067903eb4e870f0457745e",
+    "projections.registry.json": "fa01b45d83298664b4412e1172dc2ca971d6b1cf78b6939296678f08920b2fef",
+    "reserve.registry.json": "bbb58875d0c3e37db02be934ac265740fd25bbb515f77d7ef780cb14cf751fd6",
+    "schemas.registry.json": "f4ae3023cae809a2c1dea4f4e2c42996ca67e18eb64ea6865f258b3abf5432ca",
+    "settlement.registry.json": "022044959dbedb600c5328a5622ad3b13aca7c35b42be4670d3378202120b285",
+    "validation.registry.json": "015d24d61f77c39a8a7d731d6687eb52bad40d0288031f77887b407e9f021755"
   }
 }

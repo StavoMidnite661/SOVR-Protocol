@@ -37,12 +37,8 @@ import {
   type Client,
   type Account,
   type Transfer,
-  type CreateAccountResult,
-  type CreateTransferResult,
   AccountFlags,
   TransferFlags,
-  CreateAccountStatus,
-  CreateTransferStatus
 } from 'tigerbeetle-node'
 
 // ─── Ledger Partitions ────────────────────────────────────────────────────────
@@ -253,17 +249,17 @@ export class TigerBeetleDriver {
       timestamp:        0n   // TigerBeetle assigns timestamp
     }
 
-    const results: CreateAccountResult[] = await c.createAccounts([account])
+    const results: any[] = await c.createAccounts([account])
 
     if (results.length === 0) {
       this.register(req.sovrId, tbId)
       return { ok: true, tbId }
     }
 
-    const status = results[0].status as CreateAccountStatus
+    const status = results[0]?.status as number
 
     // Idempotent — already exists is ok
-    if (status === CreateAccountStatus.exists) {
+    if (status === 21) {
       this.register(req.sovrId, tbId)
       return { ok: true, tbId }
     }
@@ -340,7 +336,7 @@ export class TigerBeetleDriver {
       timestamp:         0n
     }
 
-    const results: CreateTransferResult[] = await c.createTransfers([transfer])
+    const results: any[] = await c.createTransfers([transfer])
 
     if (results.length === 0) {
       return {
@@ -350,10 +346,10 @@ export class TigerBeetleDriver {
       }
     }
 
-    const status = results[0].status as CreateTransferStatus
+    const status = results[0]?.status as number
 
     // Idempotent — same commandId already processed
-    if (status === CreateTransferStatus.exists) {
+    if (status === 46) {
       return { ok: true, transferId }
     }
 
@@ -425,7 +421,7 @@ export class TigerBeetleDriver {
       })
     }
 
-    const errors: CreateTransferResult[] = await c.createTransfers(tbTransfers)
+    const errors: any[] = await c.createTransfers(tbTransfers)
 
     if (errors.length === 0) {
       return transferIds.map((transferId, i) => ({
@@ -436,7 +432,7 @@ export class TigerBeetleDriver {
     }
 
     // Any failure = all linked transfers rolled back
-    const status = errors[0].status as CreateTransferStatus
+    const status = errors[0]?.status as number
     const errCode = this.transferErrCode(status)
     return reqs.map(() => ({
       ok:           false,
@@ -479,13 +475,13 @@ export class TigerBeetleDriver {
       timestamp:         0n
     }
 
-    const errors: CreateTransferResult[] = await c.createTransfers([postTransfer])
+    const errors: any[] = await c.createTransfers([postTransfer])
 
     if (errors.length === 0) {
       return { ok: true, transferId: postId }
     }
 
-    const status = errors[0].status as CreateTransferStatus
+    const status = errors[0]?.status as number
     return {
       ok:           false,
       errorCode:    this.transferErrCode(status),
@@ -527,13 +523,13 @@ export class TigerBeetleDriver {
       timestamp:         0n
     }
 
-    const errors: CreateTransferResult[] = await c.createTransfers([voidTransfer])
+    const errors: any[] = await c.createTransfers([voidTransfer])
 
     if (errors.length === 0) {
       return { ok: true, transferId: voidId }
     }
 
-    const status = errors[0].status as CreateTransferStatus
+    const status = errors[0]?.status as number
     return {
       ok:           false,
       errorCode:    this.transferErrCode(status),
@@ -697,45 +693,91 @@ export class TigerBeetleDriver {
     try { return BigInt('0x' + hex) } catch { return 0n }
   }
 
-  private accountErrCode(status: CreateAccountStatus): string {
-    const map: Partial<Record<CreateAccountStatus, string>> = {
-      [CreateAccountStatus.linked_event_failed]: 'linked_event_failed',
-      [CreateAccountStatus.linked_event_chain_open]: 'linked_event_chain_open',
-      [CreateAccountStatus.timestamp_must_be_zero]: 'timestamp_must_be_zero',
-      [CreateAccountStatus.reserved_flag]: 'reserved_flag',
-      [CreateAccountStatus.id_must_not_be_zero]: 'id_must_not_be_zero',
-      [CreateAccountStatus.id_must_not_be_int_max]: 'id_must_not_be_int_max',
-      [CreateAccountStatus.exists_with_different_flags]: 'exists_with_different_flags',
-      [CreateAccountStatus.exists_with_different_user_data_128]: 'exists_with_different_user_data_128',
-      [CreateAccountStatus.exists_with_different_user_data_64]: 'exists_with_different_user_data_64',
-      [CreateAccountStatus.exists_with_different_user_data_32]: 'exists_with_different_user_data_32',
-      [CreateAccountStatus.exists_with_different_ledger]: 'exists_with_different_ledger',
-      [CreateAccountStatus.exists_with_different_code]: 'exists_with_different_code',
-      [CreateAccountStatus.exists]: 'exists'
-    }
+  private accountErrCode(status: number): string {
+    const map: Record<number, string> = {
+      1: 'linked_event_failed',
+      2: 'linked_event_chain_open',
+      3: 'timestamp_must_be_zero',
+      4: 'reserved_field',
+      5: 'reserved_flag',
+      6: 'id_must_not_be_zero',
+      7: 'id_must_not_be_int_max',
+      8: 'flags_are_mutually_exclusive',
+      9: 'debits_pending_must_be_zero',
+      10: 'debits_posted_must_be_zero',
+      11: 'credits_pending_must_be_zero',
+      12: 'credits_posted_must_be_zero',
+      13: 'ledger_must_not_be_zero',
+      14: 'code_must_not_be_zero',
+      15: 'exists_with_different_flags',
+      16: 'exists_with_different_user_data_128',
+      17: 'exists_with_different_user_data_64',
+      18: 'exists_with_different_user_data_32',
+      19: 'exists_with_different_ledger',
+      20: 'exists_with_different_code',
+      21: 'exists',
+    };
     return map[status] ?? `unknown_${status}`
   }
 
-  private transferErrCode(status: CreateTransferStatus): string {
-    const map: Partial<Record<CreateTransferStatus, string>> = {
-      [CreateTransferStatus.linked_event_failed]: 'linked_event_failed',
-      [CreateTransferStatus.linked_event_chain_open]: 'linked_event_chain_open',
-      [CreateTransferStatus.id_must_not_be_zero]: 'id_must_not_be_zero',
-      [CreateTransferStatus.exists]: 'exists',
-      [CreateTransferStatus.debit_account_id_must_not_be_zero]: 'debit_account_id_must_not_be_zero',
-      [CreateTransferStatus.credit_account_id_must_not_be_zero]: 'credit_account_id_must_not_be_zero',
-      [CreateTransferStatus.accounts_must_be_different]: 'accounts_must_be_different',
-      [CreateTransferStatus.debit_account_not_found]: 'debit_account_not_found',
-      [CreateTransferStatus.credit_account_not_found]: 'credit_account_not_found',
-      [CreateTransferStatus.accounts_must_have_the_same_ledger]: 'accounts_must_have_the_same_ledger',
-      [CreateTransferStatus.exceeds_credits]: 'exceeds_credits',
-      [CreateTransferStatus.exceeds_debits]: 'exceeds_debits',
-      [CreateTransferStatus.pending_transfer_not_found]: 'pending_transfer_not_found',
-      [CreateTransferStatus.pending_transfer_not_pending]: 'pending_transfer_not_pending',
-      [CreateTransferStatus.pending_transfer_already_posted]: 'pending_transfer_already_posted',
-      [CreateTransferStatus.pending_transfer_already_voided]: 'pending_transfer_already_voided',
-      [CreateTransferStatus.pending_transfer_expired]: 'pending_transfer_expired'
-    }
+  private transferErrCode(status: number): string {
+    const map: Record<number, string> = {
+      1: 'linked_event_failed',
+      2: 'linked_event_chain_open',
+      3: 'timestamp_must_be_zero',
+      4: 'reserved_flag',
+      5: 'id_must_not_be_zero',
+      6: 'id_must_not_be_int_max',
+      7: 'flags_are_mutually_exclusive',
+      8: 'debit_account_id_must_not_be_zero',
+      9: 'debit_account_id_must_not_be_int_max',
+      10: 'credit_account_id_must_not_be_zero',
+      11: 'credit_account_id_must_not_be_int_max',
+      12: 'accounts_must_be_different',
+      13: 'pending_id_must_be_zero',
+      14: 'pending_id_must_not_be_zero',
+      15: 'pending_id_must_not_be_int_max',
+      16: 'pending_id_must_be_different',
+      17: 'timeout_reserved_for_pending_transfer',
+      18: 'closing_transfer_must_be_pending',
+      19: 'ledger_must_not_be_zero',
+      20: 'code_must_not_be_zero',
+      21: 'debit_account_not_found',
+      22: 'credit_account_not_found',
+      23: 'accounts_must_have_the_same_ledger',
+      24: 'transfer_must_have_the_same_ledger_as_accounts',
+      25: 'pending_transfer_not_found',
+      26: 'pending_transfer_not_pending',
+      27: 'pending_transfer_has_different_debit_account_id',
+      28: 'pending_transfer_has_different_credit_account_id',
+      29: 'pending_transfer_has_different_ledger',
+      30: 'pending_transfer_has_different_code',
+      31: 'exceeds_pending_transfer_amount',
+      32: 'pending_transfer_has_different_amount',
+      33: 'pending_transfer_already_posted',
+      34: 'pending_transfer_already_voided',
+      35: 'pending_transfer_expired',
+      36: 'exists_with_different_flags',
+      37: 'exists_with_different_debit_account_id',
+      38: 'exists_with_different_credit_account_id',
+      39: 'exists_with_different_amount',
+      40: 'exists_with_different_pending_id',
+      41: 'exists_with_different_user_data_128',
+      42: 'exists_with_different_user_data_64',
+      43: 'exists_with_different_user_data_32',
+      44: 'exists_with_different_timeout',
+      45: 'exists_with_different_code',
+      46: 'exists',
+      47: 'overflows_debits_pending',
+      48: 'overflows_credits_pending',
+      49: 'overflows_debits_posted',
+      50: 'overflows_credits_posted',
+      51: 'overflows_debits',
+      52: 'overflows_credits',
+      53: 'overflows_timeout',
+      54: 'exceeds_credits',
+      55: 'exceeds_debits',
+    };
     return map[status] ?? `unknown_${status}`
   }
 

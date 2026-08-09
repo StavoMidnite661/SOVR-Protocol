@@ -1,4 +1,4 @@
-import type { TigerBeetleClient } from './tigerbeetle-client.js';
+import type { TigerBeetleNativeClient } from './tigerbeetle-native-client.js';
 import type { AccountMapper, AccountMapperConfig } from './account-mapper.js';
 import type { TransferMapper } from './transfer-mapper.js';
 import type {
@@ -20,12 +20,12 @@ export interface LedgerAdapterBoundary {
 }
 
 export class LedgerAdapter implements LedgerAdapterBoundary {
-  private readonly client: TigerBeetleClient;
+  private readonly client: TigerBeetleNativeClient;
   private readonly accountMapper: AccountMapper;
   private readonly transferMapper: TransferMapper;
   private readonly config: LedgerAdapterConfig;
 
-  constructor(client: TigerBeetleClient, accountMapper: AccountMapper, transferMapper: TransferMapper, config: LedgerAdapterConfig) {
+  constructor(client: TigerBeetleNativeClient, accountMapper: AccountMapper, transferMapper: TransferMapper, config: LedgerAdapterConfig) {
     this.client = client;
     this.accountMapper = accountMapper;
     this.transferMapper = transferMapper;

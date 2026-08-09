@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LedgerAdapter } from '../ledger-adapter.js';
-import { TigerBeetleClient } from '../tigerbeetle-client.js';
+import { TigerBeetleNativeClient } from '../tigerbeetle-native-client.js';
 import { AccountMapper } from '../account-mapper.js';
 import { TransferMapper } from '../transfer-mapper.js';
 
@@ -38,7 +38,7 @@ describe('Phase 10D Deterministic Ledger Replay', () => {
   }
 
   it('Test A: three replays produce identical transfer IDs and hashes', async () => {
-    const client = new TigerBeetleClient(config);
+    const client = new TigerBeetleNativeClient(config);
     const mapper = new AccountMapper({ schemaPath });
     const transferMapper = new TransferMapper();
     const adapter = new LedgerAdapter(client, mapper, transferMapper, config);
@@ -64,7 +64,7 @@ describe('Phase 10D Deterministic Ledger Replay', () => {
   });
 
   it('Test B: replay produces identical shadow execution hashes', async () => {
-    const client = new TigerBeetleClient(config);
+    const client = new TigerBeetleNativeClient(config);
     const mapper = new AccountMapper({ schemaPath });
     const transferMapper = new TransferMapper();
     const adapter = new LedgerAdapter(client, mapper, transferMapper, config);

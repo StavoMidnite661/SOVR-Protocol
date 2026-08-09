@@ -19,6 +19,7 @@ export interface TigerBeetleTransfer {
   pending_id: number;
   user_data: { lo: number; hi: number };
   timeout: number;
+  ledger: number;
   code: string;
   timestamp: bigint;
 }

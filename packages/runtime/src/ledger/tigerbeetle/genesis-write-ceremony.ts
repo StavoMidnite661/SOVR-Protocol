@@ -1,14 +1,14 @@
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TigerBeetleClient } from './tigerbeetle-client.js';
+import { TigerBeetleNativeClient } from './tigerbeetle-native-client.js';
 import { AccountMapper } from './account-mapper.js';
 import { TransferMapper } from './transfer-mapper.js';
 import { LedgerAdapter } from './ledger-adapter.js';
 import type { LedgerAdapterConfig, ShadowExecutionResult } from './types.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, '../../../../../../');
+const ROOT = join(__dirname, '../../../../../');
 
 export interface GenesisWriteResult {
   success: boolean;
@@ -20,13 +20,13 @@ export interface GenesisWriteResult {
 }
 
 export class GenesisWriteCeremony {
-  private readonly client: TigerBeetleClient;
+  private readonly client: TigerBeetleNativeClient;
   private readonly adapter: LedgerAdapter;
   private readonly manifestPath: string;
   private readonly outputPath: string;
 
   constructor(config: LedgerAdapterConfig, manifestPath?: string, outputPath?: string) {
-    this.client = new TigerBeetleClient(config);
+    this.client = new TigerBeetleNativeClient(config);
     this.manifestPath = manifestPath ?? join(ROOT, 'governance', 'tigerbeetle', 'GENESIS_TRANSACTION_SET.json');
     this.outputPath = outputPath ?? join(ROOT, 'generated', 'audit', 'tigerbeetle-genesis-ceremony.json');
 
@@ -64,6 +64,7 @@ export class GenesisWriteCeremony {
         debit_account_id: genesisTransfer.debit_account_id,
         credit_account_id: genesisTransfer.credit_account_id,
         amount: BigInt(genesisTransfer.amount),
+        ledger: 8,
         code: genesisTransfer.code,
         timeout: genesisTransfer.timeout,
       });

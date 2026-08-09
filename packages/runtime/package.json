@@ -1,7 +1,7 @@
 {
   "name": "@sovr/runtime",
   "version": "0.6.0",
-  "description": "SOVR Financial OS Runtime \u2014 Linux kernel of finance, machine-readable, unfakeable",
+  "description": "SOVR Financial OS Runtime — Linux kernel of finance, machine-readable, unfakeable",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
@@ -27,7 +27,7 @@
     "js-yaml": "^4.1.0",
     "kafkajs": "^2.2.4",
     "pg": "^8.22.0",
-    "tigerbeetle-node": "^0.17.9",
+    "tigerbeetle-node": "^0.16.67",
     "ws": "^8.18.0",
     "zod": "^3.22.0"
   },

@@ -16,7 +16,7 @@ genesis_operation:
 accounts:
   - sovr_id: SOVR-ACCOUNT-000001
     tigerbeetle_id: 404771
-    ledger: 0
+    ledger: 8
     purpose: SYSTEM_RESERVE_POOL
     state: GENESIS
     ownership_domain: sovr_treasury
@@ -24,7 +24,7 @@ accounts:
 
   - sovr_id: SOVR-ACCOUNT-000002
     tigerbeetle_id: 327102
-    ledger: 0
+    ledger: 8
     purpose: TREASURY_OPERATING
     state: GENESIS
     ownership_domain: sovr_treasury
@@ -32,7 +32,7 @@ accounts:
 
   - sovr_id: SOVR-ACCOUNT-000003
     tigerbeetle_id: 689728
-    ledger: 0
+    ledger: 8
     purpose: SETTLEMENT_CLEARING
     state: GENESIS
     ownership_domain: sovr_settlement
@@ -40,7 +40,7 @@ accounts:
 
   - sovr_id: SOVR-ACCOUNT-000004
     tigerbeetle_id: 346086
-    ledger: 0
+    ledger: 8
     purpose: OBLIGATION_TRACKING
     state: GENESIS
     ownership_domain: sovr_governance
@@ -48,7 +48,7 @@ accounts:
 
   - sovr_id: SOVR-ACCOUNT-000005
     tigerbeetle_id: 536681
-    ledger: 0
+    ledger: 8
     purpose: EXPENSE_RECONCILIATION
     state: GENESIS
     ownership_domain: sovr_ledger
@@ -56,7 +56,7 @@ accounts:
 
   - sovr_id: SOVR-ACCOUNT-000006
     tigerbeetle_id: 441831
-    ledger: 0
+    ledger: 8
     purpose: ASSET_VAULT
     state: GENESIS
     ownership_domain: sovr_vault
@@ -64,7 +64,7 @@ accounts:
 
   - sovr_id: SOVR-ACCOUNT-000007
     tigerbeetle_id: 657844
-    ledger: 0
+    ledger: 8
     purpose: LIABILITY_ACCRUAL
     state: GENESIS
     ownership_domain: sovr_ledger
@@ -72,7 +72,7 @@ accounts:
 
   - sovr_id: SOVR-ACCOUNT-000008
     tigerbeetle_id: 941698
-    ledger: 0
+    ledger: 8
     purpose: PAYMENT_RAIL
     state: GENESIS
     ownership_domain: sovr_payment

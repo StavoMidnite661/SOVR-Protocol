@@ -44,5 +44,8 @@
     "audit:phase10e": "node scripts/audit-phase10e.mjs",
     "test:genesis:ceremony": "npm run test --prefix packages/runtime -- src/ledger/tigerbeetle/__tests__/genesis-ceremony.test.ts"
   },
-  "version": "0.6.0"
+  "version": "0.6.0",
+  "dependencies": {
+    "tigerbeetle-node": "^0.17.4"
+  }
 }

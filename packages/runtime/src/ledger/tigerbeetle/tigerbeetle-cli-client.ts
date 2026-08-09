@@ -7,7 +7,7 @@ import type { TigerBeetleAccount, TigerBeetleTransfer, LedgerAdapterConfig } fro
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '../../../../../');
 
-export class TigerBeetleClient {
+export class TigerBeetleCliClient {
   private readonly binaryPath: string;
   private readonly clusterFile: string;
   private readonly dataDirectory: string;
@@ -80,6 +80,7 @@ export class TigerBeetleClient {
           pending_id: Number(parts[4] || '0'),
           user_data: { lo: Number(parts[5] || '0'), hi: Number(parts[6] || '0') },
           timeout: Number(parts[7] || '0'),
+          ledger: 0,
           code: parts[8] || '',
           timestamp: BigInt(parts[9] || '0'),
         });

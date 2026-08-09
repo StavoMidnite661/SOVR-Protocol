@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { TigerBeetleClient } from '../tigerbeetle-client.js';
+import { TigerBeetleCliClient } from '../tigerbeetle-cli-client.js';
 import { AccountMapper } from '../account-mapper.js';
 import type { LedgerAdapterConfig } from '../types.js';
 
@@ -46,7 +46,7 @@ describe('Phase 10D TigerBeetle Genesis Certification', () => {
   });
 
   it('Test E: TigerBeetle instance reports no unexpected writes', async () => {
-    const client = new TigerBeetleClient(config);
+    const client = new TigerBeetleCliClient(config);
     expect(client.isWriteEnabled()).toBe(false);
   });
 });
