@@ -9,7 +9,20 @@ import type {
   LedgerAdapterConfig,
 } from './types.js';
 
-export class TigerBeetleNativeClient {
+export interface TigerBeetleTransport {
+  connect(): Promise<void>;
+  ping(): Promise<boolean>;
+  createAccounts(accounts: TigerBeetleAccount[]): Promise<void>;
+  createTransfers(transfers: TigerBeetleTransfer[]): Promise<void>;
+  lookupAccounts(ids: number[]): Promise<TigerBeetleAccount[]>;
+  lookupTransfers(ids: number[]): Promise<TigerBeetleTransfer[]>;
+  readAccounts(): Promise<TigerBeetleAccount[]>;
+  readTransfers(): Promise<TigerBeetleTransfer[]>;
+  isWriteEnabled(): boolean;
+  setWriteEnabled(enabled: boolean): void;
+}
+
+export class TigerBeetleTransportClient implements TigerBeetleTransport {
   private client: Client | null = null;
   private readonly config: LedgerAdapterConfig;
   private writeEnabled: boolean;
@@ -21,10 +34,23 @@ export class TigerBeetleNativeClient {
 
   async connect(): Promise<void> {
     if (this.client) return;
-    this.client = createClient({
-      cluster_id: BigInt(0),
-      replica_addresses: ['127.0.0.1:8080'],
-    });
+    const timeoutMs = 5000;
+    await Promise.race([
+      new Promise<void>((resolve, reject) => {
+        try {
+          this.client = createClient({
+            cluster_id: BigInt(0),
+            replica_addresses: ['127.0.0.1:8080'],
+          });
+          resolve();
+        } catch (err) {
+          reject(err);
+        }
+      }),
+      new Promise<void>((_, reject) =>
+        setTimeout(() => reject(new Error('TigerBeetle connection timeout')), timeoutMs)
+      ),
+    ]);
   }
 
   async disconnect(): Promise<void> {
@@ -40,6 +66,102 @@ export class TigerBeetleNativeClient {
     } catch {
       return false;
     }
+  }
+
+  async createAccounts(accounts: TigerBeetleAccount[]): Promise<void> {
+    if (!this.writeEnabled) {
+      throw new Error('WRITE_DISABLED: TigerBeetle account creation is disabled until REAL_WRITE_AUTHORIZATION is enabled');
+    }
+    if (this.config.readOnly) {
+      throw new Error('READ_ONLY_MODE: account creation is forbidden in read-only mode');
+    }
+    await this.connect();
+    if (!this.client) throw new Error('TigerBeetle client not connected');
+
+    const accountsToCreate = accounts.map((account) => {
+      const code = account.code ?? '';
+      const codeNum = code.length > 0 ? this.stringToCode(code) : 0;
+      let flags = 0;
+      if (account.is_default) flags |= AccountFlags.debits_must_not_exceed_credits;
+
+      return {
+        id: BigInt(account.id),
+        ledger: account.ledger ?? 0,
+        code: codeNum,
+        flags,
+        user_data_128: BigInt(0),
+        user_data_64: BigInt(0),
+        user_data_32: 0,
+        debits_pending: BigInt(0),
+        debits_posted: BigInt(0),
+        credits_pending: BigInt(0),
+        credits_posted: BigInt(0),
+        reserved: 0,
+        timestamp: BigInt(0),
+      };
+    });
+
+    const results = await this.client.createAccounts(accountsToCreate);
+    for (let i = 0; i < results.length; i++) {
+      const status = (results[i] as any)?.status;
+      if (status && status !== 4294967295 && status !== 21) {
+        throw new Error(`TigerBeetle account creation failed: ${String(status)}`);
+      }
+    }
+  }
+
+  async createTransfers(transfers: TigerBeetleTransfer[]): Promise<void> {
+    if (!this.writeEnabled) {
+      throw new Error('WRITE_DISABLED: TigerBeetle transfer creation is disabled until REAL_WRITE_AUTHORIZATION is enabled');
+    }
+    if (this.config.readOnly) {
+      throw new Error('READ_ONLY_MODE: transfer creation is forbidden in read-only mode');
+    }
+    await this.connect();
+    if (!this.client) throw new Error('TigerBeetle client not connected');
+
+    const transfersToCreate = transfers.map((transfer) => {
+      const code = transfer.code ?? '';
+      const codeNum = code.length > 0 ? this.stringToCode(code) : 0;
+
+      return {
+        id: BigInt(transfer.id),
+        debit_account_id: BigInt(transfer.debit_account_id ?? 0),
+        credit_account_id: BigInt(transfer.credit_account_id ?? 0),
+        amount: transfer.amount ?? BigInt(0),
+        pending_id: BigInt(0),
+        user_data_128: BigInt(0),
+        user_data_64: BigInt(0),
+        user_data_32: 0,
+        timeout: transfer.timeout ?? 0,
+        ledger: transfer.ledger ?? 0,
+        code: codeNum,
+        flags: 0,
+        timestamp: BigInt(0),
+      };
+    });
+
+    const results = await this.client.createTransfers(transfersToCreate);
+    for (let i = 0; i < results.length; i++) {
+      const status = (results[i] as any)?.status;
+      if (status && status !== 4294967295 && status !== 46) {
+        throw new Error(`TigerBeetle transfer creation failed: ${String(status)}`);
+      }
+    }
+  }
+
+  async lookupAccounts(ids: number[]): Promise<TigerBeetleAccount[]> {
+    await this.connect();
+    if (!this.client) throw new Error('TigerBeetle client not connected');
+    const results = await this.client.lookupAccounts(ids.map(id => BigInt(id)));
+    return results.map(this.mapAccount);
+  }
+
+  async lookupTransfers(ids: number[]): Promise<TigerBeetleTransfer[]> {
+    await this.connect();
+    if (!this.client) throw new Error('TigerBeetle client not connected');
+    const results = await this.client.lookupTransfers(ids.map(id => BigInt(id)));
+    return results.map(this.mapTransfer);
   }
 
   async readAccounts(): Promise<TigerBeetleAccount[]> {
@@ -81,97 +203,6 @@ export class TigerBeetleNativeClient {
       limit: 1000,
       flags: 0,
     });
-    return results.map(this.mapTransfer);
-  }
-
-  async createAccount(account: Partial<TigerBeetleAccount> & { id: number }): Promise<void> {
-    if (!this.writeEnabled) {
-      throw new Error('WRITE_DISABLED: TigerBeetle account creation is disabled until REAL_WRITE_AUTHORIZATION is enabled');
-    }
-    if (this.config.readOnly) {
-      throw new Error('READ_ONLY_MODE: account creation is forbidden in read-only mode');
-    }
-    await this.connect();
-    if (!this.client) throw new Error('TigerBeetle client not connected');
-
-    const code = account.code ?? '';
-    const codeNum = code.length > 0 ? this.stringToCode(code) : 0;
-
-    let flags = 0;
-    if (account.is_default) flags |= AccountFlags.debits_must_not_exceed_credits;
-
-    const results = await this.client.createAccounts([
-      {
-        id: BigInt(account.id),
-        ledger: account.ledger ?? 0,
-        code: codeNum,
-        flags,
-        user_data_128: BigInt(0),
-        user_data_64: BigInt(0),
-        user_data_32: 0,
-        debits_pending: BigInt(0),
-        debits_posted: BigInt(0),
-        credits_pending: BigInt(0),
-        credits_posted: BigInt(0),
-        reserved: 0,
-        timestamp: BigInt(0),
-      },
-    ]);
-
-    const status = (results[0] as any)?.status;
-    if (status && status !== 4294967295 && status !== 21) {
-      throw new Error(`TigerBeetle account creation failed: ${String(status)}`);
-    }
-  }
-
-  async createTransfer(transfer: Partial<TigerBeetleTransfer> & { id: number }): Promise<void> {
-    if (!this.writeEnabled) {
-      throw new Error('WRITE_DISABLED: TigerBeetle transfer creation is disabled until REAL_WRITE_AUTHORIZATION is enabled');
-    }
-    if (this.config.readOnly) {
-      throw new Error('READ_ONLY_MODE: transfer creation is forbidden in read-only mode');
-    }
-    await this.connect();
-    if (!this.client) throw new Error('TigerBeetle client not connected');
-
-    const code = transfer.code ?? '';
-    const codeNum = code.length > 0 ? this.stringToCode(code) : 0;
-
-    const results = await this.client.createTransfers([
-      {
-        id: BigInt(transfer.id),
-        debit_account_id: BigInt(transfer.debit_account_id ?? 0),
-        credit_account_id: BigInt(transfer.credit_account_id ?? 0),
-        amount: transfer.amount ?? BigInt(0),
-        pending_id: BigInt(0),
-        user_data_128: BigInt(0),
-        user_data_64: BigInt(0),
-        user_data_32: 0,
-        timeout: transfer.timeout ?? 0,
-        ledger: transfer.ledger ?? 0,
-        code: codeNum,
-        flags: 0,
-        timestamp: BigInt(0),
-      },
-    ]);
-
-    const status = (results[0] as any)?.status;
-    if (status && status !== 4294967295 && status !== 46) {
-      throw new Error(`TigerBeetle transfer creation failed: ${String(status)}`);
-    }
-  }
-
-  async lookupAccountIds(ids: number[]): Promise<TigerBeetleAccount[]> {
-    await this.connect();
-    if (!this.client) throw new Error('TigerBeetle client not connected');
-    const results = await this.client.lookupAccounts(ids.map(id => BigInt(id)));
-    return results.map(this.mapAccount);
-  }
-
-  async lookupTransferIds(ids: number[]): Promise<TigerBeetleTransfer[]> {
-    await this.connect();
-    if (!this.client) throw new Error('TigerBeetle client not connected');
-    const results = await this.client.lookupTransfers(ids.map(id => BigInt(id)));
     return results.map(this.mapTransfer);
   }
 

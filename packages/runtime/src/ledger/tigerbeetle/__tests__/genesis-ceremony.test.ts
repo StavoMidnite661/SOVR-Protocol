@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GenesisWriteCeremony } from '../genesis-write-ceremony.js';
-import { TigerBeetleCliClient } from '../tigerbeetle-cli-client.js';
+import { TigerBeetleTransportClient } from '../tigerbeetle-transport.js';
 import { AccountMapper } from '../account-mapper.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -57,7 +57,7 @@ describe('Phase 10E Genesis Write Ceremony', () => {
   });
 
   it('Test E: TigerBeetle client reports writes disabled', () => {
-    const client = new TigerBeetleCliClient(config);
+    const client = new TigerBeetleTransportClient(config);
     expect(client.isWriteEnabled()).toBe(false);
   });
 });

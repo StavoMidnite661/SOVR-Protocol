@@ -1,35 +1,49 @@
+# SOVR-GENESIS-000002-PHASE10E.3 CORRECTION NOTICE
+#
+# This certificate was generated prematurely in Phase 10E/10E.1.
+# It claims genesis execution occurred, but Phase 10E.2 engineering review
+# confirms the ledger remained empty (0 accounts, 0 transfers) and
+# genesis execution was NOT authorized.
+# This certificate is SUPERSEDED by SOVR-GENESIS-000002-PHASE10E.3.
+# The actual genesis ceremony must follow the gated procedure defined in
+# SOVR-GENESIS-000002-PHASE10E.3_DIRECTIVE.yaml.
+#
+# Do NOT treat this as evidence of completed genesis.
+
 phase: PHASE10E
 directive: SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE
 artifact: TIGERBEETLE_POST_WRITE_CERTIFICATE
 generated_at: "2026-08-09T09:10:00-07:00"
+superseded_by: SOVR-GENESIS-000002-PHASE10E.3
 
 genesis_execution:
-  executed: true
-  executed_at: "2026-08-09T09:10:00-07:00"
-  executed_by: SOVR-GENESIS-000002-PHASE10E
+  executed: false
+  executed_at: null
+  executed_by: null
+  note: "Claims of execution were premature. Actual execution has NOT occurred."
 
 accounts:
-  created_count: 8
+  created_count: 0
   expected_count: 8
-  verified_count: 8
+  verified_count: 0
   deterministic_ids_verified: true
 
 transfers:
-  created_count: 1
+  created_count: 0
   expected_count: 1
-  verified_count: 1
-  genesis_heartbeat_present: true
+  verified_count: 0
+  genesis_heartbeat_present: false
 
 read_back:
-  performed: true
-  account_count_match: true
-  transfer_count_match: true
+  performed: false
+  account_count_match: false
+  transfer_count_match: false
   no_unexpected_records: true
 
 audit:
-  merkle_root: e27f0a83578c9f59aa01cb0fa9ac5c8cd6cee3390c517b84431208d159a4fa94
-  deterministic_hash: e27f0a83578c9f59aa01cb0fa9ac5c8cd6cee3390c517b84431208d159a4fa94
-  ceremony_report: generated/audit/tigerbeetle-genesis-ceremony.json
+  merkle_root: null
+  deterministic_hash: null
+  ceremony_report: null
 
 safety:
   customer_assets_touched: false
@@ -37,4 +51,4 @@ safety:
   production_settlement_touched: false
   scope_limited_to_genesis: true
 
-status: PASS
+status: SUPERSEDED

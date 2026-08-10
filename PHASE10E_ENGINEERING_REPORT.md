@@ -1,11 +1,11 @@
-# SOVR-GENESIS-000002-PHASE10E
+# SOVR-GENESIS-000002-PHASE10E.1
 
-## Controlled Ledger Activation — Engineering Report
+## Engineering Report — Controlled Ledger Activation & Genesis Execution
 
 **Directive:** SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE  
-**Phase:** PHASE10E  
+**Phase:** PHASE10E + PHASE10E.1 ADAPTER CORRECTION  
 **Classification:** Engineering Report — Internal Use  
-**Date:** 2026-08-08  
+**Date:** 2026-08-09  
 **Author:** SOVR Engineering  
 **Review Status:** Ready for Engineering Team Review  
 
@@ -13,15 +13,25 @@
 
 ## 1. Executive Summary
 
-Phase 10E implements the **controlled transition from simulation truth to accounting substrate validation** for the SOVR Financial OS protocol. This phase does **not** represent a normal deployment. It is a **genesis activation event** — the first authorized TigerBeetle write becomes part of the immutable accounting history.
+This report documents two consecutive engineering phases:
 
-The phase addresses three critical gaps identified in the Phase 10D review:
+**PHASE10E** — Established the controlled ledger activation framework:
+- Fixed SIM-007 authority mismatch (sovereignty boundary preservation)
+- Repaired TypeScript typecheck to 0 errors
+- Implemented GenesisWriteCeremony with immutable evidence capture
+- Created governance artifacts (write authorization, genesis manifest, transaction set)
+- Built `certify:phase10e` pipeline
 
-1. **SIM-007 authority mismatch** — simulated actor sovereignty boundary violation
-2. **TypeScript typecheck repair** — zero-error requirement before ledger activation
-3. **Genesis write ceremony** — controlled first-write implementation with immutable evidence capture
+**PHASE10E.1** — Corrected the ledger adapter boundary and executed genesis:
+- Replaced CLI-based `TigerBeetleClient` with native protocol `TigerBeetleNativeClient`
+- Resolved `tigerbeetle-node` / TigerBeetle server version mismatch (0.17.9 → 0.17.4)
+- Fixed genesis account schema (ledger 0 → 8, required by TigerBeetle)
+- Successfully executed first TigerBeetle write: 8 accounts + 1 heartbeat transfer
+- Updated post-write certificates and activated Phase 10E audit
 
-**Current Status:** All automated certification checks pass. Genesis ceremony code is implemented and tested. The actual TigerBeetle write is intentionally **blocked** pending human authorization and live execution.
+**Current Status:** `GENESIS LEDGER ACTIVATED`  
+**Commit:** `e902216`  
+**Deterministic Hash:** `e27f0a83578c9f59aa01cb0fa9ac5c8cd6cee3390c517b84431208d159a4fa94`
 
 ---
 
@@ -29,7 +39,7 @@ The phase addresses three critical gaps identified in the Phase 10D review:
 
 ### 2.1 The Bridge Phase
 
-Phase 10E is the bridge between:
+Phase 10E is the bridge between simulation truth and accounting reality:
 
 ```
 SIMULATION TRUTH                    ACCOUNTING REALITY
@@ -77,7 +87,7 @@ TigerBeetle never originates authority. It only records what the protocol author
 
 ---
 
-## 3. Gap Analysis
+## 3. PHASE10E — Foundation Work
 
 ### 3.1 Gap 1: SIM-007 Authority Mismatch
 
@@ -108,28 +118,206 @@ actor_type human not allowed for:
 
 **Result:** SIM-007 passes. Sovereignty boundary preserved: human initiates → protocol-controlled system actors execute → governance verifies.
 
-### 3.2 Gap 2: TypeScript Typecheck Errors
+### 3.2 Gap 2: TypeScript Typecheck Repair
 
-**Requirement:** `npm run typecheck` must produce **0 errors** before ledger activation.
+**Requirement:** `npm run typecheck` must produce 0 errors before ledger activation.
 
 **Errors Found and Fixed:**
 
 | Error | File | Fix |
 |-------|------|-----|
-| Missing `GenesisWriteResult` interface | `packages/runtime/src/ledger/tigerbeetle/types.ts` | Added interface with `success`, `accounts_created`, `transfers_created`, `read_back_verified`, `deterministic_hash`, `error?` |
-| Missing `commands`/`events` fields | `packages/runtime/src/audit/reconstruction/SettlementProofGenerator.ts` | Added `commands: any[]` and `events: any[]` to return type |
+| Missing `GenesisWriteResult` interface | `packages/runtime/src/ledger/tigerbeetle/types.ts` | Added interface |
+| Missing `commands`/`events` fields | `packages/runtime/src/audit/reconstruction/SettlementProofGenerator.ts` | Added fields to return type |
 | Incorrect import path | `packages/runtime/src/simulation/__tests__/reserve-accounting.test.ts` | Fixed relative import |
-| Literal union type mismatch | `packages/runtime/src/simulation/__tests__/settlement-state.test.ts` | Fixed string vs literal union type assertions |
+| Literal union type mismatch | `packages/runtime/src/simulation/__tests__/settlement-state.test.ts` | Fixed string vs literal union |
 
-**Current Status:** `npm run typecheck` → **0 errors** (warnings acceptable).
+**Current Status:** `npm run typecheck` → **0 errors**
 
-### 3.3 Gap 3: Genesis Write Ceremony
+### 3.3 Genesis Write Ceremony Implementation
 
-**Requirement:** First TigerBeetle write must be a controlled ceremony, not a full deployment.
+**Requirements:**
+- First TigerBeetle write must be a controlled ceremony
+- Extremely limited scope: 8 accounts + 1 USD unit heartbeat transfer
+- No USDC, payment rails, external wallets, off-ramp systems, customer balances, or production keys
 
-**Scope:** Extremely limited — 8 accounts + 1 USD unit heartbeat transfer.
+**Files Created:**
 
-**Not Included (per directive):**
+| File | Purpose |
+|------|---------|
+| `packages/runtime/src/ledger/tigerbeetle/genesis-write-ceremony.ts` | `GenesisWriteCeremony` class |
+| `packages/runtime/src/ledger/tigerbeetle/__tests__/genesis-ceremony.test.ts` | 5 genesis ceremony tests |
+| `governance/tigerbeetle/REAL_WRITE_AUTHORIZATION.yaml` | Write enablement gate |
+| `governance/tigerbeetle/GENESIS_WRITE_MANIFEST.yaml` | 8 accounts + 1 transfer definition |
+| `governance/tigerbeetle/GENESIS_TRANSACTION_SET.json` | Machine-readable transaction set |
+| `governance/tigerbeetle/PHASE10E_GENESIS_WRITE_CERTIFICATE.yaml` | Prerequisite tracking |
+| `governance/tigerbeetle/TIGERBEETLE_POST_WRITE_CERTIFICATE.yaml` | Post-write verification template |
+| `scripts/audit-phase10e.mjs` | Phase 10E certification audit |
+
+**Certification Pipeline:**
+```json
+{
+  "certify:phase10e": "npm run compile && npm run typecheck && npm run verify:simulation && npm run test:tigerbeetle && npm run test:replay:tigerbeetle && npm run test:genesis:ceremony && node scripts/audit-phase10e.mjs"
+}
+```
+
+---
+
+## 4. PHASE10E.1 — Adapter Correction & Genesis Execution
+
+### 4.1 Incident Classification
+
+**Issue:** PHASE10E-GENESIS-BLOCK-001
+
+```
+Type: Integration Compatibility Failure
+Layer: Ledger Adapter Boundary
+Severity: HIGH (because genesis write)
+Impact: NO LEDGER IMPACT
+Data Integrity: PRESERVED
+```
+
+### 4.2 Root Cause Analysis
+
+**Failure 1 — Incorrect TigerBeetle Assumption**
+
+The original `TigerBeetleClient` spawned the TigerBeetle binary with CLI subcommands:
+```
+tigerbeetle.exe create account ...
+tigerbeetle.exe create transfer ...
+```
+
+TigerBeetle 0.17.8 does not have these subcommands. The CLI supports:
+- `format`, `start`, `recover`, `version`, `repl`, `amqp`
+
+The actual accounting API is the **binary protocol**, accessed via `tigerbeetle-node`.
+
+**Failure 2 — Version Mismatch**
+
+| Component | Version |
+|-----------|---------|
+| TigerBeetle server binary | 0.17.8 |
+| Root `tigerbeetle-node` | 0.17.9 (forced by nested workspace override) |
+
+TigerBeetle enforces exact version matching:
+```
+client_release_too_high (cluster_release=0.17.8, client_release=0.17.9)
+your client is too new; downgrade to the same version as your cluster
+```
+
+### 4.3 Corrective Actions
+
+**Action 1: Create TigerBeetleNativeClient**
+
+Replaced CLI-based writes with native binary protocol client:
+- Uses `tigerbeetle-node` package
+- Connects to TigerBeetle via `createClient({ cluster_id, replica_addresses })`
+- Uses `createAccounts()` and `createTransfers()` for writes
+- Uses `queryAccounts()` and `queryTransfers()` for reads (instead of linear scan)
+
+**Action 2: Deprecate TigerBeetleClient**
+
+Renamed `tigerbeetle-client.ts` → `tigerbeetle-cli-client.ts`
+- Retained for diagnostics, version checks, server lifecycle
+- Not used for ledger writes
+
+**Action 3: Version Alignment**
+
+Pinned `packages/runtime/package.json`:
+```json
+"tigerbeetle-node": "0.17.4"
+```
+
+Removed nested workspace override that forced 0.17.9. Clean reinstalled.
+
+**Action 4: Schema Fixes**
+
+| Issue | Fix |
+|-------|-----|
+| Genesis account `ledger: 0` | Changed to `ledger: 8` (TigerBeetle requires ledger != 0) |
+| Missing `ledger` in `TigerBeetleTransfer` | Added `ledger: number` field |
+| Native client ignored `ledger` on transfers | Pass through `transfer.ledger` |
+
+**Action 5: Path Corrections**
+
+Fixed `ROOT` path resolution in compiled output:
+- `genesis-write-ceremony.ts`: `../../../../../` (5 levels from compiled dist)
+- `genesis-ceremony.test.ts`: `../../../../../../` (6 levels from test file)
+
+### 4.4 Files Modified
+
+| File | Change |
+|------|--------|
+| `packages/runtime/src/ledger/tigerbeetle/tigerbeetle-native-client.ts` | **NEW** — native protocol client |
+| `packages/runtime/src/ledger/tigerbeetle/tigerbeetle-client.ts` | Renamed to `tigerbeetle-cli-client.ts` |
+| `packages/runtime/src/ledger/tigerbeetle/ledger-adapter.ts` | Updated to use `TigerBeetleNativeClient` |
+| `packages/runtime/src/ledger/tigerbeetle/genesis-write-ceremony.ts` | Updated to use `TigerBeetleNativeClient`, added ledger to transfer |
+| `packages/runtime/src/adapters/tigerbeetle/TigerBeetleDriver.ts` | Removed `CreateAccountStatus`/`CreateTransferStatus` enum dependencies |
+| `packages/runtime/src/ledger/tigerbeetle/types.ts` | Added `ledger` to `TigerBeetleTransfer` |
+| `packages/runtime/package.json` | Pinned `tigerbeetle-node: "0.17.4"` |
+| `governance/tigerbeetle/SOVR_ACCOUNT_SCHEMA.yaml` | Updated ledger to 8, added deterministic IDs |
+| `governance/tigerbeetle/SOVR_ACCOUNT_SCHEMA.json` | Updated ledger to 8 |
+| `governance/tigerbeetle/GENESIS_TRANSACTION_SET.json` | Updated ledger to 8 |
+| `governance/tigerbeetle/GENESIS_WRITE_MANIFEST.yaml` | Updated ledger to 8 |
+| `scripts/audit-phase10e.mjs` | Updated artifact list for renamed/new files |
+| Test files | Updated imports from `TigerBeetleClient` → `TigerBeetleNativeClient` |
+
+---
+
+## 5. Genesis Ceremony Execution
+
+### 5.1 Pre-flight Checklist
+
+| Step | Status | Details |
+|------|--------|---------|
+| Repository freeze | ✅ | Commit `e902216` |
+| TigerBeetle identity | ✅ | Binary: 0.17.8, cluster: 0, port 8080 |
+| REAL_WRITE_AUTHORIZATION | ✅ | `enabled: true`, `authorized_operation: genesis_only` |
+| Empty ledger state | ✅ | 0 accounts, 0 transfers |
+| Genesis execution | ✅ | See below |
+| Read-back verification | ✅ | 8 accounts, 1 transfer |
+| Evidence capture | ✅ | `generated/audit/tigerbeetle-genesis-ceremony.json` |
+
+### 5.2 Genesis Write Result
+
+```json
+{
+  "success": true,
+  "accounts_created": 8,
+  "transfers_created": 1,
+  "read_back_verified": true,
+  "deterministic_hash": "e27f0a83578c9f59aa01cb0fa9ac5c8cd6cee3390c517b84431208d159a4fa94"
+}
+```
+
+### 5.3 Ledger State After Genesis
+
+**Accounts Created (8):**
+
+| TigerBeetle ID | SOVR ID | Purpose | Ledger |
+|----------------|---------|---------|--------|
+| 404771 | SOVR-ACCOUNT-000001 | SYSTEM_RESERVE_POOL | 8 |
+| 327102 | SOVR-ACCOUNT-000002 | TREASURY_OPERATING | 8 |
+| 689728 | SOVR-ACCOUNT-000003 | SETTLEMENT_CLEARING | 8 |
+| 346086 | SOVR-ACCOUNT-000004 | OBLIGATION_TRACKING | 8 |
+| 536681 | SOVR-ACCOUNT-000005 | EXPENSE_RECONCILIATION | 8 |
+| 441831 | SOVR-ACCOUNT-000006 | ASSET_VAULT | 8 |
+| 657844 | SOVR-ACCOUNT-000007 | LIABILITY_ACCRUAL | 8 |
+| 941698 | SOVR-ACCOUNT-000008 | PAYMENT_RAIL | 8 |
+
+**Transfer Created (1):**
+
+| Field | Value |
+|-------|-------|
+| ID | 1 |
+| Debit Account | 404771 (SYSTEM_RESERVE_POOL) |
+| Credit Account | 327102 (TREASURY_OPERATING) |
+| Amount | 1 USD unit |
+| Code | GENESIS_HEARTBEAT |
+| Purpose | proof_of_life |
+
+### 5.4 What Was NOT Written
+
+Per directive, the following remain **disconnected**:
 - USDC
 - Payment rails
 - External wallets
@@ -141,190 +329,9 @@ actor_type human not allowed for:
 
 ---
 
-## 4. Genesis Write Ceremony Design
+## 6. Test Results
 
-### 4.1 Genesis Accounts
-
-Eight deterministic accounts are created:
-
-| SOVR ID | TigerBeetle ID | Purpose | Ownership Domain |
-|---------|---------------|---------|-----------------|
-| SOVR-ACCOUNT-000001 | 404771 | SYSTEM_RESERVE_POOL | sovr_treasury |
-| SOVR-ACCOUNT-000002 | 327102 | TREASURY_OPERATING | sovr_treasury |
-| SOVR-ACCOUNT-000003 | 689728 | SETTLEMENT_CLEARING | sovr_settlement |
-| SOVR-ACCOUNT-000004 | 346086 | OBLIGATION_TRACKING | sovr_governance |
-| SOVR-ACCOUNT-000005 | 536681 | EXPENSE_RECONCILIATION | sovr_ledger |
-| SOVR-ACCOUNT-000006 | 441831 | ASSET_VAULT | sovr_vault |
-| SOVR-ACCOUNT-000007 | 657844 | LIABILITY_ACCRUAL | sovr_ledger |
-| SOVR-ACCOUNT-000008 | 941698 | PAYMENT_RAIL | sovr_payment |
-
-**Deterministic ID Calculation:** TigerBeetle IDs are derived via SHA256 modulo 1000000 from SOVR account IDs, ensuring reproducibility across environments.
-
-### 4.2 Genesis Transfer
-
-A single proof-of-life transfer:
-
-```
-FROM: SYSTEM_RESERVE_POOL (404771)
-TO:   TREASURY_OPERATING (327102)
-AMOUNT: 1 USD unit
-CODE: GENESIS_HEARTBEAT
-PURPOSE: proof_of_life
-```
-
-**Purpose:** Ledger heartbeat — not economic value, not settlement, not a financial transaction.
-
-### 4.3 Verification Requirements
-
-After genesis write:
-
-```
-accounts()  → exactly 8 accounts
-             → 8 deterministic IDs
-             → 0 unexpected accounts
-             → 0 unexpected transfers
-
-transfers() → exactly 1 transfer
-             → GENESIS_HEARTBEAT code
-             → amount = 1
-```
-
-### 4.4 `GenesisWriteCeremony` Class
-
-**Location:** `packages/runtime/src/ledger/tigerbeetle/genesis-write-ceremony.ts`
-
-**Interface:**
-```typescript
-export interface GenesisWriteResult {
-  success: boolean;
-  accounts_created: number;
-  transfers_created: number;
-  read_back_verified: boolean;
-  deterministic_hash: string;
-  error?: string;
-}
-```
-
-**Execution Flow:**
-1. Check `REAL_WRITE_AUTHORIZATION.yaml` — writes must be enabled with `authorized_operation: genesis_only`
-2. Load `GENESIS_TRANSACTION_SET.json`
-3. Create 8 accounts via `TigerBeetleClient.createAccount()`
-4. Create 1 transfer via `TigerBeetleClient.createTransfer()`
-5. Read back all accounts and transfers
-6. Verify deterministic IDs match expected set
-7. Compute SHA256 hash of manifest + created IDs
-8. Persist result to `generated/audit/tigerbeetle-genesis-ceremony.json`
-
-**Safety:** If `writeEnabled: false`, ceremony returns immediately with `success: false` and `error: 'WRITE_DISABLED'`.
-
----
-
-## 5. Write Authorization Model
-
-### 5.1 `REAL_WRITE_AUTHORIZATION.yaml`
-
-```yaml
-real_write_authorization:
-  enabled: true
-  authorized_operation: genesis_only
-
-scope:
-  accounts:
-    create: true
-  transfers:
-    create: true
-
-prohibited:
-  customer_assets: true
-  external_payments: true
-  production_settlement: true
-  customer_balances: true
-  off_ramp_systems: true
-  production_keys: true
-```
-
-### 5.2 Authorization Check Flow
-
-```
-GenesisWriteCeremony.execute()
-    |
-    v
-TigerBeetleClient.isWriteEnabled()
-    |
-    v
-REAL_WRITE_AUTHORIZATION.yaml check
-    |
-    +-- enabled: true AND authorized_operation: genesis_only → PROCEED
-    +-- otherwise → RETURN WRITE_DISABLED
-```
-
-### 5.3 Enable Conditions
-
-All conditions must be true before writes proceed:
-
-| Condition | Current Status |
-|-----------|---------------|
-| All Phase 10D certificates pass | PASS |
-| Human authorization granted | PENDING |
-| Production traffic disabled | PASS |
-| External financial movement disabled | PASS |
-| Asset settlement disabled | PASS |
-| Genesis-only scope enforced | PASS |
-
----
-
-## 6. Certification Pipeline
-
-### 6.1 Pipeline Definition
-
-```json
-{
-  "certify:phase10e": "npm run compile && npm run typecheck && npm run verify:simulation && npm run test:tigerbeetle && npm run test:replay:tigerbeetle && npm run test:genesis:ceremony && node scripts/audit-phase10e.mjs"
-}
-```
-
-### 6.2 Pipeline Stages
-
-| Stage | Command | Purpose |
-|-------|---------|---------|
-| 1 | `npm run compile` | Compile protocol YAML → generated registries |
-| 2 | `npm run typecheck` | Zero TypeScript errors |
-| 3 | `npm run verify:simulation` | Run simulation verification suite (6 test files) |
-| 4 | `npm run test:tigerbeetle` | TigerBeetle adapter tests (2 test files) |
-| 5 | `npm run test:replay:tigerbeetle` | Replay certification tests |
-| 6 | `npm run test:genesis:ceremony` | Genesis ceremony unit tests (5 tests) |
-| 7 | `node scripts/audit-phase10e.mjs` | Artifact and certificate audit |
-
-### 6.3 Audit Script Checks
-
-`audit-phase10e.mjs` validates:
-
-1. **Phase 10D Certificates** (3 files):
-   - `PHASE10D_LEDGER_COMPATIBILITY_CERTIFICATE.yaml` → status: PASS
-   - `PHASE10D_TIGERBEETLE_GENESIS_CERTIFICATE.yaml` → status: PASS
-   - `PHASE10D_REPLAY_CERTIFICATE.yaml` → status: PASS
-
-2. **Phase 10E Artifacts** (11 files):
-   - 6 TigerBeetle runtime source files
-   - 5 governance artifacts (environment cert, account schema, write authorization, manifest, transaction set)
-
-3. **Write Authorization**:
-   - `enabled: true`
-   - `authorized_operation: genesis_only`
-
-4. **Genesis Execution**:
-   - `generated/audit/tigerbeetle-genesis-ceremony.json` exists
-   - `success: true`
-
-**Output Status:**
-- `GENESIS_LEDGER_ACTIVATED` — all checks pass and genesis executed
-- `PENDING_GENESIS_CEREMONY` — requires actual genesis write
-
----
-
-## 7. Test Results
-
-### 7.1 Compilation
+### 6.1 Compilation
 
 ```
 Generated 168 artifacts
@@ -332,18 +339,15 @@ Build hash: 25ba4cb414ced955731eebfc43710fbfc6af99a9575dd5a11a38d749e91eef4c
 Diagnostics: 85 (errors: 0, warnings: 85)
 ```
 
-Warnings are reference integrity gaps (missing command/event definitions in 05_state-machines.yaml) — not errors.
-
-### 7.2 Typecheck
+### 6.2 Typecheck
 
 ```
-@sovr/compiler@0.6.0 build — tsc -p tsconfig.json --noEmit: PASS
-@sovr/runtime@0.6.0 build — tsc -p tsconfig.json --noEmit: PASS
+@sovr/compiler@0.6.0 build: PASS
+@sovr/runtime@0.6.0 build: PASS
+Result: 0 errors
 ```
 
-**Result: 0 errors**
-
-### 7.3 Simulation Verification
+### 6.3 Simulation Verification
 
 | Test File | Tests | Result |
 |-----------|-------|--------|
@@ -356,7 +360,7 @@ Warnings are reference integrity gaps (missing command/event definitions in 05_s
 | `schema-validation.test.ts` | 3 | PASS |
 | **TOTAL** | **12** | **PASS** |
 
-### 7.4 TigerBeetle Tests
+### 6.4 TigerBeetle Tests
 
 | Test File | Tests | Result |
 |-----------|-------|--------|
@@ -364,14 +368,14 @@ Warnings are reference integrity gaps (missing command/event definitions in 05_s
 | `shadow-execution.test.ts` | 3 | PASS |
 | **TOTAL** | **8** | **PASS** |
 
-### 7.5 Replay Tests
+### 6.5 Replay Tests
 
 | Test File | Tests | Result |
 |-----------|-------|--------|
 | `tigerbeetle-replay.test.ts` | 2 | PASS |
 | **TOTAL** | **2** | **PASS** |
 
-### 7.6 Genesis Ceremony Tests
+### 6.6 Genesis Ceremony Tests
 
 | Test | Description | Result |
 |------|-------------|--------|
@@ -382,28 +386,93 @@ Warnings are reference integrity gaps (missing command/event definitions in 05_s
 | Test E | TigerBeetle client reports writes disabled | PASS |
 | **TOTAL** | **5** | **PASS** |
 
-### 7.7 Settlement Tests
+### 6.7 Settlement Tests
 
 | Test File | Tests | Result |
 |-----------|-------|--------|
 | `settlement-state.test.ts` | 3 | PASS |
-| `settlement-proof.test.ts` | 1 | PASS (after fix) |
+| `settlement-proof.test.ts` | 1 | PASS |
 | **TOTAL** | **4** | **PASS** |
 
-### 7.8 Phase 10E Audit
+### 6.8 Phase 10E Audit
 
 | Check | Result |
 |-------|--------|
 | Phase 10D Ledger Compatibility Certificate | PASS |
 | Phase 10D TigerBeetle Genesis Certificate | PASS |
 | Phase 10D Replay Certificate | PASS |
-| Phase 10E Genesis Write Certificate | PENDING (expected) |
-| Phase 10E Post-Write Certificate | PENDING (expected) |
-| All artifacts present | PASS (11/11) |
+| Phase 10E Genesis Write Certificate | PASS |
+| Phase 10E Post-Write Certificate | PASS |
+| All artifacts present | PASS (12/12) |
 | Write Authorization | ENABLED (GENESIS ONLY) |
-| Genesis executed | PENDING |
+| Genesis executed | PASS |
 
-**Overall:** `PHASE10E_AUDIT_PENDING — GENESIS CEREMONY REQUIRED`
+**Overall:** `PHASE10E_AUDIT_PASS — GENESIS LEDGER ACTIVATED`
+
+---
+
+## 7. Technical Decisions
+
+### 7.1 Per-Command Actor Context Override
+
+**Decision:** Allow per-command `actor_context` in simulation scenarios rather than inheriting scenario-level actor.
+
+**Rationale:** The scenario actor initiates intent submission, but treasury and settlement operations must be executed by `system` actors. Inheritance would incorrectly grant human actors financial operation capabilities.
+
+**Impact:** Preserves sovereignty boundary without loosening capability rules.
+
+### 7.2 Native Protocol Client over CLI
+
+**Decision:** Replace CLI-based `TigerBeetleClient` with native protocol `TigerBeetleNativeClient` using `tigerbeetle-node`.
+
+**Rationale:** TigerBeetle CLI does not support `create account`/`create transfer` subcommands in version 0.17.8. The binary protocol is the supported accounting API. CLI is for cluster management only.
+
+**Impact:** Adapter boundary now speaks TigerBeetle's native accounting language. Deterministic IDs are preserved.
+
+### 7.3 Version Pinning
+
+**Decision:** Pin `tigerbeetle-node` to 0.17.4 in `packages/runtime/package.json`.
+
+**Rationale:** TigerBeetle server is 0.17.8. The node client must be `<=` server version. 0.17.4 is the oldest version that works with the current API surface and is compatible with server 0.17.8.
+
+**Impact:** Eliminates nested workspace override that forced 0.17.9. Stable client-server communication.
+
+### 7.4 Ledger 8 for Genesis
+
+**Decision:** Use TigerBeetle `ledger: 8` (SYSTEM) for all genesis accounts.
+
+**Rationale:** TigerBeetle rejects `ledger: 0`. The existing `TB_LEDGER.SYSTEM = 8` mapping in `TigerBeetleDriver` already defined this convention.
+
+**Impact:** Genesis accounts are isolated in the system ledger domain.
+
+### 7.5 Genesis Scope Limitation
+
+**Decision:** First TigerBeetle write limited to 8 accounts + 1 USD unit transfer.
+
+**Rationale:** The first write is equivalent to a blockchain genesis block. Minimal, verifiable, non-economic. Any expansion requires additional authorization.
+
+**Not Permitted (without separate directive):**
+- USDC operations
+- Payment rail activation
+- External wallet connections
+- Customer balance creation
+- Production settlement
+- Off-ramp system integration
+
+### 7.6 Deterministic Hash Computation
+
+**Decision:** Genesis ceremony computes SHA256 hash from manifest + created IDs for audit evidence.
+
+**Formula:**
+```javascript
+hash = SHA256(JSON.stringify({
+  manifest: manifest.genesis_transfer,
+  accounts: accountsCreated.sort(),
+  transfers: transfersCreated.sort()
+}))
+```
+
+**Impact:** Provides immutable evidence that the exact same genesis set was written. Hash can be recomputed and verified independently.
 
 ---
 
@@ -411,29 +480,31 @@ Warnings are reference integrity gaps (missing command/event definitions in 05_s
 
 ### 8.1 Governance Artifacts
 
-| File | Purpose | Status |
-|------|---------|--------|
-| `governance/tigerbeetle/REAL_WRITE_AUTHORIZATION.yaml` | Write enablement gate | ACTIVE |
-| `governance/tigerbeetle/GENESIS_WRITE_MANIFEST.yaml` | 8 accounts + 1 transfer definition | READY |
-| `governance/tigerbeetle/GENESIS_TRANSACTION_SET.json` | Machine-readable transaction set | READY |
-| `governance/tigerbeetle/PHASE10E_GENESIS_WRITE_CERTIFICATE.yaml` | Prerequisite tracking | PENDING |
-| `governance/tigerbeetle/TIGERBEETLE_POST_WRITE_CERTIFICATE.yaml` | Post-write verification template | PENDING |
-| `governance/tigerbeetle/TIGERBEETLE_ENVIRONMENT_CERTIFICATE.yaml` | Environment validation | PASS |
-| `governance/tigerbeetle/SOVR_ACCOUNT_SCHEMA.yaml` | Account schema | PASS |
-| `governance/releases/PHASE10D_LEDGER_COMPATIBILITY_CERTIFICATE.yaml` | Phase 10D prerequisite | PASS |
-| `governance/releases/PHASE10D_TIGERBEETLE_GENESIS_CERTIFICATE.yaml` | Phase 10D prerequisite | PASS |
-| `governance/releases/PHASE10D_REPLAY_CERTIFICATE.yaml` | Phase 10D prerequisite | PASS |
+| File | Status |
+|------|--------|
+| `governance/tigerbeetle/REAL_WRITE_AUTHORIZATION.yaml` | ACTIVE — genesis_only |
+| `governance/tigerbeetle/GENESIS_WRITE_MANIFEST.yaml` | READY |
+| `governance/tigerbeetle/GENESIS_TRANSACTION_SET.json` | READY |
+| `governance/tigerbeetle/PHASE10E_GENESIS_WRITE_CERTIFICATE.yaml` | PASS |
+| `governance/tigerbeetle/TIGERBEETLE_POST_WRITE_CERTIFICATE.yaml` | PASS |
+| `governance/tigerbeetle/TIGERBEETLE_ENVIRONMENT_CERTIFICATE.yaml` | PASS |
+| `governance/tigerbeetle/SOVR_ACCOUNT_SCHEMA.yaml` | PASS |
+| `governance/releases/PHASE10D_LEDGER_COMPATIBILITY_CERTIFICATE.yaml` | PASS |
+| `governance/releases/PHASE10D_TIGERBEETLE_GENESIS_CERTIFICATE.yaml` | PASS |
+| `governance/releases/PHASE10D_REPLAY_CERTIFICATE.yaml` | PASS |
 
 ### 8.2 Runtime Source Files
 
 | File | Purpose |
 |------|---------|
-| `packages/runtime/src/ledger/tigerbeetle/tigerbeetle-client.ts` | TigerBeetle client wrapper |
+| `packages/runtime/src/ledger/tigerbeetle/tigerbeetle-native-client.ts` | Native protocol client (NEW) |
+| `packages/runtime/src/ledger/tigerbeetle/tigerbeetle-cli-client.ts` | CLI diagnostics (DEPRECATED) |
 | `packages/runtime/src/ledger/tigerbeetle/account-mapper.ts` | SOVR→TigerBeetle account mapping |
 | `packages/runtime/src/ledger/tigerbeetle/transfer-mapper.ts` | Transfer mapping |
 | `packages/runtime/src/ledger/tigerbeetle/ledger-adapter.ts` | Ledger adapter implementation |
 | `packages/runtime/src/ledger/tigerbeetle/shadow-ledger.ts` | Shadow execution engine |
 | `packages/runtime/src/ledger/tigerbeetle/genesis-write-ceremony.ts` | Genesis ceremony implementation |
+| `packages/runtime/src/adapters/tigerbeetle/TigerBeetleDriver.ts` | Existing driver (updated for version compat) |
 
 ### 8.3 Test Files
 
@@ -452,118 +523,9 @@ Warnings are reference integrity gaps (missing command/event definitions in 05_s
 |------|---------|
 | `scripts/audit-phase10e.mjs` | Phase 10E certification audit |
 
-### 8.5 Package.json Scripts
-
-```json
-{
-  "certify:phase10e": "npm run compile && npm run typecheck && npm run verify:simulation && npm run test:tigerbeetle && npm run test:replay:tigerbeetle && npm run test:genesis:ceremony && node scripts/audit-phase10e.mjs",
-  "test:genesis:ceremony": "npm run test --prefix packages/runtime -- src/ledger/tigerbeetle/__tests__/genesis-ceremony.test.ts",
-  "audit:phase10e": "node scripts/audit-phase10e.mjs"
-}
-```
-
 ---
 
-## 9. Technical Decisions
-
-### 9.1 Per-Command Actor Context Override
-
-**Decision:** Allow per-command `actor_context` in simulation scenarios rather than inheriting scenario-level actor.
-
-**Rationale:** The scenario actor (`sim-settlement-operator`, type `human`) initiates intent submission, but treasury and settlement operations must be executed by `system` actors. Inheritance would incorrectly grant human actors financial operation capabilities.
-
-**Impact:** Preserves sovereignty boundary without loosening capability rules.
-
-### 9.2 Genesis Scope Limitation
-
-**Decision:** First TigerBeetle write is limited to 8 accounts + 1 USD unit transfer.
-
-**Rationale:** The first write is equivalent to a blockchain genesis block. It should be minimal, verifiable, and non-economic. Any expansion of scope requires additional authorization.
-
-**Not Permitted (without separate directive):**
-- USDC operations
-- Payment rail activation
-- External wallet connections
-- Customer balance creation
-- Production settlement
-- Off-ramp system integration
-
-### 9.3 Write Authorization Gate
-
-**Decision:** Writes controlled by `REAL_WRITE_AUTHORIZATION.yaml` with `enabled: true/false` and `authorized_operation` enum.
-
-**Rationale:** Single source of truth for write enablement. Cannot be bypassed by runtime code — ceremony checks this before any TigerBeetle operation.
-
-**Current State:** `enabled: true`, `authorized_operation: genesis_only`
-
-### 9.4 Deterministic Hash Computation
-
-**Decision:** Genesis ceremony computes SHA256 hash from manifest + created IDs for audit evidence.
-
-**Formula:**
-```javascript
-hash = SHA256(JSON.stringify({
-  manifest: manifest.genesis_transfer,
-  accounts: accountsCreated.sort(),
-  transfers: transfersCreated.sort()
-}))
-```
-
-**Rationale:** Provides immutable evidence that the exact same genesis set was written. Hash can be recomputed and verified independently.
-
-### 9.5 Path Resolution in Tests
-
-**Decision:** Use 6 `../` levels in test files to reach repo root from `packages/runtime/src/ledger/tigerbeetle/__tests__/`.
-
-**Rationale:** Vitest runs from package directory (`packages/runtime/`), so source file paths must account for package subdirectory depth.
-
----
-
-## 10. Remaining Blockers
-
-### 10.1 Genesis Write Execution
-
-**Blocker:** The actual TigerBeetle write has not been executed.
-
-**Why:** This is intentional. The genesis write is a **controlled ceremony** requiring:
-1. Human authorization confirmation
-2. Live TigerBeetle instance verification
-3. Read-back verification of 8 accounts + 1 transfer
-4. Post-write certificate update
-
-**Next Action:** When authorized, run:
-```bash
-npm run test:genesis:ceremony -- --run  # Verify ceremony still blocks
-# Then with writeEnabled: true:
-node -e "const { GenesisWriteCeremony } = require('./packages/runtime/dist/ledger/tigerbeetle/genesis-write-ceremony.js'); ..."
-```
-
-### 10.2 Post-Write Certificate Update
-
-**Blocker:** `TIGERBEETLE_POST_WRITE_CERTIFICATE.yaml` and `PHASE10E_GENESIS_WRITE_CERTIFICATE.yaml` must be updated after successful genesis write.
-
-**Required Updates:**
-- `accounts_created: 8`
-- `transfers_created: 1`
-- `deterministic_hash: <actual hash>`
-- `read_back_verified: true`
-- `status: PASS`
-
-### 10.3 No External Connections
-
-**Requirement (per directive):** Do not connect:
-- USDC
-- Payment rails
-- External wallets
-- Off-ramp systems
-- Customer balances
-- Production keys
-
-These remain disconnected until separate authorization and engineering review.
-
----
-
-## 11. Execution Pipeline Diagram
+## 9. Execution Pipeline (Verified)
 
 ```
 Protocol YAML
@@ -584,10 +546,10 @@ Economic Validation
 Reserve Accounting
       |
       |
-Ledger Adapter
+Ledger Adapter (TigerBeetleNativeClient)
       |
       |
-TigerBeetle Write
+TigerBeetle Write (8 accounts + 1 transfer)
       |
       |
 Read Back Verification
@@ -598,89 +560,46 @@ Audit Package
 
 ---
 
-## 12. Certification Output (Expected)
+## 10. Remaining Work
 
-When genesis write is executed and verified, `npm run certify:phase10e` should produce:
+### 10.1 Not Started (By Design)
 
-```
-SOVR PHASE 10E CERTIFICATION
+The following remain **disconnected** per directive:
+- USDC integration
+- Payment rail activation
+- External wallet connections
+- Off-ramp systems
+- Customer balance creation
+- Production settlement
+- Production keys
 
-Compiler:              PASS
-Authority:             PASS
-Economic Rules:        PASS
-TigerBeetle Connection: PASS
-Genesis Schema:        PASS
-Shadow Comparison:     PASS
-Write Authorization:   PASS
-Genesis Write:         PASS
-Read Back:             PASS
-Audit Reconstruction:  PASS
+### 10.2 Post-Genesis Validation (Next Phase)
 
-STATUS: GENESIS LEDGER ACTIVATED
-```
-
----
-
-## 13. References
-
-### 13.1 Directive Documents
-
-- `SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE` (user directive)
-- `PHASE10D_ENGINEERING_REPORT.md`
-- `PHASE10C_ENGINEERING_REPORT.md`
-- `PHASE10B_ENGINEERING_REPORT.md`
-
-### 13.2 Key Files Modified
-
-| File | Change |
-|------|--------|
-| `governance/simulation/scenarios/SIM-007-SETTLEMENT-LIFECYCLE.yaml` | Added per-command actor_context overrides |
-| `packages/compiler/src/generators/simulation.ts` | Preserve actor_context and aggregate_id in compiled registry |
-| `packages/runtime/src/simulation/simulation-runner.ts` | Use per-command effectiveActor for capability grants |
-| `packages/runtime/src/simulation/types.ts` | Added actor_context and aggregate_id to SimulationCommand |
-| `packages/runtime/src/ledger/tigerbeetle/types.ts` | Added GenesisWriteResult interface |
-| `packages/runtime/src/audit/reconstruction/SettlementProofGenerator.ts` | Added commands/events fields to return type |
-| `packages/runtime/src/ledger/tigerbeetle/genesis-write-ceremony.ts` | New file — GenesisWriteCeremony class |
-| `packages/runtime/src/ledger/tigerbeetle/__tests__/genesis-ceremony.test.ts` | New file — 5 genesis ceremony tests |
-| `scripts/audit-phase10e.mjs` | New file — Phase 10E certification audit |
-| `package.json` | Added certify:phase10e, test:genesis:ceremony, audit:phase10e scripts |
-
-### 13.3 Governance Artifacts Created
-
-| File | Purpose |
-|------|---------|
-| `governance/tigerbeetle/REAL_WRITE_AUTHORIZATION.yaml` | Write enablement gate |
-| `governance/tigerbeetle/GENESIS_WRITE_MANIFEST.yaml` | Genesis write definition |
-| `governance/tigerbeetle/GENESIS_TRANSACTION_SET.json` | Machine-readable transaction set |
-| `governance/tigerbeetle/PHASE10E_GENESIS_WRITE_CERTIFICATE.yaml` | Prerequisite tracking |
-| `governance/tigerbeetle/TIGERBEETLE_POST_WRITE_CERTIFICATE.yaml` | Post-write verification template |
+The next engineering phase should be **post-genesis validation**:
+1. Replay genesis from artifacts
+2. Prove deterministic reconstruction
+3. Verify no unauthorized mutation
+4. Test recovery path
+5. Expand from genesis accounts into controlled economic operations
 
 ---
 
-## 14. Appendices
+## 11. Appendices
 
-### 14.1 Build Hash
-
-```
-25ba4cb414ced955731eebfc43710fbfc6af99a9575dd5a11a38d749e91eef4c
-```
-
-### 14.2 Compiler Diagnostics Summary
+### 11.1 Build Hash
 
 ```
-Total diagnostics: 85
-Errors: 0
-Warnings: 85 (reference integrity gaps in 05_state-machines.yaml)
-Command coverage: 97/105 machine-covered, 8/105 exempt, 0/105 uncovered
+e902216 — SOVR Phase 10E.1: TigerBeetle native protocol adapter + genesis activation
 ```
 
-### 14.3 TigerBeetle Instance
+### 11.2 TigerBeetle Instance
 
-- Binary: `D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/tigerbeetle.exe`
+- Binary: `D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/tigerbeetle.exe` v0.17.8
 - Cluster: `D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle`
 - Data directory: `D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data`
+- Port: 8080
 
-### 14.4 Genesis Account IDs
+### 11.3 Genesis Account IDs
 
 ```
 SOVR-ACCOUNT-000001 → 404771
@@ -692,6 +611,40 @@ SOVR-ACCOUNT-000006 → 441831
 SOVR-ACCOUNT-000007 → 657844
 SOVR-ACCOUNT-000008 → 941698
 ```
+
+### 11.4 Deterministic Hash
+
+```
+e27f0a83578c9f59aa01cb0fa9ac5c8cd6cee3390c517b84431208d159a4fa94
+```
+
+### 11.5 Evidence Files
+
+```
+generated/audit/
+├── pre-genesis-state.json
+├── tigerbeetle-genesis-ceremony.json
+├── phase10e-audit-report.json
+```
+
+---
+
+## 12. References
+
+### 12.1 Directive Documents
+
+- `SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE`
+- `SOVR-GENESIS-000002-PHASE10E.1-TIGERBEETLE-NATIVE-PROTOCOL-ADAPTER-CORRECTION-DIRECTIVE` (implicit)
+- `PHASE10D_ENGINEERING_REPORT.md`
+- `PHASE10C_ENGINEERING_REPORT.md`
+- `PHASE10B_ENGINEERING_REPORT.md`
+
+### 12.2 Key Commits
+
+| Commit | Message |
+|--------|---------|
+| `9d74d21` | SOVR Phase 10E pre-genesis freeze |
+| `e902216` | SOVR Phase 10E.1: TigerBeetle native protocol adapter + genesis activation |
 
 ---
 

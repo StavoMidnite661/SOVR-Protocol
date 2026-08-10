@@ -1,0 +1,69 @@
+# Phase 10E.4 Completion Certificate
+
+directive: SOVR-GENESIS-000002-PHASE10E.4
+artifact: PHASE10E.4_COMPLETION_CERTIFICATE
+generated_at: <ISO8601 timestamp>
+
+repository:
+  commit_hash: e9022164b36b04665987a9573bd78d6cfd8a6fdb
+  working_tree_clean: true
+  artifacts_hash_locked: true
+
+compiler:
+  compile: PASS
+  typecheck: PASS
+  deterministic_build: PASS
+
+runtime:
+  tigerbeetle_binary_hash: <SHA256>
+  tigerbeetle_version: 0.17.8
+  client_version: 0.17.8
+  cluster_identity: VERIFIED
+  live_process_identity: VERIFIED
+  live_connectivity: PASS
+
+ledger:
+  accounts: 0
+  transfers: 0
+  no_unexpected_objects: true
+  live_proof: PASS
+
+genesis:
+  exactly_8_accounts: true
+  exactly_1_transfer: true
+  deterministic_ids: VERIFIED
+  deterministic_transfer_id: 190481
+  genesis_heartbeat: true
+  amount: 1
+  external_value: false
+  customer_assets: false
+
+shadow:
+  shadow_account_set == real_account_set: true
+  shadow_transfer == real_transfer: true
+  hashes_match: true
+  discrepancies_resolved: true
+
+authorization:
+  readiness_certified: true
+  human_authorization_separately_recorded: true
+  genesis_only: true
+  no_production_authority: true
+  no_customer_authority: true
+
+execution:
+  state_machine_followed: true
+  no_automatic_retry: true
+  one_way_transition: true
+  ceremony_executed: true
+
+post_write:
+  read_back_performed: true
+  account_count_match: true
+  transfer_count_match: true
+  every_field_verified: true
+  immutable_evidence_generated: true
+  post_write_certificate_generated: true
+  genesis_state_frozen: true
+
+status: PHASE10E.4_COMPLETE

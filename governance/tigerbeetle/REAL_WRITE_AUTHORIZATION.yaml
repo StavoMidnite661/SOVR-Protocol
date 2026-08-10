@@ -1,10 +1,17 @@
-phase: PHASE10E
-directive: SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE
+# SOVR-GENESIS-000002-PHASE10E.3 CORRECTION
+#
+# This artifact has been corrected to reflect that genesis writes are NOT yet enabled.
+# Genesis execution requires explicit human authorization via HUMAN_AUTHORIZATION.yaml
+# after all Phase 10E.3 gates pass.
+# See: SOVR-GENESIS-000002-PHASE10E.3_DIRECTIVE.yaml
+
+phase: PHASE10E.3
+directive: SOVR-GENESIS-000002-PHASE10E.3-GENESIS-EXECUTION-GATE-AND-LIVE-SUBSTRATE-VERIFICATION-DIRECTIVE
 artifact: REAL_WRITE_AUTHORIZATION
-generated_at: "2026-08-08T16:07:38-07:00"
+generated_at: "2026-08-10T06:30:03.770Z"
 
 authorization:
-  enabled: true
+  enabled: false
   authorized_operation: genesis_only
   scope:
     accounts:
@@ -27,6 +34,8 @@ requirements:
   compatibility_certified: true
   typecheck_clean: true
   simulation_baseline_pass: true
+  phase10e3_gates_pass: false
+  human_authorization_granted: false
 
 required_certificates:
   - TIGERBEETLE_ENVIRONMENT_CERTIFICATE.yaml
@@ -36,13 +45,16 @@ required_certificates:
   - PHASE10D_REPLAY_CERTIFICATE.yaml
   - PHASE10E_GENESIS_WRITE_MANIFEST.yaml
   - PHASE10E_POST_WRITE_CERTIFICATE.yaml
+  - DETERMINISTIC_ID_VERIFICATION_REPORT.json
+  - LIVE_GENESIS_RUNTIME_ATTESTATION_TEMPLATE.yaml
+  - HUMAN_AUTHORIZATION.yaml
 
 enable_conditions:
-  all_certificates_pass: true
-  human_authorization: true
+  all_certificates_pass: false
+  human_authorization: false
   production_traffic_disabled: true
   external_financial_movement_disabled: true
   asset_settlement_disabled: true
   genesis_only_scope: true
 
-status: GENESIS_WRITES_ENABLED
+status: GENESIS_WRITES_DISABLED_PENDING_PHASE10E.3_CERTIFICATION

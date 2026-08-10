@@ -1,0 +1,170 @@
+# Genesis Execution State Machine
+
+directive: SOVR-GENESIS-000002-PHASE10E.3
+artifact: GENESIS_EXECUTION_STATE_MACHINE
+
+states:
+
+  - state: PRE_GENESIS
+    description: Initial state. No ledger mutations have occurred.
+    entry_actions:
+      - verify_repository_clean
+      - verify_compiler_clean
+      - verify_runtime_attestation
+      - verify_ledger_empty
+    transitions:
+      - to: ACCOUNT_BATCH_PENDING
+        when: all PRE_GENESIS checks PASS
+        guard: execution_authorization == false
+
+  - state: ACCOUNT_BATCH_PENDING
+    description: Authorization granted. Ready to create accounts.
+    entry_actions:
+      - lock_authorization
+      - prepare_account_payload
+      - verify_deterministic_ids
+    transitions:
+      - to: ACCOUNTS_CREATED
+        when: account_creation_command_sent
+      - to: HALT
+        when: any_precondition_fails
+
+  - state: ACCOUNTS_CREATED
+    description: Account creation commands submitted to TigerBeetle.
+    entry_actions:
+      - record_account_creation_results
+    transitions:
+      - to: ACCOUNT_READBACK_VERIFIED
+        when: all 8 accounts confirmed
+      - to: HALT
+        when: any account creation fails OR unexpected count
+
+  - state: ACCOUNT_READBACK_VERIFIED
+    description: Live readback confirms exactly 8 accounts exist.
+    entry_actions:
+      - live_read_accounts
+      - verify_count == 8
+      - verify_each_account_field
+    transitions:
+      - to: TRANSFER_PENDING
+        when: readback matches expected
+      - to: HALT
+        when: count mismatch OR field mismatch
+
+  - state: TRANSFER_PENDING
+    description: Accounts verified. Ready to create genesis transfer.
+    entry_actions:
+      - prepare_transfer_payload
+      - verify_transfer_deterministic_id == 190481
+    transitions:
+      - to: TRANSFER_CREATED
+        when: transfer_creation_command_sent
+      - to: HALT
+        when: any_precondition_fails
+
+  - state: TRANSFER_CREATED
+    description: Genesis transfer command submitted to TigerBeetle.
+    entry_actions:
+      - record_transfer_creation_result
+    transitions:
+      - to: TRANSFER_READBACK_VERIFIED
+        when: transfer confirmed
+      - to: HALT
+        when: transfer creation fails
+
+  - state: TRANSFER_READBACK_VERIFIED
+    description: Live readback confirms exactly 1 transfer exists.
+    entry_actions:
+      - live_read_transfers
+      - verify_count == 1
+      - verify_each_transfer_field
+    transitions:
+      - to: GENESIS_CERTIFIED
+        when: readback matches expected
+      - to: HALT
+        when: count mismatch OR field mismatch
+
+  - state: GENESIS_CERTIFIED
+    description: Genesis ceremony complete. Ledger is immutable.
+    entry_actions:
+      - generate_post_write_certificate
+      - freeze_genesis_state
+      - emit_genesis_events
+    transitions: []
+
+  - state: UNKNOWN
+    description: Process was interrupted or state cannot be determined.
+    entry_actions:
+      - halt_all_writes
+      - preserve_audit_context
+    transitions:
+      - to: ACCOUNT_BATCH_PENDING
+        when: live_read matches expected PRE_GENESIS state AND authorization still valid
+      - to: HALT
+        when: live_read shows unexpected state OR authorization expired
+
+  - state: HALT
+    description: Terminal failure state. Manual intervention required.
+    entry_actions:
+      - emit_integrity_failure
+      - preserve_full_audit_context
+      - notify_operator
+    transitions: []
+
+---
+
+# Retry Policy
+
+rule: NO_AUTOMATIC_RETRY
+
+explanation: >
+  The first write is special. If account #1-8 are created and the process crashes
+  before the transfer, the ceremony must NOT blindly rerun create accounts.
+  Instead, it must read the current ledger state and either resume from the
+  correct intermediate state or halt.
+
+ambiguous_failure_handling: >
+  UNKNOWN -> READ CURRENT LEDGER -> resume controlled ceremony OR HALT
+
+forbidden_retry_patterns:
+  - blind_rerun_account_creation
+  - blind_rerun_transfer_creation
+  - automatic_state_reset
+
+---
+
+# One-Way State Invariant
+
+invariant: EMPTY_TO_GENESIS_PRESENT_IS_ONE_WAY
+
+allowed_transitions:
+  - EMPTY -> GENESIS_PRESENT (via authorized ceremony)
+
+forbidden_transitions:
+  - GENESIS_PRESENT -> EMPTY
+  - any -> EMPTY via reset/format/repair/rollback/reinitialize
+
+---
+
+# State Machine Invariants
+
+invariants:
+  - invariant_id: INV-GENESIS-001
+    rule: ceremony_never_skips_states
+    description: The state machine must progress through every state in order. No state may be skipped.
+
+  - invariant_id: INV-GENESIS-002
+    rule: readback_required_after_each_mutation
+    description: After accounts are created, a live read must verify them. After transfer is created, a live read must verify it.
+
+  - invariant_id: INV-GENESIS-003
+    rule: no_automatic_retry
+    description: After any interruption, the state becomes UNKNOWN. Automatic retry is forbidden.
+
+  - invariant_id: INV-GENESIS-004
+    rule: one_way_transition
+    description: Once GENESIS_PRESENT is reached, the ledger can never return to EMPTY through ceremony tooling.
+
+  - invariant_id: INV-GENESIS-005
+    rule: authorization_gates_execution
+    description: No state transition that creates ledger objects may occur without explicit human authorization.

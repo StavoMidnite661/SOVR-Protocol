@@ -6,8 +6,8 @@
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "09fd031071f417f718df4e6683547c12da3703b0f00fc796dfb4de22bb020da6",
-    "timestamp": "2026-08-09T16:35:56.852Z"
+    "hash": "153534e50d6d216d820f3d4acb140a6a3199330a1b2372f036eeaec93312ece7",
+    "timestamp": "2026-08-10T06:29:45.877Z"
   },
   "scenarios": {
     "SIM-001-VAULT-FUNDING-LIFECYCLE": {
@@ -44,7 +44,7 @@
           "scope": "vault.asset:*"
         }
       ],
-      "compiled_at": "2026-08-09T16:35:56.850Z",
+      "compiled_at": "2026-08-10T06:29:45.876Z",
       "description": "Creates a vault asset and verifies the event chain. Tests execution gates, amount limits, and audit completeness.\n",
       "integrity": {
         "algorithm": "SHA256",
@@ -52,7 +52,7 @@
           "compiler_version": "0.6.0"
         },
         "hash": "e687e111d5f3d8277cfafc88db75d226fe0eb0d0788cde765270b68533367786",
-        "timestamp": "2026-08-09T16:35:56.850Z"
+        "timestamp": "2026-08-10T06:29:45.876Z"
       },
       "lifecycle": {
         "initial_state": "INIT",
@@ -111,7 +111,7 @@
           "scope": "treasury.transfer:*"
         }
       ],
-      "compiled_at": "2026-08-09T16:35:56.850Z",
+      "compiled_at": "2026-08-10T06:29:45.876Z",
       "description": "Tests treasury transfer workflow with capability validation, policy evaluation, and causation chain preservation.\n",
       "integrity": {
         "algorithm": "SHA256",
@@ -119,7 +119,7 @@
           "compiler_version": "0.6.0"
         },
         "hash": "2b276fa7e65fd2303583639c0a7545f70a656097f243647e18796d8e62ae8f40",
-        "timestamp": "2026-08-09T16:35:56.851Z"
+        "timestamp": "2026-08-10T06:29:45.876Z"
       },
       "lifecycle": {
         "initial_state": "INIT",
@@ -198,7 +198,7 @@
           "scope": "ledger.entry:*"
         }
       ],
-      "compiled_at": "2026-08-09T16:35:56.851Z",
+      "compiled_at": "2026-08-10T06:29:45.876Z",
       "description": "Verifies event store integrity, merkle audit, and causation chain across multiple command executions. Tests that the simulation engine correctly captures and hashes all events.\n",
       "integrity": {
         "algorithm": "SHA256",
@@ -206,7 +206,7 @@
           "compiler_version": "0.6.0"
         },
         "hash": "5f7b7a32faaef6b255bc191556ffecc975e76eec786d80c98e86793f87c0db19",
-        "timestamp": "2026-08-09T16:35:56.851Z"
+        "timestamp": "2026-08-10T06:29:45.876Z"
       },
       "lifecycle": {
         "initial_state": "INIT",
@@ -298,7 +298,7 @@
           "scope": "vault.reserve:*"
         }
       ],
-      "compiled_at": "2026-08-09T16:35:56.851Z",
+      "compiled_at": "2026-08-10T06:29:45.876Z",
       "description": "Validates asset registration, custody attestation, reserve creation, reserve locking, and complete audit lineage across vault aggregates.\n",
       "integrity": {
         "algorithm": "SHA256",
@@ -306,7 +306,7 @@
           "compiler_version": "0.6.0"
         },
         "hash": "d890ea2ebff51b09294db8466fdc547dcef5ed13b06f4b081ab60b83590240a3",
-        "timestamp": "2026-08-09T16:35:56.851Z"
+        "timestamp": "2026-08-10T06:29:45.876Z"
       },
       "lifecycle": {
         "initial_state": "REGISTERED",
@@ -387,7 +387,7 @@
           "scope": "treasury.transfer:*"
         }
       ],
-      "compiled_at": "2026-08-09T16:35:56.851Z",
+      "compiled_at": "2026-08-10T06:29:45.876Z",
       "description": "Validates treasury transfer request creation, authorization, reserve allocation, execution, and settlement readiness.\n",
       "integrity": {
         "algorithm": "SHA256",
@@ -395,7 +395,7 @@
           "compiler_version": "0.6.0"
         },
         "hash": "25271b270369ad28d4936cd01ed7c9abcb7252959c758c8ed0ac6b6fd8d2704b",
-        "timestamp": "2026-08-09T16:35:56.851Z"
+        "timestamp": "2026-08-10T06:29:45.877Z"
       },
       "lifecycle": {
         "initial_state": "REQUESTED",
@@ -496,7 +496,7 @@
           "scope": "ledger.reconciliation:*"
         }
       ],
-      "compiled_at": "2026-08-09T16:35:56.851Z",
+      "compiled_at": "2026-08-10T06:29:45.877Z",
       "description": "Validates accounting truth, ledger mutation controls, reconciliation, and audit proof across ledger aggregates.\n",
       "integrity": {
         "algorithm": "SHA256",
@@ -504,7 +504,7 @@
           "compiler_version": "0.6.0"
         },
         "hash": "cb769d0272ebbd3bcb109337b3e39669afe97bf2e57ce5da245891139f94ca6a",
-        "timestamp": "2026-08-09T16:35:56.851Z"
+        "timestamp": "2026-08-10T06:29:45.877Z"
       },
       "lifecycle": {
         "initial_state": "ACTIVE",
@@ -721,7 +721,7 @@
           "scope": "governance.audit:*"
         }
       ],
-      "compiled_at": "2026-08-09T16:35:56.851Z",
+      "compiled_at": "2026-08-10T06:29:45.877Z",
       "description": "Validates complete settlement lifecycle from intent creation through authorization, reserve allocation, ledger posting, settlement completion, and audit verification. Exercises multi-domain event causality.\n",
       "integrity": {
         "algorithm": "SHA256",
@@ -729,7 +729,7 @@
           "compiler_version": "0.6.0"
         },
         "hash": "91415b1847067b6ef964f738bd8a9b014bfc633ec460f23a7602ac0ede04ba72",
-        "timestamp": "2026-08-09T16:35:56.851Z"
+        "timestamp": "2026-08-10T06:29:45.877Z"
       },
       "lifecycle": {
         "initial_state": "CREATED",

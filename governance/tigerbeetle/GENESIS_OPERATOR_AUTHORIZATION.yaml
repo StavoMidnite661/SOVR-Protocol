@@ -1,0 +1,53 @@
+# SOVR-GENESIS-000002-PHASE10E.3 CORRECTION
+#
+# This artifact has been corrected to separate engineering readiness from human authorization.
+# The previous version conflated readiness certification with authorization approval.
+# See: SOVR-GENESIS-000002-PHASE10E.3_DIRECTIVE.yaml and HUMAN_AUTHORIZATION.yaml
+
+authorization:
+  operation: genesis_only
+  required: true
+  approved: false
+  authorized_by: null
+  authorization_timestamp: null
+
+execution:
+  permitted: false
+  executed: false
+
+scope:
+  accounts:
+    create: true
+    count: 8
+  transfers:
+    create: true
+    count: 1
+  external_value: false
+  customer_assets: false
+  prohibited:
+    - customer_assets
+    - external_payments
+    - production_settlement
+    - customer_balances
+    - off_ramp_systems
+    - production_keys
+
+readiness:
+  certified: true
+  certification_source: SOVR-GENESIS-000002-PHASE10E.2
+
+conditions:
+  - transport_aligned: true
+  - deterministic_ids_verified: true
+  - empty_ledger_proven: true
+  - shadow_execution_verified: true
+  - audit_phase10e_pass: true
+  - live_runtime_attested: false
+  - deterministic_ids_independently_verified: true
+  - human_authorization_separate: true
+
+# IMPORTANT: approved_by MUST be a human identity or null.
+# Directive identifiers (SOVR-GENESIS-000002-PHASE10E.2, PHASE10E.2, etc.)
+# are NOT valid values for authorized_by.
+# The previous value "SOVR-GENESIS-000002-PHASE10E.2" has been removed.
+# Human authorization is recorded separately in HUMAN_AUTHORIZATION.yaml

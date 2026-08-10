@@ -1,0 +1,95 @@
+# Phase 10E.2 Artifacts Discrepancy Report
+
+directive: SOVR-GENESIS-000002-PHASE10E.3
+artifact: KNOWN_DISCREPANCIES
+
+purpose: >
+  Document discrepancies found in Phase 10E.2 artifacts during Phase 10E.3 review.
+  These discrepancies do not block Phase 10E.3 readiness, but they must be resolved
+  before the actual genesis ceremony.
+
+---
+
+## Discrepancy 1: Transfer ID Mismatch
+
+**Location:** `generated/audit/tigerbeetle-shadow-execution.json`
+
+**Issue:** The shadow execution JSON records `tigerbeetle_id: 997659` for the genesis transfer,
+but the deterministic computation yields `190481`.
+
+**Root Cause:** The shadow execution was computed using an incorrect event ID
+(`genesis-transfer-001` instead of `genesis-heartbeat-001`) or an outdated algorithm.
+
+**Resolution:** The correct deterministic transfer ID is `190481` (verified in
+`DETERMINISTIC_ID_VERIFICATION_REPORT.json`). The shadow execution payload must be
+regenerated with the correct event ID and transfer ID before the ceremony.
+
+---
+
+## Discrepancy 2: Event ID Inconsistency
+
+**Location:** `generated/audit/tigerbeetle-shadow-execution.json` vs `governance/tigerbeetle/GENESIS_TRANSACTION_SET.json`
+
+**Issue:** Shadow execution uses `sovr_event_id: "genesis-transfer-001"` but the manifest uses `id: "genesis-heartbeat-001"`.
+
+**Root Cause:** Event ID naming inconsistency between shadow execution and genesis manifest.
+
+**Resolution:** Standardize on `genesis-heartbeat-001` as defined in `GENESIS_TRANSACTION_SET.json`.
+
+---
+
+## Discrepancy 3: Premature Execution Claims
+
+**Locations:**
+- `governance/tigerbeetle/TIGERBEETLE_POST_WRITE_CERTIFICATE.yaml`
+- `governance/tigerbeetle/PHASE10E_GENESIS_WRITE_CERTIFICATE.yaml`
+- `generated/audit/tigerbeetle-genesis-ceremony.json`
+
+**Issue:** These artifacts claim genesis execution occurred (`executed: true`, `accounts_created: 8`, `transfers_created: 1`),
+but Phase 10E.2 engineering review confirms the ledger remained empty (0 accounts, 0 transfers).
+
+**Root Cause:** Certificates were generated before the actual gated ceremony was performed.
+
+**Resolution:** These artifacts have been marked as `SUPERSEDED` by Phase 10E.3.
+The actual genesis ceremony must follow the gated procedure in
+`SOVR-GENESIS-000002-PHASE10E.3_DIRECTIVE.yaml`.
+
+---
+
+## Discrepancy 4: Authorization Self-Approval
+
+**Location:** `governance/tigerbeetle/GENESIS_OPERATOR_AUTHORIZATION.yaml` (original)
+
+**Issue:** `approved_by` was set to `SOVR-GENESIS-000002-PHASE10E.2`, which is a directive identifier, not a human identity.
+
+**Root Cause:** Engineering process generated an authorization artifact without separating human authorization from readiness certification.
+
+**Resolution:** `GENESIS_OPERATOR_AUTHORIZATION.yaml` has been corrected. Human authorization is now
+recorded separately in `HUMAN_AUTHORIZATION.yaml` with `authorized_by: null` until a human operator explicitly approves.
+
+---
+
+## Discrepancy 5: Suspicious Data Directory Hash
+
+**Location:** `generated/audit/tigerbeetle-genesis-runtime-attestation.json`
+
+**Issue:** `data_directory_hash` is `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`,
+which is the SHA-256 of an empty byte string.
+
+**Root Cause:** The directory was empty, and the code hashed an empty manifest. However, this provides
+insufficient evidence that the directory contents were properly enumerated.
+
+**Resolution:** Phase 10E.3 mandates a canonical manifest (relative paths, sizes, SHA256, metadata policy)
+before computing the data directory hash. See `LIVE_GENESIS_RUNTIME_ATTESTATION_TEMPLATE.yaml`.
+
+---
+
+## Resolution Status
+
+| Discrepancy | Status |
+|-------------|--------|
+| Transfer ID mismatch | DOCUMENTED - Resolve before ceremony |
+| Event ID inconsistency | DOCUMENTED - Resolve before ceremony |
+| Premature execution claims | CORRECTED - Artifacts marked SUPERSEDED |
+| Authorization self-approval | CORRECTED - Separated into HUMAN_AUTHORIZATION.yaml |
+| Suspicious data directory hash | ADDRESSED - Template mandates canonical manifest |

@@ -1,23 +1,36 @@
+# SOVR-GENESIS-000002-PHASE10E.3 CORRECTION NOTICE
+#
+# This certificate was generated prematurely in Phase 10E/10E.1.
+# It claims genesis ledger activation occurred, but Phase 10E.2 engineering review
+# confirms the ledger remained empty (0 accounts, 0 transfers) and
+# genesis execution was NOT authorized.
+# This certificate is SUPERSEDED by SOVR-GENESIS-000002-PHASE10E.3.
+# The actual genesis ceremony must follow the gated procedure defined in
+# SOVR-GENESIS-000002-PHASE10E.3_DIRECTIVE.yaml.
+#
+# Do NOT treat this as evidence of completed genesis.
+
 phase: PHASE10E
 directive: SOVR-GENESIS-000002-PHASE10E-CONTROLLED-LEDGER-ACTIVATION-DIRECTIVE
 artifact: PHASE10E_GENESIS_WRITE_CERTIFICATE
 generated_at: "2026-08-09T09:10:00-07:00"
+superseded_by: SOVR-GENESIS-000002-PHASE10E.3
 
 genesis_write:
-  status: PASS
-  accounts_created: 8
-  transfers_created: 1
-  read_back_verified: true
-  deterministic_hash: e27f0a83578c9f59aa01cb0fa9ac5c8cd6cee3390c517b84431208d159a4fa94
+  status: NOT_EXECUTED
+  accounts_created: 0
+  transfers_created: 0
+  read_back_verified: false
+  deterministic_hash: null
 
 prerequisites:
   all_phase10d_certificates_pass: true
   typecheck_clean: true
   simulation_baseline_pass: true
-  real_write_authorization_enabled: true
+  real_write_authorization_enabled: false
 
 output:
-  genesis_ceremony_report: generated/audit/tigerbeetle-genesis-ceremony.json
-  post_write_certificate: governance/tigerbeetle/TIGERBEETLE_POST_WRITE_CERTIFICATE.yaml
+  genesis_ceremony_report: null
+  post_write_certificate: null
 
-status: GENESIS_LEDGER_ACTIVATED
+status: GENESIS_LEDGER_NOT_ACTIVATED

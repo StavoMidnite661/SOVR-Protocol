@@ -1,0 +1,44 @@
+{
+  "phase": "PHASE10E.4",
+  "gate": "GATE_004",
+  "gate_name": "Canonical Data Directory Manifest",
+  "timestamp": "2026-08-10T07:37:32.767Z",
+  "directive": "SOVR-GENESIS-000002-PHASE10E.4",
+  "data_directory": {
+    "path": "D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data",
+    "manifest_path": "D:\\sovr-financial-os-protocol-v1.0.0\\Tigerbeetle\\data\\data-manifest.json",
+    "manifest_hash": "2003277cadc17ae29ff2417a4f659fe53633e5e2a5cc8ff89c5608789232b6d4"
+  },
+  "manifest": {
+    "files": [
+      {
+        "relative_path": "0/cluster.tigerbeetle",
+        "size": 1141374976,
+        "sha256": "c99b64d120fee414d557fa71479f92262529426858aa1de9afca9d9c98ad5b1b"
+      },
+      {
+        "relative_path": "1/cluster.tigerbeetle",
+        "size": 1144000512,
+        "sha256": "7c584591df1b5cf4b1d96066610a77a9980c2ac1d238d8a208332a3d8204e226"
+      },
+      {
+        "relative_path": "2/cluster.tigerbeetle",
+        "size": 1144000512,
+        "sha256": "f4b629e66229f0c4404e2309d59423b548f425297e52c92634591788874d777c"
+      }
+    ],
+    "directory_empty": false
+  },
+  "algorithm": {
+    "enumerate_files": true,
+    "for_each_file": [
+      "relative_path",
+      "size",
+      "sha256"
+    ],
+    "sort_by_path": true,
+    "canonical_json": true,
+    "sha256_of_manifest": true
+  },
+  "status": "PASS"
+}

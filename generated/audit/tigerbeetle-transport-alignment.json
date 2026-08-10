@@ -1,0 +1,9 @@
+{
+  "directive": "SOVR-GENESIS-000002-PHASE10E.1",
+  "server_version": "0.17.8",
+  "client_version": "0.17.8",
+  "transport": "binary_protocol",
+  "cli_mutations": false,
+  "deterministic_ids": true,
+  "writes_executed": false
+}

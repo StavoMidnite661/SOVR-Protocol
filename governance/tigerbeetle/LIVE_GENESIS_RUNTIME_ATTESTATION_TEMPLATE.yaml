@@ -1,0 +1,48 @@
+# Live Genesis Runtime Attestation Template
+
+directive: SOVR-GENESIS-000002-PHASE10E.3
+artifact: LIVE_GENESIS_RUNTIME_ATTESTATION
+
+instructions: >
+  This attestation MUST be captured AFTER starting TigerBeetle 0.17.8
+  and BEFORE any genesis writes. It is a live attestation, not an offline substrate attestation.
+
+binary:
+  path: D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/tigerbeetle.exe
+  sha256: <SHA256 of tigerbeetle.exe>
+  version: 0.17.8
+
+cluster:
+  id: 0
+  cluster_file: D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle
+  cluster_file_hash: <SHA256 of cluster.tigerbeetle>
+
+data_directory:
+  path: D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data
+  manifest: canonical JSON of relative paths, sizes, SHA256, metadata policy
+  manifest_hash: <SHA256 of manifest>
+
+process:
+  pid: <actual PID>
+  endpoint: 127.0.0.1:8080
+
+client:
+  tigerbeetle_node_version: 0.17.8
+
+connectivity:
+  test: PASS
+  read:
+    test: PASS
+
+current_ledger_state:
+  accounts: 0
+  transfers: 0
+
+safety:
+  writes_executed: false
+  customer_assets_touched: false
+  external_payments_touched: false
+  production_settlement_touched: false
+
+attestation_timestamp: <ISO8601 timestamp>
+attested_by: <human_operator_or_system>

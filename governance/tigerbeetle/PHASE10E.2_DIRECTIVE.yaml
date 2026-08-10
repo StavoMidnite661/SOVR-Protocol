@@ -1,0 +1,232 @@
+# SOVR-GENESIS-000002-PHASE10E.2
+
+# Genesis Ceremony Final Readiness Audit Directive
+
+**Directive ID:**
+`SOVR-GENESIS-000002-PHASE10E.2-GENESIS-CEREMONY-FINAL-READINESS-AUDIT-DIRECTIVE`
+
+**Phase:**
+PHASE10E.2
+
+**Classification:**
+Engineering Recovery / Controlled Infrastructure Alignment
+
+**Authority Domain:**
+SOVR Kernel → Economic Runtime → Ledger Boundary
+
+**Execution Mode:**
+LOCAL DEVELOPMENT ONLY
+
+**Production Traffic:**
+DISABLED
+
+**External Financial Movement:**
+DISABLED
+
+**Customer Assets:**
+DISABLED
+
+**Genesis Write Authority:**
+PAUSED UNTIL PHASE10E.2 CERTIFICATION
+
+---
+
+# 1. Directive Intent
+
+This directive authorizes the final deterministic verification before the first immutable ledger entry.
+
+This directive does **not** authorize ledger writes.
+
+This directive authorizes only the engineering verification required to establish that:
+
+1. The TigerBeetle runtime identity is captured and attested
+2. The genesis manifest hash is computed and recorded
+3. The ledger is provably empty before genesis execution
+4. The shadow execution matches the expected real execution payload
+5. Explicit human authorization is recorded
+
+Only after PHASE10E.2 passes may the Genesis Ceremony be executed.
+
+---
+
+# 2. TigerBeetle Runtime Identity
+
+Capture the following from the TigerBeetle server:
+
+```
+binary_hash: SHA256 of tigerbeetle binary
+binary_version: version string
+cluster_id: numeric cluster ID
+cluster_file_hash: SHA256 of cluster.tigerbeetle
+data_directory_hash: SHA256 of data directory manifest
+process_id: OS process ID (if running)
+port_binding: 127.0.0.1:8080
+```
+
+Artifact:
+
+```
+generated/audit/tigerbeetle-genesis-runtime-attestation.json
+```
+
+---
+
+# 3. Genesis Manifest Hash
+
+Calculate:
+
+```
+SHA256(
+  GENESIS_WRITE_MANIFEST.yaml
+  +
+  GENESIS_TRANSACTION_SET.json
+  +
+  SOVR_ACCOUNT_SCHEMA.json
+)
+```
+
+Record:
+
+```
+genesis_manifest_hash
+```
+
+---
+
+# 4. Empty Ledger Proof
+
+Before writing:
+
+Verify:
+
+```
+lookupAccounts() returns: []
+lookupTransfers() returns: []
+```
+
+Store:
+
+```
+generated/audit/pre-genesis-final-proof.json
+```
+
+---
+
+# 5. Shadow vs Real Comparison
+
+Run the exact genesis payload through:
+
+```
+ShadowLedgerAdapter
+```
+
+Capture:
+
+```
+expected_accounts: 8
+expected_transfers: 1
+expected_hash: xxxxxxxx
+```
+
+The real ceremony must produce the identical hash.
+
+---
+
+# 6. Authorization Ceremony
+
+Require explicit human approval artifact:
+
+```
+governance/tigerbeetle/GENESIS_OPERATOR_AUTHORIZATION.yaml
+```
+
+Containing:
+
+```yaml
+authorization:
+  operation: genesis_only
+  approved: true
+  scope:
+    accounts: 8
+    transfers: 1
+    external_value: false
+    customer_assets: false
+```
+
+---
+
+# 7. Completion Criteria
+
+PHASE10E.2 is complete when:
+
+```
+npm run compile                  PASS
+npm run typecheck                PASS
+npm run test:tigerbeetle         PASS
+npm run test:tigerbeetle:transport PASS
+npm run test:replay:tigerbeetle  PASS
+npm run test:genesis:readiness   PASS
+npm run audit:phase10e.2         PASS
+```
+
+Final status:
+
+```
+PHASE10E.2 COMPLETE
+
+TigerBeetle Runtime:
+        ATTESTED
+
+Genesis Manifest:
+        HASHED
+
+Ledger:
+        EMPTY (PROVEN)
+
+Shadow Execution:
+        VERIFIED
+
+Authorization:
+        RECORDED
+
+Ready For:
+        Genesis Ceremony Execution
+```
+
+---
+
+# 8. Forbidden Actions
+
+The agent SHALL NOT:
+
+* execute genesis writes
+* create accounts
+* create transfers
+* modify cluster files
+* format TigerBeetle storage
+* upgrade server version
+* migrate ledger data
+* alter genesis manifest
+* change account IDs
+* change authorization policy
+
+---
+
+# 9. Final Directive Statement
+
+The first write into TigerBeetle becomes part of SOVR's permanent accounting history.
+
+Therefore:
+
+**Attest the runtime.**
+**Hash the manifest.**
+**Prove the ledger is empty.**
+**Verify shadow matches real.**
+**Record authorization.**
+**Only then execute genesis.**
+
+---
+
+**END OF DIRECTIVE**
+
+`SOVR-GENESIS-000002-PHASE10E.2`

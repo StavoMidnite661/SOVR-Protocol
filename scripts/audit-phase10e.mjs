@@ -14,8 +14,7 @@ const certificates = [
 ];
 
 const artifacts = [
-  'packages/runtime/src/ledger/tigerbeetle/tigerbeetle-cli-client.ts',
-  'packages/runtime/src/ledger/tigerbeetle/tigerbeetle-native-client.ts',
+  'packages/runtime/src/ledger/tigerbeetle/tigerbeetle-transport.ts',
   'packages/runtime/src/ledger/tigerbeetle/account-mapper.ts',
   'packages/runtime/src/ledger/tigerbeetle/transfer-mapper.ts',
   'packages/runtime/src/ledger/tigerbeetle/ledger-adapter.ts',

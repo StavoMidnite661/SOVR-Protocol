@@ -1,0 +1,719 @@
+# SOVR-GENESIS-000002-PHASE10E.4
+
+# FINAL GENESIS CEREMONY VALIDATION & CONTROLLED EXECUTION DIRECTIVE
+
+directive_id: SOVR-GENESIS-000002-PHASE10E.4-FINAL-LIVE-VALIDATION-AND-GENESIS-CEREMONY-DIRECTIVE
+
+phase: PHASE10E.4
+
+classification: Controlled Ledger Initialization / Immutable Genesis Ceremony
+
+execution_mode: LOCAL DEVELOPMENT ONLY
+
+production_traffic: DISABLED
+
+external_financial_movement: DISABLED
+
+customer_assets: DISABLED
+
+genesis_scope: SYSTEM INTERNAL GENESIS ONLY
+
+genesis_write_authority: DISABLED UNTIL FINAL HUMAN AUTHORIZATION
+
+supersedes: SOVR-GENESIS-000002-PHASE10E.3
+
+---
+
+# 1. Objective
+
+Phase 10E.4 shall perform the final live validation of the SOVR TigerBeetle substrate before the first immutable ledger mutation.
+
+The objective is NOT economic activation.
+
+The objective is:
+
+> Prove that the exact intended runtime, exact intended cluster, exact intended deterministic payload, and exact intended authorization chain are aligned before creating the first permanent ledger state.
+
+The first write is considered a protocol milestone.
+
+No assumptions are permitted.
+
+No inferred state is permitted.
+
+No cached evidence is permitted.
+
+All evidence must be generated from the live execution environment.
+
+---
+
+# 2. Current Known State
+
+## Confirmed
+
+```
+Repository:
+    FROZEN
+
+Kernel:
+    FROZEN
+
+TigerBeetle Version:
+    0.17.8
+
+Client Version:
+    0.17.8
+
+Ledger:
+    EMPTY
+
+Accounts:
+    0
+
+Transfers:
+    0
+
+Genesis Writes:
+    NOT EXECUTED
+
+Authorization:
+    NOT GRANTED
+```
+
+---
+
+# 3. Absolute Restrictions
+
+The agent SHALL NOT:
+
+```
+CREATE ACCOUNTS
+
+CREATE TRANSFERS
+
+ENABLE WRITE AUTHORIZATION
+
+MODIFY GENESIS MANIFEST
+
+MODIFY ACCOUNT IDS
+
+MODIFY TRANSFER IDS
+
+FORMAT TIGERBEETLE
+
+RESET CLUSTER
+
+REPAIR STORAGE
+
+ROLLBACK STATE
+
+RETRY UNKNOWN OPERATIONS
+
+ALTER DATA DIRECTORY
+
+UPGRADE TIGERBEETLE
+
+MIGRATE LEDGER DATA
+```
+
+Until all gates PASS and explicit human authorization exists.
+
+---
+
+# 4. Required Phase 10E.4 Gates
+
+All gates must produce evidence artifacts.
+
+No verbal PASS statements.
+
+No undocumented PASS states.
+
+---
+
+# GATE 001 — Repository Integrity Verification
+
+Verify:
+
+```
+git status --clean
+
+HEAD commit:
+e9022164b36b04665987a9573bd78d6cfd8a6fdb
+```
+
+Generate:
+
+```
+generated/audit/phase10e.4-repository-integrity.json
+```
+
+Required:
+
+```json
+{
+ "commit": "...",
+ "working_tree_clean": true,
+ "genesis_artifacts_locked": true
+}
+```
+
+---
+
+# GATE 002 — TigerBeetle Process Live Attestation
+
+Start TigerBeetle.
+
+Capture:
+
+```
+PID
+Executable path
+Executable SHA256
+Version
+Cluster ID
+Endpoint
+Startup timestamp
+```
+
+Required:
+
+```
+PID != NOT_RUNNING
+```
+
+Generate:
+
+```
+generated/audit/live-tigerbeetle-attestation.json
+```
+
+Example:
+
+```json
+{
+ "binary_hash": "f444651...",
+ "version": "0.17.8",
+ "cluster_id":0,
+ "endpoint":"127.0.0.1:8080",
+ "pid":"ACTUAL_PID"
+}
+```
+
+---
+
+# GATE 003 — Client/Server Compatibility Proof
+
+Execute live connection.
+
+Verify:
+
+```
+tigerbeetle-node:
+0.17.8
+
+server:
+0.17.8
+```
+
+Required:
+
+```
+client_release == cluster_release
+```
+
+Generate:
+
+```
+generated/audit/tigerbeetle-version-proof.json
+```
+
+---
+
+# GATE 004 — Canonical Data Directory Manifest
+
+Replace previous ambiguous hash.
+
+Create:
+
+```
+TigerBeetle/data-manifest.json
+```
+
+Algorithm:
+
+```
+enumerate files
+
+FOR EACH FILE:
+
+relative path
+size
+sha256
+
+SORT BY PATH
+
+canonical JSON
+
+SHA256(manifest)
+```
+
+Required:
+
+If empty:
+
+```json
+{
+ "files": [],
+ "directory_empty": true
+}
+```
+
+Generate:
+
+```
+generated/audit/tigerbeetle-data-directory-attestation.json
+```
+
+---
+
+# GATE 005 — Live Empty Ledger Proof
+
+This is mandatory.
+
+Perform:
+
+```
+readAccounts()
+
+readTransfers()
+```
+
+against the LIVE cluster.
+
+Required:
+
+```json
+{
+ "accounts": [],
+ "transfers": [],
+ "account_count":0,
+ "transfer_count":0,
+ "verified":true
+}
+```
+
+Generate:
+
+```
+generated/audit/pre-genesis-live-ledger-proof.json
+```
+
+Timestamp must be within the final ceremony window.
+
+---
+
+# GATE 006 — Deterministic Identity Verification
+
+Recalculate:
+
+All 8 account IDs.
+
+Expected:
+
+| Account |     ID |
+| ------- | -----: |
+| 000001  | 404771 |
+| 000002  | 327102 |
+| 000003  | 689728 |
+| 000004  | 346086 |
+| 000005  | 536681 |
+| 000006  | 441831 |
+| 000007  | 657844 |
+| 000008  | 941698 |
+
+Generate:
+
+```
+generated/audit/final-deterministic-id-verification.json
+```
+
+---
+
+# GATE 007 — Shadow Discrepancy Resolution
+
+Resolve all discrepancies documented in `PHASE10E.2_DISCREPANCY_REPORT.yaml`.
+
+Specifically:
+
+1. Regenerate shadow payload with correct transfer ID 190481
+2. Standardize event ID to genesis-heartbeat-001
+
+Required:
+
+```
+shadow_accounts == genesis_accounts
+
+shadow_transfer == genesis_transfer
+
+no_discrepancies_remaining: true
+```
+
+Generate:
+
+```
+generated/audit/final-shadow-verification.json
+```
+
+---
+
+# GATE 008 — Authorization Separation Verification
+
+Verify three independent states:
+
+## Readiness
+
+```
+PHASE10E.3_READINESS_CERTIFICATE.yaml
+```
+
+must state:
+
+```
+READY=true
+```
+
+---
+
+## Authorization
+
+```
+HUMAN_AUTHORIZATION.yaml
+```
+
+must state:
+
+Before approval:
+
+```
+authorized_by:null
+approved:false
+```
+
+After approval:
+
+```
+authorized_by:<human identity>
+approved:true
+```
+
+---
+
+## Execution
+
+Must remain:
+
+```
+DISABLED
+```
+
+until authorization.
+
+Generate:
+
+```
+generated/audit/authorization-separation-verification.json
+```
+
+---
+
+# GATE 009 — Ceremony Preview
+
+Before any mutation:
+
+Display exact payload.
+
+Example:
+
+```
+CREATE ACCOUNTS:
+
+404771
+327102
+689728
+346086
+536681
+441831
+657844
+941698
+
+
+CREATE TRANSFER:
+
+ID:
+190481
+
+Debit:
+404771
+
+Credit:
+327102
+
+Amount:
+1
+
+Code:
+GENESIS_HEARTBEAT
+```
+
+Operator must approve this exact payload.
+
+Generate:
+
+```
+generated/audit/ceremony-preview.json
+```
+
+---
+
+# GATE 010 — Final Human Authorization
+
+The agent SHALL STOP.
+
+No autonomous continuation.
+
+Required:
+
+Human creates:
+
+```
+governance/tigerbeetle/HUMAN_AUTHORIZATION.yaml
+```
+
+Containing:
+
+```yaml
+approved: true
+authorized_by: <human>
+timestamp: <timestamp>
+scope:
+ accounts:8
+ transfers:1
+ external_value:false
+ customer_assets:false
+```
+
+Only after this exists:
+
+Genesis execution may begin.
+
+Generate:
+
+```
+generated/audit/final-authorization-proof.json
+```
+
+---
+
+# 5. Genesis Execution Procedure
+
+After authorization:
+
+## Step 1
+
+Enable:
+
+```
+REAL_WRITE_AUTHORIZATION
+```
+
+Only:
+
+```
+operation:
+ genesis_only
+```
+
+---
+
+## Step 2
+
+Create accounts.
+
+Expected:
+
+```
+8 successful creations
+```
+
+Immediately:
+
+READ BACK.
+
+Verify:
+
+```
+8/8 match
+```
+
+---
+
+## Step 3
+
+Create transfer.
+
+Expected:
+
+```
+1 successful transfer
+```
+
+Immediately:
+
+READ BACK.
+
+Verify:
+
+```
+190481 exists
+```
+
+---
+
+# 6. Post Genesis Evidence
+
+Generate:
+
+```
+generated/audit/tigerbeetle-genesis-ceremony-final.json
+```
+
+Containing:
+
+```json
+{
+ "accounts_created":8,
+ "transfers_created":1,
+ "transfer_id":190481,
+ "ledger_state":"GENESIS_PRESENT",
+ "immutable":true
+}
+```
+
+---
+
+# 7. Failure Rules
+
+If ANY mutation result is ambiguous:
+
+STOP.
+
+Example:
+
+```
+request sent
+response missing
+connection lost
+timeout
+```
+
+Required:
+
+```
+UNKNOWN
+
+↓
+
+READ CURRENT LEDGER
+
+↓
+
+COMPARE EXPECTED STATE
+
+↓
+
+HALT OR CONTINUE UNDER HUMAN CONTROL
+```
+
+Never:
+
+```
+retry()
+retry()
+retry()
+```
+
+---
+
+# 8. Completion Criteria
+
+Phase 10E.4 is COMPLETE only when:
+
+```
+✓ live runtime attested
+
+✓ client/server aligned
+
+✓ canonical data manifest created
+
+✓ live ledger 0/0 proven
+
+✓ deterministic IDs verified
+
+✓ shadow discrepancy resolved
+
+✓ human authorization separated
+
+✓ exact mutation payload displayed
+
+✓ genesis executed only after authorization
+
+✓ accounts read back
+
+✓ transfer read back
+
+✓ final evidence generated
+```
+
+---
+
+# Final Directive Statement
+
+The previous phases proved that SOVR can prepare a ledger.
+
+Phase 10E.4 proves that SOVR can responsibly initialize one.
+
+The ceremony must follow:
+
+```
+VERIFY
+
+ATTEST
+
+PROVE
+
+AUTHORIZE
+
+WRITE
+
+READ
+
+CERTIFY
+
+FREEZE
+```
+
+The first ledger entry is not a transaction.
+
+It is the creation event of the accounting substrate.
+
+Therefore:
+
+**No shortcuts.
+No assumptions.
+No hidden state.
+No autonomous authorization.**
+
+---
+
+END OF DIRECTIVE
+
+SOVR-GENESIS-000002-PHASE10E.4

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LedgerAdapter } from '../ledger-adapter.js';
-import { TigerBeetleNativeClient } from '../tigerbeetle-native-client.js';
+import { TigerBeetleTransportClient } from '../tigerbeetle-transport.js';
 import { AccountMapper } from '../account-mapper.js';
 import { TransferMapper } from '../transfer-mapper.js';
 import { ShadowLedgerAdapter } from '../shadow-ledger.js';
@@ -24,7 +24,7 @@ describe('Phase 10D Shadow Ledger Execution', () => {
   const schemaPath = 'D:/sovr-financial-os-protocol-v1.0.0/SOVR-Protocol/governance/tigerbeetle/SOVR_ACCOUNT_SCHEMA.json';
 
   it('Test A: SIM-007 produces deterministic ledger intents without writing', async () => {
-    const client = new TigerBeetleNativeClient(config);
+    const client = new TigerBeetleTransportClient(config);
     const mapper = new AccountMapper({ schemaPath });
     const transferMapper = new TransferMapper();
     const adapter = new LedgerAdapter(client, mapper, transferMapper, config);
@@ -71,7 +71,7 @@ describe('Phase 10D Shadow Ledger Execution', () => {
   });
 
   it('Test C: shadow execution output persists to generated/audit', async () => {
-    const client = new TigerBeetleNativeClient(config);
+    const client = new TigerBeetleTransportClient(config);
     const mapper = new AccountMapper({ schemaPath });
     const transferMapper = new TransferMapper();
     const adapter = new LedgerAdapter(client, mapper, transferMapper, config);

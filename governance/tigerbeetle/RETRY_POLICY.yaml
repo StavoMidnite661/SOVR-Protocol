@@ -1,0 +1,108 @@
+# Retry Policy for Genesis Ceremony
+
+directive: SOVR-GENESIS-000002-PHASE10E.3
+artifact: RETRY_POLICY
+
+policy_id: SOVR-GENESIS-RETRY-001
+
+purpose: >
+  Define unambiguous failure handling for the genesis ceremony.
+  The first write is special. Automatic retry is forbidden.
+
+core_rule: NO_AUTOMATIC_RETRY
+
+failure_handling:
+
+  - failure_type: AMBIGUOUS_FAILURE
+    description: >
+      Process crashes or is interrupted during ceremony.
+      The current ledger state is unknown.
+    handling:
+      - action: HALT_ALL_WRITES
+      - action: PRESERVE_AUDIT_CONTEXT
+      - action: READ_CURRENT_LEDGER_STATE
+      - decision: |
+          If live read matches expected intermediate state AND authorization still valid:
+            -> resume controlled ceremony from correct state
+          Else:
+            -> HALT
+            -> notify operator
+            -> require manual investigation
+    forbidden:
+      - blind_rerun_account_creation
+      - blind_rerun_transfer_creation
+      - automatic_state_reset
+      - format_or_repair_storage
+      - rollback_or_reinitialize
+
+  - failure_type: ACCOUNT_CREATION_FAILURE
+    description: One or more account creations fail.
+    handling:
+      - action: READ_CURRENT_LEDGER_STATE
+      - decision: |
+          If some accounts exist but not all 8:
+            -> HALT
+            -> do NOT create duplicate accounts
+          If 0 accounts exist:
+            -> may retry account batch ONLY after explicit operator review
+      forbidden:
+        - create_accounts_without_readback
+        - assume_partial_success_is_safe
+
+  - failure_type: TRANSFER_CREATION_FAILURE
+    description: Genesis transfer creation fails after accounts are created.
+    handling:
+      - action: READ_CURRENT_LEDGER_STATE
+      - decision: |
+          If 8 accounts exist but transfer is missing:
+            -> may create transfer ONLY after explicit operator review
+          If transfer exists:
+            -> proceed to readback verification
+      forbidden:
+        - create_duplicate_transfer
+        - assume_transfer_missing_means_retry_safe
+
+  - failure_type: READBACK_MISMATCH
+    description: Live readback does not match expected state.
+    handling:
+      - action: HALT
+      - action: PRESERVE_FULL_AUDIT_CONTEXT
+      - action: NOTIFY_OPERATOR
+      - decision: |
+          Manual investigation required.
+          Do NOT proceed until root cause is identified and resolved.
+
+---
+
+# State Machine Integration
+
+The retry policy is enforced by GENESIS_EXECUTION_STATE_MACHINE.yaml.
+
+On any interruption, the state machine transitions to UNKNOWN.
+
+From UNKNOWN:
+- READ CURRENT LEDGER
+- Compare with expected state
+- Resume OR Halt
+
+Never:
+- Automatic retry
+- State reset
+- Blind rerun
+
+---
+
+# Invariants
+
+invariants:
+  - invariant_id: INV-RETRY-001
+    rule: no_automatic_retry_after_ambiguous_failure
+    enforcement: STRICT
+
+  - invariant_id: INV-RETRY-002
+    rule: read_before_any_resume_action
+    enforcement: STRICT
+
+  - invariant_id: INV-RETRY-003
+    rule: halt_on_unexpected_ledger_state
+    enforcement: STRICT

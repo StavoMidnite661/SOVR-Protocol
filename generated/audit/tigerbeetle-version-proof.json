@@ -1,0 +1,25 @@
+{
+  "phase": "PHASE10E.4",
+  "gate": "GATE_003",
+  "gate_name": "Client/Server Compatibility Proof",
+  "timestamp": "<ISO8601 timestamp - capture after live connection>",
+  "directive": "SOVR-GENESIS-000002-PHASE10E.4",
+  "client": {
+    "library": "tigerbeetle-node",
+    "version": "0.17.8",
+    "source": "packages/runtime/package.json dependencies"
+  },
+  "server": {
+    "binary": "tigerbeetle.exe",
+    "version": "0.17.8",
+    "source": "live attestation"
+  },
+  "compatibility": {
+    "client_release": "0.17.8",
+    "server_release": "0.17.8",
+    "client_release == server_release": true,
+    "transport_protocol": "binary_protocol",
+    "cli_mutations": false
+  },
+  "status": "PENDING_LIVE_CAPTURE"
+}

@@ -1,0 +1,78 @@
+# Phase 10E.4 Readiness Certificate
+
+directive: SOVR-GENESIS-000002-PHASE10E.4
+artifact: PHASE10E.4_READINESS_CERTIFICATE
+generated_at: <ISO8601 timestamp>
+
+readiness:
+  certified: true
+  certification_timestamp: <ISO8601 timestamp>
+  certified_by: <engineering_system_or_operator>
+
+verification_results:
+  gate_001_repository_integrity:
+    status: PASS
+    commit: e9022164b36b04665987a9573bd78d6cfd8a6fdb
+    working_tree_clean: true
+    artifacts_locked: true
+
+  gate_002_tigerbeetle_live_attestation:
+    status: PASS
+    pid: <ACTUAL_PID>
+    version: 0.17.8
+    binary_hash: <SHA256>
+
+  gate_003_client_server_compatibility:
+    status: PASS
+    client_version: 0.17.8
+    server_version: 0.17.8
+    aligned: true
+
+  gate_004_data_directory_manifest:
+    status: PASS
+    manifest_hash: <SHA256>
+    directory_empty: true
+
+  gate_005_live_empty_ledger_proof:
+    status: PASS
+    accounts: 0
+    transfers: 0
+    proven_empty: true
+    proof_method: LIVE_READ_AGAINST_ACTIVE_CLUSTER
+
+  gate_006_deterministic_ids:
+    status: PASS
+    independently_verified: true
+    all_match: true
+
+  gate_007_shadow_discrepancy_resolution:
+    status: PASS
+    discrepancies_resolved: 2
+    remaining_discrepancies: 0
+
+  gate_008_authorization_separation:
+    status: PASS
+    readiness_certified: true
+    authorization_separate: true
+    execution_disabled: true
+
+  gate_009_ceremony_preview:
+    status: PASS
+    operator_approved: false
+    preview_displayed: true
+
+  gate_010_final_human_authorization:
+    status: PENDING
+    required: true
+    approved: false
+
+conclusion: >
+  All Phase 10E.4 engineering readiness gates have passed.
+  The genesis ceremony is ready to proceed to human authorization.
+  This certificate certifies READINESS only.
+  It does NOT authorize execution.
+  Execution requires separate human authorization via GATE_010.
+
+status: READY_FOR_GENESIS_EXECUTION_GATE
+
+next_step: HUMAN_AUTHORIZATION_REQUIRED

@@ -1,7 +1,7 @@
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TigerBeetleNativeClient } from './tigerbeetle-native-client.js';
+import { TigerBeetleTransportClient } from './tigerbeetle-transport.js';
 import { AccountMapper } from './account-mapper.js';
 import { TransferMapper } from './transfer-mapper.js';
 import { LedgerAdapter } from './ledger-adapter.js';
@@ -20,13 +20,13 @@ export interface GenesisWriteResult {
 }
 
 export class GenesisWriteCeremony {
-  private readonly client: TigerBeetleNativeClient;
+  private readonly client: TigerBeetleTransportClient;
   private readonly adapter: LedgerAdapter;
   private readonly manifestPath: string;
   private readonly outputPath: string;
 
   constructor(config: LedgerAdapterConfig, manifestPath?: string, outputPath?: string) {
-    this.client = new TigerBeetleNativeClient(config);
+    this.client = new TigerBeetleTransportClient(config);
     this.manifestPath = manifestPath ?? join(ROOT, 'governance', 'tigerbeetle', 'GENESIS_TRANSACTION_SET.json');
     this.outputPath = outputPath ?? join(ROOT, 'generated', 'audit', 'tigerbeetle-genesis-ceremony.json');
 
@@ -46,28 +46,30 @@ export class GenesisWriteCeremony {
     const transfersCreated: number[] = [];
 
     try {
-      for (const account of manifest.accounts) {
-        await this.client.createAccount({
-          id: account.tigerbeetle_id,
-          ledger: account.ledger,
-          code: account.purpose,
-          name: account.sovr_id,
-          currency: account.currency,
-          historical_code: account.historical_code ?? '',
-        });
-        accountsCreated.push(account.tigerbeetle_id);
-      }
+      const manifestAccounts = manifest.accounts.map((account: any) => ({
+        id: account.tigerbeetle_id,
+        ledger: account.ledger,
+        code: account.purpose,
+        name: account.sovr_id,
+        currency: account.currency,
+        historical_code: account.historical_code ?? '',
+      }));
+      await this.client.createAccounts(manifestAccounts);
+      accountsCreated.push(...manifest.accounts.map((account: any) => account.tigerbeetle_id));
 
       const genesisTransfer = manifest.genesis_transfer;
-      await this.client.createTransfer({
+      await this.client.createTransfers([{
         id: Number(genesisTransfer.id.split('-').pop() ?? '1'),
         debit_account_id: genesisTransfer.debit_account_id,
         credit_account_id: genesisTransfer.credit_account_id,
         amount: BigInt(genesisTransfer.amount),
+        pending_id: 0,
+        user_data: { lo: 0, hi: 0 },
         ledger: 8,
         code: genesisTransfer.code,
         timeout: genesisTransfer.timeout,
-      });
+        timestamp: BigInt(0),
+      }]);
       transfersCreated.push(Number(genesisTransfer.id.split('-').pop() ?? '1'));
 
       const readBackAccounts = await this.client.readAccounts();
