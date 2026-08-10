@@ -1,0 +1,31 @@
+agent_audit_policy:
+  version: "1.0.0"
+  effective_at: "2026-08-10T15:00:00-07:00"
+
+  required_event_schema:
+    event_id: string
+    agent_id: string
+    mission_id: string
+    action: string
+    reasoning_summary: string
+    command_generated: string
+    timestamp: string
+    hash: string
+    previous_hash: string
+    policy_decision: string
+
+  audit_requirements:
+    - Every agent action must generate an AgentActionEvent
+    - Every mission state transition must be audited
+    - Every policy evaluation must be recorded
+    - Every command generation must be recorded
+    - Hash chain must be validated after each mission
+
+  retention:
+    class: permanent
+    description: Agent audit trail is permanently retained
+
+  validation:
+    - chain_validation_required: true
+    - missing_event_handling: reject
+    - hash_mismatch_handling: reject

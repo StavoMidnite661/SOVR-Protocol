@@ -1,0 +1,60 @@
+{
+  "phase": "10E.11",
+  "test_timestamp": "2026-08-10T14:10:18-07:00",
+  "test": "TEST 004 - Agent Controlled Workflow",
+  "description": "Agent generates Intent -> Command -> Policy Check -> Event, verify governance boundary",
+  "steps": [
+    {
+      "step": 1,
+      "action": "Agent submits intent",
+      "intent_type": "CREATE_VAULT_INTENT",
+      "actor": "test_agent_001",
+      "result": "PASS"
+    },
+    {
+      "step": 2,
+      "action": "Intent engine validates intent",
+      "validation_result": "VALID",
+      "execution_plan_generated": true,
+      "result": "PASS"
+    },
+    {
+      "step": 3,
+      "action": "Command routed through policy gateway",
+      "policy_decision": "ALLOW",
+      "result": "PASS"
+    },
+    {
+      "step": 4,
+      "action": "Event emitted",
+      "event_type": "VaultCreated",
+      "result": "PASS"
+    },
+    {
+      "step": 5,
+      "action": "Agent attempts bypass (EXECUTE_ALLOCATION without authorization)",
+      "bypass_blocked": true,
+      "result": "PASS"
+    }
+  ],
+  "governance_boundary": {
+    "direct_ledger_access": false,
+    "execute_mutation": false,
+    "bypass_prevented": true,
+    "policy_enforcement_active": true
+  },
+  "agent_permissions": {
+    "READ": true,
+    "ANALYZE": true,
+    "CREATE_COMMAND": true,
+    "EXECUTE_MUTATION": false,
+    "DIRECT_LEDGER_ACCESS": false
+  },
+  "final_state": {
+    "agent_cannot_bypass_governance": true,
+    "events_emitted": 4,
+    "result": "PASS"
+  },
+  "genesis_preserved": true,
+  "replay_passed": true
+}

@@ -1,0 +1,650 @@
+# SOVR-GENESIS-000002-PHASE10E.5
+
+# FINAL GENESIS CEREMONY CONTROL DIRECTIVE
+
+directive_id: SOVR-GENESIS-000002-PHASE10E.5-FINAL-CEREMONY-EXECUTION-GATE-DIRECTIVE
+
+phase: PHASE10E.5
+
+classification: Controlled Ledger Initialization / Immutable Accounting Genesis
+
+execution_environment: LOCAL DEVELOPMENT ONLY
+
+production_traffic: DISABLED
+
+external_financial_movement: DISABLED
+
+customer_assets: DISABLED
+
+economic_settlement: DISABLED
+
+genesis_write_authority: DISABLED UNTIL HUMAN AUTHORIZATION
+
+supersedes: SOVR-GENESIS-000002-PHASE10E.4
+
+---
+
+# 1. Mission Statement
+
+The purpose of Phase 10E.5 is NOT to create economic value.
+
+The purpose of Phase 10E.5 is to execute the first controlled immutable write into the SOVR accounting substrate after every prerequisite verification has passed.
+
+The agent SHALL understand:
+
+```
+TigerBeetle = Accounting Memory
+SOVR Runtime = Economic Authority
+Genesis Ceremony = Controlled Initialization Event
+```
+
+TigerBeetle does not decide:
+
+* ownership
+* settlement authority
+* policy
+* value creation
+* financial legitimacy
+
+TigerBeetle records only what SOVR Runtime has authorized.
+
+---
+
+# 2. Current Certified State
+
+The agent SHALL begin from:
+
+```
+PHASE10E.4
+
+Repository:
+        READY
+
+Compiler:
+        VERIFIED
+
+Transport:
+        VERIFIED
+
+TigerBeetle:
+        VERSION ALIGNED
+
+Client:
+        0.17.8
+
+Server:
+        0.17.8
+
+Ledger:
+        EMPTY
+
+Accounts:
+        0
+
+Transfers:
+        0
+
+Genesis Payload:
+        VERIFIED
+
+Deterministic IDs:
+        VERIFIED
+
+Shadow Execution:
+        VERIFIED
+
+Authorization:
+        SEPARATED
+
+Automatic Retry:
+        FORBIDDEN
+```
+
+No assumption shall replace live verification.
+
+---
+
+# 3. Absolute Pre-Execution Rule
+
+Before ANY write operation:
+
+The agent MUST produce:
+
+```
+GENESIS_EXECUTION_READY=true
+```
+
+ONLY AFTER:
+
+All gates equal PASS.
+
+Required:
+
+```
+GATE_001 PASS
+GATE_002 PASS
+GATE_003 PASS
+GATE_004 PASS
+GATE_005 PASS
+GATE_006 PASS
+GATE_007 PASS
+GATE_008 PASS
+GATE_009 PASS
+GATE_010 PASS
+```
+
+If any gate is:
+
+```
+FAIL
+UNKNOWN
+STALE
+MISSING
+INCOMPLETE
+```
+
+execution HALTS.
+
+---
+
+# 4. Required Live Validation Sequence
+
+The agent SHALL execute in this order.
+
+---
+
+## STEP 001 — Repository Integrity
+
+Verify:
+
+```
+git status
+git rev-parse HEAD
+```
+
+Confirm:
+
+```
+working tree clean
+commit matches certified commit
+```
+
+Generate:
+
+```
+generated/audit/final-repository-integrity.json
+```
+
+---
+
+## STEP 002 — Start TigerBeetle Runtime
+
+Start:
+
+```
+TigerBeetle v0.17.8
+```
+
+Required:
+
+```
+PID EXISTS
+
+Endpoint:
+127.0.0.1:8080
+
+Cluster:
+0
+```
+
+Generate:
+
+```
+live-tigerbeetle-attestation.json
+```
+
+Required fields:
+
+```json
+{
+ "process_running":true,
+ "pid":"actual_pid",
+ "version":"0.17.8",
+ "endpoint":"127.0.0.1:8080"
+}
+```
+
+---
+
+## STEP 003 — Verify Protocol Compatibility
+
+The agent MUST prove:
+
+```
+tigerbeetle-node == server
+```
+
+Required:
+
+```
+client_release = 0.17.8
+
+cluster_release = 0.17.8
+```
+
+Mismatch:
+
+```
+HALT
+```
+
+---
+
+## STEP 004 — Generate Canonical Data Manifest
+
+The agent SHALL NOT hash the directory directly.
+
+Required:
+
+```
+filesystem
+     |
+     v
+enumerate files
+     |
+     v
+canonical manifest
+     |
+     v
+SHA256(manifest)
+```
+
+Must document:
+
+```
+files_before_genesis
+```
+
+If empty:
+
+Correct:
+
+```yaml
+directory_state:
+  empty: true
+  files: []
+```
+
+Incorrect:
+
+```
+SHA256("")
+```
+
+---
+
+## STEP 005 — LIVE EMPTY LEDGER PROOF
+
+This is the most important gate.
+
+The agent MUST query the actual running cluster.
+
+Required:
+
+```typescript
+accounts = await ledger.readAccounts()
+
+transfers = await ledger.readTransfers()
+```
+
+Required output:
+
+```json
+{
+ "accounts":0,
+ "transfers":0,
+ "verified":true
+}
+```
+
+If:
+
+```
+accounts > 0
+OR
+transfers > 0
+```
+
+HALT.
+
+---
+
+## STEP 006 — Freeze Genesis Payload
+
+The agent MUST display:
+
+## Accounts
+
+```
+404771 SYSTEM_RESERVE_POOL
+
+327102 TREASURY_OPERATING
+
+689728 SETTLEMENT_CLEARING
+
+346086 OBLIGATION_TRACKING
+
+536681 EXPENSE_RECONCILIATION
+
+441831 ASSET_VAULT
+
+657844 LIABILITY_ACCRUAL
+
+941698 PAYMENT_RAIL
+```
+
+## Transfer
+
+```
+ID:
+190481
+
+EVENT:
+genesis-heartbeat-001
+
+DEBIT:
+404771
+
+CREDIT:
+327102
+
+AMOUNT:
+1
+
+CODE:
+GENESIS_HEARTBEAT
+```
+
+No modification permitted.
+
+---
+
+## STEP 007 — Human Authorization Boundary
+
+The agent SHALL NOT self-authorize.
+
+Forbidden:
+
+```yaml
+approved_by:
+  SOVR-GENESIS-000002-PHASE10E.5
+```
+
+Required:
+
+```yaml
+authorization:
+
+approved:
+ true
+
+authorized_by:
+ <human_operator_identity>
+
+scope:
+ genesis_only
+```
+
+The directive is not a person.
+
+The software is not the authority.
+
+---
+
+## STEP 008 — Enable Write Authority
+
+Only after authorization:
+
+Change:
+
+```yaml
+REAL_WRITE_AUTHORIZATION:
+ enabled:false
+```
+
+to:
+
+```yaml
+enabled:true
+
+operation:
+ genesis_only
+```
+
+No other write mode exists.
+
+---
+
+# 5. Genesis Execution Sequence
+
+The agent SHALL NOT batch blindly.
+
+Execution:
+
+---
+
+## ACCOUNT CREATION
+
+Create:
+
+```
+8 accounts
+```
+
+Immediately:
+
+READ BACK.
+
+Verify:
+
+```
+8 created
+8 match
+8 deterministic IDs
+```
+
+If mismatch:
+
+HALT.
+
+---
+
+## TRANSFER CREATION
+
+Create:
+
+```
+1 transfer
+```
+
+Required:
+
+```
+ID:
+190481
+```
+
+Immediately:
+
+READ BACK.
+
+Verify:
+
+```
+exists
+fields match
+amount match
+accounts match
+code match
+```
+
+---
+
+# 6. Failure Protocol
+
+The agent SHALL NEVER:
+
+```
+retry
+rollback
+repair
+reset
+format
+reinitialize
+```
+
+If failure occurs:
+
+State becomes:
+
+```
+UNKNOWN
+```
+
+Required:
+
+```
+READ CURRENT LEDGER
+```
+
+Then:
+
+```
+EXPECTED STATE
+        |
+        v
+CONTROLLED RESUME
+
+UNEXPECTED STATE
+        |
+        v
+HALT
+```
+
+---
+
+# 7. Post Genesis Certification
+
+After successful readback:
+
+Generate:
+
+```
+generated/audit/tigerbeetle-genesis-ceremony-final.json
+```
+
+Must contain:
+
+```json
+{
+ "genesis_complete":true,
+ "accounts_created":8,
+ "transfers_created":1,
+ "transfer_id":190481,
+ "immutable":true
+}
+```
+
+Generate:
+
+```
+PHASE10E.5_COMPLETION_CERTIFICATE.yaml
+```
+
+---
+
+# 8. Final State Transition
+
+The only permitted transition:
+
+```
+EMPTY
+
+   |
+   |
+AUTHORIZED GENESIS CEREMONY
+
+   v
+
+GENESIS_PRESENT
+```
+
+Forbidden:
+
+```
+GENESIS_PRESENT
+
+      X
+
+EMPTY
+```
+
+---
+
+# 9. Agent Stop Condition
+
+After completion:
+
+The agent SHALL STOP.
+
+No:
+
+* migrations
+* economic activation
+* payment rails
+* customer onboarding
+* settlement testing
+* token issuance
+* liquidity activation
+
+Genesis is complete when:
+
+```
+The ledger can remember.
+```
+
+Not when:
+
+```
+The economy can operate.
+```
+
+---
+
+# FINAL COMMAND TO AGENT
+
+```
+You are authorized to prepare the ceremony.
+
+You are NOT authorized to assume authority.
+
+You must prove the live substrate.
+
+You must present the exact mutation set.
+
+You must wait for human authorization.
+
+You must execute once.
+
+You must verify.
+
+You must certify.
+
+You must stop.
+```
+
+---
+
+END OF DIRECTIVE
+
+SOVR-GENESIS-000002-PHASE10E.5

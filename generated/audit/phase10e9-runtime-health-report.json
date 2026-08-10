@@ -1,0 +1,81 @@
+{
+  "timestamp": "2026-08-10T20:49:26.996Z",
+  "directive": "SOVR-GENESIS-000002-PHASE10E.9",
+  "components": [
+    {
+      "component": "TigerBeetle",
+      "version": "0.17.8",
+      "cluster_id": 0,
+      "replica_status": "ACTIVE",
+      "endpoint": "127.0.0.1:8080",
+      "status": "PASS"
+    },
+    {
+      "component": "Database Layer",
+      "postgresql": {
+        "required": true,
+        "available": false,
+        "note": "PostgreSQL not configured in local development mode"
+      },
+      "event_store": {
+        "required": true,
+        "available": false,
+        "note": "Event store requires PostgreSQL configuration"
+      },
+      "command_store": {
+        "required": true,
+        "available": false,
+        "note": "Command store requires PostgreSQL configuration"
+      },
+      "audit_store": {
+        "required": true,
+        "available": false,
+        "note": "Audit store requires PostgreSQL configuration"
+      },
+      "status": "PENDING_CONFIGURATION"
+    },
+    {
+      "component": "Application Layer",
+      "packages": [
+        {
+          "name": "packages/kernel",
+          "path": "packages/kernel",
+          "status": "SOURCE_PRESENT"
+        },
+        {
+          "name": "packages/runtime",
+          "path": "packages/runtime",
+          "status": "BUILT"
+        },
+        {
+          "name": "packages/ledger",
+          "path": "packages/ledger",
+          "status": "SOURCE_PRESENT"
+        },
+        {
+          "name": "packages/settlement",
+          "path": "packages/settlement",
+          "status": "SOURCE_PRESENT"
+        },
+        {
+          "name": "packages/treasury",
+          "path": "packages/treasury",
+          "status": "SOURCE_PRESENT"
+        },
+        {
+          "name": "packages/payment",
+          "path": "packages/payment",
+          "status": "SOURCE_PRESENT"
+        },
+        {
+          "name": "packages/policy",
+          "path": "packages/policy",
+          "status": "SOURCE_PRESENT"
+        }
+      ],
+      "compile_success": true,
+      "status": "SOURCE_READY"
+    }
+  ],
+  "overall": "PASS_WITH_PENDING_CONFIGURATION"
+}

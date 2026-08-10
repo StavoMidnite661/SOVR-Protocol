@@ -1,0 +1,305 @@
+# SOVR-GENESIS-000002-PHASE10E.7
+
+# CLEAN GENESIS CEREMONY DIRECTIVE
+
+directive_id: SOVR-GENESIS-000002-PHASE10E.7-CLEAN-GENESIS-CEREMONY
+
+phase: PHASE10E.7
+
+classification: Controlled Ledger Initialization / Immutable Genesis Ceremony
+
+execution_environment: LOCAL DEVELOPMENT ONLY
+
+production_traffic: DISABLED
+
+external_financial_movement: DISABLED
+
+customer_assets: DISABLED
+
+genesis_write_authority: DISABLED UNTIL HUMAN AUTHORIZATION
+
+supersedes: SOVR-GENESIS-000002-PHASE10E.6
+
+---
+
+# 1. Mission
+
+The purpose of Phase 10E.7 is to execute the first controlled immutable write into the SOVR accounting substrate after a clean reset.
+
+The objective is:
+> Perform the exact genesis ceremony that was intended in Phase 10E.5, but on a clean substrate with corrected deterministic ID logic.
+
+---
+
+# 2. Prerequisites
+
+Before ANY write operation, the agent SHALL verify:
+
+```
+GATE_701 PASS: Reset verification complete
+GATE_702 PASS: Empty ledger verified (accounts=0, transfers=0)
+GATE_703 PASS: Deterministic ID logic corrected
+GATE_704 PASS: Human authorization granted for Phase 10E.7
+```
+
+If any gate FAILS, execution HALTS.
+
+---
+
+# 3. Current Certified State
+
+The agent SHALL begin from:
+
+```
+PHASE10E.6
+   |
+   | reset preparation complete
+   | evidence archived as GENESIS_ATTEMPT_001
+   | cluster data formatted by human operator
+   | TigerBeetle restarted with clean substrate
+   v
+PHASE10E.7 (this directive)
+   |
+   | empty ledger verified
+   | deterministic IDs verified
+   | human authorization obtained
+   v
+GENESIS EXECUTION
+```
+
+---
+
+# 4. Genesis Payload (Unchanged)
+
+The genesis payload remains exactly as specified in `GENESIS_TRANSACTION_SET.json`:
+
+## Accounts (8)
+
+```
+404771  SYSTEM_RESERVE_POOL
+327102  TREASURY_OPERATING
+689728  SETTLEMENT_CLEARING
+346086  OBLIGATION_TRACKING
+536681  EXPENSE_RECONCILIATION
+441831  ASSET_VAULT
+657844  LIABILITY_ACCRUAL
+941698  PAYMENT_RAIL
+```
+
+## Transfer (1)
+
+```
+ID:       190481 (deterministic)
+EVENT:    genesis-heartbeat-001
+DEBIT:    404771
+CREDIT:   327102
+AMOUNT:   1
+CODE:     GENESIS_HEARTBEAT
+LEDGER:   8
+```
+
+**Critical:** Transfer ID MUST be computed via deterministic hash:
+```
+SHA256("genesis-heartbeat-001:404771:327102:1") → first 8 hex chars → modulo 1000000 + 1 = 190481
+```
+
+The obsolete logic `Number("genesis-heartbeat-001".split('-').pop())` is FORBIDDEN.
+
+---
+
+# 5. Execution Sequence
+
+## STEP 1 — Verify Empty Ledger
+
+Query:
+
+```
+accounts = await ledger.readAccounts()
+transfers = await ledger.readTransfers()
+```
+
+Required:
+
+```json
+{
+  "accounts": 0,
+  "transfers": 0,
+  "verified": true
+}
+```
+
+## STEP 2 — Create 8 Accounts
+
+Create all 8 genesis accounts in a single batch.
+
+Immediately read back and verify:
+
+```
+8 created
+8 match
+8 deterministic IDs verified
+```
+
+## STEP 3 — Create Genesis Transfer
+
+Create transfer:
+
+```
+ID: 190481
+DEBIT: 404771
+CREDIT: 327102
+AMOUNT: 1
+CODE: GENESIS_HEARTBEAT
+LEDGER: 8
+```
+
+Immediately read back and verify:
+
+```
+exists
+fields match
+amount match
+accounts match
+code match
+ID = 190481
+```
+
+## STEP 4 — Generate Final Evidence
+
+Generate:
+
+```
+generated/audit/tigerbeetle-genesis-ceremony-final.json
+generated/audit/phase10e7-completion-summary.json
+```
+
+---
+
+# 6. Failure Protocol
+
+If failure occurs:
+
+```
+State becomes: UNKNOWN
+
+READ CURRENT LEDGER
+        |
+        v
+EXPECTED STATE → CONTROLLED RESUME
+UNEXPECTED STATE → HALT
+```
+
+Forbidden operations:
+
+```
+retry
+rollback
+repair
+reset
+format
+reinitialize
+```
+
+---
+
+# 7. Post Genesis Certification
+
+After successful readback:
+
+Generate:
+
+```
+PHASE10E.7_COMPLETION_CERTIFICATE.yaml
+```
+
+Must contain:
+
+```json
+{
+  "genesis_complete": true,
+  "accounts_created": 8,
+  "transfers_created": 1,
+  "transfer_id": 190481,
+  "deterministic_ids_verified": true,
+  "immutable": true
+}
+```
+
+---
+
+# 8. Final State Transition
+
+The only permitted transition:
+
+```
+EMPTY
+   |
+   | AUTHORIZED GENESIS CEREMONY
+   v
+GENESIS_PRESENT
+```
+
+Forbidden:
+
+```
+GENESIS_PRESENT  X  EMPTY
+```
+
+---
+
+# 9. Agent Stop Condition
+
+After completion:
+
+The agent SHALL STOP.
+
+No:
+* migrations
+* economic activation
+* payment rails
+* customer onboarding
+* settlement testing
+* token issuance
+* liquidity activation
+
+Genesis is complete when:
+
+```
+The ledger can remember.
+```
+
+Not when:
+
+```
+The economy can operate.
+```
+
+---
+
+# Final Agent Instruction
+
+```
+You are authorized to prepare the ceremony.
+
+You are NOT authorized to assume authority.
+
+You must prove the live substrate is EMPTY.
+
+You must present the exact mutation set.
+
+You must wait for human authorization.
+
+You must execute once.
+
+You must verify.
+
+You must certify.
+
+You must stop.
+```
+
+---
+
+END OF DIRECTIVE
+
+SOVR-GENESIS-000002-PHASE10E.7

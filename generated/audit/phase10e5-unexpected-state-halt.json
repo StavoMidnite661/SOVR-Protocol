@@ -1,0 +1,54 @@
+{
+  "phase": "PHASE10E.5",
+  "mode": "UNEXPECTED_STATE_HALT",
+  "timestamp": "2026-08-10T01:45:10-07:00",
+  "directive": "SOVR-GENESIS-000002-PHASE10E.5",
+  "finding": "LEDGER_NOT_EMPTY_PRIOR_PARTIAL_EXECUTION_DETECTED",
+  "expected_state": {
+    "accounts": 0,
+    "transfers": 0,
+    "status": "EMPTY"
+  },
+  "actual_state": {
+    "accounts": 8,
+    "transfers": 1,
+    "status": "GENESIS_PRESENT_BUT_INCORRECT",
+    "accounts_detail": [
+      { "id": 404771, "ledger": 8, "code": 20183, "timestamp": "1786292009420985401" },
+      { "id": 327102, "ledger": 8, "code": 49730, "timestamp": "1786292100347249801" },
+      { "id": 689728, "ledger": 8, "code": 20126, "timestamp": "1786292100347864001" },
+      { "id": 346086, "ledger": 8, "code": 50741, "timestamp": "1786292100348593001" },
+      { "id": 536681, "ledger": 8, "code": 46821, "timestamp": "1786292100349343401" },
+      { "id": 441831, "ledger": 8, "code": 63166, "timestamp": "1786292100350005601" },
+      { "id": 657844, "ledger": 8, "code": 64514, "timestamp": "1786292100350459001" },
+      { "id": 941698, "ledger": 8, "code": 40568, "timestamp": "1786292100351047101" }
+    ],
+    "transfers_detail": [
+      {
+        "id": 1,
+        "expected_id": 190481,
+        "debit_account_id": 404771,
+        "credit_account_id": 327102,
+        "amount": 1,
+        "code": 57260,
+        "ledger": 8
+      }
+    ]
+  },
+  "discrepancy": {
+    "transfer_id_mismatch": true,
+    "expected_transfer_id": 190481,
+    "actual_transfer_id": 1,
+    "expected_code": 1,
+    "actual_code": 57260,
+    "deterministic_id_violation": true
+  },
+  "directive_action": "HALT",
+  "directive_reference": "Section 6: Failure Protocol - UNEXPECTED STATE -> HALT",
+  "human_authorization": {
+    "granted": true,
+    "authorized_by": "AlphaNodeZero",
+    "authorization_timestamp": "2026-08-10T01:45:10-07:00"
+  },
+  "recommendation": "TigerBeetle data must be reset to empty state before ceremony can proceed. Previous partial execution used non-deterministic transfer ID (1 instead of 190481). Reformat cluster data and restart runtime."
+}

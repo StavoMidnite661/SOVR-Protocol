@@ -1,0 +1,486 @@
+# SOVR-GENESIS-000002-PHASE10E.10
+
+# CONTROLLED EVENT GENERATION & DOUBLE ENTRY PIPELINE VALIDATION DIRECTIVE
+
+directive_id: SOVR-GENESIS-000002-PHASE10E.10-CONTROLLED-EVENT-GENERATION-DIRECTIVE
+
+phase: PHASE10E.10
+
+classification: Controlled Operational Event Activation / Double Entry Validation
+
+execution_environment: LOCAL DEVELOPMENT ONLY
+
+production_traffic: DISABLED
+
+external_financial_movement: DISABLED
+
+customer_assets: DISABLED
+
+genesis_write_authority: DISABLED
+
+ledger_mutation_authority: ENABLED_FOR_AUTHORIZED_TEST_EVENTS_ONLY
+
+genesis_lock: ACTIVE
+
+supersedes: SOVR-GENESIS-000002-PHASE10E.9
+
+---
+
+# 1. Mission
+
+The purpose of Phase 10E.10 is to validate that the SOVR ledger runtime can safely transition from a locked genesis state into an operational event-driven accounting system.
+
+The objective:
+
+> Generate controlled non-genesis events through the authorized runtime pathway and prove that every state transition remains deterministic, balanced, replayable, and auditable.
+
+This phase introduces the first operational mutations after genesis.
+
+Genesis remains untouched.
+
+---
+
+# 2. Current Certified Starting State
+
+The agent MUST begin from:
+
+```
+GENESIS:
+    LOCKED
+
+GENESIS_ROOT_HASH:
+58984c9d25467525ff0dd28f7c71768c0c1a2b2cd3b4b8b80db4e3116d6065f8
+
+LEDGER:
+    OPERATIONAL
+
+EVENT STORE:
+    READY
+
+DOMAIN RUNTIME:
+    ENABLED
+
+MUTATION:
+    GOVERNED
+```
+
+---
+
+# 3. Absolute Restrictions
+
+The agent SHALL NOT:
+
+```
+MODIFY GENESIS ACCOUNTS
+MODIFY TRANSFER 190481
+ALTER GENESIS ROOT HASH
+CREATE NEW GENESIS OBJECTS
+BYPASS COMMAND VALIDATION
+WRITE DIRECTLY TO TIGERBEETLE
+SKIP EVENT CREATION
+SKIP AUDIT RECORDING
+```
+
+Any violation:
+
+```
+EVENT_PIPELINE_INTEGRITY_FAILURE
+```
+
+---
+
+# 4. Phase Objective Model
+
+The first operational event lifecycle:
+
+```
+Intent
+  |
+  v
+Command Creation
+  |
+  v
+Authorization Validation
+  |
+  v
+Event Generation
+  |
+  v
+Ledger Mutation
+  |
+  v
+Audit Recording
+  |
+  v
+Replay Verification
+```
+
+---
+
+# 5. Required Test Scenario
+
+The agent shall execute a controlled internal transaction.
+
+## Test Event:
+
+```yaml
+event_type:
+  INTERNAL_VALUE_MOVEMENT_TEST
+
+purpose:
+  Validate operational double-entry pipeline
+
+environment:
+  DEVELOPMENT_ONLY
+```
+
+---
+
+## Transaction Definition
+
+Debit:
+
+```
+SYSTEM_RESERVE_POOL
+Account: 404771
+```
+
+Credit:
+
+```
+TREASURY_OPERATING
+Account: 327102
+```
+
+Amount:
+
+```
+1
+```
+
+Purpose:
+
+```
+PHASE10E10_PIPELINE_TEST
+```
+
+---
+
+# 6. TASK 001 — Create Operational Command
+
+Generate:
+
+```
+generated/audit/phase10e10-command-record.json
+```
+
+Required:
+
+```json
+{
+  "command_id": "",
+  "command_type": "LEDGER_TRANSFER_COMMAND",
+  "created_timestamp": "",
+  "authorized": true,
+  "authorization_policy": "MUTATION_AUTHORIZATION_POLICY"
+}
+```
+
+---
+
+# 7. TASK 002 — Deterministic Event ID Generation
+
+The agent MUST generate:
+
+```
+event_id
+```
+
+using:
+
+```
+SHA256(
+  command_id +
+  debit_account +
+  credit_account +
+  amount +
+  event_type
+)
+```
+
+Required:
+
+```
+same input = same event_id
+```
+
+Generate:
+
+```
+generated/audit/phase10e10-event-id-proof.json
+```
+
+---
+
+# 8. TASK 003 — Execute Authorized Ledger Mutation
+
+The write path MUST be:
+
+```
+Command
+   |
+   v
+Validation
+   |
+   v
+Event Creation
+   |
+   v
+Ledger Adapter
+   |
+   v
+TigerBeetle
+```
+
+Direct client writes are prohibited.
+
+---
+
+# 9. TASK 004 — Double Entry Validation
+
+After mutation:
+
+Verify:
+
+Debit:
+
+```
+404771
+```
+
+increases correctly.
+
+Credit:
+
+```
+327102
+```
+
+increases correctly.
+
+Required invariant:
+
+```
+TOTAL DEBITS = TOTAL CREDITS
+```
+
+Validation:
+
+```json
+{
+  "double_entry_valid": true
+}
+```
+
+---
+
+# 10. TASK 005 — Event Store Recording
+
+Record:
+
+```
+event_id
+command_id
+ledger_transfer_id
+timestamp
+previous_hash
+event_hash
+```
+
+Generate:
+
+```
+generated/audit/phase10e10-event-record.json
+```
+
+---
+
+# 11. TASK 006 — Replay Validation
+
+The agent SHALL perform:
+
+```
+RESET EVENT VIEW
+REPLAY FROM: GENESIS_ROOT_HASH + EVENT STREAM
+```
+
+Expected:
+
+```
+Replay State = Current Ledger State
+```
+
+Required:
+
+```json
+{
+  "replay_success": true,
+  "state_match": true
+}
+```
+
+---
+
+# 12. TASK 007 — Genesis Preservation Verification
+
+After event creation:
+
+Recompute:
+
+```
+GENESIS_ROOT_HASH
+```
+
+Expected:
+
+```
+UNCHANGED
+```
+
+Required:
+
+```
+Genesis Integrity: PASS
+```
+
+---
+
+# 13. Required Evidence Package
+
+Generate:
+
+```
+generated/audit/
+phase10e10-command-record.json
+phase10e10-event-id-proof.json
+phase10e10-event-record.json
+phase10e10-ledger-validation.json
+phase10e10-double-entry-proof.json
+phase10e10-replay-certification.json
+phase10e10-genesis-preservation-check.json
+phase10e10-completion-summary.json
+```
+
+---
+
+# 14. Operational State Machine
+
+```
+RUNTIME_ENABLED
+   |
+   v
+COMMAND_CREATED
+   |
+   v
+AUTHORIZED
+   |
+   v
+EVENT_CREATED
+   |
+   v
+LEDGER_UPDATED
+   |
+   v
+DOUBLE_ENTRY_VERIFIED
+   |
+   v
+REPLAY_VERIFIED
+   |
+   v
+EVENT_PIPELINE_CERTIFIED
+```
+
+---
+
+# 15. Completion Requirements
+
+Phase 10E.10 completes only when:
+
+```
+Genesis Root Hash:    UNCHANGED
+Command Authorization: PASS
+Event Creation:       PASS
+Ledger Mutation:      PASS
+Debit/Credit Balance: PASS
+Replay:               PASS
+Audit Chain:          PASS
+```
+
+---
+
+# 16. Final Agent State
+
+Upon completion:
+
+```
+GENESIS:          LOCKED
+LEDGER:           OPERATIONAL
+EVENT PIPELINE:   CERTIFIED
+DOUBLE ENTRY:     VERIFIED
+REPLAY:           VERIFIED
+MUTATION:         GOVERNED
+PRODUCTION:       DISABLED
+```
+
+---
+
+# 17. Next Phase
+
+After successful completion:
+
+```
+PHASE10E.11
+DOMAIN TRANSACTION ORCHESTRATION
+```
+
+Focus:
+
+* Vault lifecycle events
+* Intent execution
+* Treasury workflows
+* Payment rail simulations
+* Policy enforcement
+* Agent-controlled commands
+
+---
+
+# FINAL AGENT COMMAND
+
+```
+You are operating after genesis.
+
+Genesis is not the ledger activity.
+Genesis is the immutable origin.
+
+Every future value transition must:
+  originate as intent,
+  become an authorized command,
+  become a deterministic event,
+  produce balanced accounting,
+  be replayable,
+  and remain permanently auditable.
+
+Do not create history.
+Record history.
+
+Do not bypass governance.
+Enforce governance.
+
+The integrity of every future transaction depends on this boundary.
+```
+
+---
+
+END OF DIRECTIVE
+
+SOVR-GENESIS-000002-PHASE10E.10-CONTROLLED-EVENT-GENERATION-DIRECTIVE

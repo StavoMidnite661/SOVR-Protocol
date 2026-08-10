@@ -1,0 +1,13 @@
+{
+  "event_id": "c07692920ab789fc",
+  "command_id": "17ee52dac8732aaa",
+  "ledger_transfer_id": 1065944,
+  "timestamp": "2026-08-10T21:06:05.948Z",
+  "previous_hash": "58984c9d25467525ff0dd28f7c71768c0c1a2b2cd3b4b8b80db4e3116d6065f8",
+  "event_hash": "a053f9970a0c0e20dc6e80be4224d075f567fc7a588b0a478c342f0b76a25edd",
+  "event_type": "INTERNAL_VALUE_MOVEMENT_TEST",
+  "debit_account_id": 404771,
+  "credit_account_id": 327102,
+  "amount": 1,
+  "purpose": "PHASE10E10_PIPELINE_TEST"
+}

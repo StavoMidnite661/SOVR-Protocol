@@ -1,0 +1,16 @@
+{
+  "archive_id": "GENESIS_ATTEMPT_001",
+  "archive_timestamp": "2026-08-10T12:28:54.491Z",
+  "pre_reset_snapshot_hash": "f9631c992ce3242bacbe84248b782574a8164dfe9039268790d0f87385f6e984",
+  "evidence_artifacts": [
+    "phase10e6-existing-ledger-snapshot.json",
+    "phase10e6-transfer-provenance.json",
+    "phase10e6-manifest-comparison.json",
+    "phase10e6-event-classification.json",
+    "phase10e6-recovery-recommendation.json",
+    "phase10e6-investigation-summary.json"
+  ],
+  "classification": "CLASS_A",
+  "disposition": "ARCHIVED",
+  "reset_directive": "SOVR-GENESIS-000002-RESET-000001"
+}

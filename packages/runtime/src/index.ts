@@ -7,6 +7,7 @@
 export * from './execution/index.js';
 export * from './sdk/client.js';
 export * from './adapters/boundary.js';
+export * from './orchestration/index.js';
 
 // Generated artifact runtime bindings.
 //

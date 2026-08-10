@@ -1,0 +1,38 @@
+{
+  "gate": "GATE_R001",
+  "name": "Evidence artifacts exist and are readable",
+  "timestamp": "2026-08-10T12:28:53.437Z",
+  "artifacts": [
+    {
+      "artifact": "phase10e6-existing-ledger-snapshot.json",
+      "exists": true,
+      "readable": true
+    },
+    {
+      "artifact": "phase10e6-transfer-provenance.json",
+      "exists": true,
+      "readable": true
+    },
+    {
+      "artifact": "phase10e6-manifest-comparison.json",
+      "exists": true,
+      "readable": true
+    },
+    {
+      "artifact": "phase10e6-event-classification.json",
+      "exists": true,
+      "readable": true
+    },
+    {
+      "artifact": "phase10e6-recovery-recommendation.json",
+      "exists": true,
+      "readable": true
+    },
+    {
+      "artifact": "phase10e6-investigation-summary.json",
+      "exists": true,
+      "readable": true
+    }
+  ],
+  "status": "PASS"
+}

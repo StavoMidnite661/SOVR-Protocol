@@ -1,0 +1,14 @@
+{
+  "command_id": "17ee52dac8732aaa",
+  "command_type": "LEDGER_TRANSFER_COMMAND",
+  "created_timestamp": "2026-08-10T21:06:04.982Z",
+  "authorized": true,
+  "authorization_policy": "MUTATION_AUTHORIZATION_POLICY",
+  "payload": {
+    "event_type": "INTERNAL_VALUE_MOVEMENT_TEST",
+    "debit_account_id": 404771,
+    "credit_account_id": 327102,
+    "amount": 1,
+    "purpose": "PHASE10E10_PIPELINE_TEST"
+  }
+}

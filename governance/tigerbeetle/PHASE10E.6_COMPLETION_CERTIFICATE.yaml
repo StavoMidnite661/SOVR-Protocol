@@ -1,0 +1,179 @@
+# SOVR Phase 10E.6 Completion Certificate
+
+**Certificate ID:** SOVR-GENESIS-000002-PHASE10E.6-COMPLETION
+**Date:** 2026-08-10
+**Phase:** PHASE10E.6
+**Classification:** Controlled Ledger Investigation / Genesis Recovery
+**Execution Mode:** LOCAL DEVELOPMENT ONLY
+**Production Traffic:** DISABLED
+**External Financial Movement:** DISABLED
+**Customer Assets:** DISABLED
+**Supersedes:** SOVR-GENESIS-000002-PHASE10E.5-HALT
+
+---
+
+## 1. Investigation Summary
+
+Phase 10E.6 investigated the unexpected TigerBeetle state discovered during Phase 10E.5 preparation.
+
+**Investigation Mode:** READ-ONLY — NO LEDGER MUTATIONS
+
+**Directive:** SOVR-GENESIS-000002-PHASE10E.6-LEDGER-DIVERGENCE-PROVENANCE-DIRECTIVE
+
+---
+
+## 2. Tasks Completed
+
+| Task | Name | Status |
+|------|------|--------|
+| TASK_001 | Preserve Existing State | COMPLETE |
+| TASK_002 | Identify Execution Source | COMPLETE |
+| TASK_003 | Compare Against Genesis Manifest | COMPLETE |
+| TASK_004 | Determine Event Classification | COMPLETE |
+| TASK_005 | Generate Recovery Recommendation | COMPLETE |
+
+---
+
+## 3. Findings
+
+### 3.1 Ledger State at Investigation Time
+
+**Cluster:** 127.0.0.1:8080
+**Accounts:** 8
+**Transfers:** 1
+**Snapshot Hash:** f9631c992ce3242bacbe84248b782574a8164dfe9039268790d0f87385f6e984
+
+### 3.2 Account Verification
+
+| Account ID | Purpose | Match |
+|------------|---------|-------|
+| 404771 | SYSTEM_RESERVE_POOL | YES |
+| 327102 | TREASURY_OPERATING | YES |
+| 689728 | SETTLEMENT_CLEARING | YES |
+| 346086 | OBLIGATION_TRACKING | YES |
+| 536681 | EXPENSE_RECONCILIATION | YES |
+| 441831 | ASSET_VAULT | YES |
+| 657844 | LIABILITY_ACCRUAL | YES |
+| 941698 | PAYMENT_RAIL | YES |
+
+**Result:** 8/8 accounts match genesis manifest
+
+### 3.3 Transfer Verification
+
+| Field | Expected | Actual | Match |
+|-------|----------|--------|-------|
+| ID | 190481 | 1 | NO |
+| Debit | 404771 | 404771 | YES |
+| Credit | 327102 | 327102 | YES |
+| Amount | 1 | 1 | YES |
+| Code | GENESIS_HEARTBEAT | GENESIS_HEARTBEAT | YES |
+
+**Result:** 0/1 transfer matches genesis manifest
+
+### 3.4 Execution Source
+
+**Source File:** `genesis-write-ceremony.ts`
+**Line:** 62
+**ID Generation:** `Number(genesisTransfer.id.split('-').pop() ?? '1')`
+**Result:** Transfer ID computed as `1` instead of deterministic `190481`
+
+**Root Cause:** Obsolete ID generation logic in `genesis-write-ceremony.ts` bypassed deterministic hash requirement.
+
+---
+
+## 4. Event Classification
+
+**Classification:** CLASS_A — Authorized Genesis Attempt
+
+**Disposition:** GENESIS_ATTEMPT_001
+
+**Reasoning:**
+- Accounts match intended genesis schema exactly (8/8)
+- Transfer matches intended economic intent
+- Amount is correct (1 USD unit)
+- Participants are correct (404771 -> 327102)
+- Only deterministic identity was wrong (ID=1 vs ID=190481)
+- This is not random corruption
+- Appears to be a valid genesis attempt executed through an obsolete ceremony implementation
+
+---
+
+## 5. Recovery Recommendation
+
+**Selected Option:** preserve_existing
+
+**Rationale:**
+- Current state is valid TigerBeetle state, not corruption
+- Accounts match genesis schema exactly
+- Transfer matches intended economic intent
+- Only deterministic ID requirement was violated
+- Preserving state maintains audit trail
+- Reset requires separate ceremony (SOVR-GENESIS-000002-RESET-000001)
+
+---
+
+## 6. Artifacts Generated
+
+| Artifact | Purpose |
+|----------|---------|
+| `phase10e6-existing-ledger-snapshot.json` | Live ledger state snapshot |
+| `phase10e6-transfer-provenance.json` | Execution source identification |
+| `phase10e6-manifest-comparison.json` | Genesis manifest comparison |
+| `phase10e6-event-classification.json` | Event classification |
+| `phase10e6-recovery-recommendation.json` | Recovery recommendation |
+| `phase10e6-investigation-summary.json` | Investigation summary |
+
+---
+
+## 7. Next Steps
+
+1. Archive current state as `GENESIS_ATTEMPT_001`
+2. Document provenance in Phase 10E.6 completion certificate
+3. Initiate separate reset ceremony if clean genesis is required
+4. Correct deterministic ID logic in `genesis-write-ceremony.ts`
+5. Proceed to Phase 10E.7 after reset and verification
+
+---
+
+## 8. Important Engineering Decision
+
+The existing transfer `ID=1` must NOT be "fixed."
+
+TigerBeetle is an append-only accounting system. The correct correction model is:
+
+```
+Bad genesis attempt
+        |
+        v
+Documented historical event
+        |
+        v
+New clean genesis substrate
+```
+
+---
+
+## 9. Certificate Status
+
+**INVESTIGATION COMPLETE**
+
+- All tasks completed
+- Provenance established
+- Event classified
+- Recovery recommended
+- No ledger mutations performed
+- State preserved as evidence
+
+---
+
+## 10. Authorizations
+
+**Investigation Authorized By:** Phase 10E.5 Human Authorization (AlphaNodeZero)
+**Investigation Executed By:** Automated investigation script
+**Investigation Mode:** READ-ONLY
+
+---
+
+**END OF CERTIFICATE**
+
+`SOVR-GENESIS-000002-PHASE10E.6-COMPLETION-CERTIFICATE`

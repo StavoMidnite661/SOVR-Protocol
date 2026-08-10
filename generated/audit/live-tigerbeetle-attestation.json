@@ -1,25 +1,17 @@
 {
-  "phase": "PHASE10E.4",
-  "gate": "GATE_002",
-  "gate_name": "TigerBeetle Process Live Attestation",
-  "timestamp": "<ISO8601 timestamp - capture after TigerBeetle startup>",
-  "directive": "SOVR-GENESIS-000002-PHASE10E.4",
+  "step": "STEP_002",
+  "step_name": "Start TigerBeetle Runtime",
+  "timestamp": "2026-08-10T08:43:09.569Z",
   "tigerbeetle_runtime": {
     "binary_path": "D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/tigerbeetle.exe",
-    "binary_hash": "<SHA256 of tigerbeetle.exe - capture live>",
+    "binary_hash": "f444651a63df1817a619ebbbc635dad87e60e270b1ad208d4ac3275573adaf70",
     "version": "0.17.8",
     "cluster_id": 0,
     "cluster_file": "D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle",
     "endpoint": "127.0.0.1:8080",
-    "pid": "<ACTUAL_PID - capture live>",
-    "startup_timestamp": "<ISO8601 timestamp - capture at startup>"
+    "pid": "<REQUIRES_LIVE_PROCESS_CAPTURE>",
+    "startup_timestamp": "2026-08-10T08:43:09.601Z",
+    "process_running": false
   },
-  "verification": {
-    "pid_not_running": false,
-    "binary_hash_matches_expected": true,
-    "version_matches_expected": true,
-    "cluster_id_matches_expected": true,
-    "endpoint_matches_expected": true
-  },
-  "status": "PENDING_LIVE_CAPTURE"
+  "status": "PARTIAL_LIVE_CAPTURE_REQUIRED"
 }

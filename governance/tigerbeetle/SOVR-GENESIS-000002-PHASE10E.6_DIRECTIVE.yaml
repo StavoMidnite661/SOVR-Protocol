@@ -1,0 +1,517 @@
+# SOVR-GENESIS-000002-PHASE10E.6
+
+# LEDGER DIVERGENCE INVESTIGATION & GENESIS RECOVERY DIRECTIVE
+
+directive_id: SOVR-GENESIS-000002-PHASE10E.6-LEDGER-DIVERGENCE-PROVENANCE-DIRECTIVE
+
+phase: PHASE10E.6
+
+classification: Controlled Ledger Investigation / Genesis Recovery
+
+execution_environment: LOCAL DEVELOPMENT ONLY
+
+production_traffic: DISABLED
+
+external_financial_movement: DISABLED
+
+customer_assets: DISABLED
+
+genesis_write_authority: DISABLED
+
+ledger_mutation_authority: DISABLED
+
+supersedes: SOVR-GENESIS-000002-PHASE10E.5
+
+---
+
+# 1. Mission
+
+The purpose of Phase 10E.6 is to establish the provenance and disposition of the existing TigerBeetle state discovered during Phase 10E.5.
+
+The objective is NOT:
+
+* repair the ledger
+* overwrite history
+* recreate genesis
+* delete records
+
+The objective is:
+
+> Determine whether the existing ledger state represents an abandoned genesis attempt, an authorized test execution, or an unknown execution event.
+
+---
+
+# 2. Current Frozen State
+
+The agent SHALL treat the current TigerBeetle cluster as immutable evidence.
+
+Current state:
+
+```
+Cluster:
+127.0.0.1:8080
+
+Accounts:
+8
+
+Transfers:
+1
+
+Genesis State:
+PRESENT BUT NON-COMPLIANT
+```
+
+Existing objects:
+
+## Accounts
+
+```
+404771
+SYSTEM_RESERVE_POOL
+
+327102
+TREASURY_OPERATING
+
+689728
+SETTLEMENT_CLEARING
+
+346086
+OBLIGATION_TRACKING
+
+536681
+EXPENSE_RECONCILIATION
+
+441831
+ASSET_VAULT
+
+657844
+LIABILITY_ACCRUAL
+
+941698
+PAYMENT_RAIL
+```
+
+## Transfer
+
+```
+ID:
+1
+
+Debit:
+404771
+
+Credit:
+327102
+
+Amount:
+1
+
+Code:
+57260
+
+Ledger:
+8
+```
+
+---
+
+# 3. Critical Finding
+
+The discovered state proves:
+
+```
+Genesis Account Schema
+        =
+Correct
+
+Genesis Transfer Identity
+        =
+Incorrect
+```
+
+The account creation path appears aligned.
+
+The transfer creation path violated deterministic identity requirements.
+
+---
+
+# 4. Prohibited Actions
+
+Until Phase 10E.6 completes, the agent SHALL NOT:
+
+```
+CREATE ACCOUNTS
+
+CREATE TRANSFERS
+
+DELETE ACCOUNTS
+
+DELETE TRANSFERS
+
+FORMAT TIGERBEETLE
+
+RESET CLUSTER
+
+REPAIR STORAGE
+
+ROLLBACK STATE
+
+MIGRATE DATA
+
+ALTER TRANSFER ID
+
+ALTER ACCOUNT ID
+
+MODIFY HISTORICAL EVENTS
+```
+
+---
+
+# 5. Required Investigation Tasks
+
+## TASK 001 — Preserve Existing State
+
+Generate:
+
+```
+generated/audit/
+phase10e6-existing-ledger-snapshot.json
+```
+
+Must contain:
+
+```json
+{
+ "accounts_found":8,
+ "transfers_found":1,
+ "transfer_ids":[1],
+ "snapshot_timestamp":"",
+ "cluster":"127.0.0.1:8080"
+}
+```
+
+---
+
+# TASK 002 — Identify Execution Source
+
+Determine:
+
+Which execution path created:
+
+```
+transfer_id=1
+```
+
+Search:
+
+```
+genesis-write-ceremony.ts
+execute-phase10e5-genesis.js
+phase10e5-ceremony.js
+```
+
+Determine:
+
+* commit hash
+* script name
+* timestamp
+* ID generation function
+* authorization state
+
+Generate:
+
+```
+phase10e6-transfer-provenance.json
+```
+
+---
+
+# TASK 003 — Compare Historical State Against Genesis Manifest
+
+Compare:
+
+Existing TigerBeetle objects:
+
+against:
+
+```
+GENESIS_TRANSACTION_SET.json
+
+SOVR_ACCOUNT_SCHEMA.json
+
+GENESIS_WRITE_MANIFEST.yaml
+```
+
+Required output:
+
+```
+ACCOUNT MATCH:
+
+8/8
+
+TRANSFER MATCH:
+
+0/1
+```
+
+Expected finding:
+
+```
+Accounts:
+MATCH
+
+Transfer:
+FAIL
+```
+
+---
+
+# TASK 004 — Determine Event Classification
+
+The agent SHALL classify the existing transfer.
+
+Possible classifications:
+
+---
+
+## CLASS A
+
+Authorized Genesis Attempt
+
+Meaning:
+
+A valid operator intentionally executed genesis but using outdated code.
+
+Disposition:
+
+Archive as:
+
+```
+GENESIS_ATTEMPT_001
+```
+
+---
+
+## CLASS B
+
+Development Test Execution
+
+Meaning:
+
+A test path wrote to the live cluster.
+
+Disposition:
+
+Archive as:
+
+```
+TEST_EXECUTION_ARTIFACT
+```
+
+---
+
+## CLASS C
+
+Unknown Execution
+
+Meaning:
+
+No provenance available.
+
+Disposition:
+
+Archive as:
+
+```
+UNKNOWN_LEDGER_EVENT
+```
+
+---
+
+# TASK 005 — Generate Recovery Recommendation
+
+Create:
+
+```
+generated/audit/
+phase10e6-reset-recommendation.yaml
+```
+
+Allowed recommendations:
+
+```yaml
+recommendation:
+
+  preserve_existing:
+  
+  OR
+  
+  controlled_development_reset:
+  
+  OR
+  
+  forensic_hold:
+```
+
+---
+
+# 6. Important Engineering Decision
+
+The existing transfer:
+
+```
+ID=1
+```
+
+must NOT be "fixed."
+
+Do not transform:
+
+```
+ID=1
+        |
+        X
+        |
+ID=190481
+```
+
+because TigerBeetle is an append-only accounting system.
+
+The correct correction model is:
+
+```
+Bad genesis attempt
+        |
+        v
+Documented historical event
+        |
+        v
+New clean genesis substrate
+```
+
+---
+
+# 7. Reset Requirements (If Approved)
+
+If the final decision is reset:
+
+Reset is a separate ceremony.
+
+Required:
+
+```
+SOVR-GENESIS-000002-RESET-000001
+```
+
+Must capture:
+
+Before:
+
+```
+cluster hash
+data manifest
+account list
+transfer list
+```
+
+Action:
+
+```
+Human operator performs reset
+```
+
+After:
+
+```
+Live empty ledger proof
+accounts=0
+transfers=0
+```
+
+Only then:
+
+Phase 10E.7 may begin.
+
+---
+
+# 8. Recommended Path
+
+Based on the evidence provided:
+
+I would classify the current state as:
+
+```
+GENESIS_ATTEMPT_001
+```
+
+Reason:
+
+* accounts match intended genesis schema
+* transfer matches intended economic intent
+* amount is correct
+* participants are correct
+* only deterministic identity was wrong
+
+This is not random corruption.
+
+It appears to be:
+
+> A valid genesis attempt executed through an obsolete ceremony implementation.
+
+---
+
+# 9. Next Phase
+
+The correct progression is:
+
+```
+10E.5
+   |
+   v
+HALT
+   |
+   v
+10E.6
+Ledger Divergence Investigation
+   |
+   v
+Decision
+   |
+   +----------------+
+   |                |
+ Preserve        Reset
+ Existing        Substrate
+   |                |
+ Archive        10E.7
+ Attempt        Clean Genesis
+   |                |
+ END            New Ceremony
+```
+
+---
+
+# Final Agent Instruction
+
+```
+The current TigerBeetle state is evidence.
+
+Do not repair it.
+Do not overwrite it.
+Do not continue genesis.
+
+Investigate provenance.
+
+Classify the event.
+
+Preserve the record.
+
+Only after human review may a new genesis path be authorized.
+```
+
+The system behaved correctly here. The discovery of `transfer_id=1` is exactly the type of divergence the ceremony gates were built to expose. The next milestone is not writing to TigerBeetle — it is establishing the historical truth of how that write happened.
+
+---
+
+END OF DIRECTIVE
+
+SOVR-GENESIS-000002-PHASE10E.6

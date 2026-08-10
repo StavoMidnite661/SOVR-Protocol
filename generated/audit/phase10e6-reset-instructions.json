@@ -1,0 +1,24 @@
+{
+  "directive": "SOVR-GENESIS-000002-RESET-000001",
+  "timestamp": "2026-08-10T12:28:54.493Z",
+  "status": "READY_FOR_HUMAN_OPERATOR",
+  "prerequisites": {
+    "gateR001": "PASS",
+    "gateR002": "PASS",
+    "gateR003": "PASS",
+    "gateR004": "PASS"
+  },
+  "human_operator_actions": [
+    "1. Stop TigerBeetle process (PID: check phase10e6-reset-gate-r003.json)",
+    "2. Format cluster data: tigerbeetle format --cluster=0 --replica=0 --replica-count=1 D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle",
+    "3. Restart TigerBeetle: tigerbeetle start --addresses=127.0.0.1:8080 D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle",
+    "4. Verify empty ledger: node scripts/reset-phase10e6.js verify",
+    "5. Authorize Phase 10E.7: Update governance/tigerbeetle/HUMAN_AUTHORIZATION.yaml"
+  ],
+  "warnings": [
+    "This action is IRREVERSIBLE",
+    "Existing ledger data will be permanently lost",
+    "Evidence has been archived as GENESIS_ATTEMPT_001",
+    "Only proceed if reset authorization is valid"
+  ]
+}

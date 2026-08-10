@@ -2,12 +2,12 @@
   "scenario_id": "SIM-001-VAULT-FUNDING-LIFECYCLE",
   "events": [
     {
-      "event_id": "deadbeef-dead-0000-9d171800-000000000000",
-      "command_id": "cmd-001",
-      "correlation_id": "cmd-001",
-      "causation_id": "cmd-001",
+      "event_id": "cafebabe-cafe-0000-d700d000-000000000000",
+      "command_id": "replay-001",
+      "correlation_id": "replay-001",
+      "causation_id": "replay-001",
       "economic_context": {
-        "asset_id": "vault-asset-001"
+        "asset_id": "replay-asset-001"
       }
     }
   ],

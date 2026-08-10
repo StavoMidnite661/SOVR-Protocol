@@ -1,0 +1,57 @@
+mission_execution_policy:
+  version: "1.0.0"
+  effective_at: "2026-08-10T15:00:00-07:00"
+
+  mission_states:
+    - CREATED
+    - VALIDATING
+    - PLANNING
+    - EXECUTING
+    - VERIFYING
+    - COMPLETED
+    - FAILED
+    - AUDITED
+
+  state_transitions:
+    - from: CREATED
+      to: VALIDATING
+      trigger: validate_mission
+    - from: VALIDATING
+      to: PLANNING
+      trigger: plan_mission
+    - from: VALIDATING
+      to: FAILED
+      trigger: validation_failed
+    - from: PLANNING
+      to: EXECUTING
+      trigger: execute_mission
+    - from: PLANNING
+      to: FAILED
+      trigger: planning_failed
+    - from: EXECUTING
+      to: VERIFYING
+      trigger: verify_results
+    - from: EXECUTING
+      to: FAILED
+      trigger: execution_failed
+    - from: VERIFYING
+      to: COMPLETED
+      trigger: verification_passed
+    - from: VERIFYING
+      to: FAILED
+      trigger: verification_failed
+    - from: FAILED
+      to: AUDITED
+      trigger: audit_failure
+
+  policy_requirements:
+    - All missions require policy evaluation before execution
+    - Critical risk missions require human approval
+    - High risk missions require additional authorization
+    - All mission steps must be recorded in audit trail
+
+  execution_rules:
+    - Missions must execute steps in dependency order
+    - Failed steps must not prevent independent steps from executing
+    - All failures must be audited
+    - Mission results must be deterministic for identical inputs

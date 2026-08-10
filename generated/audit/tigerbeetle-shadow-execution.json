@@ -1,24 +1,219 @@
 {
-  "scenario_id": "GENESIS-READINESS",
-  "commands": [],
+  "scenario_id": "SIM-007-SHADOW",
+  "commands": [
+    {
+      "aggregate": "intent",
+      "capability_id": "intent.submit",
+      "command_id": "cmd-001",
+      "command_name": "intent.submit",
+      "domain": "intent",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "domain_target": "treasury",
+        "intent_id": "sim-intent-007",
+        "intent_type": "settlement",
+        "objective": "Execute settlement obligation",
+        "submitting_actor_id": "sim-settlement-operator"
+      },
+      "scope": "intent:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-treasury-authority",
+        "actor_type": "system",
+        "identity_id": "sim-treasury-authority-id",
+        "session_id": "sim-treasury-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.transfer.request",
+      "command_id": "cmd-002",
+      "command_name": "treasury.transfer.request",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "amount": "50",
+        "asset_id": "vault-asset-007",
+        "destination_actor_id": "sim-recipient-007",
+        "destination_details": [
+          {
+            "address": "sim-address-007",
+            "rail": "ACH",
+            "reference": "sim-ref-007",
+            "type": "ach"
+          }
+        ],
+        "order_id": "sim-transfer-007",
+        "purpose": "settlement_obligation",
+        "source_actor_id": "sim-settlement-operator"
+      },
+      "scope": "treasury.transfer:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-treasury-authority",
+        "actor_type": "system",
+        "identity_id": "sim-treasury-authority-id",
+        "session_id": "sim-treasury-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.transfer.authorize",
+      "command_id": "cmd-003",
+      "command_name": "treasury.transfer.authorize",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "order_id": "sim-transfer-007"
+      },
+      "scope": "treasury.transfer:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-treasury-authority",
+        "actor_type": "system",
+        "identity_id": "sim-treasury-authority-id",
+        "session_id": "sim-treasury-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.transfer.reserve",
+      "command_id": "cmd-004",
+      "command_name": "treasury.transfer.reserve",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "order_id": "sim-transfer-007"
+      },
+      "scope": "treasury.transfer:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-ledger-authority",
+        "actor_type": "system",
+        "identity_id": "sim-ledger-authority-id",
+        "session_id": "sim-ledger-session-007"
+      },
+      "aggregate": "journal_entry",
+      "aggregate_id": "journal-007",
+      "capability_id": "ledger.entry.post",
+      "command_id": "cmd-005",
+      "command_name": "ledger.entry.post",
+      "domain": "ledger",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "causation_id": "cmd-004",
+        "correlation_id": "cmd-004",
+        "description": "Settlement reserve ledger posting",
+        "entry_type": "STANDARD",
+        "event_reference": "treasury.transfer.reserved",
+        "journal_id": "journal-007",
+        "postings": [
+          {
+            "account_id": "account-007-a",
+            "amount": 50,
+            "asset_id": "vault-asset-007",
+            "description": "Debit settlement reserve",
+            "direction": "DEBIT"
+          },
+          {
+            "account_id": "account-007-b",
+            "amount": 50,
+            "asset_id": "vault-asset-007",
+            "description": "Credit settlement liability",
+            "direction": "CREDIT"
+          }
+        ],
+        "transaction_id": "tx-007"
+      },
+      "scope": "ledger.entry:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-settlement-authority",
+        "actor_type": "system",
+        "identity_id": "sim-settlement-authority-id",
+        "session_id": "sim-settlement-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.transfer.execute",
+      "command_id": "cmd-006",
+      "command_name": "treasury.transfer.execute",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "order_id": "sim-transfer-007"
+      },
+      "scope": "treasury.transfer:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-settlement-authority",
+        "actor_type": "system",
+        "identity_id": "sim-settlement-authority-id",
+        "session_id": "sim-settlement-session-007"
+      },
+      "aggregate": "transfer_order",
+      "aggregate_id": "sim-transfer-007",
+      "capability_id": "treasury.settlement.confirm",
+      "command_id": "cmd-007",
+      "command_name": "treasury.settlement.confirm",
+      "domain": "treasury",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "order_id": "sim-transfer-007",
+        "settled_at": "2026-08-08T14:00:00Z",
+        "settlement_amount": "50",
+        "settlement_reference": "sim-ref-007"
+      },
+      "scope": "treasury.settlement:*"
+    },
+    {
+      "actor_context": {
+        "actor_id": "sim-governance-verifier",
+        "actor_type": "governance",
+        "identity_id": "sim-governance-verifier-id",
+        "session_id": "sim-governance-session-007"
+      },
+      "aggregate": "audit_record",
+      "capability_id": "governance.audit.query",
+      "command_id": "cmd-008",
+      "command_name": "governance.audit.query",
+      "domain": "governance",
+      "expected_result": "ACCEPTED",
+      "payload": {
+        "audit_type": "settlement",
+        "end_date": "2026-08-08T23:59:59Z",
+        "filters": {
+          "settlement_id": "sim-settlement-007"
+        },
+        "start_date": "2026-08-01T00:00:00Z",
+        "target_domains": [
+          "treasury",
+          "ledger"
+        ]
+      },
+      "scope": "governance.audit:*"
+    }
+  ],
   "expected_tigerbeetle_operations": [
     {
       "operation": "CREATE_TRANSFER",
       "target": {
-        "sovr_event_id": "genesis-heartbeat-001",
-        "tigerbeetle_id": 190481,
-        "debit_sovr_id": "SOVR-ACCOUNT-000001",
-        "credit_sovr_id": "SOVR-ACCOUNT-000002",
-        "amount": "1",
+        "sovr_event_id": "evt-shadow-7",
+        "tigerbeetle_id": 532370,
+        "debit_sovr_id": "SOVR-ACCOUNT-000003",
+        "credit_sovr_id": "SOVR-ACCOUNT-000004",
+        "amount": "5000",
         "currency": "USD",
-        "deterministic_hash": "6b3d77d08fb1b5f365cf67074009011b6eaaabe03668d8ac7d841d630d8d0fd2"
+        "deterministic_hash": "602c8cd16a809a5c334151e07c12259723a731c881d36bfb422143b8ab3f8611"
       }
     }
   ],
-  "deterministic_hash": "a8d503953ece471deef7e498ceaff8e8b6cff6b9dab774532cab760411a99236",
+  "deterministic_hash": "521ffff76d73b9f4f3f5dd9893af28d8d15eecb3b96cb697031226742f7e4baa",
   "verified": true,
-  "executed_at": "2026-08-10T06:30:03.768Z",
+  "executed_at": "2026-08-10T21:37:52.373Z",
   "write_enabled": false,
-  "status": "SHADOW_ONLY",
-  "note": "Corrected in Phase 10E.4: event_id standardized to genesis-heartbeat-001, transfer ID corrected to 190481"
+  "status": "SHADOW_ONLY"
 }

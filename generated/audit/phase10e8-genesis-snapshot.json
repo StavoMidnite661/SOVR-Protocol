@@ -1,0 +1,88 @@
+{
+  "snapshot_id": "SOVR-GENESIS-000002-SNAPSHOT-001",
+  "timestamp": "2026-08-10T16:55:18.773Z",
+  "cluster": {
+    "cluster_id": 0,
+    "endpoint": "127.0.0.1:8080",
+    "data_directory": "D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data"
+  },
+  "accounts": [
+    {
+      "id": 327102,
+      "ledger": 8,
+      "code": 1,
+      "debits_posted": 0,
+      "credits_posted": 1,
+      "timestamp": "1786365351353114502"
+    },
+    {
+      "id": 346086,
+      "ledger": 8,
+      "code": 1,
+      "debits_posted": 0,
+      "credits_posted": 0,
+      "timestamp": "1786365351353114504"
+    },
+    {
+      "id": 404771,
+      "ledger": 8,
+      "code": 1,
+      "debits_posted": 1,
+      "credits_posted": 0,
+      "timestamp": "1786365351353114501"
+    },
+    {
+      "id": 441831,
+      "ledger": 8,
+      "code": 1,
+      "debits_posted": 0,
+      "credits_posted": 0,
+      "timestamp": "1786365351353114506"
+    },
+    {
+      "id": 536681,
+      "ledger": 8,
+      "code": 1,
+      "debits_posted": 0,
+      "credits_posted": 0,
+      "timestamp": "1786365351353114505"
+    },
+    {
+      "id": 657844,
+      "ledger": 8,
+      "code": 1,
+      "debits_posted": 0,
+      "credits_posted": 0,
+      "timestamp": "1786365351353114507"
+    },
+    {
+      "id": 689728,
+      "ledger": 8,
+      "code": 1,
+      "debits_posted": 0,
+      "credits_posted": 0,
+      "timestamp": "1786365351353114503"
+    },
+    {
+      "id": 941698,
+      "ledger": 8,
+      "code": 1,
+      "debits_posted": 0,
+      "credits_posted": 0,
+      "timestamp": "1786365351353114508"
+    }
+  ],
+  "transfers": [
+    {
+      "id": 190481,
+      "debit_account_id": 404771,
+      "credit_account_id": 327102,
+      "amount": "1",
+      "code": 1,
+      "ledger": 8,
+      "timestamp": "1786365351354605901"
+    }
+  ],
+  "manifest_hash": "3282c947b024d41afafb62dc95986c829c0de52d2eab020cee7b0bea1e7ef220",
+  "snapshot_hash": "04689036dfa1a4c5110aa25a5a83e84f3ff0486fe1a97b25163ccde5e3ca908b"
+}

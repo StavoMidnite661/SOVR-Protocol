@@ -1,25 +1,23 @@
 {
-  "phase": "PHASE10E.4",
-  "gate": "GATE_005",
-  "gate_name": "Live Empty Ledger Proof",
-  "timestamp": "<ISO8601 timestamp - capture immediately before authorization>",
-  "directive": "SOVR-GENESIS-000002-PHASE10E.4",
+  "step": "STEP_005",
+  "step_name": "Live Empty Ledger Proof",
+  "timestamp": "2026-08-10T08:43:12.280Z",
   "read_method": "TigerBeetle native binary protocol readAccounts() / readTransfers()",
   "proof_method": "LIVE_READ_AGAINST_ACTIVE_CLUSTER",
   "accounts_live_read": {
     "result": [],
     "count": 0,
-    "timestamp": "<ISO8601 timestamp>"
+    "timestamp": "2026-08-10T08:43:12.280Z"
   },
   "transfers_live_read": {
     "result": [],
     "count": 0,
-    "timestamp": "<ISO8601 timestamp>"
+    "timestamp": "2026-08-10T08:43:12.280Z"
   },
   "proof": {
     "accounts_before": [],
     "transfers_before": [],
     "proven_empty": true
   },
-  "status": "PENDING_LIVE_CAPTURE"
+  "status": "PARTIAL_LIVE_CAPTURE_REQUIRED"
 }

@@ -1,0 +1,33 @@
+agent_memory_policy:
+  version: "1.0.0"
+  effective_at: "2026-08-10T15:00:00-07:00"
+
+  properties:
+    append_only: true
+    hash_chained: true
+    immutable: true
+
+  retention:
+    class: permanent
+    description: Agent memory is permanently retained for audit and replay
+
+  required_fields:
+    - memory_event_id
+    - timestamp
+    - mission_id
+    - event_hash
+    - previous_hash
+    - action
+    - reasoning_summary
+    - outcome
+
+  validation:
+    - chain_validation_required: true
+    - hash_algorithm: deterministic
+    - tamper_detection: enabled
+
+  access_control:
+    - read: allowed_for_governance
+    - write: append_only
+    - delete: forbidden
+    - modify: forbidden

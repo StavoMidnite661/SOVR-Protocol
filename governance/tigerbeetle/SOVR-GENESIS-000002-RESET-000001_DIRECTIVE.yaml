@@ -1,0 +1,294 @@
+# SOVR-GENESIS-000002-RESET-000001
+
+# CONTROLLED DEVELOPMENT SUBSTRATE RESET DIRECTIVE
+
+directive_id: SOVR-GENESIS-000002-RESET-000001
+
+phase: RESET
+
+classification: Controlled Ledger Reset / Genesis Recovery
+
+execution_environment: LOCAL DEVELOPMENT ONLY
+
+production_traffic: DISABLED
+
+external_financial_movement: DISABLED
+
+customer_assets: DISABLED
+
+genesis_write_authority: DISABLED
+
+ledger_mutation_authority: DISABLED
+
+supersedes: SOVR-GENESIS-000002-PHASE10E.6
+
+---
+
+# 1. Mission
+
+The purpose of this directive is to perform a controlled reset of the TigerBeetle cluster to enable a clean genesis ceremony.
+
+The objective is NOT:
+
+* repair the existing ledger
+* modify existing records
+* delete existing history
+* overwrite existing state
+
+The objective is:
+
+> Create a fresh TigerBeetle substrate that satisfies the EMPTY prerequisite for Phase 10E.7 genesis execution.
+
+---
+
+# 2. Pre-Reset State (Frozen Evidence)
+
+The agent SHALL treat the following as immutable evidence:
+
+**Cluster:** 127.0.0.1:8080
+**Accounts:** 8
+**Transfers:** 1
+**Transfer ID:** 1
+**Genesis State:** PRESENT BUT NON-COMPLIANT
+**Classification:** GENESIS_ATTEMPT_001
+
+**Evidence Artifacts:**
+- `generated/audit/phase10e6-existing-ledger-snapshot.json`
+- `generated/audit/phase10e6-transfer-provenance.json`
+- `generated/audit/phase10e6-manifest-comparison.json`
+- `generated/audit/phase10e6-event-classification.json`
+- `generated/audit/phase10e6-recovery-recommendation.json`
+- `governance/tigerbeetle/PHASE10E.6_COMPLETION_CERTIFICATE.yaml`
+
+These artifacts SHALL be preserved and archived before any reset action.
+
+---
+
+# 3. Reset Prerequisites
+
+Before any reset action, the agent SHALL verify:
+
+```
+GATE_R001: Evidence artifacts exist and are readable
+GATE_R002: Reset authorization exists and is valid
+GATE_R003: TigerBeetle process is running
+GATE_R004: Cluster state matches pre-reset snapshot
+```
+
+All gates MUST PASS before reset proceeds.
+
+---
+
+# 4. Reset Procedure
+
+## STEP 1 — Archive Evidence
+
+Generate:
+
+```
+generated/audit/
+phase10e6-genesis-attempt-001-archive.json
+```
+
+Must contain:
+
+```json
+{
+  "archive_id": "GENESIS_ATTEMPT_001",
+  "archive_timestamp": "",
+  "pre_reset_snapshot_hash": "",
+  "evidence_artifacts": [],
+  "classification": "CLASS_A",
+  "disposition": "ARCHIVED"
+}
+```
+
+## STEP 2 — Stop TigerBeetle
+
+Action:
+
+```
+Stop TigerBeetle process
+```
+
+Verify:
+
+```
+Process terminated
+Port 8080 available
+```
+
+## STEP 3 — Reset Cluster Data
+
+Action:
+
+```
+Human operator formats TigerBeetle cluster data
+```
+
+Required:
+
+```
+Cluster ID: 0
+Replica count: 1
+Data directory: D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data
+```
+
+**IMPORTANT:** This step MUST be performed by human operator. The agent SHALL NOT automate cluster formatting.
+
+## STEP 4 — Restart TigerBeetle
+
+Action:
+
+```
+Start TigerBeetle with fresh data
+```
+
+Verify:
+
+```
+Process running
+Endpoint: 127.0.0.1:8080
+Cluster ID: 0
+```
+
+## STEP 5 — Verify Empty Ledger
+
+Query:
+
+```
+accounts = await ledger.readAccounts()
+transfers = await ledger.readTransfers()
+```
+
+Required:
+
+```json
+{
+  "accounts": 0,
+  "transfers": 0,
+  "status": "EMPTY"
+}
+```
+
+If accounts > 0 OR transfers > 0:
+
+```
+HALT
+```
+
+---
+
+# 5. Post-Reset Certification
+
+After successful empty ledger verification, generate:
+
+```
+generated/audit/
+phase10e6-reset-certification.json
+```
+
+Must contain:
+
+```json
+{
+  "reset_complete": true,
+  "reset_timestamp": "",
+  "pre_reset_hash": "",
+  "post_reset_hash": "",
+  "empty_ledger_verified": true,
+  "accounts_after_reset": 0,
+  "transfers_after_reset": 0,
+  "ready_for_phase10e7": true
+}
+```
+
+---
+
+# 6. Prohibited Actions During Reset
+
+The agent SHALL NOT:
+
+```
+AUTOMATICALLY FORMAT CLUSTER
+AUTOMATICALLY DELETE DATA
+BYPASS HUMAN OPERATOR CONFIRMATION
+MODIFY EXISTING LEDGER RECORDS
+ALTER HISTORICAL EVIDENCE
+SKIP EVIDENCE ARCHIVAL
+```
+
+---
+
+# 7. Human Operator Responsibilities
+
+The human operator SHALL:
+
+1. Review Phase 10E.6 investigation findings
+2. Confirm reset authorization
+3. Perform cluster data formatting
+4. Verify TigerBeetle restart
+5. Confirm empty ledger state
+6. Authorize Phase 10E.7 genesis ceremony
+
+---
+
+# 8. Reset Completion Criteria
+
+Reset is COMPLETE when:
+
+```
+[1] Evidence archived
+[2] TigerBeetle stopped
+[3] Cluster data formatted by human operator
+[4] TigerBeetle restarted
+[5] Empty ledger verified (accounts=0, transfers=0)
+[6] Reset certification generated
+```
+
+---
+
+# 9. Next Phase
+
+After reset completion:
+
+```
+RESET
+   |
+   v
+PHASE10E.7
+Clean Genesis Ceremony
+```
+
+Phase 10E.7 SHALL:
+
+1. Verify empty ledger
+2. Execute genesis with corrected deterministic ID logic
+3. Verify read-back matches manifest
+4. Generate final certificates
+5. Freeze genesis state
+
+---
+
+# Final Agent Instruction
+
+```
+This directive prepares for reset.
+
+It does NOT execute reset.
+
+The human operator must perform the actual cluster formatting.
+
+The agent's role is:
+  - Archive evidence
+  - Verify pre-reset state
+  - Guide reset procedure
+  - Verify post-reset state
+  - Certify readiness for Phase 10E.7
+```
+
+---
+
+END OF DIRECTIVE
+
+SOVR-GENESIS-000002-RESET-000001

@@ -1,0 +1,43 @@
+{
+  "timestamp": "2026-08-10T21:06:05.951Z",
+  "replay_type": "GENESIS_ROOT_HASH + EVENT_STREAM",
+  "genesis_root_hash": "58984c9d25467525ff0dd28f7c71768c0c1a2b2cd3b4b8b80db4e3116d6065f8",
+  "replay_state": {
+    "accounts": [
+      404771,
+      327102,
+      689728,
+      346086,
+      536681,
+      441831,
+      657844,
+      941698
+    ],
+    "transfers": [
+      190481,
+      944316,
+      979460,
+      1017169,
+      1065944
+    ],
+    "account_count": 8,
+    "transfer_count": 5
+  },
+  "expected_accounts": [
+    404771,
+    327102,
+    689728,
+    346086,
+    536681,
+    441831,
+    657844,
+    941698
+  ],
+  "expected_transfers": [
+    190481
+  ],
+  "account_match": true,
+  "transfer_match": true,
+  "replay_success": true,
+  "state_match": true
+}

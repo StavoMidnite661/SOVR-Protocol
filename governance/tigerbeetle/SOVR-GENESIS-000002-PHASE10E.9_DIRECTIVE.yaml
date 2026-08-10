@@ -1,0 +1,442 @@
+# SOVR-GENESIS-000002-PHASE10E.9
+
+# LEDGER RUNTIME ENABLEMENT & GENESIS INTEGRITY GUARDIAN DIRECTIVE
+
+directive_id: SOVR-GENESIS-000002-PHASE10E.9-LEDGER-RUNTIME-ENABLEMENT-DIRECTIVE
+
+phase: PHASE10E.9
+
+classification: Controlled Ledger Runtime Activation / Genesis Protected Operations
+
+execution_environment: LOCAL DEVELOPMENT ONLY
+
+production_traffic: DISABLED
+
+external_financial_movement: DISABLED
+
+customer_assets: DISABLED
+
+genesis_write_authority: DISABLED
+
+ledger_mutation_authority: DISABLED
+
+genesis_lock_status: ACTIVE
+
+supersedes: SOVR-GENESIS-000002-PHASE10E.8
+
+---
+
+# 1. Mission
+
+The purpose of Phase 10E.9 is to activate the SOVR ledger runtime environment while preserving the immutable genesis substrate established during Phase 10E.7 and Phase 10E.8.
+
+The objective is:
+> Enable operational ledger services around the certified genesis state without modifying the genesis substrate.
+
+The agent SHALL understand:
+
+```
+Genesis = Historical Truth
+Runtime = Operational Layer
+Events = Future State Transitions
+```
+
+Genesis SHALL NOT be modified.
+
+---
+
+# 2. Current Certified State
+
+The agent MUST load:
+
+```
+PHASE10E.8_LOCK_CERTIFICATE.json
+```
+
+Expected:
+
+```json
+{
+  "locked": true,
+  "immutable": true,
+  "account_count": 8,
+  "transfer_count": 1,
+  "genesis_root_hash": "58984c9d25467525ff0dd28f7c71768c0c1a2b2cd3b4b8b80db4e3116d6065f8"
+}
+```
+
+The agent MUST verify:
+
+```
+Current Ledger Hash vs GENESIS_ROOT_HASH → MATCH
+```
+
+Required result:
+
+```
+GENESIS_INTEGRITY_CONFIRMED
+```
+
+---
+
+# 3. Absolute Prohibitions
+
+The agent SHALL NOT:
+
+```
+CREATE GENESIS ACCOUNTS
+CREATE GENESIS TRANSFERS
+DELETE ACCOUNTS
+DELETE TRANSFERS
+ALTER ACCOUNT IDS
+ALTER TRANSFER IDS
+REWRITE HISTORY
+FORMAT TIGERBEETLE
+RESET CLUSTER
+REPAIR LEDGER
+MIGRATE GENESIS DATA
+CHANGE ROOT HASH
+OVERRIDE LOCK CERTIFICATE
+```
+
+Any attempt is:
+
+```
+GENESIS_INTEGRITY_VIOLATION
+```
+
+---
+
+# 4. Runtime Activation Objective
+
+The agent shall establish:
+
+```
+GENESIS
+  |
+  v
+LEDGER CORE
+  |
+  v
+EVENT PIPELINE
+  |
+  v
+DOMAIN RUNTIME
+  |
+  v
+APPLICATION SERVICES
+```
+
+The runtime layer SHALL consume ledger state.
+It SHALL NOT become the source of truth.
+
+---
+
+# 5. Required Tasks
+
+## TASK 001 — Genesis Integrity Verification
+
+Create:
+
+```
+generated/audit/phase10e9-genesis-integrity-check.json
+```
+
+Required schema:
+
+```json
+{
+  "timestamp": "",
+  "cluster": "127.0.0.1:8080",
+  "expected_root_hash": "58984c9d25467525ff0dd28f7c71768c0c1a2b2cd3b4b8b80db4e3116d6065f8",
+  "actual_root_hash": "",
+  "match": true,
+  "status": "GENESIS_INTEGRITY_CONFIRMED"
+}
+```
+
+Failure:
+
+```
+HALT
+INVESTIGATION_REQUIRED
+```
+
+---
+
+## TASK 002 — Runtime Dependency Audit
+
+Verify:
+
+### TigerBeetle
+
+```
+version
+cluster_id
+replica_status
+endpoint
+```
+
+Required: PASS
+
+### Database Layer
+
+```
+PostgreSQL
+event_store
+command_store
+audit_store
+```
+
+Required: AVAILABLE
+
+### Application Layer
+
+```
+packages/kernel
+packages/runtime
+packages/ledger
+packages/settlement
+packages/treasury
+packages/payment
+packages/policy
+```
+
+Required: COMPILE_SUCCESS
+
+---
+
+## TASK 003 — Create Ledger Runtime Boundary
+
+The agent SHALL establish:
+
+```
+READ PATH
+  Application -> Ledger Adapter -> TigerBeetle
+
+WRITE PATH
+  Application -> Authorized Command -> Event Validation -> Ledger Mutation Ceremony
+```
+
+No direct writes are allowed.
+
+---
+
+## TASK 004 — Enable Event Store
+
+Create:
+
+```
+generated/audit/phase10e9-event-runtime-attestation.json
+```
+
+Verify:
+
+```
+event_id generation
+event ordering
+timestamp authority
+hash chaining
+replay capability
+```
+
+Required: EVENT_PIPELINE_READY
+
+---
+
+## TASK 005 — Activate SOVR Domain Runtime
+
+Enable:
+
+```
+VAULT DOMAIN
+LEDGER DOMAIN
+TREASURY DOMAIN
+PAYMENT DOMAIN
+IDENTITY DOMAIN
+POLICY DOMAIN
+AGENT DOMAIN
+GOVERNANCE DOMAIN
+INTENT DOMAIN
+```
+
+Each domain must report:
+
+```json
+{
+  "domain": "",
+  "status": "READY",
+  "genesis_reference": "58984c9d..."
+}
+```
+
+---
+
+## TASK 006 — Establish Mutation Governance
+
+Create:
+
+```
+governance/tigerbeetle/MUTATION_AUTHORIZATION_POLICY.yaml
+```
+
+Required rules:
+
+```yaml
+mutation_policy:
+  genesis:
+    immutable: true
+  ledger_events:
+    require_command: true
+  transfers:
+    require_authorization: true
+  accounts:
+    require_governance_approval: true
+  emergency_override:
+    disabled: true
+```
+
+---
+
+## TASK 007 — Genesis Runtime Smoke Test
+
+The agent SHALL perform:
+
+READ ONLY:
+
+```
+Query Account 404771
+Query Account 327102
+Query Transfer 190481
+```
+
+Expected:
+
+```json
+{
+  "genesis_verified": true,
+  "transfer_verified": true,
+  "mutation_performed": false
+}
+```
+
+---
+
+# 6. Required Evidence Package
+
+Generate:
+
+```
+generated/audit/
+phase10e9-genesis-integrity-check.json
+phase10e9-runtime-health-report.json
+phase10e9-domain-readiness-report.json
+phase10e9-event-runtime-attestation.json
+phase10e9-mutation-policy-validation.json
+phase10e9-completion-certificate.yaml
+```
+
+---
+
+# 7. Runtime State Machine
+
+```
+GENESIS_LOCKED
+  |
+  v
+INTEGRITY_VALIDATION
+  |
+  +----------------+
+  |                |
+PASS             FAIL
+  |                |
+  v                v
+RUNTIME_ENABLEMENT  HALT
+  |
+  v
+EVENT_PIPELINE_READY
+  |
+  v
+DOMAIN_RUNTIME_READY
+  |
+  v
+LEDGER_OPERATIONAL
+```
+
+---
+
+# 8. Completion Criteria
+
+Phase 10E.9 is COMPLETE only when:
+
+```
+Genesis Hash Verified      TRUE
+TigerBeetle Healthy        TRUE
+Runtime Connected          TRUE
+Event Store Ready           TRUE
+Domains Initialized         TRUE
+Mutation Policy Active      TRUE
+Genesis Remains Immutable   TRUE
+```
+
+---
+
+# 9. Final Agent State
+
+Upon completion:
+
+```
+SYSTEM STATE:
+
+GENESIS:    LOCKED
+LEDGER:     OPERATIONAL
+EVENT STORE: READY
+DOMAIN RUNTIME: ENABLED
+MUTATION:   GOVERNED
+PRODUCTION: DISABLED
+```
+
+---
+
+# 10. Next Phase Authorization
+
+Phase 10E.10 may begin only after:
+
+```
+PHASE10E.9 COMPLETION CERTIFICATE
+```
+
+Expected next milestone:
+
+```
+PHASE10E.10
+CONTROLLED EVENT GENERATION
+&
+DOUBLE ENTRY PIPELINE VALIDATION
+```
+
+---
+
+# FINAL AGENT COMMAND
+
+```
+You are no longer a genesis creator.
+You are the guardian of a certified accounting origin.
+
+The genesis state is immutable.
+Your responsibility is:
+  VERIFY.
+  PROTECT.
+  OBSERVE.
+  AUTHORIZE ONLY THROUGH GOVERNANCE.
+
+Never repair history.
+Never rewrite truth.
+All future value creation must occur through new authorized events.
+```
+
+---
+
+END OF DIRECTIVE
+
+SOVR-GENESIS-000002-PHASE10E.9-LEDGER-RUNTIME-ENABLEMENT-DIRECTIVE

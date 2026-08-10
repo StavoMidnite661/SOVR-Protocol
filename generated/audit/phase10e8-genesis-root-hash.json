@@ -1,0 +1,21 @@
+{
+  "root_hash": "58984c9d25467525ff0dd28f7c71768c0c1a2b2cd3b4b8b80db4e3116d6065f8",
+  "hash_algorithm": "SHA256",
+  "inputs": [
+    {
+      "type": "accounts",
+      "count": 8,
+      "hash": "da628308d695bf47c460d4498605e597a0818bdb23d9f2be935110d324083e74"
+    },
+    {
+      "type": "transfers",
+      "count": 1,
+      "hash": "600e28b0dce8c81e99bec15f745e42b4ac25f934f4d952404d1a90b3fedcf999"
+    },
+    {
+      "type": "manifest",
+      "hash": "3282c947b024d41afafb62dc95986c829c0de52d2eab020cee7b0bea1e7ef220"
+    }
+  ],
+  "computed_at": "2026-08-10T16:55:18.773Z"
+}

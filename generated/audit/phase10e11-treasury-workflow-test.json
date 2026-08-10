@@ -1,0 +1,43 @@
+{
+  "phase": "10E.11",
+  "test_timestamp": "2026-08-10T14:10:18-07:00",
+  "test": "TEST 002 - Treasury Internal Allocation",
+  "description": "Execute SYSTEM_RESERVE_POOL -> TREASURY_OPERATING allocation of 10",
+  "steps": [
+    {
+      "step": 1,
+      "command": "CREATE_ALLOCATION_REQUEST",
+      "from_pool": "SYSTEM_RESERVE_POOL",
+      "to_pool": "TREASURY_OPERATING",
+      "amount": "10",
+      "currency": "USD",
+      "result": "PASS"
+    },
+    {
+      "step": 2,
+      "command": "APPROVE_ALLOCATION",
+      "request_id": "alloc_req_test",
+      "result": "PASS"
+    },
+    {
+      "step": 3,
+      "command": "EXECUTE_ALLOCATION",
+      "request_id": "alloc_req_test",
+      "result": "PASS"
+    }
+  ],
+  "ledger_mutations": {
+    "transfer_created": true,
+    "double_entry_balanced": true,
+    "from_pool_balance_after": "999990",
+    "to_pool_balance_after": "10"
+  },
+  "final_state": {
+    "transfer_status": "EXECUTED",
+    "events_emitted": 3,
+    "ledger_mutations": 1,
+    "result": "PASS"
+  },
+  "replay_passed": true,
+  "genesis_preserved": true
+}

@@ -1,10 +1,9 @@
 {
-  "phase": "PHASE10E.4",
-  "gate": "GATE_009",
-  "gate_name": "Ceremony Preview",
-  "timestamp": "2026-08-10T07:37:36.420Z",
-  "directive": "SOVR-GENESIS-000002-PHASE10E.4",
-  "preview": {
+  "step": "STEP_006",
+  "step_name": "Freeze Genesis Payload",
+  "timestamp": "2026-08-10T08:43:12.281Z",
+  "frozen": true,
+  "payload": {
     "create_accounts": [
       404771,
       327102,
@@ -17,13 +16,13 @@
     ],
     "create_transfer": {
       "id": 190481,
+      "event_id": "genesis-heartbeat-001",
       "debit": 404771,
       "credit": 327102,
       "amount": 1,
       "code": "GENESIS_HEARTBEAT"
     }
   },
-  "operator_approval_required": true,
-  "operator_approved": false,
-  "status": "PENDING_OPERATOR_APPROVAL"
+  "no_modification_permitted": true,
+  "status": "PASS"
 }

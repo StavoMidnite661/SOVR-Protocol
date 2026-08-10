@@ -1,0 +1,23 @@
+{
+  "gate": "GATE_R004",
+  "name": "Cluster state matches pre-reset snapshot",
+  "timestamp": "2026-08-10T12:28:54.489Z",
+  "current_state": {
+    "accounts_found": 8,
+    "transfers_found": 1,
+    "transfer_ids": [
+      1
+    ]
+  },
+  "snapshot_state": {
+    "accounts_found": 8,
+    "transfers_found": 1,
+    "transfer_ids": [
+      1
+    ]
+  },
+  "accounts_match": true,
+  "transfers_match": true,
+  "transfer_ids_match": true,
+  "status": "PASS"
+}

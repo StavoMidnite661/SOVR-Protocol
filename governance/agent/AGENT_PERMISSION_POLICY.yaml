@@ -1,0 +1,46 @@
+agent_permissions:
+  read:
+    allowed: true
+    description: Agent may read state, events, and projections
+  analyze:
+    allowed: true
+    description: Agent may analyze data and generate insights
+  create_intent:
+    allowed: true
+    description: Agent may create intents from objectives
+    requires_validation: true
+  create_command:
+    allowed: true
+    description: Agent may create commands from validated intents
+    requires_policy: true
+  execute_command:
+    allowed: REQUIRES_POLICY
+    description: Agent may execute commands only after policy evaluation
+    policy_gateway_required: true
+  ledger_access:
+    direct: false
+    description: Agent must never access TigerBeetle directly
+  genesis_access:
+    allowed: false
+    description: Agent must never modify genesis state
+
+forbidden_actions:
+  - name: direct_ledger_access
+    description: Agent cannot create TigerBeetle transfers directly
+  - name: bypass_policy_gateway
+    description: Agent cannot bypass policy evaluation
+  - name: bypass_command_router
+    description: Agent cannot bypass command routing
+  - name: bypass_event_dispatcher
+    description: Agent cannot bypass event recording
+  - name: rewrite_event_history
+    description: Agent cannot modify or delete events
+  - name: modify_genesis
+    description: Agent cannot modify genesis accounts or transfers
+  - name: autonomous_mutation
+    description: Agent cannot mutate state without command execution
+  - name: self_approval
+    description: Agent cannot approve its own missions
+
+permission_model_version: "1.0.0"
+effective_at: "2026-08-10T15:00:00-07:00"

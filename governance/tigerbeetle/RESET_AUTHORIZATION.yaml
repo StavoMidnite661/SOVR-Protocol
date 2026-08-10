@@ -1,0 +1,26 @@
+# Reset Authorization for SOVR Genesis Substrate
+
+authorization:
+  operation: controlled_development_reset
+  required: true
+  approved: true
+  authorized_by: AlphaNodeZero
+  authorization_timestamp: "2026-08-10T05:27:39-07:00"
+
+reset:
+  permitted: true
+  executed: false
+  requires_human_operator: true
+
+scope:
+  cluster: "127.0.0.1:8080"
+  data_directory: "D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data"
+  preserve_existing_evidence: true
+  archive_as: GENESIS_ATTEMPT_001
+
+conditions:
+  - phase10e6_investigation_complete: true
+  - event_classified: true
+  - provenance_established: true
+  - recovery_recommendation_generated: true
+  - human_authorization_separate: true

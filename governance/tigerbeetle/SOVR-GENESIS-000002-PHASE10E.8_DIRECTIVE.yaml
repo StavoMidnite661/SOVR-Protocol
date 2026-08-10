@@ -1,0 +1,313 @@
+# SOVR-GENESIS-000002-PHASE10E.8
+
+# GENESIS SUBSTRATE LOCK & ATTESTATION DIRECTIVE
+
+directive_id: SOVR-GENESIS-000002-PHASE10E.8-GENESIS-LOCK-ATTESTATION
+
+phase: PHASE10E.8
+
+classification: Genesis Lock / Substrate Attestation
+
+execution_environment: LOCAL DEVELOPMENT ONLY
+
+production_traffic: DISABLED
+
+external_financial_movement: DISABLED
+
+customer_assets: DISABLED
+
+genesis_write_authority: DISABLED
+
+ledger_mutation_authority: DISABLED
+
+supersedes: SOVR-GENESIS-000002-PHASE10E.7
+
+---
+
+# 1. Mission
+
+The purpose of Phase 10E.8 is to create a permanent, verifiable reference point for the SOVR genesis state.
+
+The objective is NOT:
+
+* modify the ledger
+* add new accounts
+* add new transfers
+* enable operational mode
+* activate payment rails
+* begin economic activity
+
+The objective is:
+
+> Capture the complete genesis substrate state, compute a canonical root hash, and produce attestation artifacts that can be used to verify future ledger states against this known-good origin.
+
+---
+
+# 2. Genesis State to Attest
+
+The following state is certified as `GENESIS_PRESENT` from Phase 10E.7:
+
+## Cluster
+
+```
+Cluster ID: 0
+Replica Count: 1
+Endpoint: 127.0.0.1:8080
+Data Directory: D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data
+```
+
+## Accounts (8)
+
+| ID | Purpose | Ledger | Code |
+|----|---------|--------|------|
+| 404771 | SYSTEM_RESERVE_POOL | 8 | 1 |
+| 327102 | TREASURY_OPERATING | 8 | 1 |
+| 689728 | SETTLEMENT_CLEARING | 8 | 1 |
+| 346086 | OBLIGATION_TRACKING | 8 | 1 |
+| 536681 | EXPENSE_RECONCILIATION | 8 | 1 |
+| 441831 | ASSET_VAULT | 8 | 1 |
+| 657844 | LIABILITY_ACCRUAL | 8 | 1 |
+| 941698 | PAYMENT_RAIL | 8 | 1 |
+
+## Transfer (1)
+
+| ID | Debit | Credit | Amount | Code | Ledger |
+|----|-------|--------|--------|------|--------|
+| 190481 | 404771 | 327102 | 1 | 1 | 8 |
+
+---
+
+# 3. Attestation Requirements
+
+The agent SHALL produce the following attestation artifacts:
+
+## ARTIFACT 1 — Genesis Snapshot
+
+```
+generated/audit/phase10e8-genesis-snapshot.json
+```
+
+Must contain:
+
+```json
+{
+  "snapshot_id": "SOVR-GENESIS-000002-SNAPSHOT-001",
+  "timestamp": "",
+  "cluster": {},
+  "accounts": [],
+  "transfers": [],
+  "manifest_hash": "",
+  "snapshot_hash": ""
+}
+```
+
+## ARTIFACT 2 — Genesis Root Hash
+
+```
+generated/audit/phase10e8-genesis-root-hash.json
+```
+
+Must contain:
+
+```json
+{
+  "root_hash": "",
+  "hash_algorithm": "SHA256",
+  "inputs": [],
+  "computed_at": ""
+}
+```
+
+The root hash SHALL be computed from:
+
+```
+SHA256(
+  canonical_account_list +
+  canonical_transfer_list +
+  manifest_hash
+)
+```
+
+## ARTIFACT 3 — Lock Certificate
+
+```
+governance/tigerbeetle/PHASE10E.8_LOCK_CERTIFICATE.yaml
+```
+
+Must contain:
+
+```yaml
+lock_id: SOVR-GENESIS-000002-LOCK-001
+locked: true
+locked_at: ""
+genesis_root_hash: ""
+account_count: 8
+transfer_count: 1
+immutable: true
+```
+
+## ARTIFACT 4 — Attestation Report
+
+```
+generated/audit/PHASE10E.8-ENGINEERING-REPORT.md
+```
+
+Human-readable engineering report.
+
+---
+
+# 4. Lock Procedure
+
+## STEP 1 — Connect to TigerBeetle
+
+Connect to the running cluster at `127.0.0.1:8080`.
+
+## STEP 2 — Read All Accounts
+
+Query all accounts in the cluster.
+
+Verify count = 8.
+
+## STEP 3 — Read All Transfers
+
+Query all transfers in the cluster.
+
+Verify count = 1.
+
+## STEP 4 — Load Genesis Manifest
+
+Load `GENESIS_TRANSACTION_SET.json`.
+
+Compute manifest hash:
+
+```
+SHA256(canonical_json(GENESIS_TRANSACTION_SET.json))
+```
+
+## STEP 5 — Compute Genesis Root Hash
+
+Compute:
+
+```
+root_hash = SHA256(
+  canonical_json(sorted_accounts) +
+  canonical_json(sorted_transfers) +
+  manifest_hash
+)
+```
+
+## STEP 6 — Generate Attestation Artifacts
+
+Write all required artifacts to `generated/audit/`.
+
+## STEP 7 — Lock Certificate
+
+Write `PHASE10E.8_LOCK_CERTIFICATE.yaml` to `governance/tigerbeetle/`.
+
+## STEP 8 — Verification
+
+Verify that all artifacts are readable and hashes match.
+
+---
+
+# 5. Prohibited Actions
+
+During Phase 10E.8, the agent SHALL NOT:
+
+```
+CREATE ACCOUNTS
+CREATE TRANSFERS
+MODIFY LEDGER STATE
+ALTER GENESIS RECORDS
+ENABLE WRITE AUTHORIZATION
+ACTIVATE ECONOMIC FEATURES
+```
+
+---
+
+# 6. Lock Properties
+
+Once Phase 10E.8 completes:
+
+```
+GENESIS_ROOT_HASH: <computed>
+LOCKED: true
+IMMUTABLE: true
+FUTURE_VALIDATION_BASIS: true
+```
+
+The `GENESIS_ROOT_HASH` becomes the anchor for all future ledger validation.
+
+Any future event that would change the genesis state will produce a different root hash, indicating divergence from the certified origin.
+
+---
+
+# 7. Future Validation Model
+
+The intended validation model:
+
+```
+Future Ledger State
+        |
+        v
+Compute Current Root Hash
+        |
+        v
+Compare Against GENESIS_ROOT_HASH
+        |
+        +----------------+
+        |                |
+    MATCH           DIVERGENT
+        |                |
+    VALID          INVESTIGATE
+        |
+    PROCEED
+```
+
+---
+
+# 8. Next Phase
+
+After Phase 10E.8:
+
+```
+PHASE10E.8
+   |
+   | Genesis locked
+   | Root hash attested
+   | Lock certificate issued
+   v
+LEDGER_RUNTIME_ENABLEMENT
+   |
+   | Event store activation
+   | Double-entry event pipeline
+   | Treasury/payment domains
+   v
+PRODUCTION_READINESS
+```
+
+---
+
+# Final Agent Instruction
+
+```
+You are authorized to attest the genesis state.
+
+You are NOT authorized to modify it.
+
+You must capture the complete ledger state.
+
+You must compute the canonical root hash.
+
+You must issue the lock certificate.
+
+You must preserve the attestation record.
+
+You must stop.
+```
+
+---
+
+END OF DIRECTIVE
+
+SOVR-GENESIS-000002-PHASE10E.8
