@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "certification_id": "COMPILER-CERTIFICATION-2026-08-10",
+  "protocol_version": "1.0.0",
+  "compiler_version": "0.6.0",
+  "status": "CERTIFIED",
+  "certification_date": "2026-08-10T17:39:16-07:00",
+  "compiler": {
+    "name": "@sovr/compiler",
+    "version": "0.6.0",
+    "build_tool": "tsc",
+    "entrypoint": "packages/compiler/dist/cli.js"
+  },
+  "verification": {
+    "deterministic_build": true,
+    "build_hash": "68281135f723793e37816c0940c95356635f3f42cf7408c5b9303d9d04af58c2",
+    "ir_hash": "6327d0523d685ebe4e00fedebd2c4bbe7900be872efbf82348335a0ae740b40d",
+    "input_files": 51,
+    "output_files": 168,
+    "ir_nodes": 610,
+    "ir_edges": 462,
+    "errors": 0,
+    "warnings": 85
+  },
+  "registry_integrity": {
+    "all_match_manifest": true,
+    "registry_count": 16,
+    "entry_counts": {
+      "boot": 1,
+      "capabilities": 113,
+      "commands": 105,
+      "constitution": 1,
+      "contracts": 2,
+      "economic": 168,
+      "envelopes": 1,
+      "events": 267,
+      "execution-plans": 1,
+      "machines": 46,
+      "projections": 16,
+      "reserve": 28,
+      "schemas": 372,
+      "settlement": 23,
+      "validation": 105
+    }
+  },
+  "source_integrity": {
+    "constitution_lock_hash": "34dfbdc2de193f54f87bb873039603bb5a5502a8448ef6151133f54c77a54ed3",
+    "constitution_lock_status": "LOCKED",
+    "source_corpus_hash": "68281135f723793e37816c0940c95356635f3f42cf7408c5b9303d9d04af58c2"
+  },
+  "findings": [
+    {
+      "id": "F-001",
+      "category": "COMPILER_WARNINGS",
+      "count": 85,
+      "severity": "WARNING",
+      "status": "OPEN",
+      "description": "Reference integrity gaps in state machines and command catalog"
+    },
+    {
+      "id": "F-002",
+      "category": "RUNTIME_SPEC_VIOLATIONS",
+      "count": 12,
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "description": "Hardcoded payment.rail.* command names in BoundaryEventBus and achAdapter"
+    },
+    {
+      "id": "F-003",
+      "category": "PROJECTION_GAP",
+      "count": 16,
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "description": "All 16 projections are DECLARED_ONLY; no runtime implementations exist"
+    }
+  ],
+  "certification_statement": "The SOVR Compiler v0.6.0 has been verified to produce deterministic, byte-identical output from the canonical YAML source corpus. The compiler reports 0 errors. 85 warnings remain open regarding reference integrity. The system is certified as a coherent compiler product with documented open findings."
+}

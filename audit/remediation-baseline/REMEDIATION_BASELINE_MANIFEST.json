@@ -1,0 +1,72 @@
+{
+  "directive": "SOVR-GENESIS-000002-RECONCILIATION-PHASE-01",
+  "status": "CONDITIONALLY_CERTIFIED",
+  "protocol_version": "1.0.0",
+  "implementation_version": "0.6.0",
+  "compiler_version": "0.6.0",
+  "git_branch": "main",
+  "git_commit": "1132fc67dc7946d5b8b14abb6a11de3475851208",
+  "compiler_build_hash": "68281135f723793e37816c0940c95356635f3f42cf7408c5b9303d9d04af58c2",
+  "boot_hash": "4009e256e7df43a72c64ce17dc41f94264f93c502f0add54e0c14a3b0940e9ec",
+  "genesis_root_hash": "58984c9d25467525ff0dd28f7c71768c0c1a2b2cd3b4b8b80db4e3116d6065f8",
+  "registry_counts": {
+    "commands": 105,
+    "events": 267,
+    "capabilities": 113,
+    "state_machines": 46,
+    "projections": 16
+  },
+  "package_hash": "260ff69317f848b2de8ffb34024c01ef6576a1719d69fe39f6d73170102c8eb6",
+  "payment_rails": "DISABLED",
+  "knowledge_runtime_access": false,
+  "uncommitted_changes": {
+    "modified": 22,
+    "untracked": 8,
+    "total": 30
+  },
+  "baseline_artifacts": {
+    "package.json": {
+      "sha256": "b0f0f61bb86cb5898e306a4e16ebff7977131e25f84a600605e7cf25ada31ca8",
+      "description": "Root package.json version 0.6.0"
+    },
+    "generated/compiler-manifest.yaml": {
+      "sha256": "b58687f4630eeb9d4a760825046deaab50ec3650a46bd3ad9cb4784dff81bba2",
+      "description": "Compiler manifest with build hash and diagnostics"
+    },
+    "generated/registries/registry.manifest.json": {
+      "sha256": "64f718f9299f7b3b74c68ba8fe8771f7d51b10144547df8f7952d99853b46c5f",
+      "description": "Registry manifest with entry counts and hashes"
+    },
+    "dist/sovr-runtime-v0.6.0-abi-v1.svr": {
+      "sha256": "260ff69317f848b2de8ffb34024c01ef6576a1719d69fe39f6d73170102c8eb6",
+      "description": "Deployable runtime package"
+    },
+    "generated/boot-manifest.json": {
+      "sha256": "6d08848ff1bfee3f777cff9a4f12162512e7893c98abcac50728387d2c2a72e9",
+      "description": "Boot manifest with boot hash and build hash"
+    },
+    "generated/boot-attestation.json": {
+      "sha256": "1838a1b618e5ab8763c8393f7140029c12a211cfec44e9433dde9eaf53b5bb99",
+      "description": "Boot attestation record"
+    }
+  },
+  "projection_names": [
+    "account_summary",
+    "agent_activity",
+    "audit_timeline",
+    "compliance_report",
+    "escrow_account_view",
+    "governance_dashboard",
+    "identity_directory",
+    "intent_queue",
+    "liquidity_position",
+    "payment_status",
+    "policy_decisions",
+    "portfolio",
+    "risk_dashboard",
+    "settlement_summary",
+    "treasury_dashboard",
+    "vault_holdings"
+  ],
+  "created_at": "2026-08-11T06:20:00-07:00"
+}

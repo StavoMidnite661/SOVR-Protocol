@@ -1,0 +1,119 @@
+system:
+  name: sovr-financial-os
+  protocol_version: 1.0.0
+  implementation_version: 0.6.0
+  abi_version: v1
+  compiler_version: 0.6.0
+  runtime_version: 0.6.0
+
+source:
+  corpus_hash: 68281135f723793e37816c0940c95356635f3f42cf7408c5b9303d9d04af58c2
+  file_count: 51
+  files:
+    - 00_protocol-manifest.yaml
+    - 01_constitution.yaml
+    - 02_domain-model.yaml
+    - 03_command-catalog.yaml
+    - 04_event-catalog.yaml
+    - 05_state-machines.yaml
+    - 08_security-capabilities.yaml
+    - 09_saga-orchestration.yaml
+    - 11_governance-amendments.yaml
+    - 12_domain-contracts.yaml
+    - 13_compiler-adr.yaml
+    - acceptance-tests.yaml
+    - compiler.yaml
+    - hybrid-boundary.yaml
+    - phase_j_protocol_closure.yaml
+    - projection-engine.yaml
+    - domains/agent.yaml
+    - domains/certification.yaml
+    - domains/commercial.yaml
+    - domains/escrow.yaml
+    - domains/gateway.yaml
+    - domains/governance.yaml
+    - domains/identity.yaml
+    - domains/intent.yaml
+    - domains/ledger.yaml
+    - domains/payment.yaml
+    - domains/policy.yaml
+    - domains/representation.yaml
+    - domains/settlement.yaml
+    - domains/treasury.yaml
+    - domains/vault.yaml
+    - compiler/BUILD_MANIFEST.yaml
+    - compiler/COMPILER_MANIFEST.yaml
+    - compiler/ERROR_TAXONOMY.yaml
+    - compiler/GENERATOR_REGISTRY.yaml
+    - compiler/PASS_REGISTRY.yaml
+    - compiler/SEMANTIC_COMPILER_CONTRACT.yaml
+    - compiler/compiler.yaml
+    - protocol/ACCEPTANCE_STANDARD.yaml
+    - protocol/AGGREGATE_REGISTRY.yaml
+    - protocol/BOOT_SEQUENCE.yaml
+    - protocol/CANONICAL_AUTHORITY_MODEL.yaml
+    - protocol/DOMAIN_REGISTRY.yaml
+    - protocol/METADATA_STANDARD.yaml
+    - governance/simulation/scenarios/SIM-001-VAULT-FUNDING-LIFECYCLE.yaml
+    - governance/simulation/scenarios/SIM-002-TREASURY-TRANSFER-APPROVAL.yaml
+    - governance/simulation/scenarios/SIM-003-SYSTEM-INTEGRITY.yaml
+    - governance/simulation/scenarios/SIM-004-ASSET-RESERVE-LIFECYCLE.yaml
+    - governance/simulation/scenarios/SIM-005-TREASURY-CONTROL-LIFECYCLE.yaml
+    - governance/simulation/scenarios/SIM-006-LEDGER-RECONCILIATION-LIFECYCLE.yaml
+    - governance/simulation/scenarios/SIM-007-SETTLEMENT-LIFECYCLE.yaml
+
+ir:
+  hash: 6327d0523d685ebe4e00fedebd2c4bbe7900be872efbf82348335a0ae740b40d
+  node_count: 610
+  edge_count: 462
+
+registries:
+  commands: 105
+  events: 267
+  capabilities: 113
+  machines: 46
+  projections: 16
+  schemas: 372
+  contracts: 2
+
+runtime:
+  package: "@sovr/runtime"
+  entrypoint: packages/runtime/dist/server/index.js
+  adapters:
+    - ach
+    - fednow
+    - fedwire
+    - rtp
+    - swift
+    - sepa
+    - card
+    - blockchain
+    - stablecoin
+    - tigerbeetle
+    - private-ledger
+    - oracle
+
+deployment:
+  targets:
+    - docker
+    - kubernetes
+    - helm
+    - terraform
+    - systemd
+  artifacts:
+    - dist/sovr-runtime-v0.6.0-abi-v1.svr
+    - deployment/Dockerfile
+    - deployment/docker-compose.yml
+    - deployment/docker-compose.production.yml
+
+certification:
+  compiler: PASS (0 errors, 85 warnings)
+  reproducibility: PASS (byte-identical, platform-independent)
+  runtime: CONDITIONAL (12 spec violations, 2 intentional primitives)
+  security: PASS (no hardcoded secrets, no tracked .env)
+  acceptance: CONDITIONAL (4 integration tests blocked on TD-002)
+
+integrity:
+  algorithm: SHA256
+  build_hash: 68281135f723793e37816c0940c95356635f3f42cf7408c5b9303d9d04af58c2
+  package_hash: SHA256 of dist/sovr-runtime-v0.6.0-abi-v1.svr

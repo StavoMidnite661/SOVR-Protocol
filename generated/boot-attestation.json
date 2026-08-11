@@ -1,6 +1,6 @@
 {
-  "boot_hash": "bd1faed9d4e35c7763b8aaceb06949a113880ec9bb25e6701e41a851b23c592f",
-  "boot_log_hash": "067ce4040a47690ee0a0d7a841531efe5db82db72f95cbdb065a160b166437c3",
+  "boot_hash": "1a4c806b0b8bdc22d736fc82ae81fbad75ac07c920690eda65827fc9afbd1037",
+  "boot_log_hash": "f5c7a03d953537271a38a5b309963a832c48b4c2b96ad95b889a6ad0d552a26b",
   "boot_splash": [
     "[ 0.000001 ] SOVR BIOS v1.0.4 — Cryptographic Attestation Mode",
     "[ 0.000142 ] Probe: CPU ... AVX512 OK | MEM ... ISOLATED | ENTROPY ... POOLING",
@@ -27,7 +27,7 @@
     "",
     "│ PHASE 1 » CRYPTOGRAPHIC BOOTLOADER",
     "├─ Fetching Build Attestation ...",
-    "│  └─ 43fd94583cfe565c...",
+    "│  └─ 26bc500e6875a875...",
     "├─ Verifying Merkle Root ...",
     "│  └─ [▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓] 100%",
     "└─ ✓ Chain: BUILD_HASH → BOOT_HASH [VERIFIED]",
@@ -96,108 +96,108 @@
     "",
     "  ⬢ Listening:        http://localhost:3001",
     "  ⬢ Kernel State:     ● HEALTHY",
-    "  ⬢ Build Hash:       43fd94583cfe565c...",
+    "  ⬢ Build Hash:       26bc500e6875a875...",
     "  ⬢ Attestation:      LOCKED"
   ],
-  "boot_timings_hash": "990e4d3da3d6a38205853ed2609299f817b1177de89c16489a95d6f85c5d5488",
-  "build_hash": "43fd94583cfe565c49bf093b0723dcfd351df14e62a4f34e8663b51924f6c598",
+  "boot_timings_hash": "cde685cace6e78792d8737901ceb05d827928bd097b55b9c88949a7fc68d5303",
+  "build_hash": "26bc500e6875a875ec1c28d4924c7d577760db06f514b28cf98852c0e9023065",
   "events": [
     {
       "eventName": "saga.started",
       "level": 2,
-      "timestamp": "2026-08-07T22:23:28.896Z"
+      "timestamp": "2026-08-11T14:06:33.844Z"
     },
     {
       "eventName": "system.health.restored",
       "level": 2,
-      "timestamp": "2026-08-07T22:23:28.896Z"
+      "timestamp": "2026-08-11T14:06:33.844Z"
     },
     {
       "eventName": "vault.asset.registered",
       "level": 3,
-      "timestamp": "2026-08-07T22:23:28.897Z"
+      "timestamp": "2026-08-11T14:06:33.844Z"
     },
     {
       "eventName": "ledger.journal.created",
       "level": 3,
-      "timestamp": "2026-08-07T22:23:28.897Z"
+      "timestamp": "2026-08-11T14:06:33.844Z"
     },
     {
       "eventName": "saga.started",
       "level": 3,
-      "timestamp": "2026-08-07T22:23:28.897Z"
+      "timestamp": "2026-08-11T14:06:33.844Z"
     },
     {
       "eventName": "identity.actor.registered",
       "level": 4,
-      "timestamp": "2026-08-07T22:23:28.897Z"
+      "timestamp": "2026-08-11T14:06:33.844Z"
     },
     {
       "eventName": "policy.rule.created",
       "level": 4,
-      "timestamp": "2026-08-07T22:23:28.897Z"
+      "timestamp": "2026-08-11T14:06:33.844Z"
     },
     {
       "eventName": "payment.rail.prepared",
       "level": 5,
-      "timestamp": "2026-08-07T22:23:28.897Z"
+      "timestamp": "2026-08-11T14:06:33.844Z"
     },
     {
       "eventName": "saga.started",
       "level": 5,
-      "timestamp": "2026-08-07T22:23:28.897Z"
+      "timestamp": "2026-08-11T14:06:33.844Z"
     },
     {
       "eventName": "saga.completed",
       "level": 6,
-      "timestamp": "2026-08-07T22:23:28.900Z"
+      "timestamp": "2026-08-11T14:06:33.846Z"
     },
     {
       "eventName": "system.health.restored",
       "level": 7,
-      "timestamp": "2026-08-07T22:23:28.900Z"
+      "timestamp": "2026-08-11T14:06:33.846Z"
     },
     {
       "eventName": "saga.completed",
       "level": 7,
-      "timestamp": "2026-08-07T22:23:28.900Z"
+      "timestamp": "2026-08-11T14:06:33.846Z"
     }
   ],
   "final_health": "HEALTHY",
   "schema_version": "1.0.0",
   "stages": [
     {
-      "durationMs": 0.4895000000000209,
+      "durationMs": 0.10230000000001382,
       "level": 2,
       "name": "KERNEL_INIT",
       "passed": true
     },
     {
-      "durationMs": 0.3484999999999445,
+      "durationMs": 0.23320000000001073,
       "level": 3,
       "name": "CORE_DOMAINS",
       "passed": true
     },
     {
-      "durationMs": 0.1251999999999498,
+      "durationMs": 0.0907999999999447,
       "level": 4,
       "name": "SECURITY_SUBSYSTEM",
       "passed": true
     },
     {
-      "durationMs": 0.011000000000080945,
+      "durationMs": 0.01089999999999236,
       "level": 5,
       "name": "EXECUTION_BOUNDARY",
       "passed": true
     },
     {
-      "durationMs": 2.8092000000000326,
+      "durationMs": 2.1978000000000293,
       "level": 6,
       "name": "INTERPRETATION",
       "passed": true
     },
     {
-      "durationMs": 0.012299999999981992,
+      "durationMs": 0.01269999999999527,
       "level": 7,
       "name": "USERLAND",
       "passed": true

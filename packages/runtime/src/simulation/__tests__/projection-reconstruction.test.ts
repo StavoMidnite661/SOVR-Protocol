@@ -59,7 +59,7 @@ describe('Phase 10B Projection Reconstruction Certification', () => {
       }
     }
 
-    const projectionName = 'vault_asset_view';
+    const projectionName = 'vault_holdings';
     const beforeProjection = projectionEngine.getProjection(projectionName);
     const beforeHash = computeMapHash(beforeProjection);
 

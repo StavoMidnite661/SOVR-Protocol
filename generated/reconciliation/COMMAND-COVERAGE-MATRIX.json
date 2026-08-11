@@ -1,0 +1,1418 @@
+{
+  "schema_version": "1.0.0",
+  "reconciliation_id": "RECON-000001",
+  "total_commands": 105,
+  "source_count": 105,
+  "registry_count": 105,
+  "classification_counts": {
+    "WIRED": 97,
+    "EXEMPT": 8,
+    "UNWIRED": 0,
+    "STALE": 0,
+    "INVALID": 0
+  },
+  "commands": [
+    {
+      "command": "vault.asset.register",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_asset_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.asset.create",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.asset.registered"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.asset.verify",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_asset_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.asset.verify",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.asset.verified",
+        "vault.custody.attested"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.asset.reject",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_asset_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.asset.verify",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.asset.rejected"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.reserve.create",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_reservation_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.reserve.create",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.reserve.created"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.reserve.lock",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_reservation_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.reserve.lock",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.reserve.locked"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.reserve.release",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_reservation_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.reserve.release",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.reserve.released"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.reserve.expire",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_reservation_lifecycle",
+      "validation": "present",
+      "capability_requirement": "system.internal",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.reserve.expired"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.collateral.add",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_collateral_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.collateral.create",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.collateral.added",
+        "vault.collateral.valued"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.collateral.remove",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_collateral_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.collateral.release",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.collateral.released"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.collateral.revalue",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_collateral_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.collateral.evaluate",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.collateral.revalued"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.asset.reconcile",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_reconciliation_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.reconcile",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.reconciliation.started"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.valuation.update",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_valuation_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.valuation.manage",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.valuation.updated"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "ledger.journal.create",
+      "domain": "ledger",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "ledger_journal_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "ledger.journal.manage",
+      "runtime_handler": "present",
+      "event_output": [
+        "ledger.journal.created"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "ledger.entry.post",
+      "domain": "ledger",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "ledger_journal_lifecycle",
+      "validation": "present",
+      "capability_requirement": "ledger.entry.post",
+      "runtime_handler": "present",
+      "event_output": [
+        "ledger.entry.posted"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "ledger.entry.reverse",
+      "domain": "ledger",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "ledger_journal_lifecycle",
+      "validation": "present",
+      "capability_requirement": "ledger.entry.reverse",
+      "runtime_handler": "present",
+      "event_output": [
+        "ledger.entry.reversed"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "ledger.entry.correct",
+      "domain": "ledger",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "ledger_journal_lifecycle",
+      "validation": "present",
+      "capability_requirement": "ledger.entry.correct",
+      "runtime_handler": "present",
+      "event_output": [
+        "ledger.entry.corrected"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "ledger.reconciliation.start",
+      "domain": "ledger",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "ledger_reconciliation_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "ledger.reconcile",
+      "runtime_handler": "present",
+      "event_output": [
+        "ledger.reconciliation.started"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "ledger.reconciliation.resolve",
+      "domain": "ledger",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "ledger_reconciliation_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "ledger.reconcile",
+      "runtime_handler": "present",
+      "event_output": [
+        "ledger.reconciliation.completed"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "ledger.account.create",
+      "domain": "ledger",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "ledger_account_lifecycle",
+      "validation": "present",
+      "capability_requirement": "ledger.account.manage",
+      "runtime_handler": "present",
+      "event_output": [
+        "ledger.account.created"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "ledger.account.freeze",
+      "domain": "ledger",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "ledger_account_lifecycle",
+      "validation": "present",
+      "capability_requirement": "ledger.account.manage",
+      "runtime_handler": "present",
+      "event_output": [
+        "ledger.account.frozen"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "ledger.period.close",
+      "domain": "ledger",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "ledger_accounting_period_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "ledger.period.manage",
+      "runtime_handler": "present",
+      "event_output": [
+        "ledger.period.closing",
+        "ledger.entry.posted",
+        "ledger.period.closed"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "treasury.transfer.request",
+      "domain": "treasury",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "treasury_transfer_lifecycle",
+      "validation": "present",
+      "capability_requirement": "treasury.transfer.request",
+      "runtime_handler": "present",
+      "event_output": [
+        "treasury.transfer.requested"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "treasury.transfer.authorize",
+      "domain": "treasury",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "treasury_transfer_lifecycle",
+      "validation": "present",
+      "capability_requirement": "treasury.transfer.authorize",
+      "runtime_handler": "present",
+      "event_output": [
+        "treasury.transfer.authorized"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "treasury.transfer.reserve",
+      "domain": "treasury",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "treasury_transfer_lifecycle",
+      "validation": "present",
+      "capability_requirement": "treasury.transfer.reserve",
+      "runtime_handler": "present",
+      "event_output": [
+        "treasury.transfer.reserved"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "treasury.transfer.execute",
+      "domain": "treasury",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "treasury_transfer_lifecycle",
+      "validation": "present",
+      "capability_requirement": "treasury.transfer.execute",
+      "runtime_handler": "present",
+      "event_output": [
+        "treasury.transfer.executing"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "treasury.transfer.cancel",
+      "domain": "treasury",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "treasury_transfer_lifecycle",
+      "validation": "present",
+      "capability_requirement": "treasury.transfer.cancel",
+      "runtime_handler": "present",
+      "event_output": [
+        "treasury.transfer.rejected"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "treasury.transfer.compensate",
+      "domain": "treasury",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "treasury_transfer_lifecycle",
+      "validation": "present",
+      "capability_requirement": "treasury.transfer.compensate",
+      "runtime_handler": "present",
+      "event_output": [
+        "treasury.transfer.compensation_required"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "treasury.liquidity.check",
+      "domain": "treasury",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "treasury_liquidity_position_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "treasury.liquidity.read",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "treasury.liquidity.allocate",
+      "domain": "treasury",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "treasury_liquidity_position_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "treasury.liquidity.manage",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "treasury.settlement.confirm",
+      "domain": "treasury",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "treasury_transfer_lifecycle",
+      "validation": "present",
+      "capability_requirement": "treasury.settlement.confirm",
+      "runtime_handler": "present",
+      "event_output": [
+        "treasury.transfer.settled",
+        "treasury.settlement.confirmed"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.actor.register",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_actor_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.actor.create",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.actor.verify",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_actor_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.actor.verify",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.actor.suspend",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_actor_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.actor.suspend",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.actor.revoke",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_actor_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.actor.revoke",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.actor.archive",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_actor_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.actor.archive",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.credential.issue",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_credential_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.credential.issue",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.credential.revoke",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_credential_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.credential.revoke",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.session.create",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_session_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.session.create",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.session.terminate",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_session_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.session.terminate",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.delegation.create",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_delegation_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.delegation.create",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.delegation.revoke",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_delegation_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.delegation.revoke",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "identity.trust_anchor.register",
+      "domain": "identity",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "identity_trust_anchor_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "identity.trust_anchor.create",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "policy.rule.create",
+      "domain": "policy",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "policy_rule_lifecycle",
+      "validation": "present",
+      "capability_requirement": "policy.rule.create",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "policy.rule.update",
+      "domain": "policy",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "policy_rule_lifecycle",
+      "validation": "present",
+      "capability_requirement": "policy.rule.update",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "policy.rule.activate",
+      "domain": "policy",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "policy_rule_lifecycle",
+      "validation": "present",
+      "capability_requirement": "policy.rule.activate",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "policy.rule.deactivate",
+      "domain": "policy",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "policy_rule_lifecycle",
+      "validation": "present",
+      "capability_requirement": "policy.rule.deactivate",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "policy.set.create",
+      "domain": "policy",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "policy_set_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "policy.set.create",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "policy.set.evaluate",
+      "domain": "policy",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "policy_evaluation_lifecycle",
+      "validation": "present",
+      "capability_requirement": "policy.set.evaluate",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "policy.escalation.resolve",
+      "domain": "policy",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "policy_escalation_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "policy.escalation.resolve",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "policy.compliance.requirement.register",
+      "domain": "policy",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "policy_compliance_requirement_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "policy.compliance.create",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "intent.submit",
+      "domain": "intent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "intent_lifecycle",
+      "validation": "present",
+      "capability_requirement": "intent.submit",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "intent.enrich",
+      "domain": "intent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "intent_lifecycle",
+      "validation": "present",
+      "capability_requirement": "intent.enrich",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "intent.validate",
+      "domain": "intent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "intent_lifecycle",
+      "validation": "present",
+      "capability_requirement": "intent.validate",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "intent.convert_to_command",
+      "domain": "intent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "intent_lifecycle",
+      "validation": "present",
+      "capability_requirement": "intent.convert",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "intent.cancel",
+      "domain": "intent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "intent_lifecycle",
+      "validation": "present",
+      "capability_requirement": "intent.cancel",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "intent.archive",
+      "domain": "intent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "intent_lifecycle",
+      "validation": "present",
+      "capability_requirement": "intent.archive",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "intent.multi_step.create",
+      "domain": "intent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "intent_lifecycle",
+      "validation": "present",
+      "capability_requirement": "intent.multi_step.create",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "intent.multi_step.advance",
+      "domain": "intent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "intent_lifecycle",
+      "validation": "present",
+      "capability_requirement": "intent.multi_step.advance",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "agent.register",
+      "domain": "agent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "agent_registration_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "agent.register",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "agent.activate",
+      "domain": "agent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "agent_execution_lifecycle",
+      "validation": "present",
+      "capability_requirement": "agent.activate",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "agent.terminate",
+      "domain": "agent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "agent_execution_lifecycle",
+      "validation": "present",
+      "capability_requirement": "agent.terminate",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "agent.capability.bind",
+      "domain": "agent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "agent_capability_binding_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "agent.capability.bind",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "agent.capability.revoke",
+      "domain": "agent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "agent_capability_binding_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "agent.capability.revoke",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "agent.quota.update",
+      "domain": "agent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "agent_execution_quota_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "agent.quota.update",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "agent.governance.override",
+      "domain": "agent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": null,
+      "validation": "present",
+      "capability_requirement": "agent.governance.override",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "EXEMPT",
+      "governance_ref": null
+    },
+    {
+      "command": "agent.execution.execute",
+      "domain": "agent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "agent_execution_lifecycle",
+      "validation": "present",
+      "capability_requirement": "varies by wrapped command",
+      "runtime_handler": "present",
+      "event_output": [],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.request.create",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_request_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.request.create",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.request.created"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.request.cancel",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_request_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.request.cancel",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.request.cancelled"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.execution.plan",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_execution_plan_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.execution.plan",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.execution.planned"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.execution.execute",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_request_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.execution.execute",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.execution.started"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.execution.confirm",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_request_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.execution.confirm",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.execution.completed",
+        "payment.rail.confirmed"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.execution.compensate",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_request_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.execution.compensate",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.compensation.started"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.reconciliation.start",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_reconciliation_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.reconciliation.initiate",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.reconciliation.started"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.reconciliation.complete",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_reconciliation_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.reconciliation.complete",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.reconciliation.completed"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.receipt.issue",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": null,
+      "validation": "present",
+      "capability_requirement": "payment.receipt.issue",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.receipt.issued"
+      ],
+      "lifecycle_status": "EXEMPT",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.proposal.submit",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_proposal_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.proposal.create",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.proposal.submitted"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.proposal.approve",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_proposal_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.proposal.approve",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.proposal.approved"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.proposal.reject",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_proposal_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.proposal.reject",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.proposal.rejected"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.amend.propose",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_governance_amendment_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.amend.propose",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.amendment.proposed"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.amend.ratify",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_governance_amendment_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.amend.ratify",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.amendment.ratified"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.emergency.halt",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": null,
+      "validation": "present",
+      "capability_requirement": "governance.emergency.halt",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.emergency_halt.issued"
+      ],
+      "lifecycle_status": "EXEMPT",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.emergency.lift",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": null,
+      "validation": "present",
+      "capability_requirement": "governance.emergency.halt",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.emergency_halt.lifted"
+      ],
+      "lifecycle_status": "EXEMPT",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.audit.query",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": null,
+      "validation": "present",
+      "capability_requirement": "governance.audit.query",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.audit.queried"
+      ],
+      "lifecycle_status": "EXEMPT",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.oversight.review",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": null,
+      "validation": "present",
+      "capability_requirement": "governance.oversight.review",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.oversight.reviewed"
+      ],
+      "lifecycle_status": "EXEMPT",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.capability.grant",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_capability_grant_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.capability.grant",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.capability.granted"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.capability.revoke",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_capability_grant_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.capability.revoke",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.capability.revoked"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.escalation.resolve",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_escalation_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.escalation.resolve",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.escalation.resolved"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.policy_rule.review",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": null,
+      "validation": "present",
+      "capability_requirement": "governance.policy.review",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.policy_rule.review_requested"
+      ],
+      "lifecycle_status": "EXEMPT",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.transaction.fund",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_transaction_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.reserve.create",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.transaction.funding_requested"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.transaction.cancel",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_transaction_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.reserve.release",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.transaction.failed"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.transaction.authorize_release",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_transaction_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.reserve.lock",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.transaction.release_pending",
+        "vault.transaction.release_authorized"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.transaction.disburse",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_transaction_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.reserve.consume",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.transaction.disbursed",
+        "vault.transaction.closed"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.transfer.request",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_asset_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.reserve.create",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.reserve.created"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.ownership.transfer",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_asset_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.asset.verify",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.asset.verified"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "vault.asset.write_down",
+      "domain": "vault",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "vault_asset_lifecycle",
+      "validation": "present",
+      "capability_requirement": "vault.asset.impair",
+      "runtime_handler": "present",
+      "event_output": [
+        "vault.asset.rejected"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.proposal.implement",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_proposal_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.proposal.approve",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.proposal.approved"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "governance.proposal.cancel",
+      "domain": "governance",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "governance_proposal_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "governance.proposal.reject",
+      "runtime_handler": "present",
+      "event_output": [
+        "governance.proposal.rejected"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "agent.suspend",
+      "domain": "agent",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "agent_agent_instance_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "agent.governance.override",
+      "runtime_handler": "present",
+      "event_output": [
+        "agent.terminated"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.execution.prepare",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_execution_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.execution.plan",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.execution.planned"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "payment.adapter.disable",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "payment_execution_v06_lifecycle",
+      "validation": "present",
+      "capability_requirement": "payment.execution.compensate",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.request.cancelled"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "saga.compensate",
+      "domain": "payment",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": null,
+      "validation": "present",
+      "capability_requirement": "system.internal",
+      "runtime_handler": "present",
+      "event_output": [
+        "payment.execution.compensated"
+      ],
+      "lifecycle_status": "EXEMPT",
+      "governance_ref": null
+    },
+    {
+      "command": "escrow.account.create",
+      "domain": "escrow",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "escrow_account_lifecycle",
+      "validation": "present",
+      "capability_requirement": "escrow.account.create",
+      "runtime_handler": "present",
+      "event_output": [
+        "escrow.account.created"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "escrow.account.fund",
+      "domain": "escrow",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "escrow_account_lifecycle",
+      "validation": "present",
+      "capability_requirement": "escrow.account.fund",
+      "runtime_handler": "present",
+      "event_output": [
+        "escrow.account.funded"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "escrow.account.release",
+      "domain": "escrow",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "escrow_account_lifecycle",
+      "validation": "present",
+      "capability_requirement": "escrow.account.release",
+      "runtime_handler": "present",
+      "event_output": [
+        "escrow.account.released"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    },
+    {
+      "command": "escrow.account.cancel",
+      "domain": "escrow",
+      "source_location": "03_command-catalog.yaml",
+      "machine_coverage": "escrow_account_lifecycle",
+      "validation": "present",
+      "capability_requirement": "escrow.account.cancel",
+      "runtime_handler": "present",
+      "event_output": [
+        "escrow.account.cancelled"
+      ],
+      "lifecycle_status": "WIRED",
+      "governance_ref": null
+    }
+  ]
+}

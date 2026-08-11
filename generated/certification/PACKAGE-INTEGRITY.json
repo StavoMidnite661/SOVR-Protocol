@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0.0",
+  "certification_id": "PACKAGE-INTEGRITY-2026-08-10",
+  "package": {
+    "name": "sovr-runtime-v0.6.0-abi-v1.svr",
+    "format": "SVR",
+    "abi_version": "v1",
+    "size_bytes": 1508104,
+    "sha256": "260ff69317f848b2de8ffb34024c01ef6576a1719d69fe39f6d73170102c8eb6"
+  },
+  "contents": {
+    "manifest": true,
+    "protocol": true,
+    "ir": true,
+    "registries": true,
+    "runtime": true,
+    "adapters": true,
+    "deployment": true,
+    "certification": true,
+    "documentation": true
+  },
+  "security_defaults": {
+    "production_enabled": false,
+    "external_movement_enabled": false,
+    "customer_assets_enabled": false,
+    "genesis_write_enabled": false
+  },
+  "verification": {
+    "build_hash_match": true,
+    "registry_hashes_match": true,
+    "byte_identical_rebuild": true
+  }
+}

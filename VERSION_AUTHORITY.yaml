@@ -1,0 +1,60 @@
+# ============================================================
+# SOVR Financial OS — Version Authority
+# File: VERSION_AUTHORITY.yaml
+# Status: AUTHORITATIVE
+# ============================================================
+# This file is the single source of truth for all version
+# identifiers in the SOVR Protocol implementation.
+# All generated artifacts, documentation, and packages MUST
+# derive their version identity from this file.
+# ============================================================
+
+version_authority:
+  protocol:
+    version: "1.0.0"
+    source: "00_protocol-manifest.yaml"
+    constitutional: true
+    frozen: true
+
+  compiler:
+    version: "0.6.0"
+    source: "generated/compiler-manifest.yaml"
+    constitutional: false
+    frozen: false
+
+  runtime:
+    version: "0.6.0"
+    source: "package.json"
+    constitutional: false
+    frozen: false
+
+  package:
+    abi: "v1"
+    source: "dist/sovr-runtime-v0.6.0-abi-v1.svr"
+    constitutional: false
+    frozen: false
+
+semantics:
+  protocol_version: |
+    The protocol specification version. Immutable once frozen.
+    Changes require constitutional amendment.
+
+  compiler_version: |
+    The compiler implementation version. Tracks compiler releases.
+    Changes require compiler rebuild and manifest update.
+
+  runtime_version: |
+    The runtime implementation version. Tracks runtime package releases.
+    Changes require package rebuild and manifest update.
+
+  package_abi_version: |
+    The application binary interface version of deployable packages.
+    Changes require package format migration.
+
+derivation_rules:
+  - rule: "No version identifier may be hardcoded in runtime source."
+    enforcement: "All versions must be read from VERSION_AUTHORITY.yaml or compiler-generated manifests."
+  - rule: "Protocol version and compiler/runtime versions are independent concepts."
+    enforcement: "Do not force them to be equal."
+  - rule: "Package ABI version is separate from runtime version."
+    enforcement: "ABI changes do not require runtime version changes."

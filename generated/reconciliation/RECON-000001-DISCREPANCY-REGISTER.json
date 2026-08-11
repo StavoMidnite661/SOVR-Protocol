@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0.0",
+  "reconciliation_id": "RECON-000001",
+  "created_at": "2026-08-11T00:48:20.793Z",
+  "total_discrepancies": 7,
+  "discrepancies": [
+    {
+      "category": "STALE_DOCUMENTATION",
+      "artifact": "events",
+      "documented_count": 259,
+      "actual_count": 267,
+      "disposition": "STALE_FINDING",
+      "note": "README contains stale count; documentation must derive from machine-readable manifests"
+    },
+    {
+      "category": "STALE_DOCUMENTATION",
+      "artifact": "machines",
+      "documented_count": 43,
+      "actual_count": 46,
+      "disposition": "STALE_FINDING",
+      "note": "README contains stale count; documentation must derive from machine-readable manifests"
+    },
+    {
+      "category": "DOMAIN_COUNT_DISCREPANCY",
+      "domain_files": 15,
+      "domains_in_model": 14,
+      "missing_from_model": [
+        "certification.yaml",
+        "commercial.yaml",
+        "gateway.yaml",
+        "representation.yaml",
+        "settlement.yaml"
+      ],
+      "disposition": "REQUIRES_REMEDIATION",
+      "note": "Domain files exist that are not in canonical domain model"
+    },
+    {
+      "category": "DOMAIN_FILE_NOT_IN_MODEL",
+      "files": [
+        "certification.yaml",
+        "commercial.yaml",
+        "gateway.yaml",
+        "representation.yaml",
+        "settlement.yaml"
+      ],
+      "disposition": "REQUIRES_REMEDIATION",
+      "note": "Domain YAML files not referenced in 02_domain-model.yaml"
+    },
+    {
+      "category": "COMPILER_WARNINGS",
+      "count": 85,
+      "disposition": "REQUIRES_REMEDIATION",
+      "note": "85 compiler warnings exist; investigate reference integrity gaps",
+      "samples": [
+        {
+          "code": "REF-003",
+          "file": "03_command-catalog.yaml",
+          "message": "Command escrow.account.cancel references unknown event escrow.account.cancellation_failed"
+        },
+        {
+          "code": "REF-002",
+          "file": "05_state-machines.yaml",
+          "message": "State machine CommercialObligation transition 0 references unknown command ValidateObligation"
+        },
+        {
+          "code": "REF-002",
+          "file": "05_state-machines.yaml",
+          "message": "State machine CommercialObligation transition 1 references unknown command AuthorizeSettlement"
+        },
+        {
+          "code": "REF-002",
+          "file": "05_state-machines.yaml",
+          "message": "State machine CommercialObligation transition 3 references unknown command CancelObligation"
+        },
+        {
+          "code": "REF-002",
+          "file": "05_state-machines.yaml",
+          "message": "State machine CommercialObligation transition 4 references unknown command CancelObligation"
+        },
+        {
+          "code": "REF-002",
+          "file": "05_state-machines.yaml",
+          "message": "State machine CommercialObligation transition 5 references unknown command DisputeSettlement"
+        },
+        {
+          "code": "REF-002",
+          "file": "05_state-machines.yaml",
+          "message": "State machine SettlementRecord transition 0 references unknown command AuthorizeSettlement"
+        },
+        {
+          "code": "REF-002",
+          "file": "05_state-machines.yaml",
+          "message": "State machine SettlementRecord transition 1 references unknown command ExecuteSettlement"
+        },
+        {
+          "code": "REF-002",
+          "file": "05_state-machines.yaml",
+          "message": "State machine SettlementRecord transition 5 references unknown command DisputeSettlement"
+        },
+        {
+          "code": "REF-002",
+          "file": "05_state-machines.yaml",
+          "message": "State machine SettlementRecord transition 6 references unknown command CancelSettlement"
+        }
+      ]
+    },
+    {
+      "category": "MISSING_BUILD_ARTIFACT",
+      "artifact": "dist/",
+      "disposition": "REQUIRES_REMEDIATION",
+      "note": "No dist directory exists; deployable package has not been generated"
+    },
+    {
+      "category": "DETERMINISM_CHECK",
+      "artifact": "build_hash",
+      "status": "PASS",
+      "note": "Build hash uses content hashes only; no wall-clock in manifest (R5)",
+      "disposition": "CONFIRMED_CURRENT"
+    }
+  ]
+}

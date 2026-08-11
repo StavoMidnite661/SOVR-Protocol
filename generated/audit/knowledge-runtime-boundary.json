@@ -1,0 +1,38 @@
+{
+  "directive": "SOVR-GENESIS-000002-RECONCILIATION-PHASE-01",
+  "audit": "knowledge-runtime-boundary",
+  "generated_at": "2026-08-11T07:10:00-07:00",
+  "forbidden_patterns": [
+    "yaml.load",
+    "yaml.parse",
+    "readFileSync(*.yaml) in runtime/src/simulation or runtime/src/execution",
+    "knowledge/*.yaml"
+  ],
+  "searched_paths": [
+    "packages/runtime/src/simulation",
+    "packages/runtime/src/execution",
+    "packages/runtime/src/ (all subdirectories)"
+  ],
+  "findings": [
+    {
+      "file": "packages/runtime/src/ledger/tigerbeetle/__tests__/genesis-ceremony-readiness.test.ts",
+      "line": 43,
+      "pattern": "readFileSync",
+      "path": "governance/tigerbeetle/GENESIS_WRITE_MANIFEST.yaml",
+      "classification": "ALLOWED",
+      "reason": "Reading governance/tigerbeetle/*.yaml is not knowledge/*.yaml. Governance artifacts are permitted runtime inputs."
+    },
+    {
+      "file": "packages/runtime/src/ledger/tigerbeetle/__tests__/genesis-ceremony-readiness.test.ts",
+      "line": 32,
+      "pattern": "readFileSync",
+      "path": "governance/tigerbeetle/GENESIS_OPERATOR_AUTHORIZATION.yaml",
+      "classification": "ALLOWED",
+      "reason": "Reading governance/tigerbeetle/*.yaml is not knowledge/*.yaml. Governance artifacts are permitted runtime inputs."
+    }
+  ],
+  "forbidden_hits": 0,
+  "knowledge_yaml_access": false,
+  "yaml_parser_usage_in_forbidden_scopes": false,
+  "status": "PASS"
+}

@@ -1,0 +1,142 @@
+{
+  "directive": "SOVR-GENESIS-000002-RECONCILIATION-PHASE-01",
+  "generated_at": "2026-08-11T07:00:00-07:00",
+  "status": "CONDITIONALLY_CERTIFIED",
+  "reconciliation_matrix": [
+    {
+      "layer": "Commands",
+      "expected": 105,
+      "actual": 105,
+      "status": "PASS"
+    },
+    {
+      "layer": "Events",
+      "expected": 267,
+      "actual": 267,
+      "status": "PASS"
+    },
+    {
+      "layer": "Capabilities",
+      "expected": 113,
+      "actual": 113,
+      "status": "PASS"
+    },
+    {
+      "layer": "State Machines",
+      "expected": 46,
+      "actual": 46,
+      "status": "PASS"
+    },
+    {
+      "layer": "Projections",
+      "expected": 16,
+      "actual": 16,
+      "status": "PASS"
+    },
+    {
+      "layer": "Domains",
+      "expected": "canonical registry",
+      "actual": "14 in 02_domain-model.yaml, 15 files in domains/, 1 orphan (gateway)",
+      "status": "WARNING"
+    },
+    {
+      "layer": "Runtime command references",
+      "expected": "canonical only",
+      "actual": "13 canonical event/capability references OK, 17 unresolved command references (F-002)",
+      "status": "WARNING"
+    },
+    {
+      "layer": "Runtime event references",
+      "expected": "canonical only",
+      "actual": "all event references are canonical",
+      "status": "PASS"
+    },
+    {
+      "layer": "Knowledge runtime access",
+      "expected": false,
+      "actual": false,
+      "status": "PASS"
+    },
+    {
+      "layer": "Payment rails",
+      "expected": "disabled",
+      "actual": "disabled",
+      "status": "PASS"
+    },
+    {
+      "layer": "Genesis root",
+      "expected": "immutable",
+      "actual": "58984c9d25467525ff0dd28f7c71768c0c1a2b2cd3b4b8b80db4e3116d6065f8 (unchanged)",
+      "status": "PASS"
+    },
+    {
+      "layer": "Compiler deterministic",
+      "expected": "yes",
+      "actual": "yes (dual compile produces identical build_hash 26bc500e6875...)",
+      "status": "PASS"
+    },
+    {
+      "layer": "Package generated",
+      "expected": "yes",
+      "actual": "yes (dist/sovr-runtime-v0.6.0-abi-v1.svr, SHA256: 9dfe731e423a...)",
+      "status": "PASS"
+    },
+    {
+      "layer": "Certification",
+      "expected": "pass",
+      "actual": "PASS with 1 warning (TLC model checker not available)",
+      "status": "PASS"
+    }
+  ],
+  "remaining_findings": [
+    {
+      "id": "F-001",
+      "category": "COMPILER_WARNINGS",
+      "count": 85,
+      "severity": "WARNING",
+      "status": "CLASSIFIED",
+      "disposition": "15 CANONICAL_SPEC_GAP (requires human authorization), 70 SEMANTIC_ISSUE (guard fields)",
+      "action_required": "Human authorization for 15 missing command/event references; semantic guard fields require YAML authority review"
+    },
+    {
+      "id": "F-002",
+      "category": "RUNTIME_SPEC_VIOLATIONS",
+      "count": 17,
+      "severity": "MEDIUM",
+      "status": "CLASSIFIED",
+      "disposition": "UNRESOLVED_CANONICAL_GAP",
+      "action_required": "17 hardcoded payment.rail.* command references do not exist in canonical command registry. Runtime must be reconciled against canonical registries only. Do not invent commands."
+    },
+    {
+      "id": "F-004",
+      "category": "DOMAIN_FILE_NOT_IN_MODEL",
+      "count": 1,
+      "severity": "LOW",
+      "status": "CLASSIFIED",
+      "disposition": "ORPHANED",
+      "action_required": "domains/gateway.yaml is orphaned. Not in 02_domain-model.yaml, not in compiler input, referenced amendment AMD-0005 does not exist. AMD-0013 (PROPOSED) mentions gateway but is not ratified."
+    }
+  ],
+  "resolved_findings": [
+    {
+      "id": "F-003",
+      "category": "PROJECTION_GAP",
+      "count": 16,
+      "severity": "MEDIUM",
+      "status": "RESOLVED",
+      "action": "Implemented 16 canonical projections from projections.registry.json and wired them into ProjectionEngine. Rebuilt .svr package."
+    }
+  ],
+  "artifacts_generated": [
+    "audit/remediation-baseline/REMEDIATION_BASELINE_MANIFEST.json",
+    "generated/audit/runtime-command-reconciliation.json",
+    "generated/audit/compiler-warning-classification.json",
+    "packages/runtime/src/projections/ (16 canonical projection implementations)",
+    "generated/audit/DOMAIN_RECONCILIATION_REPORT.json",
+    "docs/generated/ (7 reference documentation files)",
+    "VERSION_AUTHORITY.yaml",
+    "scripts/build-package.mjs",
+    "dist/sovr-runtime-v0.6.0-abi-v1.svr",
+    "dist/SHA256SUMS"
+  ]
+}
