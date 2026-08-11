@@ -1,7 +1,0 @@
-{
-  "event_id": "c07692920ab789fc",
-  "input": "17ee52dac8732aaa:404771:327102:1:INTERNAL_VALUE_MOVEMENT_TEST",
-  "algorithm": "SHA256",
-  "deterministic": true,
-  "verification": "Same input always produces same event_id"
-}

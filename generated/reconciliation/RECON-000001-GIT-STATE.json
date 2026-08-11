@@ -1,7 +1,0 @@
-{
-  "branch": "main",
-  "head": "1132fc67dc7946d5b8b14abb6a11de3475851208",
-  "status": "M generated/compiler-certification.json\n M generated/compiler-manifest.yaml\n M generated/registries/boot.registry.json\n M generated/registries/capabilities.registry.json\n M generated/registries/commands.registry.json\n M generated/registries/constitution.registry.json\n M generated/registries/contracts.registry.json\n M generated/registries/economic.registry.json\n M generated/registries/envelopes.registry.json\n M generated/registries/events.registry.json\n M generated/registries/execution-plans.registry.json\n M generated/registries/machines.registry.json\n M generated/registries/projections.registry.json\n M generated/registries/registry.manifest.json\n M generated/registries/reserve.registry.json\n M generated/registries/schemas.registry.json\n M generated/registries/settlement.registry.json\n M generated/registries/validation.registry.json\n M generated/simulation/scenarios.registry.json\n?? generated/reconciliation/\n?? scripts/build-forensic-snapshot.mjs\n?? scripts/extract-inventory.mjs",
-  "tracked_files": 1206,
-  "remote": "origin\thttps://github.com/StavoMidnite661/SOVR-Protocol.git (fetch)\norigin\thttps://github.com/StavoMidnite661/SOVR-Protocol.git (push)"
-}

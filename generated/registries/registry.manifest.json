@@ -1,67 +1,67 @@
 {
   "abi_version": "v1",
-  "build_hash": "a7943802ba63b8117ccb9afd43dfc00b31d94c9881e682b158b675a3c62d048a",
+  "build_hash": "4d2ff2682d57821d8597dc587a66a1c0e9e083a1a66003ec2c5726d1f0f6f466",
   "constitution_hash": "34dfbdc2de193f54f87bb873039603bb5a5502a8448ef6151133f54c77a54ed3",
   "registries": {
     "boot.registry.json": {
       "entry_count": 1,
-      "sha256": "dbd293545d690f502d77ed58d68104ddcd80d022bfae3aa747b34c157b8aa76f"
+      "sha256": "688d6aa60aba7a0f614e1782fc94f25a8495aefaefd45d353b46e8119e3adea6"
     },
     "capabilities.registry.json": {
       "entry_count": 113,
-      "sha256": "32575d1d4b318b0b508253eb653ca5cac3036fba2304b6481acf35e9dfe6c40c"
+      "sha256": "48834ec483ab900d238369a65c3d502d4b434fdf2a019e138ab5d2b40bc5ade5"
     },
     "commands.registry.json": {
       "entry_count": 105,
-      "sha256": "a120091df81f67494fa4186f31ce562edafed3ad3b739c544731d08f71ec45bd"
+      "sha256": "fd16fd2bee2e0fa1ae5be313ea12496452617982728dcf88c471d13b9f5fcb5b"
     },
     "constitution.registry.json": {
       "entry_count": 1,
-      "sha256": "9449e8e7ebb484a69c292d36578b6da5c50fd129b3ea7dec3ae911650d677c54"
+      "sha256": "1bb2f7738dcce7507250b1127e817383f72ed952593217e564178795724a70a5"
     },
     "contracts.registry.json": {
       "entry_count": 2,
-      "sha256": "067c93be56e19e6849d370305619e358554aad95a04534e34da91758a90578a3"
+      "sha256": "7c597d1fab439e31bb1943d78311bdfa5e963c32ab6ae4afeaf78a9125e38fec"
     },
     "economic.registry.json": {
       "entry_count": 168,
-      "sha256": "8fd98f73ae3c12ea30eab82cf9f63f95d59bc09eb9badc597e05f3e7d4f51041"
+      "sha256": "9af36e263d9c67a2bd3fb237618633f26355aca5e4ac30ad10098d5d7570328a"
     },
     "envelopes.registry.json": {
       "entry_count": 1,
-      "sha256": "1b2ae89e510f5f7ac386fbb97a8d57b10b2bfaa7b3743acd5c29be130c63b211"
+      "sha256": "580b7fdbf29bff3d0b6aac2ccd6c543d779197a7f2cc6065575929c2140357c8"
     },
     "events.registry.json": {
       "entry_count": 267,
-      "sha256": "102d155bf6ff91ce976cca35a93f95e48277da51e6b2c165494a085cfb3022c2"
+      "sha256": "7937ba5270aca8a7d95888db0db9d7c98e44daa6491b0cd7fdbaef069a64bc5f"
     },
     "execution-plans.registry.json": {
       "entry_count": 1,
-      "sha256": "ac72a5df233fb1ff58e1544642d83ab1ae383957f0fcf39288494f0fa727d469"
+      "sha256": "7922ea02ef57ddf1345e7ba669de2da4965abd1a6fea6110c8a85a4393064b07"
     },
     "machines.registry.json": {
       "entry_count": 46,
-      "sha256": "3f4cb384d2443e7da3144821fafdf252f024b957a2328637d9c0b5fe54b6c711"
+      "sha256": "d8cb65ede6f80c7eebf02c354317ea747e4cb6a9782c81853f2af19daeca7d89"
     },
     "projections.registry.json": {
       "entry_count": 16,
-      "sha256": "291e3b6ef1b7140d414ef151267169e3ec62f7d357a24a08924f85f01e905b86"
+      "sha256": "376f9178a38e099325570d0dccc5a3806a45d7213c3753368243a1fd39c9f62a"
     },
     "reserve.registry.json": {
       "entry_count": 28,
-      "sha256": "ed0a70865159dd1e28ad8d7e65c96099c670ecc682d7eaadd650f8da14784db0"
+      "sha256": "efd3f48cb7192bdeeb416a1acee5c1db1f5c39d6d9761a7bd1cf606a249db316"
     },
     "schemas.registry.json": {
       "entry_count": 372,
-      "sha256": "e69354561f84e82c429d98591abe4c64f658244418562a80ff750167a656f91f"
+      "sha256": "ce4fe0e61d02226ab015dced67f07c74f5a5295fbe6959c1fdbafd8bdfae05ec"
     },
     "settlement.registry.json": {
       "entry_count": 23,
-      "sha256": "9edbe590802aadea5d87d25394013ce0adbf26c9f2b5b548340d418c8f16bc6b"
+      "sha256": "8c33e1792e419de50f60b881d8e7ac3ff3cd93ace57c9872bbd52d437237256c"
     },
     "validation.registry.json": {
       "entry_count": 105,
-      "sha256": "52b539c373137edd66a1d6d7c1cfff586d3e2a354f6420cd2da9cef4a7ac597f"
+      "sha256": "a480014019ed8b469a6b82fbbb9102615380e2211be658ca02143ff3d4fd98a1"
     }
   }
 }

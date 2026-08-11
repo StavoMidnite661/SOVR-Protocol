@@ -1,9 +1,0 @@
-{
-  "scenario_id": "SIM-002-TREASURY-TRANSFER-APPROVAL",
-  "events": [],
-  "orphan_events": 0,
-  "broken_chains": 0,
-  "missing_ledger_entries": 0,
-  "missing_reserve_links": 0,
-  "verified": true
-}

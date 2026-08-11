@@ -1,8 +1,0 @@
-{
-  "phase": "PHASE10E",
-  "timestamp": "2026-08-09T22:51:32.254Z",
-  "certificates_passed": true,
-  "writes_enabled": true,
-  "genesis_executed": true,
-  "status": "GENESIS_LEDGER_ACTIVATED"
-}

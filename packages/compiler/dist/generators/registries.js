@@ -69,7 +69,6 @@ function withIntegrity(registry, compilerVersion) {
             algorithm: 'SHA256',
             hash,
             generated_by: { compiler_version: compilerVersion },
-            timestamp: new Date().toISOString(),
         },
     };
 }
