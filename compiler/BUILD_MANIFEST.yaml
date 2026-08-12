@@ -23,6 +23,37 @@ manifest:
     version yield a byte-identical manifest.
 
 # ------------------------------------------------------------
+# ARTIFACT TAXONOMY
+# ------------------------------------------------------------
+# Canonical counts so future readers never confuse the sets. Any document
+# citing artifact counts MUST use this taxonomy.
+artifact_taxonomy:
+  primary_generated_artifacts: 168
+  primary_description: >
+    The PASS-015 generator output set recorded in the manifest
+    output_hashes map (registries, simulation registry, TypeScript,
+    OpenAPI, Prisma, Kafka/Redis config, TLA+, VEL, topology,
+    guardrails, agent sandbox, coverage). These are the artifacts whose
+    SHA256 values feed build_hash.
+  build_evidence_artifacts: 4
+  build_evidence_list:
+    - compiler-manifest.yaml
+    - sovr-ir.json
+    - registries/registry.manifest.json
+    - compiler-certification.json
+  build_evidence_description: >
+    Build/compiler evidence written alongside the primary set. They are
+    derived from the same compilation and are included in the two-compile
+    byte comparison (172 compared artifacts), but they are not members of
+    the output_hashes map.
+  total_certified_output_set: 172
+  note: >
+    168 primary + 4 evidence = 172. The determinism verifier compares all
+    172. Documents citing "168" refer to primary generated artifacts;
+    documents citing "172" refer to the full certified output set. The
+    compiler has NOT drifted when both numbers appear.
+
+# ------------------------------------------------------------
 # MANIFEST FIELDS
 # ------------------------------------------------------------
 fields:
@@ -105,6 +136,15 @@ timestamp_policy:
       provenance point; a pure function of compiler identity, identical
       for identical inputs. It is not a wall-clock measurement of any
       particular run.
+    semantics_provenance: >
+      CLASSIFICATION: technically resolved; governance semantics
+      ESTABLISHED BY THE 2026-08-11 DETERMINISM REMEDIATION. The
+      repository previously defined no value semantics for these fields
+      (CONTRACT_SEMANTICS_INVESTIGATION.md §A/H1/H2 — UNRESOLVED at the
+      time). This canonical reading is the operative contract from the
+      remediation forward; it is NOT a claim that canonical-value
+      semantics were the historical intent. A governance amendment may
+      supersede it; any supersession must preserve R5/R9.
     canonical_source: >
       The repository's pre-existing deterministic time origin
       (packages/runtime/src/simulation/deterministic.ts baseTime),
