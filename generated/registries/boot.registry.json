@@ -24,7 +24,8 @@
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "a3906f56129fad0d4677056447762ba5921a77baca197556b50d6c6e37543997"
+    "hash": "a3906f56129fad0d4677056447762ba5921a77baca197556b50d6c6e37543997",
+    "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "boot"
 }

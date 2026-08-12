@@ -83,10 +83,54 @@ fields:
 # ------------------------------------------------------------
 timestamp_policy:
   wall_clock_in_manifest: PROHIBITED
+  wall_clock_in_outputs: PROHIBITED
   generated_at_field: omitted_or_canonical_only
   rationale: >
     Any wall-clock value would break byte-identical reproducibility.
     Provenance is captured by content hashes, not time.
+
+  # Canonical resolution for ABI-required timestamp metadata fields
+  # (IntegrityBlock.timestamp, SimulationScenarioCompiled.compiled_at,
+  # SimulationRegistry.integrity.timestamp). These fields remain REQUIRED
+  # per the authority ABI contracts; their values are canonical, not
+  # wall-clock, so R5/R9 hold without weakening the ABI.
+  canonical_generated_at:
+    value: "2026-08-07T00:00:00.000Z"
+    format: ISO-8601 UTC
+    name: CANONICAL_COMPILATION_TIMESTAMP
+    implementation: packages/compiler/src/utils/deterministic-time.ts
+    semantics: >
+      Canonical Compilation Timestamp (CCT). A fixed, documented
+      ISO-8601 instant denoting the compilation as a canonical
+      provenance point; a pure function of compiler identity, identical
+      for identical inputs. It is not a wall-clock measurement of any
+      particular run.
+    canonical_source: >
+      The repository's pre-existing deterministic time origin
+      (packages/runtime/src/simulation/deterministic.ts baseTime),
+      reused so the value is traceable to an established in-repo
+      canonical constant rather than an arbitrary invention.
+    applies_to:
+      - generated/registries/*.registry.json integrity.timestamp
+      - generated/simulation/scenarios.registry.json compiled_at
+      - generated/simulation/scenarios.registry.json integrity.timestamp (scenario and registry level)
+    guarantees:
+      - independent of host clock, timezone, environment, filesystem order, execution time, and randomness
+      - identical across independent compilations of identical inputs
+    integrity_hash_boundaries:
+      artifact_level_rule: >
+        For every authority artifact (all *.registry.json and
+        scenarios.registry.json): integrity.hash = sha256(canonicalJson(
+        artifact minus its own top-level integrity block)). This is the
+        same rule the runtime IntegrityValidator enforces. The payload is
+        deterministic because all embedded provenance values are canonical
+        constants (Canonical Compilation Timestamp) or content hashes.
+      scenario_level_rule: >
+        For each compiled scenario inside scenarios.registry.json:
+        integrity.hash = sha256(canonicalJson(canonicalScenarioPayload)),
+        where the canonical scenario payload excludes generated provenance
+        metadata (compiled_at, integrity block, legacy integrity_hash),
+        making scenario hashes pure functions of protocol source content.
 
 # ------------------------------------------------------------
 # REPRODUCIBILITY RULES

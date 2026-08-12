@@ -57,6 +57,29 @@ interface SovrCompilerPassContext extends CompilerPassContext {
   registryVersions?: Record<string, string>;
   generationOrder?: string[];
   commandCoverage?: CommandLifecycleCoverageReport;
+  /**
+   * Set to true ONLY after a genuine two-independent-compilation
+   * verification has proven byte-identical reproducibility. The manifest
+   * must never hard-code determinism claims (audit finding: R-flags were
+   * previously literals). Unverified runs report false.
+   */
+  determinismVerified?: boolean;
+}
+
+/**
+ * Evidence record of a genuine two-independent-compilation determinism
+ * verification. `identical` may be true only when two isolated compiler
+ * executions (independent Node processes, isolated output directories)
+ * produced byte-identical manifests and artifacts and equal build hashes.
+ */
+export interface DeterminismProof {
+  method: string;
+  run_1_hash: string;
+  run_2_hash: string;
+  identical: boolean;
+  compared_artifacts: number;
+  artifacts_hash: string;
+  differences: string[];
 }
 
 interface CommandLifecycleCoverageReport {
@@ -290,19 +313,27 @@ export class CompilerRuntime {
           registry_versions: registryVersions,
           build_hash: buildHash,
           command_lifecycle_coverage: ctx.commandCoverage,
+          // Determinism claims are MEASURED, never hard-coded. Every flag
+          // reflects an actual two-independent-compilation verification
+          // (compiler/BUILD_MANIFEST.yaml:verification). Unverified runs
+          // report false; the verifying CLI upgrades them to true only on
+          // byte-identical evidence from two isolated compiler processes.
           reproducibility: {
-            R1_closed_frontier: true,
-            R2_sorted_lists: true,
-            R3_canonical_serialization: true,
-            R4_no_randomness: true,
-            R5_no_wall_clock: true,
-            R6_stable_dispatch: true,
-            R7_deterministic_paths: true,
-            R8_version_included: true,
-            R9_byte_identical: true,
-            R10_environment_isolation: true,
+            R1_closed_frontier: ctx.determinismVerified === true,
+            R2_sorted_lists: ctx.determinismVerified === true,
+            R3_canonical_serialization: ctx.determinismVerified === true,
+            R4_no_randomness: ctx.determinismVerified === true,
+            R5_no_wall_clock: ctx.determinismVerified === true,
+            R6_stable_dispatch: ctx.determinismVerified === true,
+            R7_deterministic_paths: ctx.determinismVerified === true,
+            R8_version_included: ctx.determinismVerified === true,
+            R9_byte_identical: ctx.determinismVerified === true,
+            R10_environment_isolation: ctx.determinismVerified === true,
           },
-          timestamp_policy: 'wall_clock_in_manifest: PROHIBITED — build_hash uses content hashes only',
+          determinism_verification: ctx.determinismVerified === true
+            ? 'VERIFIED: two independent isolated compilations byte-identical'
+            : 'NOT_VERIFIED: no two-compile comparison performed for this output',
+          timestamp_policy: 'wall_clock_in_outputs: PROHIBITED (R5) — generated timestamp metadata carries the Canonical Compilation Timestamp (packages/compiler/src/utils/deterministic-time.ts; compiler/BUILD_MANIFEST.yaml timestamp_policy.canonical_generated_at); build_hash covers deterministic content only',
           stats: {
             input_files: ctx.loaded.length,
             ir_nodes: ir.nodes.length,
@@ -371,27 +402,44 @@ export class CompilerRuntime {
     };
   }
 
-  writeOutput(outDir: string, output: CompilerOutput) {
-    const manifestPath = join(outDir, 'compiler-manifest.yaml');
-    mkdirSync(dirname(manifestPath), { recursive: true });
-    writeFileSync(manifestPath, canonicalJson(output.manifest) + '\n');
+  /**
+   * Builds the complete output tree (relative path -> exact file content)
+   * that writeOutput would persist, WITHOUT touching the filesystem.
+   *
+   * Exposed so the determinism verifier can compare a run's intended bytes
+   * against an independent run's actual bytes artifact-for-artifact.
+   *
+   * `proof` is null for runs that have not performed a two-compile
+   * verification; the certification then truthfully reports
+   * verification NOT_PERFORMED instead of a fabricated proof.
+   */
+  buildOutputTree(output: CompilerOutput, proof: DeterminismProof | null = null): Map<string, string> {
+    const tree = new Map<string, string>();
+
+    tree.set('compiler-manifest.yaml', canonicalJson(output.manifest) + '\n');
 
     for (const file of output.files) {
-      const fullPath = join(outDir, file.path);
-      mkdirSync(dirname(fullPath), { recursive: true });
-      writeFileSync(fullPath, file.content);
+      tree.set(file.path, file.content);
     }
 
-    const irPath = join(outDir, 'sovr-ir.json');
-    writeFileSync(irPath, canonicalJson({ meta: output.ir.meta, nodes: output.ir.nodes, edges: output.ir.edges }) + '\n');
+    tree.set('sovr-ir.json', canonicalJson({ meta: output.ir.meta, nodes: output.ir.nodes, edges: output.ir.edges }) + '\n');
+    tree.set('registries/registry.manifest.json', this.buildRegistryManifestContent(output));
+    tree.set('compiler-certification.json', this.buildCertificationContent(output, proof));
 
-    this.writeRegistryManifest(outDir, output);
-    this.writeCompilerCertification(outDir, output);
+    return tree;
+  }
 
+  writeOutput(outDir: string, output: CompilerOutput, proof: DeterminismProof | null = null) {
+    const tree = this.buildOutputTree(output, proof);
+    for (const [relPath, content] of [...tree.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+      const fullPath = join(outDir, relPath);
+      mkdirSync(dirname(fullPath), { recursive: true });
+      writeFileSync(fullPath, content);
+    }
     console.log(`Generated ${output.files.length} artifacts with build_hash ${output.buildHash}`);
   }
 
-  private writeRegistryManifest(outDir: string, output: CompilerOutput): void {
+  private buildRegistryManifestContent(output: CompilerOutput): string {
     const registryFiles = output.files.filter(f => f.path.startsWith('registries/') && f.path.endsWith('.registry.json'));
     const registries: Record<string, any> = {};
     for (const file of registryFiles.sort((a, b) => a.path.localeCompare(b.path))) {
@@ -407,38 +455,57 @@ export class CompilerRuntime {
       constitution_hash: output.inputHashes['01_constitution.yaml'],
       registries,
     };
-    const content = canonicalJson(manifest) + '\n';
-    const path = join(outDir, 'registries', 'registry.manifest.json');
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, content);
+    return canonicalJson(manifest) + '\n';
   }
 
-  private writeCompilerCertification(outDir: string, output: CompilerOutput): void {
+  /**
+   * Compiler certification content.
+   *
+   * The deterministic_proof block is EVIDENCE, never assertion:
+   *  - with `proof`: the recorded result of a genuine comparison of two
+   *    independent isolated compiler executions (independent Node
+   *    processes, isolated output directories, byte-for-byte artifact
+   *    comparison). `identical: true` appears only when that comparison
+   *    found zero differences;
+   *  - without `proof`: verification NOT_PERFORMED is reported and
+   *    `identical` is false. A single compilation cannot prove its own
+   *    determinism, so no run hash duplication is ever emitted.
+   */
+  private buildCertificationContent(output: CompilerOutput, proof: DeterminismProof | null): string {
     const registryFiles = output.files.filter(f => f.path.startsWith('registries/') && f.path.endsWith('.registry.json'));
     const registryHashes: Record<string, string> = {};
     for (const file of registryFiles.sort((a, b) => a.path.localeCompare(b.path))) {
       registryHashes[file.path.replace('registries/', '')] = file.sha256;
     }
-    const proofPayload = canonicalJson({
-      build_hash: output.buildHash,
-      input_hashes: output.inputHashes,
-      ir_hash: output.manifest.ir_hash,
-      registry_hashes: registryHashes,
-    });
-    const runHash = sha256(proofPayload);
+    const deterministicProof = proof
+      ? {
+          method: proof.method,
+          run_1_hash: proof.run_1_hash,
+          run_2_hash: proof.run_2_hash,
+          artifacts_hash: proof.artifacts_hash,
+          compared_artifacts: proof.compared_artifacts,
+          differences: proof.differences,
+          identical: proof.identical,
+        }
+      : {
+          method: 'two_independent_compilations',
+          status: 'NOT_PERFORMED',
+          run_1_hash: output.buildHash,
+          run_2_hash: null,
+          artifacts_hash: null,
+          compared_artifacts: 0,
+          differences: [],
+          identical: false,
+        };
     const certification = {
       ir_hash: output.manifest.ir_hash,
       registry_hashes: registryHashes,
       input_hashes: output.inputHashes,
       build_hash: output.buildHash,
-      deterministic_proof: {
-        run_1_hash: runHash,
-        run_2_hash: runHash,
-        identical: true,
-      },
+      deterministic_proof: deterministicProof,
       legal_notice: 'SOVR Protocol compiler certification artifact. Proprietary — all rights reserved.',
     };
-    writeFileSync(join(outDir, 'compiler-certification.json'), canonicalJson(certification) + '\n');
+    return canonicalJson(certification) + '\n';
   }
 }
 

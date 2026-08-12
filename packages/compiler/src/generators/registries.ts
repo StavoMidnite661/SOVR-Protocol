@@ -1,6 +1,7 @@
 import { SOVR_IR } from '../ir/types.js';
 import { GeneratedFile } from './typescript.js';
 import { canonicalJson, sha256 } from '../utils/hash.js';
+import { canonicalCompilationTimestamp } from '../utils/deterministic-time.js';
 import { ParsedProtocol } from '../pipeline/parse.js';
 
 const ABI = 'v1';
@@ -84,6 +85,9 @@ export function generateRegistries(ir: SOVR_IR, parsed: ParsedProtocol, compiler
 }
 
 function withIntegrity(registry: any, compilerVersion: string): any {
+  // Integrity hash boundary: the hash represents the canonical semantic
+  // payload only — the integrity block itself (provenance metadata) is
+  // excluded, so the hash is independent of generated metadata.
   const hashPayload: any = { ...registry };
   delete hashPayload.integrity;
   const hash = sha256(canonicalJson(hashPayload));
@@ -93,7 +97,10 @@ function withIntegrity(registry: any, compilerVersion: string): any {
       algorithm: 'SHA256',
       hash,
       generated_by: { compiler_version: compilerVersion },
-      timestamp: new Date().toISOString(),
+      // Canonical Compilation Timestamp — deterministic, documented in
+      // utils/deterministic-time.ts and compiler/BUILD_MANIFEST.yaml.
+      // Wall-clock values are prohibited here by R5/R9.
+      timestamp: canonicalCompilationTimestamp(),
     },
   };
 }

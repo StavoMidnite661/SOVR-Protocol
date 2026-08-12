@@ -517,7 +517,8 @@
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "29fe1736743604298b28a79169d7a7f7d981d7ed19aaf292f07c9695c483e9fa"
+    "hash": "29fe1736743604298b28a79169d7a7f7d981d7ed19aaf292f07c9695c483e9fa",
+    "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "settlement",
   "lifecycle": "CREATED -> AUTHORIZED -> RESERVED -> POSTED -> SETTLED -> VERIFIED",
