@@ -1,6 +1,7 @@
 import { SOVR_IR } from '../ir/types.js';
 import { GeneratedFile } from './typescript.js';
 import { canonicalJson, sha256 } from '../utils/hash.js';
+import { canonicalCompilationTimestamp } from '../utils/deterministic-time.js';
 import { ParsedProtocol } from '../pipeline/parse.js';
 
 export interface SimulationScenarioCompiled {
@@ -73,6 +74,23 @@ export interface SimulationRegistry {
   };
 }
 
+/**
+ * Canonical semantic payload of a compiled scenario.
+ *
+ * Strips ALL generated provenance metadata (compiled_at, integrity block,
+ * legacy integrity_hash) so integrity hashes computed over this payload
+ * are pure functions of the protocol source content — identical across
+ * independent compilations. This is the single explicit canonical payload
+ * used by both the per-scenario and the registry-level integrity hashes.
+ */
+function canonicalScenarioPayload(scenario: SimulationScenarioCompiled): Record<string, unknown> {
+  const payload: any = { ...scenario };
+  delete payload.integrity_hash;
+  delete payload.integrity;
+  delete payload.compiled_at;
+  return payload;
+}
+
 export function generateSimulationRegistry(parsed: ParsedProtocol): GeneratedFile[] {
   const simulationDir = 'governance/simulation/scenarios';
   const scenarios: Record<string, SimulationScenarioCompiled> = {};
@@ -117,18 +135,23 @@ export function generateSimulationRegistry(parsed: ParsedProtocol): GeneratedFil
       expected_failures: raw.expected_failures,
       invariants: raw.invariants,
       source_file: file.relativePath,
-      compiled_at: new Date().toISOString(),
+      // Canonical Compilation Timestamp — deterministic provenance value,
+      // satisfies the FROZEN SIMULATION_REGISTRY_ABI_v1 "ISO-8601 timestamp
+      // of compilation" contract without wall-clock leakage (R5/R9).
+      // Documented in utils/deterministic-time.ts.
+      compiled_at: canonicalCompilationTimestamp(),
     };
 
-    const hashPayload = { ...scenario };
-    delete (hashPayload as any).integrity_hash;
-    delete (hashPayload as any).integrity;
-    delete (hashPayload as any).compiled_at;
+    // Scenario integrity hash boundary: canonical semantic payload only.
+    // Generated provenance metadata (compiled_at, integrity, legacy
+    // integrity_hash) is excluded so the hash is a pure function of the
+    // scenario's protocol content and identical across compilations.
+    const hashPayload = canonicalScenarioPayload(scenario);
     scenario.integrity = {
       algorithm: 'SHA256',
       hash: sha256(canonicalJson(hashPayload)),
       generated_by: { compiler_version: '0.6.0' },
-      timestamp: new Date().toISOString(),
+      timestamp: canonicalCompilationTimestamp(),
     };
 
     delete (scenario as any).integrity_hash;
@@ -136,12 +159,32 @@ export function generateSimulationRegistry(parsed: ParsedProtocol): GeneratedFil
     scenarios[scenario.scenario_id] = scenario;
   }
 
-  const regHashPayload = { ...{ abi_version: 'v1', scenarios, entry_count: Object.keys(scenarios).length } };
+  // Simulation registry integrity hash boundary — EXPLICIT canonical
+  // payload rule, unified with every other authority artifact and with the
+  // runtime IntegrityValidator (packages/runtime/src/authority/
+  // integrity-validator.ts):
+  //
+  //   registry.integrity.hash = sha256(canonicalJson(registry minus its
+  //   own top-level integrity block))
+  //
+  // The payload therefore contains abi_version, entry_count and the full
+  // scenario map. It is deterministic across independent compilations
+  // because every embedded provenance value is the Canonical Compilation
+  // Timestamp (or a hash over canonical scenario content): compiled_at and
+  // integrity.timestamp are fixed constants, and per-scenario
+  // integrity.hash values are pure functions of protocol content. No
+  // wall-clock value enters this payload (R5), so the hash satisfies R9
+  // while remaining verifiable by the unmodified runtime validator.
+  const regHashPayload = {
+    abi_version: 'v1',
+    entry_count: Object.keys(scenarios).length,
+    scenarios,
+  };
   const regIntegrity = {
     algorithm: 'SHA256' as const,
     hash: sha256(canonicalJson(regHashPayload)),
     generated_by: { compiler_version: '0.6.0' },
-    timestamp: new Date().toISOString(),
+    timestamp: canonicalCompilationTimestamp(),
   };
 
   const registry: SimulationRegistry = {

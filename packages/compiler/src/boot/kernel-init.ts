@@ -204,9 +204,11 @@ export async function runBootSequence(rootDir: string, ir: SOVR_IR, buildHash: s
     stages: stages.map(s=> ({ level: s.level, name: s.name, durationMs: s.durationMs, passed: s.passed })),
     events: events,
     verification: {
-      method: 'same YAML + same compiler + same POST = same boot_attestation',
-      frontend_check: 'verify boot_attestation.build_hash === manifest.build_hash && replay boot_log deterministically',
-      unfakeable: true,
+      method: 'build_hash is reproducible build identity (deterministic compilation); boot_log_hash/boot_timings_hash/events are per-boot runtime instance evidence and are run-specific by design',
+      reproducible_components: 'build_hash (compiler build identity) + final_health',
+      instance_evidence_components: 'boot_log_hash, boot_timings_hash, events (wall-clock timestamps and measured durations)',
+      frontend_check: 'verify boot_attestation.build_hash === manifest.build_hash',
+      chained: true,
     },
     boot_splash: splash,
   };

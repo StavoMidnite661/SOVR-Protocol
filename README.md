@@ -946,7 +946,7 @@ generated/boot-manifest.json     ← Stages, timings, events, health
 generated/boot-attestation.json  ← boot_hash + verification instructions
 ```
 
-The boot hash chain proves the kernel booted from the exact frozen YAML specification. `build_hash` in boot attestation must match `build_hash` in compiler manifest.
+The `build_hash` component is reproducible build identity (deterministic compilation) and must match `build_hash` in the compiler manifest — that chain proves the kernel booted from the exact frozen YAML specification. The `boot_log_hash` / `boot_timings_hash` / boot events components are per-boot runtime instance evidence (measured durations and wall-clock events) and are run-specific by design; `boot_hash` is therefore a boot-instance attestation chained to a reproducible build identity, not itself a reproducible identity.
 
 ---
 

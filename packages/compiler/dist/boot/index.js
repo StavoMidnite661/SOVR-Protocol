@@ -77,7 +77,7 @@ export async function boot(rootDir, outDir) {
         stages: seq.stages,
         events: seq.events,
         total_duration_ms: seq.totalDurationMs,
-        verification: 'same YAML + same compiler + same POST = same boot_hash = cannot be fudged',
+        verification: 'boot_hash chains reproducible build identity (build_hash) with per-boot runtime instance evidence (boot_log_hash, boot_timings_hash, wall-clock events); boot_hash itself is a boot-instance attestation, not a reproducible identity',
     }) + '\n');
     console.log(`Boot artifacts written:`);
     console.log(`  ${bootAttestationPath}`);

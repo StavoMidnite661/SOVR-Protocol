@@ -1,5 +1,5 @@
 {
-  "build_hash": "4d2ff2682d57821d8597dc587a66a1c0e9e083a1a66003ec2c5726d1f0f6f466",
+  "build_hash": "18c55c3231a606657491a39f62ffc94d8a9589f3766af66901edb863fe46ff80",
   "command_lifecycle_coverage": {
     "covered": [
       {
@@ -441,6 +441,7 @@
     "uncovered": []
   },
   "compiler_version": "0.6.0",
+  "determinism_verification": "VERIFIED: two independent isolated compilations byte-identical",
   "diagnostics": [
     {
       "action": "REPORT_WARNINGS",
@@ -1411,7 +1412,7 @@
     "VERSION_AUTHORITY.yaml": "a4858e085dd0b43d1f386ed6677fe9ad665f8da7bee764f4eaf48e7510d7690e",
     "acceptance-tests.yaml": "0d41e9dd5e82404d9c53228a9e93d75de14ca77e195727f9ecaa34734fff9bd2",
     "compiler.yaml": "823c31702e19c22e3981d5ffdd2770afff67c726bf649f5a633313cf45bb924a",
-    "compiler/BUILD_MANIFEST.yaml": "d0ecd3de23442bcb42e2c8cfa731e555a76c292c1059c51a1c4eb76d79dc5d87",
+    "compiler/BUILD_MANIFEST.yaml": "3a60086f9511a3d758a9432bf3809da0fb96f9cbba7e97d0114c4086a0d02094",
     "compiler/COMPILER_MANIFEST.yaml": "207362eaa8b4efeb1f2e1316854243cf30b2f505b05f2462be082d3cfdaf39dc",
     "compiler/ERROR_TAXONOMY.yaml": "ef83f7aa5f968a73a1feb843649cae3c7b0264008bc8c451605844b36a0bd209",
     "compiler/GENERATOR_REGISTRY.yaml": "ac40ddffc37112d9c7beb0c0a28477debb463685a95c94fe3e3a39107fc57621",
@@ -1459,22 +1460,22 @@
     "openapi.json": "93769cf3609e78439bb50014f30df00c038eea83dcc1a3cae80cd2f8824cc30a",
     "prisma/schema.prisma": "eff3bb7a95a534250177c460e354701a35224f8ddf013533ae371d34a6e0fccc",
     "protocol-topology.json": "e8e8d61e9c32888ab57fd3f35c6b7ee62d6b971628c63ba83db952b6532b0301",
-    "registries/boot.registry.json": "688d6aa60aba7a0f614e1782fc94f25a8495aefaefd45d353b46e8119e3adea6",
-    "registries/capabilities.registry.json": "48834ec483ab900d238369a65c3d502d4b434fdf2a019e138ab5d2b40bc5ade5",
-    "registries/commands.registry.json": "fd16fd2bee2e0fa1ae5be313ea12496452617982728dcf88c471d13b9f5fcb5b",
-    "registries/constitution.registry.json": "1bb2f7738dcce7507250b1127e817383f72ed952593217e564178795724a70a5",
-    "registries/contracts.registry.json": "7c597d1fab439e31bb1943d78311bdfa5e963c32ab6ae4afeaf78a9125e38fec",
-    "registries/economic.registry.json": "9af36e263d9c67a2bd3fb237618633f26355aca5e4ac30ad10098d5d7570328a",
-    "registries/envelopes.registry.json": "580b7fdbf29bff3d0b6aac2ccd6c543d779197a7f2cc6065575929c2140357c8",
-    "registries/events.registry.json": "7937ba5270aca8a7d95888db0db9d7c98e44daa6491b0cd7fdbaef069a64bc5f",
-    "registries/execution-plans.registry.json": "7922ea02ef57ddf1345e7ba669de2da4965abd1a6fea6110c8a85a4393064b07",
-    "registries/machines.registry.json": "d8cb65ede6f80c7eebf02c354317ea747e4cb6a9782c81853f2af19daeca7d89",
-    "registries/projections.registry.json": "376f9178a38e099325570d0dccc5a3806a45d7213c3753368243a1fd39c9f62a",
-    "registries/reserve.registry.json": "efd3f48cb7192bdeeb416a1acee5c1db1f5c39d6d9761a7bd1cf606a249db316",
-    "registries/schemas.registry.json": "ce4fe0e61d02226ab015dced67f07c74f5a5295fbe6959c1fdbafd8bdfae05ec",
-    "registries/settlement.registry.json": "8c33e1792e419de50f60b881d8e7ac3ff3cd93ace57c9872bbd52d437237256c",
-    "registries/validation.registry.json": "a480014019ed8b469a6b82fbbb9102615380e2211be658ca02143ff3d4fd98a1",
-    "simulation/scenarios.registry.json": "4f2cbe69569e95f605ecd75732a817ff3d64ccd094cc0d458f435e0f431e5d8d",
+    "registries/boot.registry.json": "f0697efa84b8ff779257b0ceba0a7eccd486db208fa73a24019ab295b54983be",
+    "registries/capabilities.registry.json": "771c61314f407e64e67d5d62de9668cae3df795cb15d95e7caf39fdc0e7d13e5",
+    "registries/commands.registry.json": "87fa143a7256d478b53fa0a5ac4a5349fd788d9cec98916f8842b7e60fe11752",
+    "registries/constitution.registry.json": "d85b9f34870eadb0f89ef862bba61fa8149e998f1869a5f7bcb6c8e0ef49adfd",
+    "registries/contracts.registry.json": "250d73a5f02931d10c097914600bffea15c396fd85c836f32c660d57e7ccd2c5",
+    "registries/economic.registry.json": "edfc771028be0c546eda703e57ab2573dcfdfa3317fb9dcde4025ab9c9cbfee5",
+    "registries/envelopes.registry.json": "0175d6e8c5c020584e8bb4b891d4b99839951c8d9c8f263f18912a71b3073c9e",
+    "registries/events.registry.json": "49a72c7ebebe278cb1b04f20405e635e31afd9fe78b0d877b9d6c83b5733caac",
+    "registries/execution-plans.registry.json": "e845582e9d52ce5d4c1c5b42955e7791450edaf6e4a30d1c891e73eaaf061eb5",
+    "registries/machines.registry.json": "d5a139575776c2ce0b009d1c960dac53ea3b47cc93747cd6887f7eb874743bfa",
+    "registries/projections.registry.json": "b72df7ed42de9f6deab1815b1c344c004837956ca970edb3bc86c495ceac2e11",
+    "registries/reserve.registry.json": "39da3e2262c515e019f0243e0f80ed6839769c7c3e90af8c9427a999b1f771c6",
+    "registries/schemas.registry.json": "b3f5d596864e74b4516d8a7a5d9fdd3e304fe073eacbdbc1c46eac4ec869c61e",
+    "registries/settlement.registry.json": "57cdb89474fd37582e10bea1d07f2226455138ca368f00dc16de0acb7710b6b8",
+    "registries/validation.registry.json": "0f5a66e3d20faa8bcd996d959d11e97ee24e09ec3873ebae6a6c4b7a831cc428",
+    "simulation/scenarios.registry.json": "455a80e05298710aee4e0d2560a6df9c3bd3d2f1a8ac79a92fa78642ab1de121",
     "src/commands/agent/agent.commands.ts": "bbae12fb6d258021dd6eaaa6a85435a51b354bcda280aed4ab00ab1c9e52cfdb",
     "src/commands/escrow/escrow.commands.ts": "78716fbcf25bdedfef520ff890dca5af237674fe63b829e15e5a4d7292cb0019",
     "src/commands/governance/governance.commands.ts": "ea10f3ef12f8a8dc86b62264a54cd1b1e79c924700e55c043c857c840ac39f33",
@@ -1651,5 +1652,5 @@
     "ir_nodes": 610,
     "warnings": 85
   },
-  "timestamp_policy": "wall_clock_in_manifest: PROHIBITED — build_hash uses content hashes only"
+  "timestamp_policy": "wall_clock_in_outputs: PROHIBITED (R5) — generated timestamp metadata carries the Canonical Compilation Timestamp (packages/compiler/src/utils/deterministic-time.ts; compiler/BUILD_MANIFEST.yaml timestamp_policy.canonical_generated_at); build_hash covers deterministic content only"
 }

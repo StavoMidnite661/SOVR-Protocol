@@ -7159,7 +7159,8 @@
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "e75517545ecd26edf334e2e4bf8cd2702fac6a6acc84ee6f15575d5353c0ffc9"
+    "hash": "e75517545ecd26edf334e2e4bf8cd2702fac6a6acc84ee6f15575d5353c0ffc9",
+    "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "schemas"
 }

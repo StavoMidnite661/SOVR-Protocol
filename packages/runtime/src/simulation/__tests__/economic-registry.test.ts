@@ -11,7 +11,7 @@ describe('Phase 10C Economic Domain Registry Certification', () => {
     const path = join(ROOT, 'generated', 'registries', 'economic.registry.json');
     const content = readFileSync(path, 'utf8');
     const registry = JSON.parse(content);
-    expect(registry.abi_version).toBe('v1');
+    expect(registry.abi).toBe('v1');
     expect(registry.kind).toBe('economic');
     expect(registry.entry_count).toBeGreaterThan(0);
     expect(registry.integrity).toBeDefined();
@@ -24,7 +24,7 @@ describe('Phase 10C Economic Domain Registry Certification', () => {
     const path = join(ROOT, 'generated', 'registries', 'settlement.registry.json');
     const content = readFileSync(path, 'utf8');
     const registry = JSON.parse(content);
-    expect(registry.abi_version).toBe('v1');
+    expect(registry.abi).toBe('v1');
     expect(registry.kind).toBe('settlement');
     expect(registry.entry_count).toBeGreaterThan(0);
     expect(registry.integrity).toBeDefined();
@@ -36,7 +36,7 @@ describe('Phase 10C Economic Domain Registry Certification', () => {
     const path = join(ROOT, 'generated', 'registries', 'reserve.registry.json');
     const content = readFileSync(path, 'utf8');
     const registry = JSON.parse(content);
-    expect(registry.abi_version).toBe('v1');
+    expect(registry.abi).toBe('v1');
     expect(registry.kind).toBe('reserve');
     expect(registry.entry_count).toBeGreaterThan(0);
     expect(registry.integrity).toBeDefined();

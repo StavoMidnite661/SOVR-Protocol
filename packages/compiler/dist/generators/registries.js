@@ -1,4 +1,5 @@
 import { canonicalJson, sha256 } from '../utils/hash.js';
+import { canonicalCompilationTimestamp } from '../utils/deterministic-time.js';
 const ABI = 'v1';
 export function generateRegistries(ir, parsed, compilerVersion = '0.6.0') {
     const commandCatalog = find(parsed, '03_command-catalog') ?? {};
@@ -60,6 +61,9 @@ export function generateRegistries(ir, parsed, compilerVersion = '0.6.0') {
     return { files, entryCounts };
 }
 function withIntegrity(registry, compilerVersion) {
+    // Integrity hash boundary: the hash represents the canonical semantic
+    // payload only — the integrity block itself (provenance metadata) is
+    // excluded, so the hash is independent of generated metadata.
     const hashPayload = { ...registry };
     delete hashPayload.integrity;
     const hash = sha256(canonicalJson(hashPayload));
@@ -69,6 +73,10 @@ function withIntegrity(registry, compilerVersion) {
             algorithm: 'SHA256',
             hash,
             generated_by: { compiler_version: compilerVersion },
+            // Canonical Compilation Timestamp — deterministic, documented in
+            // utils/deterministic-time.ts and compiler/BUILD_MANIFEST.yaml.
+            // Wall-clock values are prohibited here by R5/R9.
+            timestamp: canonicalCompilationTimestamp(),
         },
     };
 }

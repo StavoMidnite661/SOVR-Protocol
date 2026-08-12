@@ -303,7 +303,8 @@
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "c02cb138a501dcbac2a250caf7d64c284609ebc40c092932e6fe6263f8250fc8"
+    "hash": "c02cb138a501dcbac2a250caf7d64c284609ebc40c092932e6fe6263f8250fc8",
+    "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "constitution"
 }
