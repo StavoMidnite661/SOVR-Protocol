@@ -416,7 +416,7 @@ SOVR defines **10 first-class financial domains** covering the complete operatio
 | Representation (EXT) | Can a settlement value unit be issued? | — | — |
 | Gateway (EXT) | Can the settlement provenance be independently verified? | — | — |
 
-**Total: 113 commands. 268 events. 52 entities.**
+**Total: 118 commands. 286 events. 52 entities.**
 
 ### Vault Domain
 
@@ -534,7 +534,7 @@ Escrow was added through the XV.3 Constitutional Proof using YAML-only changes. 
 
 ## Command Catalog
 
-**113 commands** across 10 canonical domains plus 5 extension domains.
+**118 commands** across 10 canonical domains plus 5 extension domains.
 
 Every command is defined with:
 
@@ -576,7 +576,7 @@ Event Publication
 
 ## Event Catalog
 
-**268 events** across 10 canonical domains plus 5 extension domains and kernel events.
+**286 events** across 10 canonical domains plus 5 extension domains and kernel events.
 
 Every event carries the mandatory **21-field event envelope**:
 
@@ -867,7 +867,7 @@ The SOVR reference runtime (`@sovr/runtime v0.6.0`) is the execution environment
 ### What the Runtime Does Not Do Yet
 
 ```text
-🔧 Execute complete YAML-driven routing for all 113 commands without compatibility fallbacks
+🔧 Execute complete YAML-driven routing for all 118 commands without compatibility fallbacks
 🔧 Interpret saga orchestration from spec
 🔧 Wire all generated TypeScript artifacts into execution
 🔧 Connect to a production-durable event store
@@ -1236,8 +1236,8 @@ SOVR-Protocol/
 │   ├── 00_protocol-manifest.yaml     ← Entry point: layers, domains, build phases
 │   ├── 01_constitution.yaml          ← Supreme law: 10 invariants, authority, enforcement
 │   ├── 02_domain-model.yaml          ← 52 entities across 10 domains + 5 extensions
-│   ├── 03_command-catalog.yaml       ← 113 commands with validation rules
-│   ├── 04_event-catalog.yaml         ← 268 events with full envelope
+│   ├── 03_command-catalog.yaml       ← 118 commands with validation rules
+│   ├── 04_event-catalog.yaml         ← 286 events with full envelope
 │   ├── 05_state-machines.yaml        ← 46 state machines
 │   ├── 08_security-capabilities.yaml ← 113 capabilities + scope language
 │   ├── 09_saga-orchestration.yaml    ← Saga definitions + compensation model
@@ -1390,7 +1390,7 @@ SOVR uses a constitution-governed development model.
 | Priority | Area | Description |
 |---|---|---|
 | 🔴 Critical | Pass Runner Hardening | Expand the initial PASS-001 through PASS-020 runner into fully certified pass contracts per `compiler/PASS_REGISTRY.yaml` |
-| 🔴 Critical | State Machine Coverage | Extend CommandBus state-machine routing to all 113 commands and saga paths |
+| 🔴 Critical | State Machine Coverage | Extend CommandBus state-machine routing to all 118 commands and saga paths |
 | 🔴 Critical | Fail-Closed Enforcement | Extend ERROR/FATAL halt behavior across every compiler diagnostic path and prevent partial artifact output |
 | 🟡 High | Invariant Enforcement | Wire all 10 constitutional invariants into the runtime execution path |
 | 🟡 High | Generated Artifact Wiring | Connect compiler-generated types, routes, and aggregates into runtime execution |

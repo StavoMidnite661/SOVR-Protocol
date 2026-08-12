@@ -2529,153 +2529,288 @@ state_machines:
         emitted_events: [escrow.account.cancelled]
         invalid: false
 
-# ============================================================
-# AMD-0005 EXTENSION STATE MACHINES
-# Ratified: 2026-08-05
-# Commercial Settlement Suite
-# Append after existing state machine definitions
-# ============================================================
+  # ========================================================
+  # COMMERCIAL SETTLEMENT SUITE — EXECUTABLE LIFECYCLES (AMD-0005)
+  # Canonical state-machine schema (states map + event-triggered
+  # transitions), matching how the runtime interpreter actually
+  # advances aggregates: a command's success events are the
+  # transition triggers; the creating command's first event enters
+  # the initial state. Cross-domain completion status is composed
+  # by projection (see machine descriptions); machine-gated states
+  # below are exactly the states this domain's commands can reach.
+  # ========================================================
 
   CommercialObligation:
     amendment: AMD-0005
     domain: commercial
+    aggregate: commercial_obligation
     entity: CommercialObligation
     initial_state: DRAFT
+    final_states: [CANCELLED]
+    description: >
+      Commercial-domain gateway lifecycle of a commercial obligation.
+      Creation enters DRAFT from CommercialRecordCreated (synthetic
+      initial transition). Validation advances DRAFT to VALIDATED;
+      cancellation is permitted until settlement authorization is
+      requested. Settlement-phase status of the obligation
+      (SETTLEMENT_REQUESTED, SETTLED, DISPUTED) is projection-derived
+      from settlement domain events (SettlementAuthorized,
+      SettlementFinalized, SettlementDisputed) under
+      commercial_obligation_view; those are projection states of the
+      obligation record, not machine-gated states, because settlement
+      authority belongs to the settlement domain.
+
     states:
-      - DRAFT
-      - VALIDATED
-      - SETTLEMENT_REQUESTED
-      - SETTLED
-      - CANCELLED
-      - DISPUTED
+
+      DRAFT:
+        description: Obligation recorded; awaiting validation
+        allowed_commands:
+          - ValidateObligation
+          - CancelObligation
+        entry_actions: []
+        exit_actions: []
+
+      VALIDATED:
+        description: Validated; eligible for settlement authorization
+        allowed_commands:
+          - CancelObligation
+        entry_actions: []
+        exit_actions: []
+
+      CANCELLED:
+        description: Cancelled before settlement authorization; terminal
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
     transitions:
-      - from: DRAFT
-        to: VALIDATED
-        command: ValidateObligation
-        event: ObligationValidated
-        guard: validator_has_authority
 
-      - from: VALIDATED
-        to: SETTLEMENT_REQUESTED
-        command: AuthorizeSettlement
-        event: SettlementAuthorized
-        guard: authorizer_has_settlement_authority
+      DRAFT_to_VALIDATED:
+        trigger: ObligationValidated
+        condition: status == 'DRAFT'
+        emitted_events: [ObligationValidated]
+        invalid: false
 
-      - from: SETTLEMENT_REQUESTED
-        to: SETTLED
-        event: SettlementFinalized
-        guard: evidence_package_signed
+      DRAFT_to_CANCELLED:
+        trigger: ObligationCancelled
+        condition: status == 'DRAFT'
+        emitted_events: [ObligationCancelled]
+        invalid: false
 
-      - from: DRAFT
-        to: CANCELLED
-        command: CancelObligation
-        guard: canceller_has_authority
+      VALIDATED_to_CANCELLED:
+        trigger: ObligationCancelled
+        condition: status == 'VALIDATED'
+        emitted_events: [ObligationCancelled]
+        invalid: false
 
-      - from: VALIDATED
-        to: CANCELLED
-        command: CancelObligation
-        guard: canceller_has_authority
-
-      - from: SETTLED
-        to: DISPUTED
-        command: DisputeSettlement
-        guard: dispute_window_open
+      invalid_transitions:
+        - { from: CANCELLED, to: any }  # terminal
 
   SettlementRecord:
     amendment: AMD-0005
     domain: settlement
+    aggregate: settlement_record
     entity: SettlementRecord
     initial_state: PENDING
+    final_states: [FINALIZED, CANCELLED]
+    description: >
+      Executable settlement record lifecycle under settlement-domain
+      authority. The record is created by AuthorizeSettlement and enters
+      PENDING on SettlementAuthorized (authorization is the creating act,
+      so the authorized state is the initial state). ExecuteSettlement
+      posts the TigerBeetle transfer: SettlementExecuted advances the
+      record to LEDGER_POSTED. When the certification domain's attestation
+      completes, SignAttestation records SettlementFinalized (the AMD-0005
+      chain-of-custody design), advancing the record to its FINALIZED
+      terminal success state. Cancellation is pre-execution only; dispute
+      is post-finalization within the dispute window.
+
     states:
-      - PENDING
-      - AUTHORIZED
-      - EXECUTING
-      - LEDGER_POSTED
-      - EVIDENCE_GENERATED
-      - FINALIZED
-      - DISPUTED
-      - CANCELLED
+
+      PENDING:
+        description: Authorized settlement awaiting execution/ledger posting
+        allowed_commands:
+          - ExecuteSettlement
+          - CancelSettlement
+        entry_actions: []
+        exit_actions: []
+
+      LEDGER_POSTED:
+        description: TigerBeetle transfer confirmed posted; awaiting attestation
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      FINALIZED:
+        description: Attestation complete; chain of custody closed; value-final
+        allowed_commands:
+          - DisputeSettlement
+        entry_actions: []
+        exit_actions: []
+
+      DISPUTED:
+        description: Dispute opened within the dispute window
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      CANCELLED:
+        description: Cancelled before execution; terminal
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
     transitions:
-      - from: PENDING
-        to: AUTHORIZED
-        command: AuthorizeSettlement
-        event: SettlementAuthorized
-        guard: obligation_is_validated
 
-      - from: AUTHORIZED
-        to: EXECUTING
-        command: ExecuteSettlement
-        guard: treasury_transfer_initiated
+      PENDING_to_LEDGER_POSTED:
+        trigger: SettlementExecuted
+        condition: status == 'PENDING'
+        emitted_events: [SettlementExecuted]
+        invalid: false
 
-      - from: EXECUTING
-        to: LEDGER_POSTED
-        event: SettlementExecuted
-        guard: tigerbeetle_transfer_confirmed
+      LEDGER_POSTED_to_FINALIZED:
+        trigger: SettlementFinalized
+        condition: status == 'LEDGER_POSTED'
+        emitted_events: [SettlementFinalized]
+        invalid: false
 
-      - from: LEDGER_POSTED
-        to: EVIDENCE_GENERATED
-        event: EvidencePackageGenerated
-        guard: all_10_documents_rendered
+      PENDING_to_CANCELLED:
+        trigger: SettlementCancelled
+        condition: status == 'PENDING'
+        emitted_events: [SettlementCancelled]
+        invalid: false
 
-      - from: EVIDENCE_GENERATED
-        to: FINALIZED
-        event: SettlementFinalized
-        guard: attestation_signed
+      FINALIZED_to_DISPUTED:
+        trigger: SettlementDisputed
+        condition: status == 'FINALIZED'
+        emitted_events: [SettlementDisputed]
+        invalid: false
 
-      - from: FINALIZED
-        to: DISPUTED
-        command: DisputeSettlement
-        guard: dispute_window_open
-
-      - from: [PENDING, AUTHORIZED]
-        to: CANCELLED
-        command: CancelSettlement
-        guard: canceller_has_authority
+      invalid_transitions:
+        - { from: FINALIZED, to: any }
+        - { from: CANCELLED, to: any }  # terminal
 
   EvidencePackage:
     amendment: AMD-0005
     domain: certification
+    aggregate: evidence_package
     entity: EvidencePackage
     storage: TB_LEDGER.SYSTEM
     storage_code: MEMORANDUM
-    initial_state: PENDING
+    initial_state: GENERATED
+    final_states: [ARCHIVED]
+    description: >
+      Executable evidence package lifecycle under certification-domain
+      authority. Package generation is integral to the creating command:
+      GenerateEvidencePackage renders and hashes the 10 JDE documents,
+      computes the manifest and package hashes, and stores the memorandum,
+      so the package enters GENERATED on EvidencePackageGenerated.
+      SignAttestation verifies the package hash and applies the attestor
+      signature, advancing to SIGNED; publication through the optional
+      boundary adapter moves SIGNED to PUBLISHED; archival closes the
+      lifecycle from SIGNED or PUBLISHED once the retention period is met.
+      The original draft's GENERATING/VERIFIED intermediates are enforced
+      as preconditions of the creating/signing commands rather than as
+      machine states, because only command-emitted events advance
+      aggregates at runtime.
+
     states:
-      - PENDING
-      - GENERATING
-      - GENERATED
-      - VERIFIED
-      - SIGNED
-      - PUBLISHED
-      - ARCHIVED
+
+      GENERATED:
+        description: Package rendered, hashed, and stored; awaiting attestation
+        allowed_commands:
+          - SignAttestation
+        entry_actions: []
+        exit_actions: []
+
+      SIGNED:
+        description: Attestor signature applied; chain of custody complete
+        allowed_commands:
+          - PublishPackage
+          - ArchivePackage
+        entry_actions: []
+        exit_actions: []
+
+      PUBLISHED:
+        description: Published through the optional boundary adapter
+        allowed_commands:
+          - ArchivePackage
+        entry_actions: []
+        exit_actions: []
+
+      ARCHIVED:
+        description: Long-term retention; terminal
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
     transitions:
-      - from: PENDING
-        to: GENERATING
-        command: GenerateEvidencePackage
-        guard: settlement_is_executed
 
-      - from: GENERATING
-        to: GENERATED
-        event: EvidencePackageGenerated
-        guard: all_10_documents_rendered_and_hashed
+      GENERATED_to_SIGNED:
+        trigger: AttestationSigned
+        condition: status == 'GENERATED'
+        emitted_events: [AttestationSigned]
+        invalid: false
 
-      - from: GENERATED
-        to: VERIFIED
-        action: verify_manifest_hash
-        guard: manifest_hash_matches_document_hashes
+      SIGNED_to_PUBLISHED:
+        trigger: EvidencePackagePublished
+        condition: status == 'SIGNED'
+        emitted_events: [EvidencePackagePublished]
+        invalid: false
 
-      - from: VERIFIED
-        to: SIGNED
-        command: SignAttestation
-        event: AttestationSigned
-        guard: attestor_has_authority
+      SIGNED_to_ARCHIVED:
+        trigger: EvidencePackageArchived
+        condition: status == 'SIGNED'
+        emitted_events: [EvidencePackageArchived]
+        invalid: false
 
-      - from: SIGNED
-        to: PUBLISHED
-        command: PublishPackage
-        guard: storage_adapter_available
-        note: Optional boundary adapter. Not required for FINALIZED.
+      PUBLISHED_to_ARCHIVED:
+        trigger: EvidencePackageArchived
+        condition: status == 'PUBLISHED'
+        emitted_events: [EvidencePackageArchived]
+        invalid: false
 
-      - from: [SIGNED, PUBLISHED]
-        to: ARCHIVED
-        command: ArchivePackage
-        guard: retention_period_met
+      invalid_transitions:
+        - { from: ARCHIVED, to: any }  # terminal
+
+  SettlementValueUnit:
+    amendment: AMD-0005
+    domain: representation
+    aggregate: settlement_value_unit
+    entity: SettlementValueUnit
+    initial_state: ISSUED
+    final_states: [REDEEMED]
+    description: >
+      Settlement Value Unit lifecycle under representation-domain
+      authority. IssueSVU creates the unit after the full provenance
+      chain is verified (signed evidence package, 2-of-3 multisig,
+      reserve cap), entering ISSUED on SVUIssued. RedeemSVU burns the
+      unit against its settlement reference, advancing ISSUED to
+      REDEEMED. Issuance rules are enforced as preconditions of
+      IssueSVU; the machine gates the post-issuance lifecycle.
+
+    states:
+
+      ISSUED:
+        description: SVU issued and circulating against settlement value
+        allowed_commands:
+          - RedeemSVU
+        entry_actions: []
+        exit_actions: []
+
+      REDEEMED:
+        description: SVU redeemed and burned; full audit trail preserved
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+    transitions:
+
+      ISSUED_to_REDEEMED:
+        trigger: SVURedeemed
+        condition: status == 'ISSUED'
+        emitted_events: [SVURedeemed]
+        invalid: false
+
+      invalid_transitions:
+        - { from: REDEEMED, to: any }  # terminal

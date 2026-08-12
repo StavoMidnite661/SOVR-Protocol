@@ -8,26 +8,69 @@
     "vault"
   ],
   "entries": {
-    "SettlementAuthorized": {
+    "AuthorizeSettlement": {
       "abi": "v1",
-      "aggregate": "",
-      "data_fields": {},
+      "aggregate": "settlement_record",
+      "capability": "settlement.record.authorize",
+      "command_name": "AuthorizeSettlement",
       "domain": "settlement",
-      "event_name": "SettlementAuthorized"
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "SettlementAuthorizationFailed"
+        ],
+        "success": [
+          "SettlementAuthorized"
+        ]
+      }
     },
-    "SettlementExecuted": {
+    "CancelSettlement": {
       "abi": "v1",
-      "aggregate": "",
-      "data_fields": {},
+      "aggregate": "settlement_record",
+      "capability": "settlement.record.cancel",
+      "command_name": "CancelSettlement",
       "domain": "settlement",
-      "event_name": "SettlementExecuted"
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "SettlementCancellationFailed"
+        ],
+        "success": [
+          "SettlementCancelled"
+        ]
+      }
     },
-    "SettlementFinalized": {
+    "DisputeSettlement": {
       "abi": "v1",
-      "aggregate": "",
-      "data_fields": {},
+      "aggregate": "settlement_record",
+      "capability": "settlement.record.dispute",
+      "command_name": "DisputeSettlement",
       "domain": "settlement",
-      "event_name": "SettlementFinalized"
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "SettlementDisputeFailed"
+        ],
+        "success": [
+          "SettlementDisputed"
+        ]
+      }
+    },
+    "ExecuteSettlement": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "capability": "settlement.record.execute",
+      "command_name": "ExecuteSettlement",
+      "domain": "settlement",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "SettlementExecutionFailed"
+        ],
+        "success": [
+          "SettlementExecuted"
+        ]
+      }
     },
     "ledger.account.closed": {
       "abi": "v1",
@@ -3782,13 +3825,13 @@
       "event_name": "vault.valuation.updated"
     }
   },
-  "entry_count": 168,
+  "entry_count": 169,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "41c8fc06bb888fa535b809c8dd22c65e27b0166be9965daab7c521368b4ca187",
+    "hash": "644169c9bfa5311d578f92ad90416b8e1b68bda18c5c54b6db0003245765445f",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "economic"

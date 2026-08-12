@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 03_command-catalog.yaml:payment
-// Hash: 09c94416f92fc8c64ded5b614260dec54b50cb792bfdfa697dc22812a7cb67ee
+// Hash: 5decb0fe30ee449c57b01578d96bf78e71f2d6bd4762c6fac3e5a3288c7b14f4
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -221,4 +221,20 @@ export const PaymentRequestCreateCommandSchema = z.object({
   recipient: z.unknown(),
   urgency: z.unknown(),
   retryPolicy: z.unknown(),
+});
+
+export class SagaCompensateCommand {
+  static readonly commandName = 'saga.compensate' as const;
+  static readonly capability = 'system.internal' as const;
+  static readonly version = '1.0.0' as const;
+  constructor(public readonly payload: {
+    sagaId: unknown;
+    failedStepId: unknown;
+  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
+  get commandId() { return this.meta.commandId; }
+}
+
+export const SagaCompensateCommandSchema = z.object({
+  sagaId: z.unknown(),
+  failedStepId: z.unknown(),
 });

@@ -3,201 +3,326 @@
   "entries": {
     "CommercialObligation": {
       "abi": "v1",
+      "aggregate": "commercial_obligation",
       "domain": "commercial",
-      "final_states": [],
+      "final_states": [
+        "CANCELLED"
+      ],
       "id": "state_machine:CommercialObligation",
       "initial_state": "DRAFT",
-      "states": [
-        "DRAFT",
-        "VALIDATED",
-        "SETTLEMENT_REQUESTED",
-        "SETTLED",
-        "CANCELLED",
-        "DISPUTED"
-      ],
-      "transitions": [
-        {
+      "states": {
+        "CANCELLED": {
           "abi": "v1",
-          "command": "ValidateObligation",
-          "event": "ObligationValidated",
-          "from": "DRAFT",
-          "guard": "validator_has_authority",
-          "to": "VALIDATED"
+          "allowed_commands": [],
+          "description": "Cancelled before settlement authorization; terminal",
+          "entry_actions": [],
+          "exit_actions": []
         },
-        {
+        "DRAFT": {
           "abi": "v1",
-          "command": "AuthorizeSettlement",
-          "event": "SettlementAuthorized",
-          "from": "VALIDATED",
-          "guard": "authorizer_has_settlement_authority",
-          "to": "SETTLEMENT_REQUESTED"
+          "allowed_commands": [
+            "ValidateObligation",
+            "CancelObligation"
+          ],
+          "description": "Obligation recorded; awaiting validation",
+          "entry_actions": [],
+          "exit_actions": []
         },
-        {
+        "VALIDATED": {
           "abi": "v1",
-          "event": "SettlementFinalized",
-          "from": "SETTLEMENT_REQUESTED",
-          "guard": "evidence_package_signed",
-          "to": "SETTLED"
+          "allowed_commands": [
+            "CancelObligation"
+          ],
+          "description": "Validated; eligible for settlement authorization",
+          "entry_actions": [],
+          "exit_actions": []
         },
-        {
+        "abi": "v1"
+      },
+      "transitions": {
+        "DRAFT_to_CANCELLED": {
           "abi": "v1",
-          "command": "CancelObligation",
-          "from": "DRAFT",
-          "guard": "canceller_has_authority",
-          "to": "CANCELLED"
+          "condition": "status == 'DRAFT'",
+          "emitted_events": [
+            "ObligationCancelled"
+          ],
+          "invalid": false,
+          "trigger": "ObligationCancelled"
         },
-        {
+        "DRAFT_to_VALIDATED": {
           "abi": "v1",
-          "command": "CancelObligation",
-          "from": "VALIDATED",
-          "guard": "canceller_has_authority",
-          "to": "CANCELLED"
+          "condition": "status == 'DRAFT'",
+          "emitted_events": [
+            "ObligationValidated"
+          ],
+          "invalid": false,
+          "trigger": "ObligationValidated"
         },
-        {
+        "VALIDATED_to_CANCELLED": {
           "abi": "v1",
-          "command": "DisputeSettlement",
-          "from": "SETTLED",
-          "guard": "dispute_window_open",
-          "to": "DISPUTED"
-        }
-      ]
+          "condition": "status == 'VALIDATED'",
+          "emitted_events": [
+            "ObligationCancelled"
+          ],
+          "invalid": false,
+          "trigger": "ObligationCancelled"
+        },
+        "abi": "v1",
+        "invalid_transitions": [
+          {
+            "abi": "v1",
+            "from": "CANCELLED",
+            "to": "any"
+          }
+        ]
+      }
     },
     "EvidencePackage": {
       "abi": "v1",
+      "aggregate": "evidence_package",
       "domain": "certification",
-      "final_states": [],
-      "id": "state_machine:EvidencePackage",
-      "initial_state": "PENDING",
-      "states": [
-        "PENDING",
-        "GENERATING",
-        "GENERATED",
-        "VERIFIED",
-        "SIGNED",
-        "PUBLISHED",
+      "final_states": [
         "ARCHIVED"
       ],
-      "transitions": [
-        {
+      "id": "state_machine:EvidencePackage",
+      "initial_state": "GENERATED",
+      "states": {
+        "ARCHIVED": {
           "abi": "v1",
-          "command": "GenerateEvidencePackage",
-          "from": "PENDING",
-          "guard": "settlement_is_executed",
-          "to": "GENERATING"
+          "allowed_commands": [],
+          "description": "Long-term retention; terminal",
+          "entry_actions": [],
+          "exit_actions": []
         },
-        {
+        "GENERATED": {
           "abi": "v1",
-          "event": "EvidencePackageGenerated",
-          "from": "GENERATING",
-          "guard": "all_10_documents_rendered_and_hashed",
-          "to": "GENERATED"
-        },
-        {
-          "abi": "v1",
-          "action": "verify_manifest_hash",
-          "from": "GENERATED",
-          "guard": "manifest_hash_matches_document_hashes",
-          "to": "VERIFIED"
-        },
-        {
-          "abi": "v1",
-          "command": "SignAttestation",
-          "event": "AttestationSigned",
-          "from": "VERIFIED",
-          "guard": "attestor_has_authority",
-          "to": "SIGNED"
-        },
-        {
-          "abi": "v1",
-          "command": "PublishPackage",
-          "from": "SIGNED",
-          "guard": "storage_adapter_available",
-          "note": "Optional boundary adapter. Not required for FINALIZED.",
-          "to": "PUBLISHED"
-        },
-        {
-          "abi": "v1",
-          "command": "ArchivePackage",
-          "from": [
-            "SIGNED",
-            "PUBLISHED"
+          "allowed_commands": [
+            "SignAttestation"
           ],
-          "guard": "retention_period_met",
-          "to": "ARCHIVED"
-        }
-      ]
+          "description": "Package rendered, hashed, and stored; awaiting attestation",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "PUBLISHED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "ArchivePackage"
+          ],
+          "description": "Published through the optional boundary adapter",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "SIGNED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "PublishPackage",
+            "ArchivePackage"
+          ],
+          "description": "Attestor signature applied; chain of custody complete",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "GENERATED_to_SIGNED": {
+          "abi": "v1",
+          "condition": "status == 'GENERATED'",
+          "emitted_events": [
+            "AttestationSigned"
+          ],
+          "invalid": false,
+          "trigger": "AttestationSigned"
+        },
+        "PUBLISHED_to_ARCHIVED": {
+          "abi": "v1",
+          "condition": "status == 'PUBLISHED'",
+          "emitted_events": [
+            "EvidencePackageArchived"
+          ],
+          "invalid": false,
+          "trigger": "EvidencePackageArchived"
+        },
+        "SIGNED_to_ARCHIVED": {
+          "abi": "v1",
+          "condition": "status == 'SIGNED'",
+          "emitted_events": [
+            "EvidencePackageArchived"
+          ],
+          "invalid": false,
+          "trigger": "EvidencePackageArchived"
+        },
+        "SIGNED_to_PUBLISHED": {
+          "abi": "v1",
+          "condition": "status == 'SIGNED'",
+          "emitted_events": [
+            "EvidencePackagePublished"
+          ],
+          "invalid": false,
+          "trigger": "EvidencePackagePublished"
+        },
+        "abi": "v1",
+        "invalid_transitions": [
+          {
+            "abi": "v1",
+            "from": "ARCHIVED",
+            "to": "any"
+          }
+        ]
+      }
     },
     "SettlementRecord": {
       "abi": "v1",
+      "aggregate": "settlement_record",
       "domain": "settlement",
-      "final_states": [],
-      "id": "state_machine:SettlementRecord",
-      "initial_state": "PENDING",
-      "states": [
-        "PENDING",
-        "AUTHORIZED",
-        "EXECUTING",
-        "LEDGER_POSTED",
-        "EVIDENCE_GENERATED",
+      "final_states": [
         "FINALIZED",
-        "DISPUTED",
         "CANCELLED"
       ],
-      "transitions": [
-        {
+      "id": "state_machine:SettlementRecord",
+      "initial_state": "PENDING",
+      "states": {
+        "CANCELLED": {
           "abi": "v1",
-          "command": "AuthorizeSettlement",
-          "event": "SettlementAuthorized",
-          "from": "PENDING",
-          "guard": "obligation_is_validated",
-          "to": "AUTHORIZED"
+          "allowed_commands": [],
+          "description": "Cancelled before execution; terminal",
+          "entry_actions": [],
+          "exit_actions": []
         },
-        {
+        "DISPUTED": {
           "abi": "v1",
-          "command": "ExecuteSettlement",
-          "from": "AUTHORIZED",
-          "guard": "treasury_transfer_initiated",
-          "to": "EXECUTING"
+          "allowed_commands": [],
+          "description": "Dispute opened within the dispute window",
+          "entry_actions": [],
+          "exit_actions": []
         },
-        {
+        "FINALIZED": {
           "abi": "v1",
-          "event": "SettlementExecuted",
-          "from": "EXECUTING",
-          "guard": "tigerbeetle_transfer_confirmed",
-          "to": "LEDGER_POSTED"
-        },
-        {
-          "abi": "v1",
-          "event": "EvidencePackageGenerated",
-          "from": "LEDGER_POSTED",
-          "guard": "all_10_documents_rendered",
-          "to": "EVIDENCE_GENERATED"
-        },
-        {
-          "abi": "v1",
-          "event": "SettlementFinalized",
-          "from": "EVIDENCE_GENERATED",
-          "guard": "attestation_signed",
-          "to": "FINALIZED"
-        },
-        {
-          "abi": "v1",
-          "command": "DisputeSettlement",
-          "from": "FINALIZED",
-          "guard": "dispute_window_open",
-          "to": "DISPUTED"
-        },
-        {
-          "abi": "v1",
-          "command": "CancelSettlement",
-          "from": [
-            "PENDING",
-            "AUTHORIZED"
+          "allowed_commands": [
+            "DisputeSettlement"
           ],
-          "guard": "canceller_has_authority",
-          "to": "CANCELLED"
-        }
-      ]
+          "description": "Attestation complete; chain of custody closed; value-final",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "LEDGER_POSTED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "TigerBeetle transfer confirmed posted; awaiting attestation",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "PENDING": {
+          "abi": "v1",
+          "allowed_commands": [
+            "ExecuteSettlement",
+            "CancelSettlement"
+          ],
+          "description": "Authorized settlement awaiting execution/ledger posting",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "FINALIZED_to_DISPUTED": {
+          "abi": "v1",
+          "condition": "status == 'FINALIZED'",
+          "emitted_events": [
+            "SettlementDisputed"
+          ],
+          "invalid": false,
+          "trigger": "SettlementDisputed"
+        },
+        "LEDGER_POSTED_to_FINALIZED": {
+          "abi": "v1",
+          "condition": "status == 'LEDGER_POSTED'",
+          "emitted_events": [
+            "SettlementFinalized"
+          ],
+          "invalid": false,
+          "trigger": "SettlementFinalized"
+        },
+        "PENDING_to_CANCELLED": {
+          "abi": "v1",
+          "condition": "status == 'PENDING'",
+          "emitted_events": [
+            "SettlementCancelled"
+          ],
+          "invalid": false,
+          "trigger": "SettlementCancelled"
+        },
+        "PENDING_to_LEDGER_POSTED": {
+          "abi": "v1",
+          "condition": "status == 'PENDING'",
+          "emitted_events": [
+            "SettlementExecuted"
+          ],
+          "invalid": false,
+          "trigger": "SettlementExecuted"
+        },
+        "abi": "v1",
+        "invalid_transitions": [
+          {
+            "abi": "v1",
+            "from": "FINALIZED",
+            "to": "any"
+          },
+          {
+            "abi": "v1",
+            "from": "CANCELLED",
+            "to": "any"
+          }
+        ]
+      }
+    },
+    "SettlementValueUnit": {
+      "abi": "v1",
+      "aggregate": "settlement_value_unit",
+      "domain": "representation",
+      "final_states": [
+        "REDEEMED"
+      ],
+      "id": "state_machine:SettlementValueUnit",
+      "initial_state": "ISSUED",
+      "states": {
+        "ISSUED": {
+          "abi": "v1",
+          "allowed_commands": [
+            "RedeemSVU"
+          ],
+          "description": "SVU issued and circulating against settlement value",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "REDEEMED": {
+          "abi": "v1",
+          "allowed_commands": [],
+          "description": "SVU redeemed and burned; full audit trail preserved",
+          "entry_actions": [],
+          "exit_actions": []
+        },
+        "abi": "v1"
+      },
+      "transitions": {
+        "ISSUED_to_REDEEMED": {
+          "abi": "v1",
+          "condition": "status == 'ISSUED'",
+          "emitted_events": [
+            "SVURedeemed"
+          ],
+          "invalid": false,
+          "trigger": "SVURedeemed"
+        },
+        "abi": "v1",
+        "invalid_transitions": [
+          {
+            "abi": "v1",
+            "from": "REDEEMED",
+            "to": "any"
+          }
+        ]
+      }
     },
     "agent_agent_instance_v06_lifecycle": {
       "abi": "v1",
@@ -3707,13 +3832,13 @@
       ]
     }
   },
-  "entry_count": 46,
+  "entry_count": 47,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "321e4792aed10fbcec77b94ff752faf369b2d8ba10a44b6f8bb031a8879bde1b",
+    "hash": "ced89770573f523405f6000e8c289eeb1dc46e83a4a81c430cd0c86dd04f96c8",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "machines"

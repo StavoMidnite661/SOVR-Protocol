@@ -7,56 +7,44 @@ EXTENDS Naturals, Sequences
 
 VARIABLES state, visited
 
-States == {"0", "1", "2", "3", "4", "5", "6"}
+States == {"ARCHIVED", "GENERATED", "PUBLISHED", "SIGNED"}
 
-FinalStates == {}
+FinalStates == {"ARCHIVED"}
 
 Init == 
-    /\ state = "PENDING"
-    /\ visited = {"PENDING"}
-
-GENERATED_TO_VERIFIED == 
     /\ state = "GENERATED"
-    /\ state' = "VERIFIED"
-    /\ visited' = visited \cup {"VERIFIED"}
-\* Trigger: 2
+    /\ visited = {"GENERATED"}
 
-GENERATING_TO_GENERATED == 
-    /\ state = "GENERATING"
-    /\ state' = "GENERATED"
-    /\ visited' = visited \cup {"GENERATED"}
-\* Trigger: 1
+GENERATED_TO_SIGNED == 
+    /\ state = "GENERATED"
+    /\ state' = "SIGNED"
+    /\ visited' = visited \cup {"SIGNED"}
+\* Trigger: ATTESTATIONSIGNED
 
-PENDING_TO_GENERATING == 
-    /\ state = "PENDING"
-    /\ state' = "GENERATING"
-    /\ visited' = visited \cup {"GENERATING"}
-\* Trigger: GENERATEEVIDENCEPACKAGE
+PUBLISHED_TO_ARCHIVED == 
+    /\ state = "PUBLISHED"
+    /\ state' = "ARCHIVED"
+    /\ visited' = visited \cup {"ARCHIVED"}
+\* Trigger: EVIDENCEPACKAGEARCHIVED
+
+SIGNED_TO_ARCHIVED == 
+    /\ state = "SIGNED"
+    /\ state' = "ARCHIVED"
+    /\ visited' = visited \cup {"ARCHIVED"}
+\* Trigger: EVIDENCEPACKAGEARCHIVED
 
 SIGNED_TO_PUBLISHED == 
     /\ state = "SIGNED"
     /\ state' = "PUBLISHED"
     /\ visited' = visited \cup {"PUBLISHED"}
-\* Trigger: PUBLISHPACKAGE
-
-SIGNED,PUBLISHED_TO_ARCHIVED == 
-    /\ state = "SIGNED,PUBLISHED"
-    /\ state' = "ARCHIVED"
-    /\ visited' = visited \cup {"ARCHIVED"}
-\* Trigger: ARCHIVEPACKAGE
-
-VERIFIED_TO_SIGNED == 
-    /\ state = "VERIFIED"
-    /\ state' = "SIGNED"
-    /\ visited' = visited \cup {"SIGNED"}
-\* Trigger: SIGNATTESTATION
+\* Trigger: EVIDENCEPACKAGEPUBLISHED
 
 Terminated == 
-    /\ FALSE
+    /\ state \in FinalStates
     /\ UNCHANGED <<state, visited>>
 
 Next == 
-    GENERATED_TO_VERIFIED \/ GENERATING_TO_GENERATED \/ PENDING_TO_GENERATING \/ SIGNED_TO_PUBLISHED \/ SIGNED,PUBLISHED_TO_ARCHIVED \/ VERIFIED_TO_SIGNED \/ Terminated
+    GENERATED_TO_SIGNED \/ PUBLISHED_TO_ARCHIVED \/ SIGNED_TO_ARCHIVED \/ SIGNED_TO_PUBLISHED \/ Terminated
 
 \* INV-006: state is always one the compiled machine declares.
 \* Falsifiable: a transition to an undeclared state breaks this.
@@ -66,7 +54,7 @@ TypeOK == state \in States
 ReachableStatesDeclared == visited \subseteq States
 
 \* Liveness: a terminal state remains reachable from anywhere.
-CanTerminate == TRUE
+CanTerminate == <>(state \in FinalStates)
 
 Spec == Init /\ [][Next]_<<state, visited>>
 

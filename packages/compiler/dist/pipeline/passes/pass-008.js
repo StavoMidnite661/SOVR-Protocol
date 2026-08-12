@@ -66,6 +66,18 @@ function collectDomainFields(domainModel) {
                 fields.add(`command.payload.${attr}`);
             }
         }
+        // Entity-style domain entries (e.g. AMD-0005 extension objects keyed by
+        // their entity name) declare their attributes under `fields:` rather
+        // than `entities.*.attributes:` — collect those too so structured
+        // guards over extension fields resolve instead of false-SEM-002-ing.
+        if (domain?.fields && typeof domain.fields === 'object') {
+            for (const attr of Object.keys(domain.fields)) {
+                fields.add(attr);
+                fields.add(`${domainName}.${attr}`);
+                fields.add(`context.${attr}`);
+                fields.add(`command.payload.${attr}`);
+            }
+        }
     }
     return fields;
 }

@@ -7295,168 +7295,558 @@ events:
 # ============================================================
 # AMD-0005 EXTENSION EVENTS
 # Ratified: 2026-08-05
-# Commercial Settlement Suite
-# Append after existing event definitions
+# Commercial Settlement Suite — normalized to the canonical
+# event envelope (source_domain, aggregate, aggregate_id_field,
+# data_fields, producer, consumers) so compiler and runtime
+# consume them identically to every other domain's events.
+# Original payload fields are preserved as typed data_fields;
+# documentary triggered_by/triggers fields retained.
+# Failure events and lifecycle events (cancel/dispute/publish/
+# archive) derived from the executable machine transitions.
 # ============================================================
 
   CommercialRecordCreated:
     amendment: AMD-0005
-    domain: commercial
+    source_domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id_field: obligation_id
+    version: 1.0.0
     description: >
       Genesis event of the constitutional chain of custody.
       Commercial obligation formally recorded in SOVR.
       Nothing may precede this event in the provenance chain.
-    payload:
-      obligation_id: string
-      vault_asset_reference: AssetId
-      originator: EntityId
-      counterparty: EntityId
-      obligation_type: enum
-      amount_cents: uint64
-      currency: string
-      authorization_reference: string
-      source_document_hash: bytes32
-      timestamp: ISO-8601
+    producer: commercial_service
+    consumers: [audit_projection, commercial_obligation_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      obligation_id: { type: string }
+      vault_asset_reference: { type: AssetId }
+      originator: { type: EntityId }
+      counterparty: { type: EntityId }
+      obligation_type: { type: enum }
+      amount_cents: { type: uint64 }
+      currency: { type: string }
+      authorization_reference: { type: string }
+      source_document_hash: { type: bytes32 }
+      timestamp: { type: timestamp }
     triggers: none
     triggered_by: CreateCommercialObligation
 
   ObligationValidated:
     amendment: AMD-0005
-    domain: commercial
+    source_domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id_field: obligation_id
+    version: 1.0.0
     description: >
       Commercial obligation confirmed valid and eligible
       for settlement processing.
-    payload:
-      obligation_id: string
-      validated_by: EntityId
-      validation_reference: string
-      timestamp: ISO-8601
+    producer: commercial_service
+    consumers: [audit_projection, commercial_obligation_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      obligation_id: { type: string }
+      validated_by: { type: EntityId }
+      validation_reference: { type: string }
+      timestamp: { type: timestamp }
     triggers: none
     triggered_by: ValidateObligation
 
+  ObligationCancelled:
+    amendment: AMD-0005
+    source_domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id_field: obligation_id
+    version: 1.0.0
+    description: >
+      Commercial obligation cancelled before settlement
+      authorization. Terminal for the obligation lifecycle.
+    producer: commercial_service
+    consumers: [audit_projection, commercial_obligation_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      obligation_id: { type: string }
+      cancelled_by: { type: EntityId }
+      cancellation_reason: { type: string }
+      timestamp: { type: timestamp }
+    triggers: none
+    triggered_by: CancelObligation
+
   SettlementAuthorized:
     amendment: AMD-0005
-    domain: settlement
+    source_domain: settlement
+    aggregate: settlement_record
+    aggregate_id_field: settlement_id
+    version: 1.0.0
     description: >
       Settlement formally authorized. Treasury transfer
       workflow initiated. Ledger posting imminent.
-    payload:
-      settlement_id: string
-      commercial_obligation_id: string
-      authorized_by: EntityId
-      amount_cents: uint64
-      currency: string
-      timestamp: ISO-8601
+    producer: settlement_service
+    consumers: [audit_projection, settlement_record_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      settlement_id: { type: string }
+      commercial_obligation_id: { type: string }
+      authorized_by: { type: EntityId }
+      amount_cents: { type: uint64 }
+      currency: { type: string }
+      timestamp: { type: timestamp }
     triggers:
       - treasury.InitiateTransfer
     triggered_by: AuthorizeSettlement
 
   SettlementExecuted:
     amendment: AMD-0005
-    domain: settlement
+    source_domain: settlement
+    aggregate: settlement_record
+    aggregate_id_field: settlement_id
+    version: 1.0.0
     description: >
       Settlement workflow completed. TigerBeetle transfer
       posted. Evidence generation triggered.
-    payload:
-      settlement_id: string
-      commercial_obligation_id: string
-      treasury_transfer_reference: TransferId
-      tigerbeetle_transfer_id: uint128
-      debit_account: uint64
-      credit_account: uint64
-      amount_cents: uint64
-      timestamp: ISO-8601
+    producer: settlement_service
+    consumers: [audit_projection, settlement_record_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      settlement_id: { type: string }
+      commercial_obligation_id: { type: string }
+      treasury_transfer_reference: { type: TransferId }
+      tigerbeetle_transfer_id: { type: uint128 }
+      debit_account: { type: uint64 }
+      credit_account: { type: uint64 }
+      amount_cents: { type: uint64 }
+      timestamp: { type: timestamp }
     triggers:
       - GenerateEvidencePackage
     triggered_by: ExecuteSettlement
 
   SettlementFinalized:
     amendment: AMD-0005
-    domain: settlement
+    source_domain: settlement
+    aggregate: settlement_record
+    aggregate_id_field: settlement_id
+    version: 1.0.0
     description: >
       Settlement confirmed finalized. Evidence package
       signed. SVU issuance now permitted if required.
-    payload:
-      settlement_id: string
-      commercial_obligation_id: string
-      tigerbeetle_transfer_id: uint128
-      evidence_package_id: string
-      evidence_package_hash: bytes32
-      attestation_id: string
-      timestamp: ISO-8601
+      Recorded by the attestation act in the certification
+      domain per the AMD-0005 chain-of-custody design.
+    producer: settlement_service
+    consumers: [audit_projection, settlement_record_view, commercial_obligation_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      settlement_id: { type: string }
+      commercial_obligation_id: { type: string }
+      tigerbeetle_transfer_id: { type: uint128 }
+      evidence_package_id: { type: string }
+      evidence_package_hash: { type: bytes32 }
+      attestation_id: { type: string }
+      timestamp: { type: timestamp }
     triggers:
       - IssueSVU (conditional on representation domain)
     triggered_by: SignAttestation
 
+  SettlementCancelled:
+    amendment: AMD-0005
+    source_domain: settlement
+    aggregate: settlement_record
+    aggregate_id_field: settlement_id
+    version: 1.0.0
+    description: >
+      Settlement record cancelled before execution posted
+      to the ledger. Terminal for the settlement lifecycle.
+    producer: settlement_service
+    consumers: [audit_projection, settlement_record_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      settlement_id: { type: string }
+      cancelled_by: { type: EntityId }
+      cancellation_reason: { type: string }
+      timestamp: { type: timestamp }
+    triggers: none
+    triggered_by: CancelSettlement
+
+  SettlementDisputed:
+    amendment: AMD-0005
+    source_domain: settlement
+    aggregate: settlement_record
+    aggregate_id_field: settlement_id
+    version: 1.0.0
+    description: >
+      Dispute opened on a ledger-posted settlement within
+      the dispute window.
+    producer: settlement_service
+    consumers: [audit_projection, settlement_record_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      settlement_id: { type: string }
+      disputed_by: { type: EntityId }
+      dispute_reason: { type: string }
+      timestamp: { type: timestamp }
+    triggers: none
+    triggered_by: DisputeSettlement
+
   EvidencePackageGenerated:
     amendment: AMD-0005
-    domain: certification
+    source_domain: certification
+    aggregate: evidence_package
+    aggregate_id_field: package_id
+    version: 1.0.0
     description: >
       JDE evidence package generated. 10 documents rendered.
       SHA-256 manifest computed. Awaiting attestor signature.
-    payload:
-      package_id: string
-      settlement_id: string
-      commercial_obligation_id: string
-      tigerbeetle_transfer_id: uint128
-      document_count: integer
-      document_hashes: map
-      manifest_hash: bytes32
-      package_hash: bytes32
-      timestamp: ISO-8601
+    producer: certification_service
+    consumers: [audit_projection, evidence_package_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      package_id: { type: string }
+      settlement_id: { type: string }
+      commercial_obligation_id: { type: string }
+      tigerbeetle_transfer_id: { type: uint128 }
+      document_count: { type: integer }
+      document_hashes: { type: map }
+      manifest_hash: { type: bytes32 }
+      package_hash: { type: bytes32 }
+      timestamp: { type: timestamp }
     triggers: none
     triggered_by: GenerateEvidencePackage
 
   AttestationSigned:
     amendment: AMD-0005
-    domain: certification
+    source_domain: certification
+    aggregate: evidence_package
+    aggregate_id_field: package_id
+    version: 1.0.0
     description: >
       Attestor signed evidence package. Constitutional
       chain of custody verified. SVU issuance unlocked.
-    payload:
-      attestation_id: string
-      package_id: string
-      settlement_id: string
-      attestor: EntityId
-      package_hash: bytes32
-      signature: bytes
-      timestamp: ISO-8601
+    producer: certification_service
+    consumers: [audit_projection, evidence_package_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      attestation_id: { type: string }
+      package_id: { type: string }
+      settlement_id: { type: string }
+      attestor: { type: EntityId }
+      package_hash: { type: bytes32 }
+      signature: { type: bytes }
+      timestamp: { type: timestamp }
     triggers:
       - SettlementFinalized
     triggered_by: SignAttestation
 
+  EvidencePackagePublished:
+    amendment: AMD-0005
+    source_domain: certification
+    aggregate: evidence_package
+    aggregate_id_field: package_id
+    version: 1.0.0
+    description: >
+      Signed evidence package published through the optional
+      boundary adapter channel.
+    producer: certification_service
+    consumers: [audit_projection, evidence_package_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      package_id: { type: string }
+      published_by: { type: EntityId }
+      channel: { type: string }
+      timestamp: { type: timestamp }
+    triggers: none
+    triggered_by: PublishPackage
+
+  EvidencePackageArchived:
+    amendment: AMD-0005
+    source_domain: certification
+    aggregate: evidence_package
+    aggregate_id_field: package_id
+    version: 1.0.0
+    description: >
+      Evidence package archived into long-term retention
+      after the retention period was met.
+    producer: certification_service
+    consumers: [audit_projection, evidence_package_view]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      package_id: { type: string }
+      archived_by: { type: EntityId }
+      timestamp: { type: timestamp }
+    triggers: none
+    triggered_by: ArchivePackage
+
   SVUIssued:
     amendment: AMD-0005
-    domain: representation
+    source_domain: representation
+    aggregate: settlement_value_unit
+    aggregate_id_field: svu_id
+    version: 1.0.0
     description: >
       Settlement Value Units issued with full provenance.
       Every field traces back through the complete chain.
-    payload:
-      svu_id: string
-      recipient: address
-      amount_cents: uint64
-      commercial_obligation_id: string
-      settlement_id: string
-      evidence_package_id: string
-      evidence_package_hash: bytes32
-      tigerbeetle_transfer_id: uint128
-      attestation_id: string
-      blockchain_tx_hash: bytes32
-      timestamp: ISO-8601
+    producer: representation_service
+    consumers: [audit_projection, settlement_value_unit_view]
+    constitutional_refs: [INV-001, INV-005, INV-007]
+    data_fields:
+      svu_id: { type: string }
+      recipient: { type: address }
+      amount_cents: { type: uint64 }
+      commercial_obligation_id: { type: string }
+      settlement_id: { type: string }
+      evidence_package_id: { type: string }
+      evidence_package_hash: { type: bytes32 }
+      tigerbeetle_transfer_id: { type: uint128 }
+      attestation_id: { type: string }
+      blockchain_tx_hash: { type: bytes32 }
+      timestamp: { type: timestamp }
     triggers: none
     triggered_by: IssueSVU
 
   SVURedeemed:
     amendment: AMD-0005
-    domain: representation
+    source_domain: representation
+    aggregate: settlement_value_unit
+    aggregate_id_field: svu_id
+    version: 1.0.0
     description: >
       SVU redeemed against settlement obligation.
       Full audit trail preserved. Tokens burned.
-    payload:
-      svu_id: string
-      from_address: address
-      amount_cents: uint64
-      settlement_reference: string
-      timestamp: ISO-8601
+    producer: representation_service
+    consumers: [audit_projection, settlement_value_unit_view]
+    constitutional_refs: [INV-001, INV-005, INV-007]
+    data_fields:
+      svu_id: { type: string }
+      from_address: { type: address }
+      amount_cents: { type: uint64 }
+      settlement_reference: { type: string }
+      timestamp: { type: timestamp }
     triggers: none
     triggered_by: RedeemSVU
+
+  # ---- AMD-0005 failure events (INV-005: every financial action
+  # ---- produces an auditable outcome, including rejections) ----
+
+  CommercialRecordCreationFailed:
+    amendment: AMD-0005
+    source_domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id_field: obligation_id
+    version: 1.0.0
+    description: Commercial obligation creation rejected
+    producer: commercial_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      obligation_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: CreateCommercialObligation
+
+  ObligationValidationFailed:
+    amendment: AMD-0005
+    source_domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id_field: obligation_id
+    version: 1.0.0
+    description: Obligation validation rejected
+    producer: commercial_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      obligation_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: ValidateObligation
+
+  ObligationCancellationFailed:
+    amendment: AMD-0005
+    source_domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id_field: obligation_id
+    version: 1.0.0
+    description: Obligation cancellation rejected
+    producer: commercial_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      obligation_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: CancelObligation
+
+  SettlementAuthorizationFailed:
+    amendment: AMD-0005
+    source_domain: settlement
+    aggregate: settlement_record
+    aggregate_id_field: settlement_id
+    version: 1.0.0
+    description: Settlement authorization rejected
+    producer: settlement_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      settlement_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: AuthorizeSettlement
+
+  SettlementExecutionFailed:
+    amendment: AMD-0005
+    source_domain: settlement
+    aggregate: settlement_record
+    aggregate_id_field: settlement_id
+    version: 1.0.0
+    description: Settlement execution rejected
+    producer: settlement_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      settlement_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: ExecuteSettlement
+
+  SettlementCancellationFailed:
+    amendment: AMD-0005
+    source_domain: settlement
+    aggregate: settlement_record
+    aggregate_id_field: settlement_id
+    version: 1.0.0
+    description: Settlement cancellation rejected
+    producer: settlement_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      settlement_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: CancelSettlement
+
+  SettlementDisputeFailed:
+    amendment: AMD-0005
+    source_domain: settlement
+    aggregate: settlement_record
+    aggregate_id_field: settlement_id
+    version: 1.0.0
+    description: Settlement dispute rejected
+    producer: settlement_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      settlement_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: DisputeSettlement
+
+  EvidencePackageGenerationFailed:
+    amendment: AMD-0005
+    source_domain: certification
+    aggregate: evidence_package
+    aggregate_id_field: package_id
+    version: 1.0.0
+    description: Evidence package generation rejected
+    producer: certification_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      package_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: GenerateEvidencePackage
+
+  AttestationSigningFailed:
+    amendment: AMD-0005
+    source_domain: certification
+    aggregate: evidence_package
+    aggregate_id_field: package_id
+    version: 1.0.0
+    description: Attestation signing rejected
+    producer: certification_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      package_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: SignAttestation
+
+  EvidencePackagePublicationFailed:
+    amendment: AMD-0005
+    source_domain: certification
+    aggregate: evidence_package
+    aggregate_id_field: package_id
+    version: 1.0.0
+    description: Evidence package publication rejected
+    producer: certification_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      package_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: PublishPackage
+
+  EvidencePackageArchivalFailed:
+    amendment: AMD-0005
+    source_domain: certification
+    aggregate: evidence_package
+    aggregate_id_field: package_id
+    version: 1.0.0
+    description: Evidence package archival rejected
+    producer: certification_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      package_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: ArchivePackage
+
+  SVUIssuanceFailed:
+    amendment: AMD-0005
+    source_domain: representation
+    aggregate: settlement_value_unit
+    aggregate_id_field: svu_id
+    version: 1.0.0
+    description: SVU issuance rejected
+    producer: representation_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      svu_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: IssueSVU
+
+  SVURedemptionFailed:
+    amendment: AMD-0005
+    source_domain: representation
+    aggregate: settlement_value_unit
+    aggregate_id_field: svu_id
+    version: 1.0.0
+    description: SVU redemption rejected
+    producer: representation_service
+    consumers: [audit_projection]
+    constitutional_refs: [INV-005]
+    data_fields:
+      svu_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }
+    triggered_by: RedeemSVU
+
+  # ---- F2 repair: escrow cancellation failure event -----------
+  # Referenced by escrow.account.cancel but never defined.
+
+  escrow.account.cancellation_failed:
+    aggregate: escrow_account
+    aggregate_id_field: escrow_id
+    source_domain: escrow
+    version: 1.0.0
+    description: Escrow account cancellation failed
+    retention_class: regulatory_7y
+    projection_effect: { target: escrow_account_view, operation: update }
+    projection_effects: [MARK_CANCELLATION_FAILED]
+    constitutional_refs: [INV-001, INV-005]
+    data_fields:
+      escrow_id: { type: string }
+      failure_reason: { type: string }
+      failed_at: { type: timestamp }

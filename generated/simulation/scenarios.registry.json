@@ -1,12 +1,11 @@
 {
-  "abi_version": "v1",
-  "entry_count": 7,
+  "entry_count": 9,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "bf45a1143db2e6c14b7f9ba8d9912f6ad9874be854ab81fba2e7df5c68adf04b",
+    "hash": "4c13b6d207c842ea9c328228a1972712b8e340d01a593b0202eed5c1be47ed38",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "scenarios": {
@@ -739,6 +738,440 @@
       "scenario_id": "SIM-007-SETTLEMENT-LIFECYCLE",
       "source_file": "governance/simulation/scenarios/SIM-007-SETTLEMENT-LIFECYCLE.yaml",
       "version": "1.0.0"
+    },
+    "SIM-008-COMMERCIAL-SETTLEMENT-LIFECYCLE": {
+      "actors": [
+        {
+          "actor_id": "sim-commercial-operator",
+          "actor_type": "human",
+          "identity_id": "sim-commercial-operator-id",
+          "session_id": "sim-commercial-session-008"
+        }
+      ],
+      "commands": [
+        {
+          "aggregate": "commercial_obligation",
+          "aggregate_id": "SOVR-OBL-000001",
+          "capability_id": "commercial.obligation.create",
+          "command_id": "cmd-001",
+          "command_name": "CreateCommercialObligation",
+          "domain": "commercial",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount_cents": 125000,
+            "authorization_reference": "AUTH-REF-000008",
+            "commercial_obligation_id": "SOVR-OBL-000001",
+            "counterparty": "sim-counterparty-008",
+            "obligation_id": "SOVR-OBL-000001",
+            "obligation_type": "PAYMENT",
+            "originator": "sim-originator-008",
+            "source_document_hash": "9f2c1a4b6d8e0f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3",
+            "vault_asset_reference": "vault-asset-000001"
+          },
+          "scope": "commercial_obligation:*"
+        },
+        {
+          "aggregate": "commercial_obligation",
+          "aggregate_id": "SOVR-OBL-000001",
+          "capability_id": "commercial.obligation.validate",
+          "command_id": "cmd-002",
+          "command_name": "ValidateObligation",
+          "domain": "commercial",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "commercial_obligation_id": "SOVR-OBL-000001",
+            "obligation_id": "SOVR-OBL-000001",
+            "validated_by": "sim-commercial-operator",
+            "validation_reference": "VAL-REF-000008"
+          },
+          "scope": "commercial_obligation:*"
+        },
+        {
+          "aggregate": "settlement_record",
+          "aggregate_id": "SOVR-SET-000001",
+          "capability_id": "settlement.record.authorize",
+          "command_id": "cmd-003",
+          "command_name": "AuthorizeSettlement",
+          "domain": "settlement",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "authorized_by": "sim-commercial-operator",
+            "commercial_obligation_id": "SOVR-OBL-000001",
+            "settlement_amount_cents": 125000,
+            "settlement_id": "SOVR-SET-000001",
+            "settlement_record_id": "SOVR-SET-000001"
+          },
+          "scope": "settlement_record:*"
+        },
+        {
+          "aggregate": "settlement_record",
+          "aggregate_id": "SOVR-SET-000001",
+          "capability_id": "settlement.record.execute",
+          "command_id": "cmd-004",
+          "command_name": "ExecuteSettlement",
+          "domain": "settlement",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "commercial_obligation_id": "SOVR-OBL-000001",
+            "settlement_id": "SOVR-SET-000001",
+            "settlement_record_id": "SOVR-SET-000001",
+            "tigerbeetle_transfer_id": "1099511627776",
+            "treasury_transfer_reference": "TRF-000008"
+          },
+          "scope": "settlement_record:*"
+        },
+        {
+          "aggregate": "evidence_package",
+          "aggregate_id": "SOVR-EVP-000001",
+          "capability_id": "certification.package.generate",
+          "command_id": "cmd-005",
+          "command_name": "GenerateEvidencePackage",
+          "domain": "certification",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "commercial_obligation_id": "SOVR-OBL-000001",
+            "evidence_package_id": "SOVR-EVP-000001",
+            "package_id": "SOVR-EVP-000001",
+            "settlement_id": "SOVR-SET-000001",
+            "tigerbeetle_transfer_id": "1099511627776"
+          },
+          "scope": "evidence_package:*"
+        },
+        {
+          "aggregate": "evidence_package",
+          "aggregate_id": "SOVR-EVP-000001",
+          "capability_id": "certification.package.sign",
+          "command_id": "cmd-006",
+          "command_name": "SignAttestation",
+          "domain": "certification",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "attestor": "sim-attestor-008",
+            "evidence_package_id": "SOVR-EVP-000001",
+            "package_id": "SOVR-EVP-000001",
+            "settlement_id": "SOVR-SET-000001",
+            "signature": "ecdsa-signature-000008"
+          },
+          "scope": "evidence_package:*"
+        },
+        {
+          "aggregate": "evidence_package",
+          "aggregate_id": "SOVR-EVP-000001",
+          "capability_id": "certification.package.publish",
+          "command_id": "cmd-007",
+          "command_name": "PublishPackage",
+          "domain": "certification",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "channel": "boundary_adapter_primary",
+            "evidence_package_id": "SOVR-EVP-000001",
+            "package_id": "SOVR-EVP-000001",
+            "published_by": "sim-commercial-operator"
+          },
+          "scope": "evidence_package:*"
+        },
+        {
+          "actor_context": {
+            "actor_id": "sim-archival-service",
+            "actor_type": "system",
+            "identity_id": "sim-archival-service-id",
+            "session_id": "sim-archival-session-008"
+          },
+          "aggregate": "evidence_package",
+          "aggregate_id": "SOVR-EVP-000001",
+          "capability_id": "certification.package.archive",
+          "command_id": "cmd-008",
+          "command_name": "ArchivePackage",
+          "domain": "certification",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "archived_by": "sim-commercial-operator",
+            "evidence_package_id": "SOVR-EVP-000001",
+            "package_id": "SOVR-EVP-000001"
+          },
+          "scope": "evidence_package:*"
+        },
+        {
+          "aggregate": "settlement_value_unit",
+          "aggregate_id": "SOVR-SVU-000001",
+          "capability_id": "representation.svu.issue",
+          "command_id": "cmd-009",
+          "command_name": "IssueSVU",
+          "domain": "representation",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount_cents": 125000,
+            "evidence_package_id": "SOVR-EVP-000001",
+            "multisig_authorization": "multisig-2-of-3-000008",
+            "recipient": 8,
+            "settlement_value_unit_id": "SOVR-SVU-000001",
+            "svu_id": "SOVR-SVU-000001"
+          },
+          "scope": "settlement_value_unit:*"
+        },
+        {
+          "aggregate": "settlement_value_unit",
+          "aggregate_id": "SOVR-SVU-000001",
+          "capability_id": "representation.svu.redeem",
+          "command_id": "cmd-010",
+          "command_name": "RedeemSVU",
+          "domain": "representation",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount_cents": 125000,
+            "from_address": 8,
+            "settlement_reference": "SOVR-SET-000001",
+            "settlement_value_unit_id": "SOVR-SVU-000001",
+            "svu_id": "SOVR-SVU-000001"
+          },
+          "scope": "settlement_value_unit:*"
+        }
+      ],
+      "compiled_at": "2026-08-07T00:00:00.000Z",
+      "description": "End-to-end execution proof of the AMD-0005 Commercial Settlement Suite against the compiled registries: obligation creation and validation, settlement authorization and execution, evidence package generation, attestation (which records settlement finalization), optional package publication and archival, SVU issuance, and SVU redemption.\n",
+      "integrity": {
+        "algorithm": "SHA256",
+        "generated_by": {
+          "compiler_version": "0.6.0"
+        },
+        "hash": "1c7c390c914d19646fbe3e4a332dbb82336b304090f42c972663c6c9f4736f5b",
+        "timestamp": "2026-08-07T00:00:00.000Z"
+      },
+      "lifecycle": {
+        "initial_state": "DRAFT",
+        "terminal_state": "REDEEMED"
+      },
+      "name": "Commercial Settlement Lifecycle (AMD-0005)",
+      "scenario_id": "SIM-008-COMMERCIAL-SETTLEMENT-LIFECYCLE",
+      "source_file": "governance/simulation/scenarios/SIM-008-COMMERCIAL-SETTLEMENT-LIFECYCLE.yaml",
+      "version": "1.0.0"
+    },
+    "SIM-009-COMMERCIAL-SETTLEMENT-BRANCHES": {
+      "actors": [
+        {
+          "actor_id": "sim-commercial-operator",
+          "actor_type": "human",
+          "identity_id": "sim-commercial-operator-id",
+          "session_id": "sim-commercial-session-009"
+        }
+      ],
+      "commands": [
+        {
+          "aggregate": "commercial_obligation",
+          "aggregate_id": "SOVR-OBL-000009",
+          "capability_id": "commercial.obligation.create",
+          "command_id": "br-001",
+          "command_name": "CreateCommercialObligation",
+          "domain": "commercial",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount_cents": 40000,
+            "authorization_reference": "AUTH-REF-000009",
+            "commercial_obligation_id": "SOVR-OBL-000009",
+            "counterparty": "sim-counterparty-009",
+            "obligation_id": "SOVR-OBL-000009",
+            "obligation_type": "SERVICE",
+            "originator": "sim-originator-009",
+            "source_document_hash": "1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2",
+            "vault_asset_reference": "vault-asset-000009"
+          },
+          "scope": "commercial_obligation:*"
+        },
+        {
+          "aggregate": "commercial_obligation",
+          "aggregate_id": "SOVR-OBL-000009",
+          "capability_id": "commercial.obligation.cancel",
+          "command_id": "br-002",
+          "command_name": "CancelObligation",
+          "domain": "commercial",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "cancellation_reason": "counterparty_withdrawn",
+            "cancelled_by": "sim-commercial-operator",
+            "commercial_obligation_id": "SOVR-OBL-000009",
+            "obligation_id": "SOVR-OBL-000009"
+          },
+          "scope": "commercial_obligation:*"
+        },
+        {
+          "aggregate": "commercial_obligation",
+          "aggregate_id": "SOVR-OBL-000010",
+          "capability_id": "commercial.obligation.create",
+          "command_id": "br-003",
+          "command_name": "CreateCommercialObligation",
+          "domain": "commercial",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount_cents": 75000,
+            "authorization_reference": "AUTH-REF-000010",
+            "commercial_obligation_id": "SOVR-OBL-000010",
+            "counterparty": "sim-counterparty-009",
+            "obligation_id": "SOVR-OBL-000010",
+            "obligation_type": "PAYMENT",
+            "originator": "sim-originator-009",
+            "source_document_hash": "2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3",
+            "vault_asset_reference": "vault-asset-000010"
+          },
+          "scope": "commercial_obligation:*"
+        },
+        {
+          "aggregate": "settlement_record",
+          "aggregate_id": "SOVR-SET-000010",
+          "capability_id": "settlement.record.authorize",
+          "command_id": "br-004",
+          "command_name": "AuthorizeSettlement",
+          "domain": "settlement",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "authorized_by": "sim-commercial-operator",
+            "commercial_obligation_id": "SOVR-OBL-000010",
+            "settlement_amount_cents": 75000,
+            "settlement_id": "SOVR-SET-000010",
+            "settlement_record_id": "SOVR-SET-000010"
+          },
+          "scope": "settlement_record:*"
+        },
+        {
+          "aggregate": "settlement_record",
+          "aggregate_id": "SOVR-SET-000010",
+          "capability_id": "settlement.record.cancel",
+          "command_id": "br-005",
+          "command_name": "CancelSettlement",
+          "domain": "settlement",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "cancellation_reason": "obligation_renegotiated",
+            "cancelled_by": "sim-commercial-operator",
+            "settlement_id": "SOVR-SET-000010",
+            "settlement_record_id": "SOVR-SET-000010"
+          },
+          "scope": "settlement_record:*"
+        },
+        {
+          "aggregate": "commercial_obligation",
+          "aggregate_id": "SOVR-OBL-000011",
+          "capability_id": "commercial.obligation.create",
+          "command_id": "br-006",
+          "command_name": "CreateCommercialObligation",
+          "domain": "commercial",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "amount_cents": 90000,
+            "authorization_reference": "AUTH-REF-000011",
+            "commercial_obligation_id": "SOVR-OBL-000011",
+            "counterparty": "sim-counterparty-009",
+            "obligation_id": "SOVR-OBL-000011",
+            "obligation_type": "PAYMENT",
+            "originator": "sim-originator-009",
+            "source_document_hash": "3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4",
+            "vault_asset_reference": "vault-asset-000011"
+          },
+          "scope": "commercial_obligation:*"
+        },
+        {
+          "aggregate": "settlement_record",
+          "aggregate_id": "SOVR-SET-000011",
+          "capability_id": "settlement.record.authorize",
+          "command_id": "br-007",
+          "command_name": "AuthorizeSettlement",
+          "domain": "settlement",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "authorized_by": "sim-commercial-operator",
+            "commercial_obligation_id": "SOVR-OBL-000011",
+            "settlement_amount_cents": 90000,
+            "settlement_id": "SOVR-SET-000011",
+            "settlement_record_id": "SOVR-SET-000011"
+          },
+          "scope": "settlement_record:*"
+        },
+        {
+          "aggregate": "settlement_record",
+          "aggregate_id": "SOVR-SET-000011",
+          "capability_id": "settlement.record.execute",
+          "command_id": "br-008",
+          "command_name": "ExecuteSettlement",
+          "domain": "settlement",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "commercial_obligation_id": "SOVR-OBL-000011",
+            "settlement_id": "SOVR-SET-000011",
+            "settlement_record_id": "SOVR-SET-000011",
+            "tigerbeetle_transfer_id": "1099511627777",
+            "treasury_transfer_reference": "TRF-000011"
+          },
+          "scope": "settlement_record:*"
+        },
+        {
+          "aggregate": "evidence_package",
+          "aggregate_id": "SOVR-EVP-000011",
+          "capability_id": "certification.package.generate",
+          "command_id": "br-008b",
+          "command_name": "GenerateEvidencePackage",
+          "domain": "certification",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "commercial_obligation_id": "SOVR-OBL-000011",
+            "evidence_package_id": "SOVR-EVP-000011",
+            "package_id": "SOVR-EVP-000011",
+            "settlement_id": "SOVR-SET-000011",
+            "tigerbeetle_transfer_id": "1099511627777"
+          },
+          "scope": "evidence_package:*"
+        },
+        {
+          "aggregate": "evidence_package",
+          "aggregate_id": "SOVR-EVP-000011",
+          "capability_id": "certification.package.sign",
+          "command_id": "br-008c",
+          "command_name": "SignAttestation",
+          "domain": "certification",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "attestor": "sim-attestor-009",
+            "evidence_package_id": "SOVR-EVP-000011",
+            "package_id": "SOVR-EVP-000011",
+            "settlement_id": "SOVR-SET-000011",
+            "signature": "ecdsa-signature-000009"
+          },
+          "scope": "evidence_package:*"
+        },
+        {
+          "aggregate": "settlement_record",
+          "aggregate_id": "SOVR-SET-000011",
+          "capability_id": "settlement.record.dispute",
+          "command_id": "br-009",
+          "command_name": "DisputeSettlement",
+          "domain": "settlement",
+          "expected_result": "ACCEPTED",
+          "payload": {
+            "dispute_reason": "amount_mismatch_claim",
+            "disputed_by": "sim-counterparty-009",
+            "settlement_id": "SOVR-SET-000011",
+            "settlement_record_id": "SOVR-SET-000011"
+          },
+          "scope": "settlement_record:*"
+        }
+      ],
+      "compiled_at": "2026-08-07T00:00:00.000Z",
+      "description": "Branch coverage for the AMD-0005 suite: obligation cancellation pre-settlement, settlement cancellation pre-execution, and dispute of a ledger-posted settlement. Exercises the five lifecycle commands derived from machine transitions (CancelObligation, CancelSettlement, DisputeSettlement) on separate aggregates.\n",
+      "integrity": {
+        "algorithm": "SHA256",
+        "generated_by": {
+          "compiler_version": "0.6.0"
+        },
+        "hash": "989f4a26cc9b9ec29a1e993c4c909c925eaaaa813bb8ec945665d84f48d89ce6",
+        "timestamp": "2026-08-07T00:00:00.000Z"
+      },
+      "lifecycle": {
+        "initial_state": "DRAFT",
+        "terminal_state": "CANCELLED"
+      },
+      "name": "Commercial Settlement Branches (AMD-0005)",
+      "scenario_id": "SIM-009-COMMERCIAL-SETTLEMENT-BRANCHES",
+      "source_file": "governance/simulation/scenarios/SIM-009-COMMERCIAL-SETTLEMENT-BRANCHES.yaml",
+      "version": "1.0.0"
     }
-  }
+  },
+  "abi_version": "v1"
 }

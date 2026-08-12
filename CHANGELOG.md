@@ -7,6 +7,55 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] — 2026-08-12 — AMD-0005 Protocol Materialization Repair
+
+### Fixed (protocol corpus)
+- **AMD-0005 command materialization defect closed.** The 8 Commercial
+  Settlement Suite commands are re-parented into the authoritative
+  `commands:` map of `03_command-catalog.yaml` and completed to the
+  canonical command contract (aggregate, source_domain, issuer,
+  authorization_requirements, validation_rules, required_payload,
+  resulting_events, constitutional_gates).
+- Defined the 5 lifecycle commands the commercial state machines already
+  referenced (CancelObligation, DisputeSettlement, CancelSettlement,
+  PublishPackage, ArchivePackage), derived from machine transitions,
+  events, and aggregates.
+- Event catalog: normalized the 9 AMD-0005 events to the canonical
+  envelope; added the missing `escrow.account.cancellation_failed`
+  and 18 lifecycle/failure events.
+- State machines: the three AMD-0005 machines rewritten in the canonical
+  executable schema; added the SettlementValueUnit lifecycle (SVU
+  issuance/redemption).
+- Capabilities: 13 commercial/settlement/certification/representation
+  capabilities added.
+
+### Changed (compiler enforcement)
+- REF-002 (machine→command) and REF-003 (command→event) unresolved
+  references are now compile ERRORS (fail-closed), not warnings.
+- New silent-drop guard: command-shaped definitions outside the
+  authoritative `commands:` map of the catalog are compile ERRORS.
+  The AMD-0005 failure class is now a build failure, permanently.
+- New REF-005 check: unresolved live-saga step commands are ERRORS;
+  documentary saga-template references are reported as warnings.
+- New REF-006/REF-007 cross-file authority audit: command definitions in
+  per-domain files that are absent from the authoritative map (REF-006,
+  warning) or mirror it (REF-007, warning) are now loud and counted in
+  every manifest. Unconsumed hybrid-boundary definitions (7) and the
+  divergent hybrid naming (saga templates vs hybrid-boundary) are the
+  known next protocol-content reconciliation item.
+
+### Build identity
+- New build hash `7a3ed4ce…` (was `18c55c32…`): the corpus moved, so the
+  identity moved — the determinism contract behaving as designed.
+- Ground truth: 118 commands, 286 events, 47 machines, 126 capabilities,
+  16 projections, 656 IR nodes — 0 unresolved references, 0 silent drops.
+- Runtime proof: SIM-008 (10-command commercial settlement chain) and
+  SIM-009 (cancel/dispute branches) execute ACCEPTED end-to-end through
+  the kernel against the compiled registries; aggregate states verified
+  from the event log per INV-001.
+
+---
+
 ## [1.0.0] — PENDING RELEASE (Post-Audit)
 
 ### The Linux of Finance — First Constitutional Release

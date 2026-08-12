@@ -2224,6 +2224,188 @@ capabilities:
     scope_pattern: "escrow.account:{escrow_id}"
     constitutional_constraint: INV-003
 
+  - capability_id: commercial.obligation.create
+    description: "Create commercial obligations under the AMD-0005 Commercial Settlement Suite"
+    domain: COMMERCIAL
+    resource_type: "commercial_obligation"
+    action: CREATE
+    scope_pattern: "commercial_obligation:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: commercial.obligation.validate
+    description: "Validate draft commercial obligations for settlement eligibility"
+    domain: COMMERCIAL
+    resource_type: "commercial_obligation"
+    action: UPDATE
+    scope_pattern: "commercial_obligation:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: commercial.obligation.cancel
+    description: "Cancel commercial obligations prior to settlement authorization"
+    domain: COMMERCIAL
+    resource_type: "commercial_obligation"
+    action: UPDATE
+    scope_pattern: "commercial_obligation:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: settlement.record.authorize
+    description: "Authorize settlement of validated commercial obligations"
+    domain: SETTLEMENT
+    resource_type: "settlement_record"
+    action: APPROVE
+    scope_pattern: "settlement_record:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: settlement.record.execute
+    description: "Execute authorized settlements and record TigerBeetle posting"
+    domain: SETTLEMENT
+    resource_type: "settlement_record"
+    action: EXECUTE
+    scope_pattern: "settlement_record:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: settlement.record.cancel
+    description: "Cancel settlement records prior to execution"
+    domain: SETTLEMENT
+    resource_type: "settlement_record"
+    action: UPDATE
+    scope_pattern: "settlement_record:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: settlement.record.dispute
+    description: "Open disputes on ledger-posted settlements within the dispute window"
+    domain: SETTLEMENT
+    resource_type: "settlement_record"
+    action: UPDATE
+    scope_pattern: "settlement_record:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: certification.package.generate
+    description: "Generate JDE-compatible evidence packages for executed settlements"
+    domain: CERTIFICATION
+    resource_type: "evidence_package"
+    action: CREATE
+    scope_pattern: "evidence_package:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: certification.package.sign
+    description: "Apply attestor signatures completing the evidence chain of custody"
+    domain: CERTIFICATION
+    resource_type: "evidence_package"
+    action: UPDATE
+    scope_pattern: "evidence_package:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: HIGH
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: certification.package.publish
+    description: "Publish signed evidence packages through the boundary adapter"
+    domain: CERTIFICATION
+    resource_type: "evidence_package"
+    action: UPDATE
+    scope_pattern: "evidence_package:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: false
+
+  - capability_id: certification.package.archive
+    description: "Archive evidence packages into long-term retention"
+    domain: CERTIFICATION
+    resource_type: "evidence_package"
+    action: UPDATE
+    scope_pattern: "evidence_package:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: MEDIUM
+    governance_approval_required: false
+    agent_executable: false
+
+  - capability_id: representation.svu.issue
+    description: "Issue Settlement Value Units against verified provenance chains"
+    domain: REPRESENTATION
+    resource_type: "settlement_value_unit"
+    action: CREATE
+    scope_pattern: "settlement_value_unit:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+
+  - capability_id: representation.svu.redeem
+    description: "Redeem Settlement Value Units against settlement references"
+    domain: REPRESENTATION
+    resource_type: "settlement_value_unit"
+    action: EXECUTE
+    scope_pattern: "settlement_value_unit:*:*"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-004"
+    risk_level: CRITICAL
+    governance_approval_required: true
+    agent_executable: false
+
 capability_matrix:
   human:
     - vault.asset.read

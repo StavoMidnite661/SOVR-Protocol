@@ -15,3 +15,10 @@ packages/*/node_modules/
 .env
 .env.local
 .env.*.local
+
+# Runtime-run byproducts (regenerable evidence, never sources of truth)
+generated/audit/
+generated/simulation/reports/
+generated/boot-attestation.json
+generated/boot-manifest.json
+generated/boot.log

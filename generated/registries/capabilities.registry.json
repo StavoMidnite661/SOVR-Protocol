@@ -157,6 +157,139 @@
       "risk_level": "CRITICAL",
       "scope_pattern": "agent:{agent_id}:*"
     },
+    "certification.package.archive": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "certification.package.archive",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Archive evidence packages into long-term retention",
+      "domain": "CERTIFICATION",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "evidence_package",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "evidence_package:*:*"
+    },
+    "certification.package.generate": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "certification.package.generate",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Generate JDE-compatible evidence packages for executed settlements",
+      "domain": "CERTIFICATION",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "evidence_package",
+      "risk_level": "HIGH",
+      "scope_pattern": "evidence_package:*:*"
+    },
+    "certification.package.publish": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "certification.package.publish",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Publish signed evidence packages through the boundary adapter",
+      "domain": "CERTIFICATION",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "evidence_package",
+      "risk_level": "MEDIUM",
+      "scope_pattern": "evidence_package:*:*"
+    },
+    "certification.package.sign": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "certification.package.sign",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Apply attestor signatures completing the evidence chain of custody",
+      "domain": "CERTIFICATION",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "evidence_package",
+      "risk_level": "HIGH",
+      "scope_pattern": "evidence_package:*:*"
+    },
+    "commercial.obligation.cancel": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "commercial.obligation.cancel",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Cancel commercial obligations prior to settlement authorization",
+      "domain": "COMMERCIAL",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "commercial_obligation",
+      "risk_level": "HIGH",
+      "scope_pattern": "commercial_obligation:*:*"
+    },
+    "commercial.obligation.create": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "commercial.obligation.create",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Create commercial obligations under the AMD-0005 Commercial Settlement Suite",
+      "domain": "COMMERCIAL",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "commercial_obligation",
+      "risk_level": "HIGH",
+      "scope_pattern": "commercial_obligation:*:*"
+    },
+    "commercial.obligation.validate": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "commercial.obligation.validate",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Validate draft commercial obligations for settlement eligibility",
+      "domain": "COMMERCIAL",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "commercial_obligation",
+      "risk_level": "HIGH",
+      "scope_pattern": "commercial_obligation:*:*"
+    },
     "escrow.account.cancel": {
       "abi": "v1",
       "action": "cancel",
@@ -2092,6 +2225,120 @@
       "risk_level": "LOW",
       "scope_pattern": "policy:set:{set_id}:evaluate"
     },
+    "representation.svu.issue": {
+      "abi": "v1",
+      "action": "CREATE",
+      "agent_executable": false,
+      "capability_id": "representation.svu.issue",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Issue Settlement Value Units against verified provenance chains",
+      "domain": "REPRESENTATION",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "settlement_value_unit",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "settlement_value_unit:*:*"
+    },
+    "representation.svu.redeem": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "representation.svu.redeem",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Redeem Settlement Value Units against settlement references",
+      "domain": "REPRESENTATION",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "settlement_value_unit",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "settlement_value_unit:*:*"
+    },
+    "settlement.record.authorize": {
+      "abi": "v1",
+      "action": "APPROVE",
+      "agent_executable": false,
+      "capability_id": "settlement.record.authorize",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Authorize settlement of validated commercial obligations",
+      "domain": "SETTLEMENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "settlement_record",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "settlement_record:*:*"
+    },
+    "settlement.record.cancel": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "settlement.record.cancel",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Cancel settlement records prior to execution",
+      "domain": "SETTLEMENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "settlement_record",
+      "risk_level": "HIGH",
+      "scope_pattern": "settlement_record:*:*"
+    },
+    "settlement.record.dispute": {
+      "abi": "v1",
+      "action": "UPDATE",
+      "agent_executable": false,
+      "capability_id": "settlement.record.dispute",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Open disputes on ledger-posted settlements within the dispute window",
+      "domain": "SETTLEMENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "settlement_record",
+      "risk_level": "HIGH",
+      "scope_pattern": "settlement_record:*:*"
+    },
+    "settlement.record.execute": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "settlement.record.execute",
+      "constitutional_constraint": "INV-004",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "description": "Execute authorized settlements and record TigerBeetle posting",
+      "domain": "SETTLEMENT",
+      "governance_approval_required": true,
+      "grantable_by": [
+        "governance"
+      ],
+      "resource_type": "settlement_record",
+      "risk_level": "CRITICAL",
+      "scope_pattern": "settlement_record:*:*"
+    },
     "system.internal": {
       "abi": "v1",
       "action": "EXECUTE",
@@ -2853,13 +3100,13 @@
       "scope_pattern": "asset:{asset_id}:valuation"
     }
   },
-  "entry_count": 113,
+  "entry_count": 126,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "18b36005493f77533693dada83da8970b0be799a023e957bf65bbe1731fa0945",
+    "hash": "3881139a01760fe0a66d44bd9cb618c9a1e282de250c66beb1455298461c68ea",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "capabilities"

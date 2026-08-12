@@ -4105,6 +4105,615 @@ commands:
       capability_required: true
       invariants: [INV-003, INV-008]
 
+  # ========================================================
+  # AMD-0005 EXTENSION COMMANDS — COMMERCIAL SETTLEMENT SUITE
+  # Materialized into the authoritative commands: map.
+  # 8 extension commands + 5 lifecycle commands derived from the
+  # executable transitions of the CommercialObligation,
+  # SettlementRecord, and EvidencePackage state machines
+  # (CancelObligation, DisputeSettlement, CancelSettlement,
+  # PublishPackage, ArchivePackage were referenced by the machines
+  # but never defined; contracts below are derived from the machine
+  # transitions, events, and aggregates that already reference them).
+  # ========================================================
+
+  CreateCommercialObligation:
+    amendment: AMD-0005
+    aggregate: commercial_obligation
+    source_domain: commercial
+    version: 1.0.0
+    description: >
+      Records a commercial obligation in SOVR. References an existing Vault
+      asset as the obligated value. Root command of the AMD-0005 Commercial
+      Settlement Suite: nothing in the settlement chain may execute before
+      this command succeeds.
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: commercial.obligation.create
+    authorization_requirements:
+      identity: required
+      capability: commercial.obligation.create
+      scope: commercial_obligation
+      policy: commercial_obligation_registration_policy
+    validation_rules:
+      - rule: vault_asset_must_exist
+        check: vault asset with vault_asset_reference exists
+        on_failure: REJECT
+      - rule: originator_must_be_registered
+        check: identity for originator exists and is VERIFIED
+        on_failure: REJECT
+      - rule: counterparty_must_be_registered
+        check: identity for counterparty exists and is VERIFIED
+        on_failure: REJECT
+      - rule: amount_must_not_exceed_vault_asset
+        check: amount_cents <= referenced vault asset face_value
+        on_failure: REJECT
+    required_payload:
+      - obligation_id
+      - vault_asset_reference
+      - originator
+      - counterparty
+      - obligation_type
+      - amount_cents
+      - authorization_reference
+      - source_document_hash
+    resulting_events:
+      success: [CommercialRecordCreated]
+      failure: [CommercialRecordCreationFailed]
+    failure_conditions:
+      - vault_asset_not_found
+      - unregistered_originator
+      - unregistered_counterparty
+      - amount_exceeds_asset_value
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-003, INV-005, INV-008]
+
+  ValidateObligation:
+    amendment: AMD-0005
+    aggregate: commercial_obligation
+    source_domain: commercial
+    version: 1.0.0
+    description: >
+      Validates a draft commercial obligation as eligible for settlement
+      processing. Drives CommercialObligation DRAFT to VALIDATED.
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: commercial.obligation.validate
+    authorization_requirements:
+      identity: required
+      capability: commercial.obligation.validate
+      scope: commercial_obligation
+      policy: commercial_obligation_validation_policy
+    validation_rules:
+      - rule: obligation_must_exist
+        check: commercial_obligation with obligation_id exists
+        on_failure: REJECT
+      - rule: obligation_must_be_draft
+        check: commercial_obligation.state == DRAFT
+        on_failure: REJECT
+      - rule: validator_must_have_authority
+        check: actor holds commercial.obligation.validate capability scoped to the obligation
+        on_failure: REJECT
+    required_payload:
+      - obligation_id
+      - validated_by
+      - validation_reference
+    resulting_events:
+      success: [ObligationValidated]
+      failure: [ObligationValidationFailed]
+    failure_conditions:
+      - obligation_not_found
+      - obligation_not_in_draft
+      - validator_authority_missing
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-005, INV-006, INV-008]
+
+  CancelObligation:
+    amendment: AMD-0005
+    aggregate: commercial_obligation
+    source_domain: commercial
+    version: 1.0.0
+    description: >
+      Cancels a commercial obligation before settlement authorization.
+      Derived from CommercialObligation machine transitions
+      DRAFT to CANCELLED and VALIDATED to CANCELLED; settlement-phase
+      obligations are immutable to cancellation.
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: commercial.obligation.cancel
+    authorization_requirements:
+      identity: required
+      capability: commercial.obligation.cancel
+      scope: commercial_obligation
+      policy: commercial_obligation_cancellation_policy
+    validation_rules:
+      - rule: obligation_must_exist
+        check: commercial_obligation with obligation_id exists
+        on_failure: REJECT
+      - rule: obligation_must_be_pre_settlement
+        check: commercial_obligation.state IN [DRAFT, VALIDATED]
+        on_failure: REJECT
+      - rule: canceller_must_have_authority
+        check: actor holds commercial.obligation.cancel capability scoped to the obligation
+        on_failure: REJECT
+    required_payload:
+      - obligation_id
+      - cancelled_by
+      - cancellation_reason
+    resulting_events:
+      success: [ObligationCancelled]
+      failure: [ObligationCancellationFailed]
+    failure_conditions:
+      - obligation_not_found
+      - obligation_already_in_settlement
+      - canceller_authority_missing
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-005, INV-006, INV-008]
+
+  AuthorizeSettlement:
+    amendment: AMD-0005
+    aggregate: settlement_record
+    source_domain: settlement
+    version: 1.0.0
+    description: >
+      Formally authorizes settlement of a validated commercial obligation.
+      Creates the settlement record and triggers the treasury transfer
+      workflow; does not execute the transfer directly.
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: settlement.record.authorize
+    authorization_requirements:
+      identity: required
+      capability: settlement.record.authorize
+      scope: settlement_record
+      policy: settlement_authorization_policy
+    validation_rules:
+      - rule: obligation_must_be_validated
+        check: commercial_obligation.state == VALIDATED
+        on_failure: REJECT
+      - rule: authorizer_must_have_settlement_authority
+        check: actor holds settlement.record.authorize capability
+        on_failure: REJECT
+      - rule: settlement_amount_must_be_positive
+        check: settlement_amount_cents > 0
+        on_failure: REJECT
+    required_payload:
+      - settlement_id
+      - settlement_record_id
+      - commercial_obligation_id
+      - authorized_by
+      - settlement_amount_cents
+    resulting_events:
+      success: [SettlementAuthorized]
+      failure: [SettlementAuthorizationFailed]
+    failure_conditions:
+      - obligation_not_validated
+      - authorizer_authority_missing
+      - invalid_settlement_amount
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-003, INV-005, INV-008]
+
+  ExecuteSettlement:
+    amendment: AMD-0005
+    aggregate: settlement_record
+    source_domain: settlement
+    version: 1.0.0
+    description: >
+      Records settlement execution after the treasury transfer completes.
+      Captures the TigerBeetle transfer id; the emitted SettlementExecuted
+      event posts the settlement record to LEDGER_POSTED and arms evidence
+      package generation.
+    issuer:
+      actor_types: [system, governance, human]
+      minimum_capability: settlement.record.execute
+    authorization_requirements:
+      identity: required
+      capability: settlement.record.execute
+      scope: settlement_record
+      policy: settlement_execution_policy
+    validation_rules:
+      - rule: settlement_must_be_pending_execution
+        check: settlement_record.state == PENDING
+        on_failure: REJECT
+      - rule: treasury_transfer_must_be_complete
+        check: treasury transfer treasury_transfer_reference is COMPLETE
+        on_failure: REJECT
+      - rule: tigerbeetle_transfer_must_be_confirmed
+        check: tigerbeetle_transfer_id confirmed on the settlement ledger
+        on_failure: REJECT
+    required_payload:
+      - settlement_id
+      - settlement_record_id
+      - treasury_transfer_reference
+      - tigerbeetle_transfer_id
+    resulting_events:
+      success: [SettlementExecuted]
+      failure: [SettlementExecutionFailed]
+    failure_conditions:
+      - settlement_not_pending
+      - treasury_transfer_incomplete
+      - tigerbeetle_transfer_unconfirmed
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-005, INV-006, INV-007, INV-008]
+
+  CancelSettlement:
+    amendment: AMD-0005
+    aggregate: settlement_record
+    source_domain: settlement
+    version: 1.0.0
+    description: >
+      Cancels a settlement record before execution posts to the ledger.
+      Derived from SettlementRecord machine transitions
+      [PENDING, AUTHORIZED] to CANCELLED; settled records are immutable
+      to cancellation.
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: settlement.record.cancel
+    authorization_requirements:
+      identity: required
+      capability: settlement.record.cancel
+      scope: settlement_record
+      policy: settlement_cancellation_policy
+    validation_rules:
+      - rule: settlement_must_exist
+        check: settlement_record with settlement_id exists
+        on_failure: REJECT
+      - rule: settlement_must_be_pre_execution
+        check: settlement_record.state == PENDING
+        on_failure: REJECT
+      - rule: canceller_must_have_authority
+        check: actor holds settlement.record.cancel capability scoped to the settlement
+        on_failure: REJECT
+    required_payload:
+      - settlement_id
+      - settlement_record_id
+      - cancelled_by
+      - cancellation_reason
+    resulting_events:
+      success: [SettlementCancelled]
+      failure: [SettlementCancellationFailed]
+    failure_conditions:
+      - settlement_not_found
+      - settlement_already_executed
+      - canceller_authority_missing
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-005, INV-006, INV-008]
+
+  DisputeSettlement:
+    amendment: AMD-0005
+    aggregate: settlement_record
+    source_domain: settlement
+    version: 1.0.0
+    description: >
+      Opens a dispute on a finalized settlement within the dispute window.
+      Derived from SettlementRecord machine transition
+      FINALIZED to DISPUTED.
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: settlement.record.dispute
+    authorization_requirements:
+      identity: required
+      capability: settlement.record.dispute
+      scope: settlement_record
+      policy: settlement_dispute_policy
+    validation_rules:
+      - rule: settlement_must_be_finalized
+        check: settlement_record.state == FINALIZED
+        on_failure: REJECT
+      - rule: dispute_window_must_be_open
+        check: now <= settlement_record.dispute_window_close
+        on_failure: REJECT
+      - rule: disputer_must_be_counterparty
+        check: actor is obligation originator or counterparty
+        on_failure: REJECT
+    required_payload:
+      - settlement_id
+      - settlement_record_id
+      - disputed_by
+      - dispute_reason
+    resulting_events:
+      success: [SettlementDisputed]
+      failure: [SettlementDisputeFailed]
+    failure_conditions:
+      - settlement_not_posted
+      - dispute_window_closed
+      - disputer_not_counterparty
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-005, INV-006, INV-008]
+
+  GenerateEvidencePackage:
+    amendment: AMD-0005
+    aggregate: evidence_package
+    source_domain: certification
+    version: 1.0.0
+    description: >
+      Generates the JDE-compatible 10-document evidence package for an
+      executed settlement. First-class entity creation; the package is
+      stored to TB_LEDGER.SYSTEM MEMORANDUM. Pipeline: render 10 JDE
+      documents, hash each document SHA-256, compile manifest, hash
+      manifest SHA-256, compute package hash, store memorandum.
+    issuer:
+      actor_types: [system, governance, human]
+      minimum_capability: certification.package.generate
+    authorization_requirements:
+      identity: required
+      capability: certification.package.generate
+      scope: evidence_package
+      policy: evidence_package_generation_policy
+    validation_rules:
+      - rule: settlement_must_be_executed
+        check: settlement_record.state == LEDGER_POSTED
+        on_failure: REJECT
+      - rule: tigerbeetle_transfer_must_be_confirmed
+        check: tigerbeetle_transfer_id confirmed on the settlement ledger
+        on_failure: REJECT
+    required_payload:
+      - package_id
+      - evidence_package_id
+      - settlement_id
+      - commercial_obligation_id
+      - tigerbeetle_transfer_id
+    resulting_events:
+      success: [EvidencePackageGenerated]
+      failure: [EvidencePackageGenerationFailed]
+    failure_conditions:
+      - settlement_not_executed
+      - tigerbeetle_transfer_unconfirmed
+      - document_render_failed
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-005, INV-008]
+
+  SignAttestation:
+    amendment: AMD-0005
+    aggregate: evidence_package
+    source_domain: certification
+    version: 1.0.0
+    description: >
+      Attestor signs the generated evidence package, completing the
+      constitutional chain of custody. Emits AttestationSigned and
+      SettlementFinalized (per AMD-0005 event design: AttestationSigned
+      triggers SettlementFinalized), recording settlement completion in
+      the authoritative event log. Required before SVU issuance.
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: certification.package.sign
+    authorization_requirements:
+      identity: required
+      capability: certification.package.sign
+      scope: evidence_package
+      policy: attestation_signing_policy
+    validation_rules:
+      - rule: package_must_be_verified
+        check: evidence_package package_hash recomputes over manifest and document hashes
+        on_failure: REJECT
+      - rule: attestor_must_have_attestation_authority
+        check: actor holds certification.package.sign capability
+        on_failure: REJECT
+      - rule: signature_must_be_valid_ecdsa
+        check: signature verifies against attestor identity key
+        on_failure: REJECT
+    required_payload:
+      - package_id
+      - evidence_package_id
+      - settlement_id
+      - attestor
+      - signature
+    resulting_events:
+      success: [AttestationSigned, SettlementFinalized]
+      failure: [AttestationSigningFailed]
+    failure_conditions:
+      - package_hash_mismatch
+      - attestor_authority_missing
+      - invalid_signature
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-005, INV-008]
+
+  PublishPackage:
+    amendment: AMD-0005
+    aggregate: evidence_package
+    source_domain: certification
+    version: 1.0.0
+    description: >
+      Publishes a signed evidence package through the optional boundary
+      adapter channel. Derived from EvidencePackage machine transition
+      SIGNED to PUBLISHED; publication is not required for finalization.
+    issuer:
+      actor_types: [human, governance, system]
+      minimum_capability: certification.package.publish
+    authorization_requirements:
+      identity: required
+      capability: certification.package.publish
+      scope: evidence_package
+      policy: evidence_package_publication_policy
+    validation_rules:
+      - rule: package_must_be_signed
+        check: evidence_package.state == SIGNED
+        on_failure: REJECT
+      - rule: storage_adapter_must_be_available
+        check: boundary storage adapter reports AVAILABLE
+        on_failure: REJECT
+    required_payload:
+      - package_id
+      - evidence_package_id
+      - published_by
+      - channel
+    resulting_events:
+      success: [EvidencePackagePublished]
+      failure: [EvidencePackagePublicationFailed]
+    failure_conditions:
+      - package_not_signed
+      - storage_adapter_unavailable
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-005, INV-008]
+
+  ArchivePackage:
+    amendment: AMD-0005
+    aggregate: evidence_package
+    source_domain: certification
+    version: 1.0.0
+    description: >
+      Archives a signed or published evidence package into long-term
+      retention once the retention period is met. Derived from
+      EvidencePackage machine transitions [SIGNED, PUBLISHED] to ARCHIVED.
+    issuer:
+      actor_types: [system, governance]
+      minimum_capability: certification.package.archive
+    authorization_requirements:
+      identity: required
+      capability: certification.package.archive
+      scope: evidence_package
+      policy: evidence_package_archival_policy
+    validation_rules:
+      - rule: package_must_be_signed_or_published
+        check: evidence_package.state IN [SIGNED, PUBLISHED]
+        on_failure: REJECT
+      - rule: retention_period_must_be_met
+        check: now >= evidence_package.retention_eligible_at
+        on_failure: REJECT
+    required_payload:
+      - package_id
+      - evidence_package_id
+      - archived_by
+    resulting_events:
+      success: [EvidencePackageArchived]
+      failure: [EvidencePackageArchivalFailed]
+    failure_conditions:
+      - package_not_archivable
+      - retention_period_not_met
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-005, INV-008]
+
+  IssueSVU:
+    amendment: AMD-0005
+    aggregate: settlement_value_unit
+    source_domain: representation
+    version: 1.0.0
+    description: >
+      Issues Settlement Value Units after the full provenance chain is
+      verified. Extends the payment output layer. Requires 2-of-3 multisig
+      authorization and respects the reserve cap.
+    issuer:
+      actor_types: [governance, human]
+      minimum_capability: representation.svu.issue
+    authorization_requirements:
+      identity: required
+      capability: representation.svu.issue
+      scope: settlement_value_unit
+      policy: svu_issuance_policy
+    validation_rules:
+      - rule: evidence_package_must_be_signed
+        check: evidence_package.state == SIGNED
+        on_failure: REJECT
+      - rule: multisig_threshold_must_be_met
+        check: multisig_authorization satisfies 2-of-3 threshold over registered signers
+        on_failure: REJECT
+      - rule: supply_must_not_exceed_reserve_cap
+        check: amount_cents + circulating_svu_supply <= reserve_cap
+        on_failure: REJECT
+      - rule: provenance_chain_must_be_traceable
+        check: obligation, settlement, package, and attestation ids re-derive a single lineage
+        on_failure: REJECT
+    required_payload:
+      - svu_id
+      - settlement_value_unit_id
+      - evidence_package_id
+      - recipient
+      - amount_cents
+      - multisig_authorization
+    resulting_events:
+      success: [SVUIssued]
+      failure: [SVUIssuanceFailed]
+    failure_conditions:
+      - evidence_package_not_signed
+      - multisig_threshold_not_met
+      - reserve_cap_exceeded
+      - provenance_chain_broken
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-003, INV-005, INV-007, INV-008]
+
+  RedeemSVU:
+    amendment: AMD-0005
+    aggregate: settlement_value_unit
+    source_domain: representation
+    version: 1.0.0
+    description: >
+      Redeems SVU against a settlement obligation. Burns the SVU tokens
+      and references the original settlement record. Full audit trail
+      preserved.
+    issuer:
+      actor_types: [human, governance]
+      minimum_capability: representation.svu.redeem
+    authorization_requirements:
+      identity: required
+      capability: representation.svu.redeem
+      scope: settlement_value_unit
+      policy: svu_redemption_policy
+    validation_rules:
+      - rule: svu_must_be_issued
+        check: settlement_value_unit.state == ISSUED
+        on_failure: REJECT
+      - rule: balance_must_be_sufficient
+        check: from_address svu balance >= amount_cents
+        on_failure: REJECT
+      - rule: settlement_reference_must_be_valid
+        check: settlement_reference resolves to a LEDGER_POSTED settlement record
+        on_failure: REJECT
+    required_payload:
+      - svu_id
+      - settlement_value_unit_id
+      - from_address
+      - amount_cents
+      - settlement_reference
+    resulting_events:
+      success: [SVURedeemed]
+      failure: [SVURedemptionFailed]
+    failure_conditions:
+      - svu_not_issued
+      - insufficient_balance
+      - invalid_settlement_reference
+    constitutional_gates:
+      identity_required: true
+      policy_required: true
+      capability_required: true
+      invariants: [INV-001, INV-003, INV-005, INV-007, INV-008]
+
+
 # ============================================================
 # Command Lifecycle Coverage Declarations
 # v0.6.0 coverage enforcement:
@@ -4178,173 +4787,3 @@ command_lifecycle_coverage:
       exemption_reason: "Emergency lift is constitutional system-control operation also reflected in system health lifecycle."
       lifecycle_exempt_reason: "Emergency lift is constitutional system-control operation also reflected in system health lifecycle."
       lifecycle_exempt_governance_ref: ADR-COMP-015
-
-# ============================================================
-# AMD-0005 EXTENSION COMMANDS
-# Ratified: 2026-08-05
-# Commercial Settlement Suite
-# Append after existing command definitions
-# ============================================================
-
-  CreateCommercialObligation:
-    amendment: AMD-0005
-    domain: commercial
-    description: >
-      Records a commercial obligation in SOVR. References
-      an existing Vault asset. Root command. Nothing in
-      the settlement chain may execute before this command
-      succeeds.
-    inputs:
-      - vault_asset_reference: AssetId
-      - originator: EntityId
-      - counterparty: EntityId
-      - obligation_type: enum
-      - amount_cents: uint64
-      - authorization_reference: string
-      - source_document_hash: bytes32
-    outputs:
-      - obligation_id: string
-      - event: CommercialRecordCreated
-    preconditions:
-      - vault_asset_exists
-      - originator_is_registered
-      - counterparty_is_registered
-      - amount_does_not_exceed_vault_asset
-
-  ValidateObligation:
-    amendment: AMD-0005
-    domain: commercial
-    description: >
-      Validates a draft commercial obligation as eligible
-      for settlement processing.
-    inputs:
-      - obligation_id: string
-      - validated_by: EntityId
-      - validation_reference: string
-    outputs:
-      - event: ObligationValidated
-    preconditions:
-      - obligation_exists
-      - obligation_status_is_DRAFT
-      - validator_has_authority
-
-  AuthorizeSettlement:
-    amendment: AMD-0005
-    domain: settlement
-    description: >
-      Formally authorizes settlement of a validated
-      commercial obligation. Triggers treasury transfer
-      workflow. Does not execute transfer directly.
-    inputs:
-      - commercial_obligation_id: string
-      - authorized_by: EntityId
-      - settlement_amount_cents: uint64
-    outputs:
-      - settlement_id: string
-      - event: SettlementAuthorized
-      - triggers: treasury.InitiateTransfer
-    preconditions:
-      - obligation_status_is_VALIDATED
-      - authorizer_has_settlement_authority
-
-  ExecuteSettlement:
-    amendment: AMD-0005
-    domain: settlement
-    description: >
-      Records settlement execution after treasury transfer
-      completes. Captures TigerBeetle transfer ID.
-      Triggers evidence package generation.
-    inputs:
-      - settlement_id: string
-      - treasury_transfer_reference: TransferId
-      - tigerbeetle_transfer_id: uint128
-    outputs:
-      - event: SettlementExecuted
-      - triggers: GenerateEvidencePackage
-    preconditions:
-      - settlement_status_is_AUTHORIZED
-      - treasury_transfer_is_complete
-      - tigerbeetle_transfer_confirmed
-
-  GenerateEvidencePackage:
-    amendment: AMD-0005
-    domain: certification
-    description: >
-      Generates JDE-compatible 10-document evidence package
-      for a finalized settlement. First-class entity creation.
-      Stored in TB_LEDGER.SYSTEM MEMORANDUM.
-    inputs:
-      - settlement_id: string
-      - commercial_obligation_id: string
-      - tigerbeetle_transfer_id: uint128
-    outputs:
-      - package_id: string
-      - event: EvidencePackageGenerated
-    preconditions:
-      - settlement_is_executed
-      - tigerbeetle_transfer_confirmed
-    pipeline:
-      - render_10_jde_documents
-      - hash_each_document_sha256
-      - compile_manifest
-      - hash_manifest_sha256
-      - compute_package_hash
-      - store_in_tb_ledger_system_memorandum
-
-  SignAttestation:
-    amendment: AMD-0005
-    domain: certification
-    description: >
-      Attestor signs generated evidence package confirming
-      constitutional chain of custody is complete. Required
-      before SVU issuance may proceed.
-    inputs:
-      - package_id: string
-      - attestor: EntityId
-      - signature: bytes
-    outputs:
-      - attestation_id: string
-      - event: AttestationSigned
-    preconditions:
-      - package_status_is_VERIFIED
-      - attestor_has_attestation_authority
-      - signature_is_valid_ecdsa
-
-  IssueSVU:
-    amendment: AMD-0005
-    domain: representation
-    description: >
-      Issues Settlement Value Units after full provenance
-      chain is verified. Extends payment output layer.
-      Requires 2-of-3 multisig authorization.
-    inputs:
-      - evidence_package_id: string
-      - recipient: address
-      - amount_cents: uint64
-      - multisig_authorization: bytes
-    outputs:
-      - svu_id: string
-      - event: SVUIssued
-    preconditions:
-      - evidence_package_status_is_SIGNED
-      - multisig_threshold_met
-      - amount_plus_supply_lte_reserve_cap
-      - full_provenance_chain_traceable
-
-  RedeemSVU:
-    amendment: AMD-0005
-    domain: representation
-    description: >
-      Redeems SVU against settlement obligation. Burns
-      SVU tokens. References original settlement record.
-    inputs:
-      - svu_id: string
-      - from_address: address
-      - amount_cents: uint64
-      - settlement_reference: string
-    outputs:
-      - event: SVURedeemed
-    preconditions:
-      - svu_status_is_ISSUED
-      - balance_sufficient
-      - settlement_reference_valid

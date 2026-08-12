@@ -2,43 +2,20 @@
 ```mermaid
 flowchart TD
   %% Root Domains
-  subgraph ATTESTATIONSIGNED [ATTESTATIONSIGNED Domain]
-    event_AttestationSigned(["EVENT: AttestationSigned"])
-  end
-  subgraph COMMERCIALRECORDCREATED [COMMERCIALRECORDCREATED Domain]
-    event_CommercialRecordCreated(["EVENT: CommercialRecordCreated"])
-  end
-  subgraph EVIDENCEPACKAGEGENERATED [EVIDENCEPACKAGEGENERATED Domain]
-    event_EvidencePackageGenerated(["EVENT: EvidencePackageGenerated"])
-  end
-  subgraph OBLIGATIONVALIDATED [OBLIGATIONVALIDATED Domain]
-    event_ObligationValidated(["EVENT: ObligationValidated"])
-  end
-  subgraph SVUISSUED [SVUISSUED Domain]
-    event_SVUIssued(["EVENT: SVUIssued"])
-  end
-  subgraph SVUREDEEMED [SVUREDEEMED Domain]
-    event_SVURedeemed(["EVENT: SVURedeemed"])
-  end
-  subgraph SETTLEMENTAUTHORIZED [SETTLEMENTAUTHORIZED Domain]
-    event_SettlementAuthorized(["EVENT: SettlementAuthorized"])
-  end
-  subgraph SETTLEMENTEXECUTED [SETTLEMENTEXECUTED Domain]
-    event_SettlementExecuted(["EVENT: SettlementExecuted"])
-  end
-  subgraph SETTLEMENTFINALIZED [SETTLEMENTFINALIZED Domain]
-    event_SettlementFinalized(["EVENT: SettlementFinalized"])
-  end
   subgraph AGENT [AGENT Domain]
     capability_agent_activate(["CAPABILITY: activate"])
     capability_agent_capability_bind(["CAPABILITY: bind"])
     capability_agent_capability_revoke(["CAPABILITY: revoke"])
   end
   subgraph CERTIFICATION [CERTIFICATION Domain]
-    state_machine_EvidencePackage(["STATE_MACHINE: EvidencePackage"])
+    capability_certification_package_archive(["CAPABILITY: archive"])
+    capability_certification_package_generate(["CAPABILITY: generate"])
+    capability_certification_package_publish(["CAPABILITY: publish"])
   end
   subgraph COMMERCIAL [COMMERCIAL Domain]
-    state_machine_CommercialObligation(["STATE_MACHINE: CommercialObligation"])
+    capability_commercial_obligation_cancel(["CAPABILITY: cancel"])
+    capability_commercial_obligation_create(["CAPABILITY: create"])
+    capability_commercial_obligation_validate(["CAPABILITY: validate"])
   end
   subgraph ESCROW [ESCROW Domain]
     capability_escrow_account_cancel(["CAPABILITY: cancel"])
@@ -83,11 +60,15 @@ flowchart TD
     capability_policy_escalation_resolve(["CAPABILITY: resolve"])
     capability_policy_rule_activate(["CAPABILITY: activate"])
   end
-  subgraph SAGA [SAGA Domain]
-    command_saga_compensate(["COMMAND: compensate"])
+  subgraph REPRESENTATION [REPRESENTATION Domain]
+    capability_representation_svu_issue(["CAPABILITY: issue"])
+    capability_representation_svu_redeem(["CAPABILITY: redeem"])
+    command_IssueSVU(["COMMAND: IssueSVU"])
   end
   subgraph SETTLEMENT [SETTLEMENT Domain]
-    state_machine_SettlementRecord(["STATE_MACHINE: SettlementRecord"])
+    capability_settlement_record_authorize(["CAPABILITY: authorize"])
+    capability_settlement_record_cancel(["CAPABILITY: cancel"])
+    capability_settlement_record_dispute(["CAPABILITY: dispute"])
   end
   subgraph TREASURY [TREASURY Domain]
     capability_treasury_liquidity_manage(["CAPABILITY: manage"])
@@ -101,6 +82,18 @@ flowchart TD
   end
   command_agent_suspend -->|command_produces_event| event_agent_terminated
   command_agent_suspend -->|command_produces_event| event_agent_termination_failed
+  command_ArchivePackage -->|command_produces_event| event_EvidencePackageArchivalFailed
+  command_ArchivePackage -->|command_produces_event| event_EvidencePackageArchived
+  command_AuthorizeSettlement -->|command_produces_event| event_SettlementAuthorizationFailed
+  command_AuthorizeSettlement -->|command_produces_event| event_SettlementAuthorized
+  command_CancelObligation -->|command_produces_event| event_ObligationCancellationFailed
+  command_CancelObligation -->|command_produces_event| event_ObligationCancelled
+  command_CancelSettlement -->|command_produces_event| event_SettlementCancellationFailed
+  command_CancelSettlement -->|command_produces_event| event_SettlementCancelled
+  command_CreateCommercialObligation -->|command_produces_event| event_CommercialRecordCreated
+  command_CreateCommercialObligation -->|command_produces_event| event_CommercialRecordCreationFailed
+  command_DisputeSettlement -->|command_produces_event| event_SettlementDisputed
+  command_DisputeSettlement -->|command_produces_event| event_SettlementDisputeFailed
   command_escrow_account_cancel -->|command_produces_event| event_escrow_account_cancellation_failed
   command_escrow_account_cancel -->|command_produces_event| event_escrow_account_cancelled
   command_escrow_account_create -->|command_produces_event| event_escrow_account_created
@@ -109,24 +102,12 @@ flowchart TD
   command_escrow_account_fund -->|command_produces_event| event_escrow_account_funding_failed
   command_escrow_account_release -->|command_produces_event| event_escrow_account_release_failed
   command_escrow_account_release -->|command_produces_event| event_escrow_account_released
+  command_ExecuteSettlement -->|command_produces_event| event_SettlementExecuted
+  command_ExecuteSettlement -->|command_produces_event| event_SettlementExecutionFailed
+  command_GenerateEvidencePackage -->|command_produces_event| event_EvidencePackageGenerated
+  command_GenerateEvidencePackage -->|command_produces_event| event_EvidencePackageGenerationFailed
   command_governance_amend_propose -->|command_produces_event| event_governance_amendment_proposal_failed
   command_governance_amend_propose -->|command_produces_event| event_governance_amendment_proposed
   command_governance_amend_ratify -->|command_produces_event| event_governance_amendment_ratification_failed
   command_governance_amend_ratify -->|command_produces_event| event_governance_amendment_ratified
-  command_governance_audit_query -->|command_produces_event| event_governance_audit_queried
-  command_governance_audit_query -->|command_produces_event| event_governance_audit_query_failed
-  command_governance_capability_grant -->|command_produces_event| event_governance_capability_grant_failed
-  command_governance_capability_grant -->|command_produces_event| event_governance_capability_granted
-  command_governance_capability_revoke -->|command_produces_event| event_governance_capability_revoke_failed
-  command_governance_capability_revoke -->|command_produces_event| event_governance_capability_revoked
-  command_governance_emergency_halt -->|command_produces_event| event_governance_emergency_halt_failed
-  command_governance_emergency_halt -->|command_produces_event| event_governance_emergency_halt_issued
-  command_governance_emergency_lift -->|command_produces_event| event_governance_emergency_halt_lift_failed
-  command_governance_emergency_lift -->|command_produces_event| event_governance_emergency_halt_lifted
-  command_governance_escalation_resolve -->|command_produces_event| event_governance_escalation_resolution_failed
-  command_governance_escalation_resolve -->|command_produces_event| event_governance_escalation_resolved
-  command_governance_oversight_review -->|command_produces_event| event_governance_oversight_review_failed
-  command_governance_oversight_review -->|command_produces_event| event_governance_oversight_reviewed
-  command_governance_policy_rule_review -->|command_produces_event| event_governance_policy_rule_review_failed
-  command_governance_policy_rule_review -->|command_produces_event| event_governance_policy_rule_review_requested
 ```

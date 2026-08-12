@@ -58,7 +58,11 @@ export function buildIR(parsed, extraDiagnostics) {
         for (const cmdName of cmdNames) {
             const def = commandCatalog.commands[cmdName];
             const parts = cmdName.split('.');
-            const domain = parts[0];
+            // Extension commands (e.g. AMD-0005 PascalCase names) carry their
+            // domain in source_domain; dot-notation encodes it in the name.
+            // Without this, IR edges hang off phantom domain nodes named after
+            // the command itself.
+            const domain = def.source_domain ?? parts[0];
             nodes.push({
                 id: `command:${cmdName}`,
                 type: 'command',

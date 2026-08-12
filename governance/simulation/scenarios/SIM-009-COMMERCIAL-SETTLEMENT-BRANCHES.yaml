@@ -1,0 +1,192 @@
+scenario_id: SIM-009-COMMERCIAL-SETTLEMENT-BRANCHES
+name: Commercial Settlement Branches (AMD-0005)
+description: >
+  Branch coverage for the AMD-0005 suite: obligation cancellation
+  pre-settlement, settlement cancellation pre-execution, and dispute of
+  a ledger-posted settlement. Exercises the five lifecycle commands
+  derived from machine transitions (CancelObligation, CancelSettlement,
+  DisputeSettlement) on separate aggregates.
+actor_context:
+  actor_id: sim-commercial-operator
+  actor_type: human
+  identity_id: sim-commercial-operator-id
+  session_id: sim-commercial-session-009
+
+lifecycle:
+  initial_state: DRAFT
+  terminal_state: CANCELLED
+
+commands:
+  - command_id: br-001
+    command_name: CreateCommercialObligation
+    domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id: SOVR-OBL-000009
+    payload:
+      obligation_id: SOVR-OBL-000009
+      commercial_obligation_id: SOVR-OBL-000009
+      vault_asset_reference: vault-asset-000009
+      originator: sim-originator-009
+      counterparty: sim-counterparty-009
+      obligation_type: SERVICE
+      amount_cents: 40000
+      authorization_reference: AUTH-REF-000009
+      source_document_hash: 1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2
+    capability_id: commercial.obligation.create
+    scope: commercial_obligation:*
+    expected_result: ACCEPTED
+
+  - command_id: br-002
+    command_name: CancelObligation
+    domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id: SOVR-OBL-000009
+    payload:
+      obligation_id: SOVR-OBL-000009
+      commercial_obligation_id: SOVR-OBL-000009
+      cancelled_by: sim-commercial-operator
+      cancellation_reason: counterparty_withdrawn
+    capability_id: commercial.obligation.cancel
+    scope: commercial_obligation:*
+    expected_result: ACCEPTED
+
+  - command_id: br-003
+    command_name: CreateCommercialObligation
+    domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id: SOVR-OBL-000010
+    payload:
+      obligation_id: SOVR-OBL-000010
+      commercial_obligation_id: SOVR-OBL-000010
+      vault_asset_reference: vault-asset-000010
+      originator: sim-originator-009
+      counterparty: sim-counterparty-009
+      obligation_type: PAYMENT
+      amount_cents: 75000
+      authorization_reference: AUTH-REF-000010
+      source_document_hash: 2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3
+    capability_id: commercial.obligation.create
+    scope: commercial_obligation:*
+    expected_result: ACCEPTED
+
+  - command_id: br-004
+    command_name: AuthorizeSettlement
+    domain: settlement
+    aggregate: settlement_record
+    aggregate_id: SOVR-SET-000010
+    payload:
+      settlement_id: SOVR-SET-000010
+      settlement_record_id: SOVR-SET-000010
+      commercial_obligation_id: SOVR-OBL-000010
+      authorized_by: sim-commercial-operator
+      settlement_amount_cents: 75000
+    capability_id: settlement.record.authorize
+    scope: settlement_record:*
+    expected_result: ACCEPTED
+
+  - command_id: br-005
+    command_name: CancelSettlement
+    domain: settlement
+    aggregate: settlement_record
+    aggregate_id: SOVR-SET-000010
+    payload:
+      settlement_id: SOVR-SET-000010
+      settlement_record_id: SOVR-SET-000010
+      cancelled_by: sim-commercial-operator
+      cancellation_reason: obligation_renegotiated
+    capability_id: settlement.record.cancel
+    scope: settlement_record:*
+    expected_result: ACCEPTED
+
+  - command_id: br-006
+    command_name: CreateCommercialObligation
+    domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id: SOVR-OBL-000011
+    payload:
+      obligation_id: SOVR-OBL-000011
+      commercial_obligation_id: SOVR-OBL-000011
+      vault_asset_reference: vault-asset-000011
+      originator: sim-originator-009
+      counterparty: sim-counterparty-009
+      obligation_type: PAYMENT
+      amount_cents: 90000
+      authorization_reference: AUTH-REF-000011
+      source_document_hash: 3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4
+    capability_id: commercial.obligation.create
+    scope: commercial_obligation:*
+    expected_result: ACCEPTED
+
+  - command_id: br-007
+    command_name: AuthorizeSettlement
+    domain: settlement
+    aggregate: settlement_record
+    aggregate_id: SOVR-SET-000011
+    payload:
+      settlement_id: SOVR-SET-000011
+      settlement_record_id: SOVR-SET-000011
+      commercial_obligation_id: SOVR-OBL-000011
+      authorized_by: sim-commercial-operator
+      settlement_amount_cents: 90000
+    capability_id: settlement.record.authorize
+    scope: settlement_record:*
+    expected_result: ACCEPTED
+
+  - command_id: br-008
+    command_name: ExecuteSettlement
+    domain: settlement
+    aggregate: settlement_record
+    aggregate_id: SOVR-SET-000011
+    payload:
+      settlement_id: SOVR-SET-000011
+      settlement_record_id: SOVR-SET-000011
+      commercial_obligation_id: SOVR-OBL-000011
+      treasury_transfer_reference: TRF-000011
+      tigerbeetle_transfer_id: '1099511627777'
+    capability_id: settlement.record.execute
+    scope: settlement_record:*
+    expected_result: ACCEPTED
+
+  - command_id: br-008b
+    command_name: GenerateEvidencePackage
+    domain: certification
+    aggregate: evidence_package
+    aggregate_id: SOVR-EVP-000011
+    payload:
+      package_id: SOVR-EVP-000011
+      evidence_package_id: SOVR-EVP-000011
+      settlement_id: SOVR-SET-000011
+      commercial_obligation_id: SOVR-OBL-000011
+      tigerbeetle_transfer_id: '1099511627777'
+    capability_id: certification.package.generate
+    scope: evidence_package:*
+    expected_result: ACCEPTED
+
+  - command_id: br-008c
+    command_name: SignAttestation
+    domain: certification
+    aggregate: evidence_package
+    aggregate_id: SOVR-EVP-000011
+    payload:
+      package_id: SOVR-EVP-000011
+      evidence_package_id: SOVR-EVP-000011
+      settlement_id: SOVR-SET-000011
+      attestor: sim-attestor-009
+      signature: ecdsa-signature-000009
+    capability_id: certification.package.sign
+    scope: evidence_package:*
+    expected_result: ACCEPTED
+
+  - command_id: br-009
+    command_name: DisputeSettlement
+    domain: settlement
+    aggregate: settlement_record
+    aggregate_id: SOVR-SET-000011
+    payload:
+      settlement_id: SOVR-SET-000011
+      settlement_record_id: SOVR-SET-000011
+      disputed_by: sim-counterparty-009
+      dispute_reason: amount_mismatch_claim
+    capability_id: settlement.record.dispute
+    scope: settlement_record:*
+    expected_result: ACCEPTED

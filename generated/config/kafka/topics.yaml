@@ -1,5 +1,5 @@
 # SOVR GENERATED — Kafka Topics
-# hash 07371e382566f7cb59c13c0bced5fdcedfc4c992695e8997afc745f9c9f854ac
+# hash 24ea60290468a08eb7f8ca87929445c8577e644c3bf5ab952fad7c43d37b42ee
 # Kafka topics — SOVR generated
 # compiler 0.6.0 protocol 1.0.0
 # INV-001 event immutability -> retention PERMANENT for financial/audit
@@ -193,9 +193,9 @@
       "min_in_sync_replicas": 2
     },
     {
-      "name": "sovr.AttestationSigned..",
-      "domain": "AttestationSigned",
-      "aggregate": "",
+      "name": "sovr.certification.evidence_package.",
+      "domain": "certification",
+      "aggregate": "evidence_package",
       "event": "AttestationSigned",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
@@ -204,10 +204,153 @@
       "min_in_sync_replicas": 2
     },
     {
-      "name": "sovr.CommercialRecordCreated..",
-      "domain": "CommercialRecordCreated",
-      "aggregate": "",
+      "name": "sovr.certification.evidence_package.",
+      "domain": "certification",
+      "aggregate": "evidence_package",
+      "event": "AttestationSigningFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.certification.evidence_package.",
+      "domain": "certification",
+      "aggregate": "evidence_package",
+      "event": "EvidencePackageArchivalFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.certification.evidence_package.",
+      "domain": "certification",
+      "aggregate": "evidence_package",
+      "event": "EvidencePackageArchived",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.certification.evidence_package.",
+      "domain": "certification",
+      "aggregate": "evidence_package",
+      "event": "EvidencePackageGenerated",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.certification.evidence_package.",
+      "domain": "certification",
+      "aggregate": "evidence_package",
+      "event": "EvidencePackageGenerationFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.certification.evidence_package.",
+      "domain": "certification",
+      "aggregate": "evidence_package",
+      "event": "EvidencePackagePublicationFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.certification.evidence_package.",
+      "domain": "certification",
+      "aggregate": "evidence_package",
+      "event": "EvidencePackagePublished",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.commercial.commercial_obligation.",
+      "domain": "commercial",
+      "aggregate": "commercial_obligation",
       "event": "CommercialRecordCreated",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.commercial.commercial_obligation.",
+      "domain": "commercial",
+      "aggregate": "commercial_obligation",
+      "event": "CommercialRecordCreationFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.commercial.commercial_obligation.",
+      "domain": "commercial",
+      "aggregate": "commercial_obligation",
+      "event": "ObligationCancellationFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.commercial.commercial_obligation.",
+      "domain": "commercial",
+      "aggregate": "commercial_obligation",
+      "event": "ObligationCancelled",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.commercial.commercial_obligation.",
+      "domain": "commercial",
+      "aggregate": "commercial_obligation",
+      "event": "ObligationValidated",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.commercial.commercial_obligation.",
+      "domain": "commercial",
+      "aggregate": "commercial_obligation",
+      "event": "ObligationValidationFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.escrow.escrow_account.cancellation_failed",
+      "domain": "escrow",
+      "aggregate": "escrow_account",
+      "event": "escrow.account.cancellation_failed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -285,17 +428,6 @@
       "domain": "escrow",
       "aggregate": "escrow_account",
       "event": "escrow.account.released",
-      "partition_key": "aggregate_id",
-      "retention": "7_DAYS",
-      "compaction": true,
-      "replication_factor": 3,
-      "min_in_sync_replicas": 2
-    },
-    {
-      "name": "sovr.EvidencePackageGenerated..",
-      "domain": "EvidencePackageGenerated",
-      "aggregate": "",
-      "event": "EvidencePackageGenerated",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -1645,17 +1777,6 @@
       "min_in_sync_replicas": 2
     },
     {
-      "name": "sovr.ObligationValidated..",
-      "domain": "ObligationValidated",
-      "aggregate": "",
-      "event": "ObligationValidated",
-      "partition_key": "aggregate_id",
-      "retention": "7_DAYS",
-      "compaction": true,
-      "replication_factor": 3,
-      "min_in_sync_replicas": 2
-    },
-    {
       "name": "sovr.payment.execution_plan.planned",
       "domain": "payment",
       "aggregate": "execution_plan",
@@ -2305,10 +2426,10 @@
       "min_in_sync_replicas": 2
     },
     {
-      "name": "sovr.SettlementAuthorized..",
-      "domain": "SettlementAuthorized",
-      "aggregate": "",
-      "event": "SettlementAuthorized",
+      "name": "sovr.representation.settlement_value_unit.",
+      "domain": "representation",
+      "aggregate": "settlement_value_unit",
+      "event": "SVUIssuanceFailed",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
@@ -2316,31 +2437,9 @@
       "min_in_sync_replicas": 2
     },
     {
-      "name": "sovr.SettlementExecuted..",
-      "domain": "SettlementExecuted",
-      "aggregate": "",
-      "event": "SettlementExecuted",
-      "partition_key": "aggregate_id",
-      "retention": "7_DAYS",
-      "compaction": true,
-      "replication_factor": 3,
-      "min_in_sync_replicas": 2
-    },
-    {
-      "name": "sovr.SettlementFinalized..",
-      "domain": "SettlementFinalized",
-      "aggregate": "",
-      "event": "SettlementFinalized",
-      "partition_key": "aggregate_id",
-      "retention": "7_DAYS",
-      "compaction": true,
-      "replication_factor": 3,
-      "min_in_sync_replicas": 2
-    },
-    {
-      "name": "sovr.SVUIssued..",
-      "domain": "SVUIssued",
-      "aggregate": "",
+      "name": "sovr.representation.settlement_value_unit.",
+      "domain": "representation",
+      "aggregate": "settlement_value_unit",
       "event": "SVUIssued",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
@@ -2349,10 +2448,120 @@
       "min_in_sync_replicas": 2
     },
     {
-      "name": "sovr.SVURedeemed..",
-      "domain": "SVURedeemed",
-      "aggregate": "",
+      "name": "sovr.representation.settlement_value_unit.",
+      "domain": "representation",
+      "aggregate": "settlement_value_unit",
       "event": "SVURedeemed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.representation.settlement_value_unit.",
+      "domain": "representation",
+      "aggregate": "settlement_value_unit",
+      "event": "SVURedemptionFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.settlement.settlement_record.",
+      "domain": "settlement",
+      "aggregate": "settlement_record",
+      "event": "SettlementAuthorizationFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.settlement.settlement_record.",
+      "domain": "settlement",
+      "aggregate": "settlement_record",
+      "event": "SettlementAuthorized",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.settlement.settlement_record.",
+      "domain": "settlement",
+      "aggregate": "settlement_record",
+      "event": "SettlementCancellationFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.settlement.settlement_record.",
+      "domain": "settlement",
+      "aggregate": "settlement_record",
+      "event": "SettlementCancelled",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.settlement.settlement_record.",
+      "domain": "settlement",
+      "aggregate": "settlement_record",
+      "event": "SettlementDisputed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.settlement.settlement_record.",
+      "domain": "settlement",
+      "aggregate": "settlement_record",
+      "event": "SettlementDisputeFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.settlement.settlement_record.",
+      "domain": "settlement",
+      "aggregate": "settlement_record",
+      "event": "SettlementExecuted",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.settlement.settlement_record.",
+      "domain": "settlement",
+      "aggregate": "settlement_record",
+      "event": "SettlementExecutionFailed",
+      "partition_key": "aggregate_id",
+      "retention": "7_DAYS",
+      "compaction": true,
+      "replication_factor": 3,
+      "min_in_sync_replicas": 2
+    },
+    {
+      "name": "sovr.settlement.settlement_record.",
+      "domain": "settlement",
+      "aggregate": "settlement_record",
+      "event": "SettlementFinalized",
       "partition_key": "aggregate_id",
       "retention": "7_DAYS",
       "compaction": true,
