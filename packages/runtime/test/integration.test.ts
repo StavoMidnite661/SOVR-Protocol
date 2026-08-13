@@ -151,6 +151,21 @@ describe('JWT (real RS256)', () => {
     expect(result.reason).toBe('bad_signature');
   });
 
+  it('issues JWT only after identity.session.create is ACCEPTED and emits no catalog event', async () => {
+    const r: any = await (await fetch(`http://localhost:${TEST_PORT}/api/v1/identity/session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ identity_id: 'session_sem', actor_id: 'session_sem', actor_type: 'human' }),
+    })).json();
+    expect(r.jwt).toBeTruthy();
+    expect(r.session_id).toBeTruthy();
+    // Catalog resulting_events for identity.session.create is empty {}. Do not invent an event.
+    expect(r.event).toBeNull();
+    const evs: any = await (await fetch(`http://localhost:${TEST_PORT}/api/v1/events?domain=identity&limit=200`)).json();
+    const created = (evs.events ?? []).filter((e: any) => e.event_name === 'identity.session.created' && e.aggregate_id === r.session_id);
+    expect(created.length).toBe(0);
+  });
+
   it('rejects an expired JWT', async () => {
     const ephemeralJwt = new JWTService();
     await ephemeralJwt.initialize();
@@ -391,11 +406,95 @@ describe('ACH boundary adapter (real)', () => {
 // SDK error surfacing
 // ----------------------------------------------------------------------------
 
+describe('authorization, sagas, grant/revoke', () => {
+  it('rejects unauthenticated command submission with 401', async () => {
+    const res = await fetch(`http://localhost:${TEST_PORT}/api/v1/vault/asset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commandName: 'vault.asset.register', payload: {} }),
+    });
+    expect(res.status).toBe(401);
+    const j: any = await res.json();
+    expect(j.error).toBe('UNAUTHENTICATED');
+  });
+
+  it('lists compiled saga definitions and requires JWT to start a saga', async () => {
+    const listed: any = await (await fetch(`http://localhost:${TEST_PORT}/api/v1/sagas`)).json();
+    expect(Array.isArray(listed.sagas)).toBe(true);
+    expect(listed.sagas.length).toBeGreaterThan(0);
+    expect(listed.sagas[0].saga_id).toBeTruthy();
+
+    const unauth = await fetch(`http://localhost:${TEST_PORT}/api/v1/identity/saga`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sagaName: listed.sagas[0].saga_id }),
+    });
+    expect(unauth.status).toBe(401);
+
+    const gov = new SOVRClient({
+      apiUrl: `http://localhost:${TEST_PORT}`,
+      actorId: 'saga_gov',
+      actorType: 'governance',
+    });
+    await gov.createSession({ identity_id: 'saga_gov', actor_id: 'saga_gov', actor_type: 'governance' });
+    const started = await fetch(`http://localhost:${TEST_PORT}/api/v1/identity/saga`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${(gov as any).config.bearerToken}`,
+      },
+      body: JSON.stringify({ sagaName: 'not.a.compiled.saga' }),
+    });
+    expect(started.status).toBe(400);
+    const body: any = await started.json();
+    expect(String(body.error)).toMatch(/SAGA_DEFINITION_NOT_FOUND/);
+  });
+
+  it('grant and revoke go through CommandBus and persist authority effects', async () => {
+    const gov = new SOVRClient({
+      apiUrl: `http://localhost:${TEST_PORT}`,
+      actorId: 'grant_gov',
+      actorType: 'governance',
+      timeoutMs: 10_000,
+    });
+    await gov.createSession({ identity_id: 'grant_gov', actor_id: 'grant_gov', actor_type: 'governance' });
+    const granted = await gov.grantCapability({
+      capabilityId: 'payment.request.create',
+      actorId: 'grant_target',
+      scopePattern: 'payment.request:*',
+    });
+    expect(granted.status).toBe('ACCEPTED');
+    expect(granted.events.some((e: any) => e.event_name === 'governance.capability.granted')).toBe(true);
+
+    const target = new SOVRClient({
+      apiUrl: `http://localhost:${TEST_PORT}`,
+      actorId: 'grant_target',
+      actorType: 'human',
+      timeoutMs: 10_000,
+    });
+    await target.createSession({ identity_id: 'grant_target', actor_id: 'grant_target', actor_type: 'human' });
+    const ok = await target.executeCommand('payment', 'request', {
+      commandName: 'payment.request.create',
+      capability_id: 'payment.request.create',
+      scope: 'payment.request:*',
+      payload: { source_transfer_id: 'tx_grant', amount: '1', sender: 's', recipient: 'r', urgency: 'normal', retry_policy: 'none' },
+    });
+    expect(ok.status).toBe('ACCEPTED');
+
+    const revoked = await gov.revokeCapability({
+      capabilityId: 'payment.request.create',
+      actorId: 'grant_target',
+      revocationReason: 'integration_revoke',
+    });
+    expect(revoked.status).toBe('ACCEPTED');
+    expect(revoked.events.some((e: any) => e.event_name === 'governance.capability.revoked')).toBe(true);
+  });
+});
+
 describe('SDK error surfacing', () => {
   it('throws SOVRApiError on 4xx with parsed body', async () => {
     const c = new SOVRClient({ apiUrl: `http://localhost:${TEST_PORT}` });
     await c.createSession({ identity_id: 'err', actor_id: 'err', actor_type: 'human' });
-    await c.grantCapability({ capabilityId: 'ledger.journal_entry.create', actorId: 'err', scopePattern: 'ledger.journal_entry:*' });
     let err: SOVRApiError | null = null;
     try {
       await c.postLedgerEntry({

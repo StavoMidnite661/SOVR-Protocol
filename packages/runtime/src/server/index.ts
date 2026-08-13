@@ -20,6 +20,7 @@ import { CapabilityEngine } from './capabilityEngine.js';
 import { ProjectionEngine } from './projectionEngine.js';
 import { CommandBus } from './commandBus.js';
 import commandsRegistry from '../../../../generated/registries/commands.registry.json' with { type: 'json' };
+import capabilitiesRegistry from '../../../../generated/registries/capabilities.registry.json' with { type: 'json' };
 import { JWTService } from '../security/jwt.js';
 import { KafkaPublisher, NullPublisher } from './kafkaPublisher.js';
 import { RedisStreamPublisher, NullStreamPublisher } from './redisStreamPublisher.js';
@@ -53,6 +54,16 @@ function buildDomainRoutesFromRegistry(): Record<string, { description: string; 
     route.aggregates.sort();
   }
   return routes;
+}
+
+function authorityScope(capabilityId: string, actorType?: string): string {
+  const def = (capabilitiesRegistry as any).entries?.[capabilityId] ?? {};
+  const byType = actorType ? def.default_for_actor_types?.[actorType]?.scope : undefined;
+  const pattern = String(byType ?? def.scope_pattern ?? '*');
+  if (pattern === '*' || pattern.endsWith(':*') || pattern.endsWith('.*')) return pattern;
+  const star = pattern.lastIndexOf(':*');
+  if (star !== -1) return pattern.slice(0, star + 2);
+  return pattern.endsWith('*') ? pattern : `${pattern.replace(/:+$/, '')}:*`;
 }
 
 function buildOpenApiFromCommands() {
@@ -566,8 +577,16 @@ async function buildServer() {
   app.get('/api/v1/manifest', async () => config.compilerManifest || { build_hash: config.buildHash });
   app.get('/manifest', async () => config.compilerManifest || { build_hash: config.buildHash });
 
-  app.get('/api/v1/boot-attestation', async () => config.bootAttestation || { build_hash: config.buildHash, boot_hash: config.bootHash });
-  app.get('/boot-attestation', async () => config.bootAttestation || { build_hash: config.buildHash });
+  app.get('/api/v1/boot-attestation', async () => ({
+    ...(config.bootAttestation || {}),
+    build_hash: config.bootAttestation?.build_hash ?? config.buildHash,
+    boot_hash: config.bootAttestation?.boot_hash ?? config.bootHash,
+  }));
+  app.get('/boot-attestation', async () => ({
+    ...(config.bootAttestation || {}),
+    build_hash: config.bootAttestation?.build_hash ?? config.buildHash,
+    boot_hash: config.bootAttestation?.boot_hash ?? config.bootHash,
+  }));
 
   // OpenAPI — the generated artifact is JSON (audit finding D12). It was
   // previously served from openapi.yaml as text/yaml despite being JSON with a
@@ -670,7 +689,7 @@ async function buildServer() {
       payload: { capability_id, actor_id, scope_pattern, expires_at: expires_at ?? null, conditions: conditions ?? {} },
       identity_context,
       capability_id: 'governance.capability.grant',
-      scope: `capability:${capability_id}`,
+      scope: authorityScope('governance.capability.grant', identity_context.actor_type),
       correlation_id: correlationId,
       causation_id: correlationId,
     });
@@ -700,7 +719,7 @@ async function buildServer() {
       payload: { capability_id, actor_id, revocation_reason: revocation_reason ?? 'revoked' },
       identity_context,
       capability_id: 'governance.capability.revoke',
-      scope: `capability:${capability_id}`,
+      scope: authorityScope('governance.capability.revoke', identity_context.actor_type),
       correlation_id: correlationId,
       causation_id: correlationId,
     });

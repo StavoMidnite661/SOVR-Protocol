@@ -8,7 +8,7 @@ import { JWTService } from '../src/security/jwt.js';
 import { exportPKCS8, exportSPKI, generateKeyPair } from 'jose';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '../..');
+const REPO_ROOT = path.resolve(__dirname, '../../..');
 const SERVER_ENTRY = path.resolve(__dirname, '../dist/server/index.js');
 const SOVR_PROTOCOL_ROOT = REPO_ROOT;
 const TEST_PORT = 3399 + Math.floor(Math.random() * 100);
@@ -61,7 +61,7 @@ beforeAll(async () => {
       NODE_ENV: 'test',
       JWT_PRIVATE_KEY: TEST_PRIVATE_KEY_PEM,
       JWT_PUBLIC_KEY: TEST_PUBLIC_KEY_PEM,
-      SOVR_DEV_AUTO_GRANT: 'true',
+      SOVR_DEV_AUTO_GRANT: 'false',
       SOVR_PROTOCOL_ROOT: SOVR_PROTOCOL_ROOT,
       SOVR_TEST_XXIII_GATES: 'true',
     },
@@ -131,13 +131,21 @@ beforeEach(async () => { await delay(50); });
 
     await governanceGrant(base, { capabilityId: 'treasury.transfer.request', actorId: 'xxiii_revoked', scopePattern: 'treasury.transfer:*' });
 
-    // revoke requires an authenticated governance actor via KernelExecutor
-    const res = await fetch(`${base}/api/v1/capabilities/grant`, {
+    const unauthRevoke = await fetch(`${base}/api/v1/capabilities/grant`, {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ capability_id: 'treasury.transfer.request', actor_id: 'xxiii_revoked' }),
     });
-    expect(res.status).toBe(401);
+    expect(unauthRevoke.status).toBe(401);
+
+    const gov = new SOVRClient({ apiUrl: base, actorId: 'xxiii_gov', actorType: 'governance', timeoutMs: 10_000 });
+    await gov.createSession({ identity_id: 'xxiii_gov', actor_id: 'xxiii_gov', actor_type: 'governance' });
+    const revoked = await gov.revokeCapability({
+      capabilityId: 'treasury.transfer.request',
+      actorId: 'xxiii_revoked',
+      revocationReason: 'audit_003',
+    });
+    expect(revoked.status).toBe('ACCEPTED');
 
     try {
       await client.executeCommand('treasury', 'transfer_order', {
@@ -264,10 +272,10 @@ beforeEach(async () => { await delay(50); });
   });
 
   it('AUDIT-010: all gates pass — command reaches state machine', async () => {
-    await client.createSession({ identity_id: 'xxiii_pass', actor_id: 'xxiii_pass', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_pass', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_pass', actor_id: 'xxiii_pass', actor_type: 'human' });
 
-    await client.grantCapability({ capabilityId: 'payment.request.create', actorId: 'xxiii_pass', scopePattern: '*' });
+    await governanceGrant(base, { capabilityId: 'payment.request.create', actorId: 'xxiii_pass', scopePattern: '*' });
 
     const result = await client.executeCommand('payment', 'request', {
       commandName: 'payment.request.create',

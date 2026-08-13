@@ -235,13 +235,26 @@ export class SOVRClient {
     return this.executeCommand('governance', 'capability_grant', {
       commandName: 'governance.capability.grant',
       capability_id: 'governance.capability.grant',
-      scope: `capability:${payload.capabilityId}`,
+      scope: 'governance:capability:*',
       payload: {
         capability_id: payload.capabilityId,
         actor_id: payload.actorId,
         scope_pattern: payload.scopePattern,
         expires_at: payload.expiresAt ?? null,
         conditions: payload.conditions ?? {},
+      },
+    });
+  }
+
+  async revokeCapability(payload: { capabilityId: string; actorId: string; revocationReason?: string }): Promise<any> {
+    return this.executeCommand('governance', 'capability_grant', {
+      commandName: 'governance.capability.revoke',
+      capability_id: 'governance.capability.revoke',
+      scope: 'governance:capability:*',
+      payload: {
+        capability_id: payload.capabilityId,
+        actor_id: payload.actorId,
+        revocation_reason: payload.revocationReason ?? 'revoked',
       },
     });
   }

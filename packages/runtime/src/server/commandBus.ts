@@ -354,6 +354,9 @@ export class CommandBus {
   }
 
   private async materializeAuthorityEffects(cmd: CommandEnvelope): Promise<void> {
+    if (cmd.command_name === 'identity.session.create') {
+      await this.capabilityEngine.seedCompiledTypeDefaults(cmd.identity_context.actor_id, cmd.identity_context.actor_type);
+    }
     if (cmd.command_name === 'governance.capability.grant') {
       await this.capabilityEngine.grant({
         capability_id: String(cmd.payload?.capability_id ?? ''),
