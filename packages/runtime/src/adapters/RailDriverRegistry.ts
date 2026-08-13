@@ -16,9 +16,6 @@
  */
 
 import { BaseRailDriver }              from './base/BaseRailDriver'
-import { TigerBeetleDriver }           from './tigerbeetle/TigerBeetleDriver'
-import { TigerBeetleAccountManager }   from './tigerbeetle/TigerBeetleAccountManager'
-import { TigerBeetleTransferBuilder }  from './tigerbeetle/TigerBeetleTransferBuilder'
 import { SovrLedgerDriver }            from './private-ledger/SovrLedgerDriver'
 import { AchDriver }                   from './ach/AchDriver'
 import { FedNowDriver }                from './fednow/FedNowDriver'
@@ -40,10 +37,7 @@ export class RailDriverRegistry {
 
   private readonly drivers: Map<string, BaseRailDriver> = new Map()
 
-  // TigerBeetle is not a rail driver — it has its own registry slot
-  private _tigerBeetle:      TigerBeetleDriver          | null = null
-  private _accountManager:   TigerBeetleAccountManager  | null = null
-  private _transferBuilder:  TigerBeetleTransferBuilder | null = null
+  // Ledger integration lives in packages/runtime/src/ledger/tigerbeetle only.
 
   // ─── Registration ───────────────────────────────────────────────────────────
 
@@ -56,16 +50,8 @@ export class RailDriverRegistry {
     driver.on('rail:audit',        (e) => this.emit_registry('rail:audit', e))
   }
 
-  registerTigerBeetle(tb: TigerBeetleDriver): void {
-    this._tigerBeetle = tb
-  }
-
-  registerAccountManager(mgr: TigerBeetleAccountManager): void {
-    this._accountManager = mgr
-  }
-
-  registerTransferBuilder(builder: TigerBeetleTransferBuilder): void {
-    this._transferBuilder = builder
+  registerTigerBeetle(_tb: unknown): void {
+    throw new Error('TigerBeetle is not registered on RailDriverRegistry. Use packages/runtime/src/ledger/tigerbeetle.')
   }
 
   // ─── Retrieval ──────────────────────────────────────────────────────────────
@@ -85,11 +71,7 @@ export class RailDriverRegistry {
     return driver
   }
 
-  get tigerBeetle(): TigerBeetleDriver | null        { return this._tigerBeetle }
-  get accountManager(): TigerBeetleAccountManager | null { return this._accountManager }
-  get transferBuilder(): TigerBeetleTransferBuilder | null { return this._transferBuilder }
-
-  hasTigerBeetle(): boolean { return this._tigerBeetle !== null }
+  hasTigerBeetle(): boolean { return false }
 
   // ─── Observability ──────────────────────────────────────────────────────────
 
@@ -104,7 +86,6 @@ export class RailDriverRegistry {
       healthy:      boolean
       metrics:      ReturnType<BaseRailDriver['getMetrics']>
     }>
-    tigerBeetle?: Awaited<ReturnType<TigerBeetleDriver['healthCheck']>>
   }> {
     const rails: Record<string, any> = {}
 
@@ -118,10 +99,6 @@ export class RailDriverRegistry {
     }
 
     const result: any = { rails }
-
-    if (this._tigerBeetle) {
-      result.tigerBeetle = await this._tigerBeetle.healthCheck()
-    }
 
     return result
   }
@@ -167,26 +144,7 @@ export class RailDriverRegistry {
     const sovrDriver = new SovrLedgerDriver(kernel, eventStore)
     registry.registerDriver('sovr-private-ledger', sovrDriver)
 
-    // ── TigerBeetle — registered if addresses configured ────────────────────
-    if (env.TIGERBEETLE_ADDRESSES) {
-      const tb = new TigerBeetleDriver({
-        clusterId:      parseInt(env.TIGERBEETLE_CLUSTER_ID ?? '0'),
-        addresses:      env.TIGERBEETLE_ADDRESSES.split(','),
-        concurrencyMax: parseInt(env.TIGERBEETLE_CONCURRENCY ?? '32')
-      })
-
-      await tb.connect()
-      const tbHealth = await tb.healthCheck()
-
-      if (tbHealth.status !== 'UNHEALTHY') {
-        registry.registerTigerBeetle(tb)
-        registry.registerAccountManager(new TigerBeetleAccountManager(tb))
-        registry.registerTransferBuilder(new TigerBeetleTransferBuilder(tb))
-        log('TigerBeetle: registered', tbHealth)
-      } else {
-        log('TigerBeetle: UNHEALTHY — not registered', tbHealth)
-      }
-    }
+    // TigerBeetle is not a rail. Sole client: packages/runtime/src/ledger/tigerbeetle.
 
     // ── ACH ─────────────────────────────────────────────────────────────────
     if (env.ACH_API_KEY) {

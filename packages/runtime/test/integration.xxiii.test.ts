@@ -8,7 +8,7 @@ import { JWTService } from '../src/security/jwt.js';
 import { exportPKCS8, exportSPKI, generateKeyPair } from 'jose';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(__dirname, '../..');
+const REPO_ROOT = path.resolve(__dirname, '../../..');
 const SERVER_ENTRY = path.resolve(__dirname, '../dist/server/index.js');
 const SOVR_PROTOCOL_ROOT = REPO_ROOT;
 const TEST_PORT = 3399 + Math.floor(Math.random() * 100);
@@ -35,6 +35,12 @@ async function waitForHealth(url: string, maxMs = 120_000) {
   throw new Error(`Server did not become healthy at ${url}: ${lastErr?.message}`);
 }
 
+async function governanceGrant(base: string, payload: { capabilityId: string; actorId: string; scopePattern: string; expiresAt?: string; conditions?: any }) {
+  const gov = new SOVRClient({ apiUrl: base, actorId: 'xxiii_gov', actorType: 'governance', timeoutMs: 10_000 });
+  await gov.createSession({ identity_id: 'xxiii_gov', actor_id: 'xxiii_gov', actor_type: 'governance' });
+  return gov.grantCapability(payload);
+}
+
 describe('INV-003 / INV-008 — Directive XXIII Live Server Integration', () => {
   let server: any;
   let client: SOVRClient;
@@ -55,7 +61,7 @@ beforeAll(async () => {
       NODE_ENV: 'test',
       JWT_PRIVATE_KEY: TEST_PRIVATE_KEY_PEM,
       JWT_PUBLIC_KEY: TEST_PUBLIC_KEY_PEM,
-      SOVR_DEV_AUTO_GRANT: 'true',
+      SOVR_DEV_AUTO_GRANT: 'false',
       SOVR_PROTOCOL_ROOT: SOVR_PROTOCOL_ROOT,
       SOVR_TEST_XXIII_GATES: 'true',
     },
@@ -82,8 +88,8 @@ afterAll(async () => {
 beforeEach(async () => { await delay(50); });
 
   it('AUDIT-001: low-privilege actor cannot execute treasury command', async () => {
-    await client.createSession({ identity_id: 'xxiii_no_cap', actor_id: 'xxiii_no_cap', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_no_cap', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_no_cap', actor_id: 'xxiii_no_cap', actor_type: 'human' });
 
     try {
       await client.executeCommand('treasury', 'transfer_order', {
@@ -100,10 +106,10 @@ beforeEach(async () => { await delay(50); });
   });
 
   it('AUDIT-002: expired capability is rejected', async () => {
-    await client.createSession({ identity_id: 'xxiii_expired', actor_id: 'xxiii_expired', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_expired', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_expired', actor_id: 'xxiii_expired', actor_type: 'human' });
 
-    await client.grantCapability({ capabilityId: 'treasury.transfer.request', actorId: 'xxiii_expired', scopePattern: 'treasury.transfer:*', expiresAt: '2020-01-01T00:00:00Z' });
+    await governanceGrant(base, { capabilityId: 'treasury.transfer.request', actorId: 'xxiii_expired', scopePattern: 'treasury.transfer:*', expiresAt: '2020-01-01T00:00:00Z' });
 
     try {
       await client.executeCommand('treasury', 'transfer_order', {
@@ -120,18 +126,26 @@ beforeEach(async () => { await delay(50); });
   });
 
   it('AUDIT-003: revoked capability is rejected', async () => {
-    await client.createSession({ identity_id: 'xxiii_revoked', actor_id: 'xxiii_revoked', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_revoked', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_revoked', actor_id: 'xxiii_revoked', actor_type: 'human' });
 
-    await client.grantCapability({ capabilityId: 'treasury.transfer.request', actorId: 'xxiii_revoked', scopePattern: 'treasury.transfer:*' });
+    await governanceGrant(base, { capabilityId: 'treasury.transfer.request', actorId: 'xxiii_revoked', scopePattern: 'treasury.transfer:*' });
 
-    // revoke via DELETE endpoint
-    const res = await fetch(`${base}/api/v1/capabilities/grant`, {
+    const unauthRevoke = await fetch(`${base}/api/v1/capabilities/grant`, {
       method: 'DELETE',
-      headers: { 'Content-Type': 'application/json', 'X-Actor-Id': 'xxiii_revoked' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ capability_id: 'treasury.transfer.request', actor_id: 'xxiii_revoked' }),
     });
-    expect(res.status).toBe(200);
+    expect(unauthRevoke.status).toBe(401);
+
+    const gov = new SOVRClient({ apiUrl: base, actorId: 'xxiii_gov', actorType: 'governance', timeoutMs: 10_000 });
+    await gov.createSession({ identity_id: 'xxiii_gov', actor_id: 'xxiii_gov', actor_type: 'governance' });
+    const revoked = await gov.revokeCapability({
+      capabilityId: 'treasury.transfer.request',
+      actorId: 'xxiii_revoked',
+      revocationReason: 'audit_003',
+    });
+    expect(revoked.status).toBe('ACCEPTED');
 
     try {
       await client.executeCommand('treasury', 'transfer_order', {
@@ -148,10 +162,10 @@ beforeEach(async () => { await delay(50); });
   });
 
   it('AUDIT-004: amount above grant constraint is rejected', async () => {
-    await client.createSession({ identity_id: 'xxiii_constrained', actor_id: 'xxiii_constrained', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_constrained', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_constrained', actor_id: 'xxiii_constrained', actor_type: 'human' });
 
-    await client.grantCapability({
+    await governanceGrant(base, {
       capabilityId: 'treasury.transfer.request',
       actorId: 'xxiii_constrained',
       scopePattern: 'treasury.transfer:*',
@@ -173,10 +187,10 @@ beforeEach(async () => { await delay(50); });
   });
 
   it('AUDIT-005: valid capability grants execution', async () => {
-    await client.createSession({ identity_id: 'xxiii_valid', actor_id: 'xxiii_valid', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_valid', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_valid', actor_id: 'xxiii_valid', actor_type: 'human' });
 
-    await client.grantCapability({ capabilityId: 'payment.request.create', actorId: 'xxiii_valid', scopePattern: '*' });
+    await governanceGrant(base, { capabilityId: 'payment.request.create', actorId: 'xxiii_valid', scopePattern: '*' });
 
     const result = await client.executeCommand('payment', 'request', {
       commandName: 'payment.request.create',
@@ -189,10 +203,10 @@ beforeEach(async () => { await delay(50); });
   });
 
   it('AUDIT-006: escrow release rejected by gate when amount missing/oversized', async () => {
-    await client.createSession({ identity_id: 'xxiii_escrow', actor_id: 'xxiii_escrow', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_escrow', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_escrow', actor_id: 'xxiii_escrow', actor_type: 'human' });
 
-    await client.grantCapability({ capabilityId: 'escrow.account.release', actorId: 'xxiii_escrow', scopePattern: '*' });
+    await governanceGrant(base, { capabilityId: 'escrow.account.release', actorId: 'xxiii_escrow', scopePattern: '*' });
 
     try {
       await client.executeCommand('escrow', 'account', {
@@ -210,11 +224,11 @@ beforeEach(async () => { await delay(50); });
   });
 
   it('AUDIT-007: transfer with amount exceeding gate limit is rejected', async () => {
-    await client.createSession({ identity_id: 'xxiii_xfer', actor_id: 'xxiii_xfer', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_xfer', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_xfer', actor_id: 'xxiii_xfer', actor_type: 'human' });
 
-    await client.grantCapability({ capabilityId: 'vault.reserve.create', actorId: 'xxiii_xfer', scopePattern: '*' });
-    await client.grantCapability({ capabilityId: 'vault.transaction.fund', actorId: 'xxiii_xfer', scopePattern: '*' });
+    await governanceGrant(base, { capabilityId: 'vault.reserve.create', actorId: 'xxiii_xfer', scopePattern: '*' });
+    await governanceGrant(base, { capabilityId: 'vault.transaction.fund', actorId: 'xxiii_xfer', scopePattern: '*' });
 
     try {
       await client.executeCommand('vault', 'transaction', {
@@ -232,10 +246,10 @@ beforeEach(async () => { await delay(50); });
   });
 
   it('AUDIT-008: transfer above static authorization limit is rejected', async () => {
-    await client.createSession({ identity_id: 'xxiii_auth', actor_id: 'xxiii_auth', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_auth', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_auth', actor_id: 'xxiii_auth', actor_type: 'human' });
 
-    await client.grantCapability({ capabilityId: 'treasury.transfer.request', actorId: 'xxiii_auth', scopePattern: '*' });
+    await governanceGrant(base, { capabilityId: 'treasury.transfer.request', actorId: 'xxiii_auth', scopePattern: '*' });
 
     try {
       await client.executeCommand('treasury', 'transfer_order', {
@@ -258,10 +272,10 @@ beforeEach(async () => { await delay(50); });
   });
 
   it('AUDIT-010: all gates pass — command reaches state machine', async () => {
-    await client.createSession({ identity_id: 'xxiii_pass', actor_id: 'xxiii_pass', actor_type: 'human' });
     client = new SOVRClient({ apiUrl: base, actorId: 'xxiii_pass', actorType: 'human' });
+    await client.createSession({ identity_id: 'xxiii_pass', actor_id: 'xxiii_pass', actor_type: 'human' });
 
-    await client.grantCapability({ capabilityId: 'payment.request.create', actorId: 'xxiii_pass', scopePattern: '*' });
+    await governanceGrant(base, { capabilityId: 'payment.request.create', actorId: 'xxiii_pass', scopePattern: '*' });
 
     const result = await client.executeCommand('payment', 'request', {
       commandName: 'payment.request.create',

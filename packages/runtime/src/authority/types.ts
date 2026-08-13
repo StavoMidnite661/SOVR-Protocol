@@ -100,9 +100,27 @@ export interface CapabilityRegistry {
   integrity: IntegrityBlock;
 }
 
+export interface MachineRegistryEntry {
+  id?: string;
+  domain?: string;
+  aggregate?: string;
+  initial_state?: string;
+  initialState?: string;
+  [key: string]: unknown;
+}
+
+export interface MachineRegistry {
+  abi: string;
+  kind?: string;
+  entry_count: number;
+  entries: Record<string, MachineRegistryEntry>;
+  integrity?: IntegrityBlock;
+}
+
 export interface AuthorityRegistryLoader {
   loadCommands(): CommandRegistry;
   loadEvents(): EventRegistry;
   loadConstitution(): ConstitutionRegistry;
   loadCapabilities(): CapabilityRegistry;
+  loadMachines(): MachineRegistry;
 }

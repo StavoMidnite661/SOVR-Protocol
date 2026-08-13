@@ -181,12 +181,9 @@ export class TigerBeetleDriver {
   // ─── Lifecycle ──────────────────────────────────────────────────────────────
 
   async connect(): Promise<void> {
-    if (this.client) return
-
-    this.client = createClient({
-      cluster_id:        BigInt(this.cfg.clusterId),
-      replica_addresses: this.cfg.addresses
-    })
+    throw new Error(
+      'TigerBeetleDriver is not the runtime integration boundary. Use packages/runtime/src/ledger/tigerbeetle/TigerBeetleTransportClient.'
+    )
   }
 
   async disconnect(): Promise<void> {

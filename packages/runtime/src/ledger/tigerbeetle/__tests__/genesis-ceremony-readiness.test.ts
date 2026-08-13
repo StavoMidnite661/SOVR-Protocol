@@ -14,15 +14,15 @@ const ROOT = join(__dirname, '../../../../../..//');
 
 describe('Phase 10E.2 Genesis Ceremony Final Readiness Audit', () => {
   const config: LedgerAdapterConfig = {
-    tigerbeetleBinaryPath: 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/tigerbeetle.exe',
-    clusterFile: 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle',
-    dataDirectory: 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data',
+    tigerbeetleBinaryPath: join(ROOT, 'Tigerbeetle', 'tigerbeetle'),
+    clusterFile: join(ROOT, 'data', 'tigerbeetle', '0_0.tigerbeetle'),
+    dataDirectory: join(ROOT, 'data', 'tigerbeetle'),
     port: 8080,
     readOnly: true,
     writeEnabled: false,
   };
 
-  const schemaPath = 'D:/sovr-financial-os-protocol-v1.0.0/SOVR-Protocol/governance/tigerbeetle/SOVR_ACCOUNT_SCHEMA.json';
+  const schemaPath = join(ROOT, 'governance', 'tigerbeetle', 'SOVR_ACCOUNT_SCHEMA.json');
   const manifestPath = join(ROOT, 'governance', 'tigerbeetle', 'GENESIS_TRANSACTION_SET.json');
   const manifestYamlPath = join(ROOT, 'governance', 'tigerbeetle', 'GENESIS_WRITE_MANIFEST.yaml');
   const authPath = join(ROOT, 'governance', 'tigerbeetle', 'GENESIS_OPERATOR_AUTHORIZATION.yaml');

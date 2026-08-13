@@ -40,7 +40,9 @@ export class TigerBeetleTransportClient implements TigerBeetleTransport {
         try {
           this.client = createClient({
             cluster_id: BigInt(0),
-            replica_addresses: ['127.0.0.1:8080'],
+            replica_addresses: this.config.addresses?.length
+              ? this.config.addresses
+              : [`127.0.0.1:${this.config.port}`],
           });
           resolve();
         } catch (err) {

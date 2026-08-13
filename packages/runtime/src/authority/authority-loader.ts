@@ -16,6 +16,7 @@ import type {
   EventRegistry,
   ConstitutionRegistry,
   CapabilityRegistry,
+  MachineRegistry,
   AuthorityRegistryLoader,
 } from './types.js';
 
@@ -57,17 +58,25 @@ export class JsonRegistryLoader implements AuthorityRegistryLoader {
     return registry;
   }
 
+  loadMachines(): MachineRegistry {
+    const registry = this.loadJson<MachineRegistry>('machines.registry.json');
+    this.validator.assert(registry, 'machines.registry.json');
+    return registry;
+  }
+
   loadAll(): {
     commands: CommandRegistry;
     events: EventRegistry;
     constitution: ConstitutionRegistry;
     capabilities: CapabilityRegistry;
+    machines: MachineRegistry;
   } {
     return {
       commands: this.loadCommands(),
       events: this.loadEvents(),
       constitution: this.loadConstitution(),
       capabilities: this.loadCapabilities(),
+      machines: this.loadMachines(),
     };
   }
 
@@ -91,4 +100,5 @@ export type {
   EventEnvelope,
   IntegrityBlock,
   AuthorityRegistryLoader,
+  MachineRegistry,
 } from './types.js';

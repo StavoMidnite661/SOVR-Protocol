@@ -7,19 +7,19 @@ import { AccountMapper } from '../account-mapper.js';
 import type { LedgerAdapterConfig } from '../types.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, '../../../../../..//');
+const ROOT = join(__dirname, '../../../../../../');
 
 describe('TigerBeetle Transport Version Alignment', () => {
   const config: LedgerAdapterConfig = {
-    tigerbeetleBinaryPath: 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/tigerbeetle.exe',
-    clusterFile: 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle',
-    dataDirectory: 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data',
+    tigerbeetleBinaryPath: join(ROOT, 'Tigerbeetle', 'tigerbeetle'),
+    clusterFile: join(ROOT, 'data', 'tigerbeetle', '0_0.tigerbeetle'),
+    dataDirectory: join(ROOT, 'data', 'tigerbeetle'),
     port: 8080,
     readOnly: true,
     writeEnabled: false,
   };
 
-  const schemaPath = 'D:/sovr-financial-os-protocol-v1.0.0/SOVR-Protocol/governance/tigerbeetle/SOVR_ACCOUNT_SCHEMA.json';
+  const schemaPath = join(ROOT, 'governance', 'tigerbeetle', 'SOVR_ACCOUNT_SCHEMA.json');
 
   it('Test A: client version matches server version 0.17.8', () => {
     const runtimePackage = JSON.parse(readFileSync(join(ROOT, 'packages', 'runtime', 'package.json'), 'utf8'));

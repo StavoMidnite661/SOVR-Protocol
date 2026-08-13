@@ -1,25 +1,29 @@
 import { describe, it, expect } from 'vitest';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { TigerBeetleTransportClient } from '../tigerbeetle-transport.js';
 import { AccountMapper } from '../account-mapper.js';
 import type { LedgerAdapterConfig } from '../types.js';
 
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '../../../../../../');
+
 describe('Phase 10D TigerBeetle Genesis Certification', () => {
   const config: LedgerAdapterConfig = {
-    tigerbeetleBinaryPath: 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/tigerbeetle.exe',
-    clusterFile: 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle',
-    dataDirectory: 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data',
+    tigerbeetleBinaryPath: join(ROOT, 'Tigerbeetle', 'tigerbeetle'),
+    clusterFile: join(ROOT, 'data', 'tigerbeetle', '0_0.tigerbeetle'),
+    dataDirectory: join(ROOT, 'data', 'tigerbeetle'),
     port: 8080,
     readOnly: true,
     writeEnabled: false,
   };
 
-  const schemaPath = 'D:/sovr-financial-os-protocol-v1.0.0/SOVR-Protocol/governance/tigerbeetle/SOVR_ACCOUNT_SCHEMA.json';
+  const schemaPath = join(ROOT, 'governance', 'tigerbeetle', 'SOVR_ACCOUNT_SCHEMA.json');
 
   it('Test A: TigerBeetle binary and environment are accessible', async () => {
     const fs = await import('node:fs');
-    const binaryPath = 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/tigerbeetle.exe';
-    const dataDir = 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data';
-    const clusterFile = 'D:/sovr-financial-os-protocol-v1.0.0/Tigerbeetle/data/0/cluster.tigerbeetle';
+    const binaryPath = join(ROOT, 'Tigerbeetle', 'tigerbeetle');
+    const dataDir = join(ROOT, 'data', 'tigerbeetle');
+    const clusterFile = join(ROOT, 'data', 'tigerbeetle', '0_0.tigerbeetle');
     expect(fs.existsSync(binaryPath)).toBe(true);
     expect(fs.existsSync(dataDir)).toBe(true);
     expect(fs.existsSync(clusterFile)).toBe(true);

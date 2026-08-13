@@ -105,42 +105,35 @@ export class StateMachineInterpreter {
     for (const machine of sorted) this.register(machine);
   }
 
-  static fromFiles(
-    irPath: string,
-    _stateMachinesYamlPath?: string,
+  static fromRegistry(
+    registryPath: string,
     options: StateMachineInterpreterOptions = {}
   ): StateMachineInterpreter {
-    const ir = fs.existsSync(irPath) ? JSON.parse(fs.readFileSync(irPath, 'utf8')) as CompiledIR : { nodes: [] };
-    return StateMachineInterpreter.fromIR(ir, undefined, options);
-  }
-
-  static fromIR(
-    ir: CompiledIR,
-    _sourceStateMachines?: any,
-    options: StateMachineInterpreterOptions = {}
-  ): StateMachineInterpreter {
-    const sourceMachines: Record<string, any> = {};
-    const irNodes = (ir.nodes ?? []).filter(n => n.type === 'state_machine');
+    if (!fs.existsSync(registryPath)) {
+      throw new Error(`MACHINE_REGISTRY_NOT_FOUND: ${registryPath}`);
+    }
+    if (registryPath.endsWith('sovr-ir.json') || registryPath.includes('05_state-machines.yaml')) {
+      throw new Error('IR_NOT_RUNTIME_AUTHORITY: load generated/registries/machines.registry.json');
+    }
+    const registry = JSON.parse(fs.readFileSync(registryPath, 'utf8'));
     const machines: StateMachineDefinition[] = [];
-
-    for (const node of irNodes) {
-      const name = String(node.sourceRef ?? node.name ?? String(node.id ?? '').replace(/^state_machine:/, ''));
-      const sourceDef = sourceMachines[name] ?? {};
-      const merged = { ...sourceDef, ...node };
-      const definition = normalizeMachine(name, merged, node);
+    for (const [name, def] of Object.entries(registry.entries ?? {}) as Array<[string, any]>) {
+      if (name === 'abi' || !def || typeof def !== 'object') continue;
+      const definition = normalizeMachine(String(def.id ?? name), def, { id: def.id, ...def });
       if (definition) machines.push(definition);
     }
-
-    // If an older or partial IR did not contain state_machine nodes, fall back
-    // to the source spec so the interpreter remains usable in kernel-working mode.
-    if (machines.length === 0) {
-      for (const [name, def] of Object.entries(sourceMachines)) {
-        const definition = normalizeMachine(String(name), def as any, undefined);
-        if (definition) machines.push(definition);
-      }
-    }
-
     return new StateMachineInterpreter(machines, options);
+  }
+
+  static fromFiles(
+    registryOrIrPath: string,
+    _unused?: string,
+    options: StateMachineInterpreterOptions = {}
+  ): StateMachineInterpreter {
+    if (registryOrIrPath.endsWith('sovr-ir.json') || registryOrIrPath.endsWith('.yaml')) {
+      throw new Error('IR_NOT_RUNTIME_AUTHORITY: load generated/registries/machines.registry.json');
+    }
+    return StateMachineInterpreter.fromRegistry(registryOrIrPath, options);
   }
 
   listMachines(): StateMachineDefinition[] {
@@ -257,7 +250,7 @@ export class StateMachineInterpreter {
     for (const [name, transition] of Object.entries(machine.transitions)) {
       const endpoints = transitionEndpoints(name, transition);
       if (!endpoints) continue;
-      const transitionTrigger = transition.trigger ?? transition.command;
+      const transitionTrigger = transition.trigger;
       const matchesTrigger = endpoints.from === currentState && transitionTrigger === trigger;
       const matchesEmitted = !matchesTrigger && endpoints.from === currentState && Array.isArray(transition.emitted_events) && transition.emitted_events.some((e: string) => emittedTarget.includes(e));
       if (matchesTrigger || matchesEmitted) {

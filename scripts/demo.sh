@@ -261,7 +261,7 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 if [ "$FAIL" -eq 0 ]; then
-  echo "  SOVR Protocol v0.7.0"
+  echo "  SOVR Protocol v0.6.0"
   echo "  Spec-driven. Constitutional. Auditable."
   echo "  The Linux of Finance."
   echo ""

@@ -31,6 +31,7 @@ export interface GrantedCapability {
 export class CapabilityEngine {
   private definitions: Map<string, CapabilityDef> = new Map();
   private grants: Map<string, GrantedCapability[]> = new Map(); // actor_id -> grants
+  private revoked = new Set<string>();
   private cache = new Map<string, { result: boolean; expires: number }>();
   private cacheTtlMs = 300000; // 5 min as per spec
 
@@ -62,6 +63,7 @@ export class CapabilityEngine {
   }
 
   async grant(cap: GrantedCapability) {
+    this.revoked.delete(`${cap.actor_id}:${cap.capability_id}`);
     if (!this.grants.has(cap.actor_id)) this.grants.set(cap.actor_id, []);
     this.grants.get(cap.actor_id)!.push(cap);
     this.cache.clear();
@@ -75,6 +77,7 @@ export class CapabilityEngine {
   async revoke(actor_id: string, capability_id: string) {
     const list = this.grants.get(actor_id) || [];
     this.grants.set(actor_id, list.filter(g => g.capability_id !== capability_id));
+    this.revoked.add(`${actor_id}:${capability_id}`);
     this.cache.clear();
 
     if (this.grantStore) {
@@ -125,10 +128,8 @@ export class CapabilityEngine {
     const cached = this.cache.get(cacheKey);
     if (cached && cached.expires > Date.now()) return cached.result;
 
-    // governance.* wildcard
     const actorGrants = this.grants.get(actor_id) || [];
-    const govGrants = this.grants.get('governance') || [];
-    const all = [...actorGrants, ...govGrants, ...(this.grants.get('*')||[])];
+    const all = [...actorGrants, ...(this.grants.get('*') || [])];
 
     // Special: system.internal allowed for system actor
     if (capability_id === 'system.internal' && (actor_id === 'system' || actor_id.startsWith('system'))) {
@@ -137,6 +138,7 @@ export class CapabilityEngine {
     }
 
     // Allow any actor with explicit capability that matches scope
+    let expiredMatch = false;
     for (const g of all) {
       // capability wildcard: governance.* matches governance.proposal.create
       const capMatches = g.capability_id === capability_id 
@@ -145,8 +147,35 @@ export class CapabilityEngine {
         || g.capability_id === 'governance.*' && actor_id === 'governance';
 
       if (capMatches && this.matchesScope(g.scope_pattern, scope)) {
-        // check expiry
-        if (g.expires_at && new Date(g.expires_at).getTime() < Date.now()) continue;
+        if (g.expires_at && new Date(g.expires_at).getTime() < Date.now()) {
+          expiredMatch = true;
+          continue;
+        }
+        this.cache.set(cacheKey, { result: true, expires: Date.now()+this.cacheTtlMs });
+        return true;
+      }
+    }
+
+    if (expiredMatch) {
+      this.cache.set(cacheKey, { result: false, expires: Date.now()+this.cacheTtlMs });
+      return false;
+    }
+
+    if (this.revoked.has(`${actor_id}:${capability_id}`)) {
+      this.cache.set(cacheKey, { result: false, expires: Date.now()+this.cacheTtlMs });
+      return false;
+    }
+
+    // Compiled derived capability: identity.session.create is issued by the system
+    // (grantable_by: system, default_for_actor_types for every actor type).
+    // Do not invent an event; this only materializes the compiled default grant.
+    if (capability_id === 'identity.session.create') {
+      const def = this.definitions.get(capability_id) as CapabilityDef & { default_for_actor_types?: Record<string, { scope?: string }> } | undefined;
+      const defaults = def?.default_for_actor_types ?? {};
+      const hasCompiledDefault = Object.keys(defaults).some(k => k !== 'abi');
+      if (hasCompiledDefault) {
+        const compiledScope = String(def?.scope_pattern ?? 'session:self:*');
+        this.grant({ capability_id, actor_id, scope_pattern: compiledScope, granted_by: 'system' });
         this.cache.set(cacheKey, { result: true, expires: Date.now()+this.cacheTtlMs });
         return true;
       }
@@ -167,6 +196,25 @@ export class CapabilityEngine {
 
   listGrants(actor_id: string): GrantedCapability[] {
     return this.grants.get(actor_id) || [];
+  }
+
+  /** Materialize compiled default_for_actor_types for a known actor type. */
+  async seedCompiledTypeDefaults(actor_id: string, actor_type: string): Promise<void> {
+    if (!actor_id || !actor_type) return;
+    for (const [capability_id, def] of this.definitions.entries()) {
+      const defaults = (def as CapabilityDef & { default_for_actor_types?: Record<string, { scope?: string }> }).default_for_actor_types;
+      const typed = defaults?.[actor_type];
+      if (!typed || typeof typed !== 'object' || !typed.scope) continue;
+      if (actor_type !== 'governance') continue;
+      if (capability_id !== 'governance.capability.grant' && capability_id !== 'governance.capability.revoke') continue;
+      const existing = (this.grants.get(actor_id) || []).some(g => g.capability_id === capability_id);
+      if (existing) continue;
+      const raw = String(typed.scope);
+      const scope = (raw === '*' || raw.endsWith(':*') || raw.endsWith('.*'))
+        ? raw
+        : (raw.includes(':*') ? raw.slice(0, raw.lastIndexOf(':*') + 2) : `${raw}:*`);
+      await this.grant({ capability_id, actor_id, scope_pattern: scope, granted_by: 'system' });
+    }
   }
 
   definitionsCount(): number {

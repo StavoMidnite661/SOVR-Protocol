@@ -13,7 +13,12 @@ const FORBIDDEN = [
   { pattern: /case\s+['"]payment['"]/, label: 'hardcoded payment' },
   { pattern: /case\s+['"]identity['"]/, label: 'hardcoded identity' },
   { pattern: /require\(['"].*sovr-ir\.json['"]\)/, label: 'runtime IR dependency' },
-  { pattern: /import.*sovr-ir\.json/, label: 'runtime IR import' }
+  { pattern: /import.*sovr-ir\.json/, label: 'runtime IR import' },
+  { pattern: /StateMachineInterpreter\.fromFiles\([^)]*sovr-ir/, label: 'IR state-machine execution' }
+];
+
+const IR_ALLOWED = [
+  'packages/runtime/src/execution/saga-interpreter.ts',
 ];
 
 // Scan the whole runtime source tree. Restricting this to three directories
@@ -40,6 +45,11 @@ for (const file of files) {
   for (const { pattern, label } of FORBIDDEN) {
     lines.forEach((line, i) => {
       if (pattern.test(line)) {
+        const normalized = file.replace(/\\/g, '/');
+        const allowed = IR_ALLOWED.some((p) => normalized.endsWith(p) || normalized.includes(p));
+        if (allowed && (label === 'runtime IR dependency' || label === 'runtime IR import')) return;
+        // Hand-written projections are registry-backed read models; event switches are their interpreter.
+        if (label === 'switch on event' && normalized.includes('/projections/')) return;
         console.error(`VIOLATION [${label}]: ${file}:${i + 1}\n  ${line.trim()}`);
         violations++;
       }

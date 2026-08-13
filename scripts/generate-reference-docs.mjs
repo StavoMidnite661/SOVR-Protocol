@@ -2,8 +2,9 @@
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import { fileURLToPath } from "node:url";
 
-const ROOT = path.resolve("D:/sovr-financial-os-protocol-v1.0.0/SOVR-Protocol");
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const GENERATED = path.join(ROOT, "generated");
 const REGISTRIES = path.join(GENERATED, "registries");
 const DOCS = path.join(ROOT, "docs", "generated");
