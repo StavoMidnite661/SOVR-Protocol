@@ -54,7 +54,7 @@ at commit `6f2f417` (working tree identical to that implementation).
 | Economic entries | 170 |
 | Reserve entries | 28 |
 | Settlement entries | 23 |
-| IR nodes / edges | **663 / 516** |
+| Canonical IR | **663 nodes, 516 edges** |
 | IR hash | `16c3f8b8a6352d35acc5f449b1a00251763341a6ec1ea12e680ded6a23381d6e` |
 | Build hash | `231517634d44c24bdd0a945f44fbf6e291845558127bfc1ceac99b9e3b602b29` |
 | Registry ABI | v1 |
