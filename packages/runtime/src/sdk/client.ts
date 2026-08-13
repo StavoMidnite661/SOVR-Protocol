@@ -231,9 +231,18 @@ export class SOVRClient {
     });
   }
 
-  async grantCapability(payload: { capabilityId: string; actorId: string; scopePattern: string; expiresAt?: string }): Promise<any> {
-    return this.request('POST', '/api/v1/capabilities/grant', {
-      capability_id: payload.capabilityId, actor_id: payload.actorId, scope_pattern: payload.scopePattern, expires_at: payload.expiresAt,
+  async grantCapability(payload: { capabilityId: string; actorId: string; scopePattern: string; expiresAt?: string; conditions?: any }): Promise<any> {
+    return this.executeCommand('governance', 'capability_grant', {
+      commandName: 'governance.capability.grant',
+      capability_id: 'governance.capability.grant',
+      scope: `capability:${payload.capabilityId}`,
+      payload: {
+        capability_id: payload.capabilityId,
+        actor_id: payload.actorId,
+        scope_pattern: payload.scopePattern,
+        expires_at: payload.expiresAt ?? null,
+        conditions: payload.conditions ?? {},
+      },
     });
   }
 

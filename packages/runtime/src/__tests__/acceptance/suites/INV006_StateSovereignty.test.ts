@@ -14,21 +14,24 @@ beforeEach(async () => {
 describe('INV-006 — State Machine Sovereignty', () => {
   it('INV006-001: invalid transition not in compiled machine is rejected', async () => {
     const admin = await harness.actorFactory.create('ADMIN')
+    await harness.registerActor(admin)
+    const escrowId = 'sovereignty-001'
 
-    harness.setAggregateState('sovereignty-001', 'INVALID_STATE')
+    harness.setAggregateState(escrowId, 'INVALID_STATE', 'escrow_account', 'escrow')
 
     const result = await harness.execute({
       commandName: 'escrow.account.release',
       commandId: randomUUID(),
       correlationId: randomUUID(),
       actorId: admin.actorId,
-      aggregateId: 'sovereignty-001',
-      payload: {}
+      aggregateId: escrowId,
+      payload: {
+        escrow_id: escrowId,
+        release_proof: 'proof',
+      },
     })
 
     expect(result.status).toBe('REJECTED')
-    // Harness state transition check is after gates, so it may surface as EXECUTION_GATE_FAILED or INVALID_TRANSITION
-    // Per constitutional harness model this is acceptable as long as REJECTED
-    expect(['EXECUTION_GATE_FAILED', 'INVALID_TRANSITION', 'INVARIANT_VIOLATION']).toContain(result.rejectionCode)
+    expect(['EXECUTION_GATE_FAILED', 'INVALID_TRANSITION', 'INVARIANT_VIOLATION', 'InvalidStateTransitionError']).toContain(result.rejectionCode)
   })
 })

@@ -13,18 +13,22 @@ beforeEach(async () => {
 
 describe('INV-004 — Capability Boundary (Agent Prohibition)', () => {
   it('INV004-001: AI agent cannot grant capabilities (fail-closed)', async () => {
-    const agent = await harness.actorFactory.create('ATTACKER') // AI_AGENT not a valid profile; use ATTACKER (simulates agent)
+    const agent = await harness.actorFactory.create('ATTACKER')
+    await harness.registerActor(agent)
 
     const result = await harness.execute({
       commandName: 'governance.capability.grant',
       commandId: randomUUID(),
       correlationId: randomUUID(),
       actorId: agent.actorId,
-      aggregateId: 'grant-001',
       payload: {
-        capability_id: 'treasury.transfer.initiate',
-        actor_id: 'some-other-actor'
-      }
+        capability_id: 'treasury.transfer.request',
+        actor_id: 'some-other-actor',
+        scope_pattern: '*',
+        expires_at: null,
+        conditions: {},
+      },
+      aggregateId: 'grant-001',
     })
 
     expect(result.status).toBe('REJECTED')
@@ -33,21 +37,24 @@ describe('INV-004 — Capability Boundary (Agent Prohibition)', () => {
   })
 
   it('INV004-002: Human governance can grant (passes INV-004)', async () => {
-    const gov = await harness.actorFactory.create('ADMIN') // GOVERNANCE not a valid profile; ADMIN represents governance authority
+    const gov = await harness.actorFactory.create('ADMIN')
+    await harness.registerActor(gov)
 
     const result = await harness.execute({
       commandName: 'governance.capability.grant',
       commandId: randomUUID(),
       correlationId: randomUUID(),
       actorId: gov.actorId,
-      aggregateId: 'grant-002',
       payload: {
-        capability_id: 'ledger.account.open',
-        actor_id: 'human-actor-001'
-      }
+        capability_id: 'ledger.entry.post',
+        actor_id: 'human-actor-001',
+        scope_pattern: '*',
+        expires_at: null,
+        conditions: {},
+      },
+      aggregateId: 'grant-002',
     })
 
-    // May still be rejected by other gates, but not INV-004
     if (result.status === 'REJECTED') {
       expect(result.rejectionReason).not.toMatch(/INV-004/)
     } else {

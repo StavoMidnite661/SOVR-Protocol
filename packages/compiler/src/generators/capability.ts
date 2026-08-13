@@ -47,9 +47,9 @@ export function generateCapabilityEngine(ir: SOVR_IR): GeneratedFile[] {
   lines.push('  }');
   lines.push('');
   lines.push('  checkSync(actorId: string, capabilityId: string, resource: string): boolean {');
-  lines.push('    // Governance has wildcard');
-  lines.push('    // This is a generated stub — real implementation loads grants from DB');
-  lines.push('    return true; // TODO: replace with deterministic lookup of capability grants');
+  lines.push('    // Fail-closed stub. Live authority is packages/runtime CapabilityEngine + capabilities.registry.json.');
+  lines.push('    void actorId; void capabilityId; void resource;');
+  lines.push('    return false;');
   lines.push('  }');
   lines.push('');
   lines.push('  // All capabilities from IR');
@@ -86,7 +86,7 @@ export function generatePolicyEngine(ir: SOVR_IR): GeneratedFile[] {
   lines.push('    // TODO: implement CER-like evaluation per domains/policy.yaml');
   lines.push('    // For kernel working demonstration: DENY if no capability, else ALLOW');
   lines.push('    const hash = this.deterministicHash(context, rules);');
-  lines.push('    return { decision: "ALLOW", rulesEvaluated: rules.length, confidence: "CERTAIN", deterministicHash: hash };');
+  lines.push('    return { decision: "DENY", rulesEvaluated: rules.length, confidence: "CERTAIN", deterministicHash: hash };');
   lines.push('  }');
   lines.push('  deterministicHash(context: PolicyContext, rules: any[]): string {');
   lines.push('    // Deterministic hash for replay verification per policy_evaluation.deterministic_hash');

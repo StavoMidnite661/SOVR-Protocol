@@ -137,6 +137,7 @@ export class CapabilityEngine {
     }
 
     // Allow any actor with explicit capability that matches scope
+    let expiredMatch = false;
     for (const g of all) {
       // capability wildcard: governance.* matches governance.proposal.create
       const capMatches = g.capability_id === capability_id 
@@ -145,11 +146,18 @@ export class CapabilityEngine {
         || g.capability_id === 'governance.*' && actor_id === 'governance';
 
       if (capMatches && this.matchesScope(g.scope_pattern, scope)) {
-        // check expiry
-        if (g.expires_at && new Date(g.expires_at).getTime() < Date.now()) continue;
+        if (g.expires_at && new Date(g.expires_at).getTime() < Date.now()) {
+          expiredMatch = true;
+          continue;
+        }
         this.cache.set(cacheKey, { result: true, expires: Date.now()+this.cacheTtlMs });
         return true;
       }
+    }
+
+    if (expiredMatch) {
+      this.cache.set(cacheKey, { result: false, expires: Date.now()+this.cacheTtlMs });
+      return false;
     }
 
     // For demo / onboarding: auto-grant if capability exists in definitions and request is first-time (dev mode)

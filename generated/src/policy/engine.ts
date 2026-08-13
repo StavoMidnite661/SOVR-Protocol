@@ -1,5 +1,5 @@
 // SOVR GENERATED — DO NOT EDIT
-// hash cc0c26c259106356d4a12ac615bb5976a40e7e746d804053b78d70beb620a609
+// hash b60059facf58aa659c4c5d45395fb08dc5ed8b4e82c52f5a2a5ce463b06d77e4
 // SOVR GENERATED — Policy Engine
 // Compiler: 0.6.0 Protocol: 1.0.0
 // Rule format: CER-like, determinism: PURE_FUNCTION, evaluation order defined
@@ -15,7 +15,7 @@ export class PolicyEngine {
     // TODO: implement CER-like evaluation per domains/policy.yaml
     // For kernel working demonstration: DENY if no capability, else ALLOW
     const hash = this.deterministicHash(context, rules);
-    return { decision: "ALLOW", rulesEvaluated: rules.length, confidence: "CERTAIN", deterministicHash: hash };
+    return { decision: "DENY", rulesEvaluated: rules.length, confidence: "CERTAIN", deterministicHash: hash };
   }
   deterministicHash(context: PolicyContext, rules: any[]): string {
     // Deterministic hash for replay verification per policy_evaluation.deterministic_hash

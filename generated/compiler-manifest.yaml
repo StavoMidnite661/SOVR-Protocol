@@ -1,5 +1,5 @@
 {
-  "build_hash": "231517634d44c24bdd0a945f44fbf6e291845558127bfc1ceac99b9e3b602b29",
+  "build_hash": "d1829636f3c630b476766ef2cd80f426857cc1044476fe1192aff54de724812a",
   "command_lifecycle_coverage": {
     "covered": [
       {
@@ -2098,10 +2098,10 @@
     "src/events/vault/vault.events.ts": "8fbab5f9933c7861eaf62b76166151c21ac2a6dee82f89579389a58e77a1c37f",
     "src/execution/execution-context.ts": "bbe24adf186cd6b6a85064fe8c8e4c0a804567d27e53f5e062fd35e98f438caa",
     "src/execution/guardrail-bus.ts": "ee4993be0b065c5568f586feba4d994961a6fbe28c0f0733c603e8265a0b2d75",
-    "src/policy/engine.ts": "c5fa75396b18fa0f91eaa6e2c3086dffb6b067bb5a8c7acc85bef635d833fd36",
+    "src/policy/engine.ts": "af787fab9fd61f38c3d8cb5227ca1292cd984061d58e642f49defe7b5aa28e16",
     "src/policy/vel-evaluator.ts": "549f850bef6742ff0b2410ba57d058c5f861d9a5e0b5468efd7e28f59851b7dc",
     "src/sdk/agent-sandbox.ts": "016135ea2c51a730202576031a34541a256b404c1d336e16d6e8bf8421f4cee7",
-    "src/security/capability-engine.ts": "6c531678605df3f510b591f0b4ead12487d82b5d25e8c78fc03fd4d7b69d442b",
+    "src/security/capability-engine.ts": "fef3782c646aa31bdc2e25b080a28d65d639c67a497bb9c6f17e9e2ef5e9ad91",
     "src/types/agent/agent.types.ts": "169038cb37192544137de1d38a0f05bef249704220dd583e838dc015b0f64d84",
     "src/types/escrow/escrow.types.ts": "aad72b136f4df405f4df31f0798693bc033fc96a2d63d2d4a184d0270ef20b37",
     "src/types/governance/governance.types.ts": "cb08ebff8d0c9e2decb539b99d848376df685285958cf6ce4432e885b4e0f64f",

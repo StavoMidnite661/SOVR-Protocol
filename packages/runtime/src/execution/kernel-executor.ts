@@ -80,6 +80,38 @@ export class KernelExecutor {
     const commandDef = (commandsRegistry as any).entries?.[request.command_name];
     if (!commandDef) throw new KernelValidationError('UNKNOWN_COMMAND', `Unknown command ${request.command_name}`);
 
+    if (!request.identity_context?.identity_id || !request.identity_context?.actor_id) {
+      throw new KernelIdentityViolationError('missing identity_context');
+    }
+
+    const authorityMutation = /capability\.(grant|bind|revoke)|trust_anchor\.register/.test(request.command_name);
+    if (this.capabilityBoundaryEnforcer && authorityMutation) {
+      const inv004Early = await this.capabilityBoundaryEnforcer.enforce({
+        actorId: request.identity_context.actor_id,
+        actorType: request.identity_context.actor_type,
+        operation: request.command_name.includes('revoke') ? 'REVOKE' : 'GRANT',
+        targetCapability: String(request.payload?.capability_id ?? request.command_name),
+        targetActor: String(request.payload?.actor_id ?? request.identity_context.actor_id),
+        commandId: request.command_id,
+        correlationId: request.correlation_id
+      });
+      if (!inv004Early.allowed) {
+        return {
+          status: 'REJECTED',
+          commandId: request.command_id,
+          correlationId: request.correlation_id,
+          events: [],
+          eventsEmitted: 0,
+          transitions: [],
+          rejectionCode: 'INVARIANT_VIOLATION',
+          rejectionReason: inv004Early.reason,
+          violation: 'INV-004',
+          error: inv004Early.reason,
+          error_type: 'InvariantViolation',
+        };
+      }
+    }
+
     await this.identityCheck(request, commandDef);
 
     const requiredCapability = commandDef.authorization_requirements?.capability ?? commandDef.issuer?.minimum_capability ?? request.capability_id;
@@ -109,32 +141,6 @@ export class KernelExecutor {
         error:           authorityResult.reason ?? 'Authority boundary violated',
         error_type:      'AuthorityBoundaryViolation',
       };
-    }
-
-    // INV-004: Capability boundary (agent prohibition)
-    if (this.capabilityBoundaryEnforcer) {
-      const inv004 = await this.capabilityBoundaryEnforcer.enforce({
-        actorId: request.identity_context.actor_id,
-        actorType: request.identity_context.actor_type,
-        operation: 'GRANT', // context is command execution
-        commandId: request.command_id,
-        correlationId: request.correlation_id
-      });
-      if (!inv004.allowed) {
-        return {
-          status: 'REJECTED',
-          commandId: request.command_id,
-          correlationId: request.correlation_id,
-          events: [],
-          eventsEmitted: 0,
-          transitions: [],
-          rejectionCode: 'INVARIANT_VIOLATION',
-          rejectionReason: inv004.reason,
-          violation: 'INV-004',
-          error: inv004.reason,
-          error_type: 'InvariantViolation',
-        };
-      }
     }
 
     // INV-010: Constitutional supremacy
@@ -351,7 +357,7 @@ export class KernelExecutor {
     const transitions = machineEntry.transitions ?? {};
     if (Array.isArray(transitions)) {
       for (const t of transitions) {
-        const trigger = t.trigger ?? t.event ?? t.command;
+        const trigger = t.trigger ?? t.event;
         if (t.from === currentState && trigger === eventName) return { name: `${t.from}_to_${t.to}`, from: t.from, to: t.to };
         if (t.from === currentState && Array.isArray(t.emitted_events) && t.emitted_events.includes(eventName)) {
           return { name: `${t.from}_to_${t.to}`, from: t.from, to: t.to };
@@ -362,7 +368,7 @@ export class KernelExecutor {
     for (const [name, t] of Object.entries(transitions) as Array<[string, any]>) {
       if (name === 'abi') continue;
       const endpoints = this.transitionEndpoints(name, t);
-      const trigger = t?.trigger ?? t?.event ?? t?.command;
+      const trigger = t?.trigger ?? t?.event;
       if (endpoints && endpoints.from === currentState && trigger === eventName) return { name, from: endpoints.from, to: endpoints.to };
       if (endpoints && endpoints.from === currentState && Array.isArray(t?.emitted_events) && t.emitted_events.includes(eventName)) {
         return { name, from: endpoints.from, to: endpoints.to };

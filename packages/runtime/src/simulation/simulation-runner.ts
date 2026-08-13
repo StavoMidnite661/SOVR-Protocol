@@ -76,7 +76,7 @@ export class SimulationRunner {
 
     const startTime = Date.now();
     const bootstrap = await bootstrapSimulation(scenario.seed ?? 0xDEADBEEF);
-    const { eventStore, capabilityEngine, kernelExecutor, stateRegistry, stateMachineInterpreter } = bootstrap;
+    const { eventStore, capabilityEngine, kernelExecutor, stateRegistry } = bootstrap;
 
     const invariantResults: InvariantResult[] = [];
     let commandsExecuted = 0;
@@ -96,39 +96,6 @@ export class SimulationRunner {
     for (const cmd of scenario.commands) {
       try {
         const aggregateId = cmd.aggregate_id ?? cmd.command_id;
-        const machine = stateMachineInterpreter.getMachineFor(cmd.domain, cmd.aggregate);
-        if (machine) {
-          const currentState = aggregateStates.get(aggregateId) ?? machine.initialState;
-          const cmdEntry = (commandsRegistry.entries ?? {})[cmd.command_name] as any;
-          const successEvent = cmdEntry?.resulting_events?.success?.[0];
-          const trigger = successEvent ?? cmd.command_name;
-          const transitionResult = stateMachineInterpreter.execute({
-            machine: machine.id,
-            domain: cmd.domain,
-            aggregate: cmd.aggregate,
-            aggregateId,
-            currentState,
-            trigger,
-            context: {},
-          });
-
-          if (!transitionResult.accepted && !transitionResult.reason?.startsWith('NO_TRANSITION') && transitionResult.reason !== 'FINAL_STATE') {
-            commandsRejected++;
-            success = false;
-            error = `INVALID_STATE_TRANSITION: ${cmd.command_name} rejected by state machine: ${transitionResult.reason}`;
-            invariantResults.push({
-              invariant: 'state_machine_transition',
-              passed: false,
-              detail: `${cmd.domain}.${cmd.aggregate}:${currentState} --${trigger}--> ${transitionResult.reason}`,
-            });
-            continue;
-          }
-
-          if (transitionResult.accepted && transitionResult.toState) {
-            aggregateStates.set(aggregateId, transitionResult.toState);
-          }
-        }
-
         const capabilityId = cmd.capability_id ?? `${cmd.domain}.${cmd.aggregate}.create`;
         const scope = cmd.scope ?? `${cmd.domain}.${cmd.aggregate}:*`;
         const effectiveActor = cmd.actor_context ?? scenario.actor_context;

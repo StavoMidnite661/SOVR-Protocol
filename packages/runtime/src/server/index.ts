@@ -274,30 +274,6 @@ async function bootKernel() {
     catch (e) { console.warn(`Redis stream publish failed for ${evName}:`, (e as Error).message); }
   });
 
-  // Seed genesis event if store was empty
-  const wasEmpty = eventStore.stats().totalEvents === 0;
-  if (wasEmpty) {
-  const commandId = crypto.randomUUID();
-  const correlationId = crypto.randomUUID();
-  await eventStore.append({
-    event_name: 'saga.started',
-    aggregate: 'saga_instance',
-    aggregate_id: crypto.randomUUID(),
-    source_domain: 'kernel',
-    command_id: commandId,
-    triggering_command: 'system.boot',
-    causation_id: correlationId,
-    correlation_id: correlationId,
-    actor_id: 'system',
-    identity_context: { identity_id: 'system', actor_type: 'system', session_id: 'boot' },
-    policy_decision_id: crypto.randomUUID(),
-    capability_id: 'system.internal',
-    payload: { boot_stage: 'KERNEL_INIT' },
-    projection_effect: { target: 'none', operation: 'no_op' },
-      audit: { constitutional_rules_referenced: ['INV-001'], retention_class: 'permanent' },
-    });
-  }
-
   projectionEngine.rebuildFromGenesis(await Promise.resolve(eventStore.getAll()));
 
   renderer.kernelMounted();
@@ -323,7 +299,7 @@ async function bootKernel() {
   ]);
 
   renderer.finalFrame({
-    version: 'v0.7.0',
+    version: 'v0.6.0',
     buildHash: config.buildHash,
     port: config.bindPort,
     health: 'HEALTHY',
@@ -459,22 +435,17 @@ async function buildServer() {
     return { ok: true, payload: result.payload };
   }
 
-  async function identityContextFromReq(req: any): Promise<{ identity_id: string; actor_id: string; actor_type: string; session_id: string; agent_id?: string }> {
+  async function identityContextFromReq(req: any): Promise<{ identity_id: string; actor_id: string; actor_type: string; session_id: string; agent_id?: string } | null> {
     const auth = await authFromBearer(req.headers.authorization);
     if (auth.ok && auth.payload) {
       return {
-        identity_id: auth.payload.identity_id,
-        actor_id: auth.payload.actor_id,
+        identity_id: auth.payload.identity_id ?? auth.payload.actor_id ?? auth.payload.sub,
+        actor_id: auth.payload.actor_id ?? auth.payload.sub,
         actor_type: auth.payload.actor_type,
         session_id: auth.payload.session_id,
       };
     }
-    return {
-      identity_id: (req.headers['x-actor-id'] as string) ?? 'actor_human_001',
-      actor_id: (req.headers['x-actor-id'] as string) ?? 'actor_human_001',
-      actor_type: (req.headers['x-actor-type'] as string) ?? 'human',
-      session_id: (req.headers['x-session-id'] as string) ?? crypto.randomUUID(),
-    };
+    return null;
   }
 
   class FinancialRateLimiter {
@@ -504,7 +475,7 @@ async function buildServer() {
     app.addHook('preHandler', async (request, reply) => {
       if (request.method === 'POST' && String(request.url).startsWith('/api/v1/') && !String(request.url).includes('/identity/session')) {
         const ctx = await identityContextFromReq(request);
-        const key = ctx.actor_id;
+        const key = ctx?.actor_id ?? request.ip;
         const limit = financialRateLimiter.check(key);
         if (!limit.allowed) {
           reply.code(429).send({
@@ -679,77 +650,100 @@ async function buildServer() {
     grants: capabilityEngine.listGrants(req.params.actor_id),
   }));
 
-  app.post('/api/v1/capabilities/grant', async (req: any) => {
+  app.post('/api/v1/capabilities/grant', async (req: any, reply) => {
+    const identity_context = await identityContextFromReq(req);
+    if (!identity_context) {
+      reply.code(401);
+      return { error: 'UNAUTHENTICATED', message: 'Bearer token required' };
+    }
     const { capability_id, actor_id, scope_pattern, expires_at, conditions } = req.body || {};
     if (!capability_id || !actor_id || !scope_pattern) {
+      reply.code(400);
       return { error: 'capability_id, actor_id, scope_pattern required' };
     }
-    const requester = req.headers['x-actor-id'] || 'governance';
-    const commandId = crypto.randomUUID();
     const correlationId = crypto.randomUUID();
-    capabilityEngine.grant({ capability_id, actor_id, scope_pattern, granted_by: requester, expires_at, conditions });
-    const ev = await eventStore.append({
-      event_name: 'governance.capability.granted',
+    const result = await commandBus.submit({
+      command_id: crypto.randomUUID(),
+      command_name: 'governance.capability.grant',
       aggregate: 'capability_grant',
-      aggregate_id: crypto.randomUUID(),
       source_domain: 'governance',
-      command_id: commandId,
-      triggering_command: 'governance.capability.grant',
-      causation_id: correlationId,
-      correlation_id: correlationId,
-      actor_id: requester,
-      identity_context: { identity_id: requester, actor_type: 'governance' },
-      policy_decision_id: crypto.randomUUID(),
+      payload: { capability_id, actor_id, scope_pattern, expires_at: expires_at ?? null, conditions: conditions ?? {} },
+      identity_context,
       capability_id: 'governance.capability.grant',
-      payload: { capability_id, actor_id, scope_pattern, conditions },
-      projection_effect: { target: 'none', operation: 'no_op' },
-      audit: { constitutional_rules_referenced: ['INV-003', 'INV-004'], retention_class: 'permanent' },
+      scope: `capability:${capability_id}`,
+      correlation_id: correlationId,
+      causation_id: correlationId,
     });
-    return { granted: true, capability_id, actor_id, scope_pattern, event: ev };
+    if (result.status === 'REJECTED') {
+      reply.code(result.error?.includes('INV-004') || result.error?.includes('UNAUTHORIZED') ? 403 : 400);
+    }
+    return result;
   });
 
-  app.delete('/api/v1/capabilities/grant', async (req: any) => {
-    const { capability_id, actor_id } = req.body || {};
+  app.delete('/api/v1/capabilities/grant', async (req: any, reply) => {
+    const identity_context = await identityContextFromReq(req);
+    if (!identity_context) {
+      reply.code(401);
+      return { error: 'UNAUTHENTICATED', message: 'Bearer token required' };
+    }
+    const { capability_id, actor_id, revocation_reason } = req.body || {};
     if (!capability_id || !actor_id) {
+      reply.code(400);
       return { error: 'capability_id and actor_id required' };
     }
-    const requester = req.headers['x-actor-id'] || 'governance';
-    capabilityEngine.revoke(actor_id, capability_id);
-    return { revoked: true, capability_id, actor_id, revoked_by: requester };
+    const correlationId = crypto.randomUUID();
+    const result = await commandBus.submit({
+      command_id: crypto.randomUUID(),
+      command_name: 'governance.capability.revoke',
+      aggregate: 'capability_grant',
+      source_domain: 'governance',
+      payload: { capability_id, actor_id, revocation_reason: revocation_reason ?? 'revoked' },
+      identity_context,
+      capability_id: 'governance.capability.revoke',
+      scope: `capability:${capability_id}`,
+      correlation_id: correlationId,
+      causation_id: correlationId,
+    });
+    if (result.status === 'REJECTED') {
+      reply.code(result.error?.includes('INV-004') || result.error?.includes('UNAUTHORIZED') ? 403 : 400);
+    }
+    return result;
   });
 
-  // Identity session — real RS256 signed JWT
-  app.post('/api/v1/identity/session', async (req: any) => {
+  // Identity session — kernel command then JWT mint
+  app.post('/api/v1/identity/session', async (req: any, reply) => {
     const { identity_id, actor_id, actor_type, credential_id } = req.body || {};
     const session_id = crypto.randomUUID();
-    const sub = actor_id || identity_id || 'actor_human_001';
+    const sub = actor_id || identity_id;
+    if (!sub) {
+      reply.code(400);
+      return { error: 'identity_id or actor_id required' };
+    }
     const id = identity_id || sub;
     const typ = actor_type || 'human';
-    const commandId = crypto.randomUUID();
     const correlationId = crypto.randomUUID();
+    const commandResult = await commandBus.submit({
+      command_id: crypto.randomUUID(),
+      command_name: 'identity.session.create',
+      aggregate: 'session',
+      source_domain: 'identity',
+      payload: { session_id, identity_id: id, actor_id: sub, credential_id },
+      identity_context: { identity_id: id, actor_id: sub, actor_type: typ, session_id },
+      capability_id: 'identity.session.create',
+      scope: 'identity_id',
+      correlation_id: correlationId,
+      causation_id: correlationId,
+    });
+    if (commandResult.status === 'REJECTED') {
+      reply.code(commandResult.error?.includes('CAPABILITY') || commandResult.error?.includes('UNAUTHORIZED') ? 403 : 400);
+      return commandResult;
+    }
     const jwt_token = await jwt.sign({
       sub,
       actor_type: typ,
       session_id,
     });
-    const ev = await eventStore.append({
-      event_name: 'identity.session.created',
-      aggregate: 'session',
-      aggregate_id: session_id,
-      source_domain: 'identity',
-      command_id: commandId,
-      triggering_command: 'identity.session.create',
-      causation_id: correlationId,
-      correlation_id: correlationId,
-      actor_id: sub,
-      identity_context: { identity_id: id, actor_type: typ, session_id },
-      policy_decision_id: crypto.randomUUID(),
-      capability_id: 'identity.session.create',
-      payload: { session_id, identity_id: id, actor_id: sub, credential_id, trust_level: 'HIGH' },
-      projection_effect: { target: 'identity_session_view', operation: 'insert' },
-      audit: { constitutional_rules_referenced: ['INV-008'], retention_class: 'session' },
-    });
-    return { jwt: jwt_token, session_id, identity_id: id, actor_id: sub, trust_level: 'HIGH', event: ev };
+    return { jwt: jwt_token, session_id, identity_id: id, actor_id: sub, trust_level: 'HIGH', event: commandResult.events?.[0] ?? null };
   });
 
   // ---- W3C DID/VC Identity ----
@@ -817,6 +811,10 @@ async function buildServer() {
       return { error: 'STATE_REGISTRY_NOT_READY', state_registry: commandBus.stateRegistryStatus() };
     }
     const identity_context = await identityContextFromReq(req);
+    if (!identity_context) {
+      reply.code(401);
+      return { error: 'UNAUTHENTICATED', message: 'Bearer token required' };
+    }
     const body = req.body || {};
     try {
       const instance = await sagaInterpreter.start({
@@ -851,6 +849,10 @@ async function buildServer() {
     const body = req.body || {};
 
     const identity_context = await identityContextFromReq(req);
+    if (!identity_context) {
+      reply.code(401);
+      return { error: 'UNAUTHENTICATED', message: 'Bearer token required' };
+    }
 
     // Determine command name
     let commandName = body.commandName || body.command_name || body.triggering_command;

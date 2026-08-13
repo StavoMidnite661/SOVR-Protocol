@@ -52,6 +52,7 @@ export interface LedgerAdapterConfig {
   port: number;
   readOnly: boolean;
   writeEnabled: boolean;
+  addresses?: string[];
 }
 
 export interface ShadowExecutionResult {
