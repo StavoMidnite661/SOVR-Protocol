@@ -41,7 +41,7 @@ From `generated/registries` and `generated/compiler-certification.json`:
 | State machines | 47 |
 | Capabilities | 127 |
 | Projections | 57 |
-| IR | 663 nodes / 516 edges |
+| Canonical IR | 663 nodes, 516 edges (`generated/sovr-ir.json`) |
 | Build hash | `231517634d44c24bdd0a945f44fbf6e291845558127bfc1ceac99b9e3b602b29` |
 | Registry ABI | v1 |
 | Compiler / runtime | 0.6.0 |
