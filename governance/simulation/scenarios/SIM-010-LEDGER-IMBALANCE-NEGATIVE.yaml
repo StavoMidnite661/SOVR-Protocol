@@ -1,0 +1,49 @@
+scenario_id: SIM-010-LEDGER-IMBALANCE-NEGATIVE
+name: Ledger Imbalance Negative Certification
+description: >
+  Negative-path certification: submits a journal entry whose debits do
+  not equal its credits and requires the kernel's BALANCED_POSTINGS
+  validation (the compiled form of the debits_equal_credits rule on
+  ledger.entry.post) to refuse it. Replaces the ad-hoc inline scenarios
+  previously constructed inside the ledger-certification suite, which the
+  authority-registry integrity gate correctly rejected: simulation
+  authority is compiled from this corpus, never from test code.
+
+actor_context:
+  actor_id: sim-ledger-authority
+  actor_type: system
+  identity_id: sim-ledger-authority-id
+  session_id: sim-ledger-session-010
+
+commands:
+  - command_id: cmd-001
+    command_name: ledger.entry.post
+    domain: ledger
+    aggregate: journal_entry
+    aggregate_id: journal-imbalance-010
+    payload:
+      journal_id: journal-imbalance-010
+      transaction_id: tx-imbalance-010
+      event_reference: vault.asset.registered
+      correlation_id: cmd-001
+      causation_id: cmd-001
+      description: 'Imbalanced ledger entry (negative certification)'
+      entry_type: STANDARD
+      postings:
+        - account_id: acc-imbalance-a
+          amount: 100
+          direction: DEBIT
+          asset_id: vault-asset-007
+          description: 'Debit leg'
+        - account_id: acc-imbalance-b
+          amount: 50
+          direction: CREDIT
+          asset_id: vault-asset-007
+          description: 'Credit leg'
+    capability_id: ledger.entry.post
+    scope: ledger.entry:*
+    expected_result: REJECTED
+
+verification:
+  double_entry_integrity: true
+  state_transitions: true

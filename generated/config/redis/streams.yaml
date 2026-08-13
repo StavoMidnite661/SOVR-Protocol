@@ -1,5 +1,5 @@
 # SOVR GENERATED — Redis Streams
-# hash be82ae833af804734bed5bc491fe63e37de2efa1f7d4b5ac8c8afc66f70ee04f
+# hash 9a931ee698a49aa963e98945624ed1f2deaa622c0edfe33e7900283b4c8569cc
 {
   "streams": [
     {
@@ -225,6 +225,13 @@
       "max_length": 100000,
       "consumer_ack_timeout_ms": 30000,
       "event": "payment.compensation.completed"
+    },
+    {
+      "stream": "sovr:stream:payment:rail_adapter",
+      "consumer_group": "sovr-payment-service",
+      "max_length": 100000,
+      "consumer_ack_timeout_ms": 30000,
+      "event": "payment.adapter.disable_failed"
     },
     {
       "stream": "sovr:stream:payment:reconciliation",

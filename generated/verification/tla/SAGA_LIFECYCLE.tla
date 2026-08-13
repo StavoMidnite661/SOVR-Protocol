@@ -25,7 +25,7 @@ FAILED_TO_COMPENSATING ==
     /\ state = "FAILED"
     /\ state' = "COMPENSATING"
     /\ visited' = visited \cup {"COMPENSATING"}
-\* Trigger: SAGA_COMPENSATE
+\* Trigger: SAGA_COMPENSATED
 
 PENDING_TO_RUNNING == 
     /\ state = "PENDING"

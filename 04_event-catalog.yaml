@@ -7850,3 +7850,148 @@ events:
       escrow_id: { type: string }
       failure_reason: { type: string }
       failed_at: { type: timestamp }
+
+  # ------------------------------------------------------------------
+  # REPAIR (fail-closed canonicalization): six events derived to repair
+  # copy-paste corruption in 03_command-catalog.yaml where five commands
+  # declared semantically wrong success/failure events (e.g. agent.suspend
+  # emitting agent.terminated). Names follow the established
+  # domain.object.action(_failed) convention; envelopes mirror their
+  # sibling events exactly. No semantics were invented: each event is the
+  # literal realization of its command's own description and of a
+  # transition already declared in 05_state-machines.yaml.
+  # ------------------------------------------------------------------
+  agent.suspension_failed:
+    aggregate: agent_instance
+    aggregate_id_field: agent_id
+    source_domain: agent
+    version: 1.0.0
+    description: Agent suspension failed
+    producer: agent_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      agent_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  saga.compensation_failed:
+    aggregate: saga_instance
+    aggregate_id_field: saga_id
+    source_domain: kernel
+    version: 1.0.0
+    description: Saga compensation could not be completed
+    producer: saga_orchestrator
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      saga_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  governance.proposal.cancellation_failed:
+    aggregate: governance_proposal
+    aggregate_id_field: proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: Proposal cancellation failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      proposal_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  governance.proposal.implementation_failed:
+    aggregate: governance_proposal
+    aggregate_id_field: proposal_id
+    source_domain: governance
+    version: 1.0.0
+    description: Proposal implementation failed
+    producer: governance_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      proposal_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp
+
+  payment.adapter.disabled:
+    aggregate: rail_adapter
+    aggregate_id_field: adapter_id
+    source_domain: payment
+    version: 1.0.0
+    description: A payment rail adapter has been disabled
+    producer: payment_service
+    consumers:
+      - payment_projection
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: rail_adapter_view
+      operation: update
+      updates:
+        state: DISABLED
+    data_fields:
+      adapter_id:
+        type: string
+      reason:
+        type: string
+      disabled_at:
+        type: timestamp
+
+  payment.adapter.disable_failed:
+    aggregate: rail_adapter
+    aggregate_id_field: adapter_id
+    source_domain: payment
+    version: 1.0.0
+    description: Payment rail adapter disable operation failed
+    producer: payment_service
+    consumers:
+      - audit_projection
+    guarantees:
+      - "INV-005: audit trail maintained"
+    projection_effect:
+      target: none
+      operation: no_op
+    data_fields:
+      adapter_id:
+        type: string
+      reason:
+        type: string
+      failed_at:
+        type: timestamp

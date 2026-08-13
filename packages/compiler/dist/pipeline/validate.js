@@ -163,6 +163,65 @@ export function validateReferences(parsed) {
                     });
                 }
             }
+            // REF-008: transition triggers must resolve to the event catalog.
+            // The kernel and the interpreter are event-driven: a transition whose
+            // trigger names no catalog event can never fire, which leaves the
+            // machine declaratively present but executably inert (the failure
+            // class behind the unbindable prose triggers: "settlement confirmed",
+            // "timeout", "automatic"). This is not a style preference; an
+            // unbindable trigger means the declared authority transition cannot
+            // be consumed by the runtime, so the build must fail rather than
+            // silently compile dead authority. Likewise every emitted_event must
+            // resolve. Ambiguity stops compilation — it is never repaired by
+            // manufacturing a plausible-looking event.
+            for (const [tName, tDef] of transitionsList) {
+                if (tName === 'invalid_transitions')
+                    continue;
+                if (tName === 'abi' || (tDef && typeof tDef === 'object' && tDef.abi && Object.keys(tDef).length <= 2))
+                    continue;
+                if (Array.isArray(tDef))
+                    continue; // bookkeeping arrays (invalid_transitions)
+                if (!tDef || typeof tDef !== 'object')
+                    continue;
+                const trigger = tDef.trigger ?? tDef.event;
+                if (trigger === undefined || trigger === null || String(trigger).trim() === '') {
+                    diagnostics.push({
+                        code: 'REF-008',
+                        category: 'REFERENCE',
+                        severity: 'ERROR',
+                        stage: 'PASS-006',
+                        file: '05_state-machines.yaml',
+                        message: `State machine ${smName} transition ${tName} has no trigger; event-driven transitions require a catalog event trigger`,
+                        action: 'ABORT_WITH_RESOLUTION_ERROR',
+                    });
+                    continue;
+                }
+                if (!events.has(String(trigger))) {
+                    diagnostics.push({
+                        code: 'REF-008',
+                        category: 'REFERENCE',
+                        severity: 'ERROR',
+                        stage: 'PASS-006',
+                        file: '05_state-machines.yaml',
+                        message: `State machine ${smName} transition ${tName} trigger '${trigger}' resolves to no event in the catalog — the transition can never fire`,
+                        action: 'ABORT_WITH_RESOLUTION_ERROR',
+                    });
+                }
+                const emitted = Array.isArray(tDef.emitted_events) ? tDef.emitted_events : [];
+                for (const ev of emitted) {
+                    if (typeof ev === 'string' && !events.has(ev)) {
+                        diagnostics.push({
+                            code: 'REF-008',
+                            category: 'REFERENCE',
+                            severity: 'ERROR',
+                            stage: 'PASS-006',
+                            file: '05_state-machines.yaml',
+                            message: `State machine ${smName} transition ${tName} emits unknown event ${ev}`,
+                            action: 'ABORT_WITH_RESOLUTION_ERROR',
+                        });
+                    }
+                }
+            }
         }
     }
     // REF-005: saga step command references. Live sagas are executable

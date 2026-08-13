@@ -931,19 +931,53 @@
     },
     "payment.adapter.disable": {
       "abi": "v1",
-      "aggregate": "execution",
-      "capability": "payment.execution.compensate",
+      "aggregate": "rail_adapter",
+      "capability": "payment.adapter.disable",
       "command_name": "payment.adapter.disable",
       "domain": "payment",
       "execution_gates": [],
       "resulting_events": {
         "failure": [
-          "payment.execution.compensation_failed"
+          "payment.adapter.disable_failed"
         ],
         "success": [
-          "payment.request.cancelled"
+          "payment.adapter.disabled"
         ]
       }
+    },
+    "payment.adapter.disable_failed": {
+      "abi": "v1",
+      "aggregate": "rail_adapter",
+      "data_fields": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.adapter.disable_failed"
+    },
+    "payment.adapter.disabled": {
+      "abi": "v1",
+      "aggregate": "rail_adapter",
+      "data_fields": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "disabled_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.adapter.disabled"
     },
     "payment.compensation.completed": {
       "abi": "v1",
@@ -2056,22 +2090,6 @@
       },
       "domain": "payment",
       "event_name": "payment.settlement.failed"
-    },
-    "saga.compensate": {
-      "abi": "v1",
-      "aggregate": "saga_execution",
-      "capability": "system.internal",
-      "command_name": "saga.compensate",
-      "domain": "payment",
-      "execution_gates": [],
-      "resulting_events": {
-        "failure": [
-          "payment.execution.compensation_failed"
-        ],
-        "success": [
-          "payment.execution.compensated"
-        ]
-      }
     },
     "treasury.liquidity.allocate": {
       "abi": "v1",
@@ -3825,13 +3843,13 @@
       "event_name": "vault.valuation.updated"
     }
   },
-  "entry_count": 169,
+  "entry_count": 170,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "644169c9bfa5311d578f92ad90416b8e1b68bda18c5c54b6db0003245765445f",
+    "hash": "3ca09bc28e94208b64f3d266137ce0666c79c6cf298d313b84905665c528a678",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "economic"

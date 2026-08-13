@@ -41,9 +41,9 @@ flowchart TD
     capability_intent_convert(["CAPABILITY: convert"])
   end
   subgraph KERNEL [KERNEL Domain]
+    command_saga_compensate(["COMMAND: compensate"])
     event_saga_compensated(["EVENT: compensated"])
     event_saga_compensating(["EVENT: compensating"])
-    event_saga_completed(["EVENT: completed"])
   end
   subgraph LEDGER [LEDGER Domain]
     capability_ledger_account_freeze(["CAPABILITY: freeze"])
@@ -51,9 +51,9 @@ flowchart TD
     capability_ledger_account_read(["CAPABILITY: read"])
   end
   subgraph PAYMENT [PAYMENT Domain]
+    capability_payment_adapter_disable(["CAPABILITY: disable"])
     capability_payment_compensation_execute(["CAPABILITY: execute"])
     capability_payment_execution_compensate(["CAPABILITY: compensate"])
-    capability_payment_execution_confirm(["CAPABILITY: confirm"])
   end
   subgraph POLICY [POLICY Domain]
     capability_policy_compliance_create(["CAPABILITY: create"])
@@ -80,8 +80,8 @@ flowchart TD
     capability_vault_asset_impair(["CAPABILITY: impair"])
     capability_vault_asset_read(["CAPABILITY: read"])
   end
-  command_agent_suspend -->|command_produces_event| event_agent_terminated
-  command_agent_suspend -->|command_produces_event| event_agent_termination_failed
+  command_agent_suspend -->|command_produces_event| event_agent_suspended
+  command_agent_suspend -->|command_produces_event| event_agent_suspension_failed
   command_ArchivePackage -->|command_produces_event| event_EvidencePackageArchivalFailed
   command_ArchivePackage -->|command_produces_event| event_EvidencePackageArchived
   command_AuthorizeSettlement -->|command_produces_event| event_SettlementAuthorizationFailed

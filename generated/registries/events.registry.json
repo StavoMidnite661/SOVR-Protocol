@@ -2000,6 +2000,42 @@
       "source_domain": "agent",
       "version": "1.0.0"
     },
+    "agent.suspension_failed": {
+      "abi": "v1",
+      "aggregate": "agent_instance",
+      "aggregate_id_field": "agent_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "agent_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Agent suspension failed",
+      "event_name": "agent.suspension_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "agent_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
+      },
+      "source_domain": "agent",
+      "version": "1.0.0"
+    },
     "agent.terminated": {
       "abi": "v1",
       "aggregate": "instance",
@@ -3545,6 +3581,42 @@
       "source_domain": "governance",
       "version": "1.0.0"
     },
+    "governance.proposal.cancellation_failed": {
+      "abi": "v1",
+      "aggregate": "governance_proposal",
+      "aggregate_id_field": "proposal_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Proposal cancellation failed",
+      "event_name": "governance.proposal.cancellation_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "governance_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
+      },
+      "source_domain": "governance",
+      "version": "1.0.0"
+    },
     "governance.proposal.cancelled": {
       "abi": "v1",
       "aggregate": "governance_proposal",
@@ -3620,6 +3692,42 @@
           "abi": "v1",
           "state": "EXPIRED"
         }
+      },
+      "source_domain": "governance",
+      "version": "1.0.0"
+    },
+    "governance.proposal.implementation_failed": {
+      "abi": "v1",
+      "aggregate": "governance_proposal",
+      "aggregate_id_field": "proposal_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Proposal implementation failed",
+      "event_name": "governance.proposal.implementation_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "governance_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
       },
       "source_domain": "governance",
       "version": "1.0.0"
@@ -7530,6 +7638,83 @@
       "source_domain": "ledger",
       "version": "1.0.0"
     },
+    "payment.adapter.disable_failed": {
+      "abi": "v1",
+      "aggregate": "rail_adapter",
+      "aggregate_id_field": "adapter_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "adapter_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Payment rail adapter disable operation failed",
+      "event_name": "payment.adapter.disable_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "payment_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
+      },
+      "source_domain": "payment",
+      "version": "1.0.0"
+    },
+    "payment.adapter.disabled": {
+      "abi": "v1",
+      "aggregate": "rail_adapter",
+      "aggregate_id_field": "adapter_id",
+      "consumers": [
+        "payment_projection",
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "adapter_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "disabled_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "A payment rail adapter has been disabled",
+      "event_name": "payment.adapter.disabled",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "payment_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "update",
+        "target": "rail_adapter_view",
+        "updates": {
+          "abi": "v1",
+          "state": "DISABLED"
+        }
+      },
+      "source_domain": "payment",
+      "version": "1.0.0"
+    },
     "payment.compensation.completed": {
       "abi": "v1",
       "aggregate": "payment_request",
@@ -10265,6 +10450,42 @@
           "abi": "v1",
           "state": "COMPENSATING"
         }
+      },
+      "source_domain": "kernel",
+      "version": "1.0.0"
+    },
+    "saga.compensation_failed": {
+      "abi": "v1",
+      "aggregate": "saga_instance",
+      "aggregate_id_field": "saga_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "saga_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Saga compensation could not be completed",
+      "event_name": "saga.compensation_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "saga_orchestrator",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
       },
       "source_domain": "kernel",
       "version": "1.0.0"
@@ -13204,7 +13425,7 @@
       "version": "1.0.0"
     }
   },
-  "entry_count": 286,
+  "entry_count": 292,
   "event_envelope": {
     "abi": "v1",
     "compile_target": true,
@@ -13463,7 +13684,7 @@
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "882b3a3ac987a8ca4e06ebd75ae14bde4354603c0576b1767a96f5f802e2208c",
+    "hash": "7bbd93bde681dcf6805cf905acf7dae0a792fb50c4ed0991c17320913b4606b0",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "events"

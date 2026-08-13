@@ -416,7 +416,7 @@ SOVR defines **10 first-class financial domains** covering the complete operatio
 | Representation (EXT) | Can a settlement value unit be issued? | — | — |
 | Gateway (EXT) | Can the settlement provenance be independently verified? | — | — |
 
-**Total: 118 commands. 286 events. 52 entities.**
+**Total: 118 commands. 292 events. 52 entities.**
 
 ### Vault Domain
 
@@ -576,7 +576,7 @@ Event Publication
 
 ## Event Catalog
 
-**286 events** across 10 canonical domains plus 5 extension domains and kernel events.
+**292 events** across 10 canonical domains plus 5 extension domains and kernel events.
 
 Every event carries the mandatory **21-field event envelope**:
 
@@ -1237,7 +1237,7 @@ SOVR-Protocol/
 │   ├── 01_constitution.yaml          ← Supreme law: 10 invariants, authority, enforcement
 │   ├── 02_domain-model.yaml          ← 52 entities across 10 domains + 5 extensions
 │   ├── 03_command-catalog.yaml       ← 118 commands with validation rules
-│   ├── 04_event-catalog.yaml         ← 286 events with full envelope
+│   ├── 04_event-catalog.yaml         ← 292 events with full envelope
 │   ├── 05_state-machines.yaml        ← 46 state machines
 │   ├── 08_security-capabilities.yaml ← 113 capabilities + scope language
 │   ├── 09_saga-orchestration.yaml    ← Saga definitions + compensation model

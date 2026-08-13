@@ -25,7 +25,7 @@ CONFIRMING_TO_COMPENSATING ==
     /\ state = "CONFIRMING"
     /\ state' = "COMPENSATING"
     /\ visited' = visited \cup {"COMPENSATING"}
-\* Trigger: PAYMENT_EXECUTION_COMPENSATE
+\* Trigger: PAYMENT_COMPENSATION_STARTED
 
 CONFIRMING_TO_FAILED == 
     /\ state = "CONFIRMING"
@@ -43,7 +43,7 @@ EXECUTING_TO_COMPENSATING ==
     /\ state = "EXECUTING"
     /\ state' = "COMPENSATING"
     /\ visited' = visited \cup {"COMPENSATING"}
-\* Trigger: PAYMENT_EXECUTION_COMPENSATE
+\* Trigger: PAYMENT_COMPENSATION_STARTED
 
 EXECUTING_TO_CONFIRMING == 
     /\ state = "EXECUTING"
@@ -67,13 +67,13 @@ FAILED_TO_COMPENSATING ==
     /\ state = "FAILED"
     /\ state' = "COMPENSATING"
     /\ visited' = visited \cup {"COMPENSATING"}
-\* Trigger: PAYMENT_EXECUTION_COMPENSATE
+\* Trigger: PAYMENT_COMPENSATION_STARTED
 
 PLANNING_TO_CANCELLED == 
     /\ state = "PLANNING"
     /\ state' = "CANCELLED"
     /\ visited' = visited \cup {"CANCELLED"}
-\* Trigger: PAYMENT_REQUEST_CANCEL
+\* Trigger: PAYMENT_REQUEST_CANCELLED
 
 PLANNING_TO_FAILED == 
     /\ state = "PLANNING"
@@ -103,13 +103,13 @@ RECEIVED_TO_CANCELLED ==
     /\ state = "RECEIVED"
     /\ state' = "CANCELLED"
     /\ visited' = visited \cup {"CANCELLED"}
-\* Trigger: PAYMENT_REQUEST_CANCEL
+\* Trigger: PAYMENT_REQUEST_CANCELLED
 
 RECEIVED_TO_PLANNING == 
     /\ state = "RECEIVED"
     /\ state' = "PLANNING"
     /\ visited' = visited \cup {"PLANNING"}
-\* Trigger: PAYMENT_EXECUTION_PLAN
+\* Trigger: PAYMENT_EXECUTION_PLANNED
 
 RECONCILING_TO_SETTLED == 
     /\ state = "RECONCILING"
@@ -121,13 +121,13 @@ RECONCILING_TO_SETTLED_2 ==
     /\ state = "RECONCILING"
     /\ state' = "SETTLED"
     /\ visited' = visited \cup {"SETTLED"}
-\* Trigger: PAYMENT_RECEIPT_ISSUE
+\* Trigger: PAYMENT_RECEIPT_ISSUED
 
 ROUTING_TO_CANCELLED == 
     /\ state = "ROUTING"
     /\ state' = "CANCELLED"
     /\ visited' = visited \cup {"CANCELLED"}
-\* Trigger: PAYMENT_REQUEST_CANCEL
+\* Trigger: PAYMENT_REQUEST_CANCELLED
 
 ROUTING_TO_FAILED == 
     /\ state = "ROUTING"
@@ -139,7 +139,7 @@ ROUTING_TO_PREPARING ==
     /\ state = "ROUTING"
     /\ state' = "PREPARING"
     /\ visited' = visited \cup {"PREPARING"}
-\* Trigger: PAYMENT_EXECUTION_EXECUTE
+\* Trigger: PAYMENT_EXECUTION_STARTED
 
 Terminated == 
     /\ state \in FinalStates

@@ -41,7 +41,16 @@ describe('Phase 10A Simulation Scenarios', () => {
       }, null, 2));
 
       expect(report.result.success).toBe(true);
-      expect(report.result.events_generated).toBeGreaterThan(0);
+      // Negative-certification scenarios (every command expects REJECTED)
+      // legitimately emit zero events — nothing was accepted. Their
+      // certification evidence is a certified rejection, not an event log.
+      const allNegative = compiled.commands.length > 0 && compiled.commands.every((c: any) => c.expected_result === 'REJECTED');
+      if (allNegative) {
+        expect(report.result.commands_rejected).toBeGreaterThan(0);
+        expect(report.result.invariant_results.some((i: any) => i.passed && i.detail.includes('REJECTED'))).toBe(true);
+      } else {
+        expect(report.result.events_generated).toBeGreaterThan(0);
+      }
       expect(report.result.audit_hash).toBeTruthy();
       expect(report.result.deterministic_replay_hash).toBeTruthy();
     });

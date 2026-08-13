@@ -1820,6 +1820,25 @@ capabilities:
     delegable: false
     max_delegation_depth: 0
 
+  # Derived during fail-closed canonicalization: payment.adapter.disable
+  # previously declared capability payment.execution.compensate — copy-paste
+  # corruption that let a compensation authority disable rail adapters.
+  - capability_id: payment.adapter.disable
+    description: "Disable a failing or non-compliant payment rail adapter"
+    domain: PAYMENT
+    resource_type: "rail_adapter"
+    action: EXECUTE
+    scope_pattern: "payment:adapter:{adapter_id}:disable"
+    grantable_by:
+      - governance
+    default_for_actor_types: {}
+    constitutional_constraint: "INV-003"
+    risk_level: HIGH
+    governance_approval_required: false
+    agent_executable: false
+    delegable: false
+    max_delegation_depth: 0
+
   - capability_id: payment.compensation.execute
     description: "Execute compensating reversals against external payment rails"
     domain: PAYMENT

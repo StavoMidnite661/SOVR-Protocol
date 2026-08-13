@@ -1,5 +1,5 @@
 // SOVR GENERATED FILE — DO NOT EDIT
-// hash 6a6c6a6b50833db879fc5751a2b1ad018032ea206c9775e0d4dd083e96066ec5
+// hash 4732e5b73f172dc3d6e8b752db7349b965295a3fd52e2c3b06cb363a2ff9ae79
 // SOVR GENERATED — Capability Engine
 // Compiler: 0.6.0 Protocol: 1.0.0
 // Implements INV-003, INV-008 gate 2+3
@@ -116,6 +116,7 @@ export class CapabilityEngine {
   "ledger.period.manage",
   "ledger.reconcile",
   "ledger.reconcile.initiate",
+  "payment.adapter.disable",
   "payment.compensation.execute",
   "payment.execution.compensate",
   "payment.execution.confirm",

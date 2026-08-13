@@ -19,7 +19,9 @@ commands:
     command_name: treasury.transfer.request
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-005
     payload:
+      order_id: sim-transfer-005
       source_actor_id: sim-treasury-operator
       destination_details:
         - type: ach
@@ -37,8 +39,9 @@ commands:
     command_name: treasury.transfer.authorize
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-005
     payload:
-      order_id: sim-transfer-005-a
+      order_id: sim-transfer-005
     capability_id: treasury.transfer.authorize
     scope: treasury.transfer:*
     expected_result: ACCEPTED
@@ -47,8 +50,9 @@ commands:
     command_name: treasury.transfer.reserve
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-005
     payload:
-      order_id: sim-transfer-005-b
+      order_id: sim-transfer-005
     capability_id: treasury.transfer.reserve
     scope: treasury.transfer:*
     expected_result: ACCEPTED
@@ -57,10 +61,29 @@ commands:
     command_name: treasury.transfer.execute
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-005
     payload:
-      order_id: sim-transfer-005-c
+      order_id: sim-transfer-005
     capability_id: treasury.transfer.execute
     scope: treasury.transfer:*
+    expected_result: ACCEPTED
+
+  # REPAIR: the declared terminal state SETTLED was unreachable — the flow
+  # stopped at execute and used a different order_id per command. The only
+  # ratified path to SETTLED is treasury.settlement.confirm (03_command-
+  # catalog), which SIM-007 already exercises with this exact shape.
+  - command_id: cmd-005
+    command_name: treasury.settlement.confirm
+    domain: treasury
+    aggregate: transfer_order
+    aggregate_id: sim-transfer-005
+    payload:
+      order_id: sim-transfer-005
+      settlement_reference: sim-ref-005
+      settled_at: "2026-08-08T14:00:00Z"
+      settlement_amount: '50'
+    capability_id: treasury.settlement.confirm
+    scope: treasury.settlement:*
     expected_result: ACCEPTED
 
 verification:

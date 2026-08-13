@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 03_command-catalog.yaml:payment
-// Hash: 5decb0fe30ee449c57b01578d96bf78e71f2d6bd4762c6fac3e5a3288c7b14f4
+// Hash: 3d53fc15e6a1c36cfda35abfb95d8a4482fb604c029934de7be0ae6d5a5c3776
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -19,7 +19,7 @@ import { z } from 'zod';
 
 export class PaymentAdapterDisableCommand {
   static readonly commandName = 'payment.adapter.disable' as const;
-  static readonly capability = 'payment.execution.compensate' as const;
+  static readonly capability = 'payment.adapter.disable' as const;
   static readonly version = '1.0.0' as const;
   constructor(public readonly payload: {
     adapterId: unknown;
@@ -221,20 +221,4 @@ export const PaymentRequestCreateCommandSchema = z.object({
   recipient: z.unknown(),
   urgency: z.unknown(),
   retryPolicy: z.unknown(),
-});
-
-export class SagaCompensateCommand {
-  static readonly commandName = 'saga.compensate' as const;
-  static readonly capability = 'system.internal' as const;
-  static readonly version = '1.0.0' as const;
-  constructor(public readonly payload: {
-    sagaId: unknown;
-    failedStepId: unknown;
-  }, public readonly meta: { commandId: string; correlationId: string; causationId: string }) {}
-  get commandId() { return this.meta.commandId; }
-}
-
-export const SagaCompensateCommandSchema = z.object({
-  sagaId: z.unknown(),
-  failedStepId: z.unknown(),
 });

@@ -19,31 +19,31 @@ APPROVED_TO_IMPLEMENTED ==
     /\ state = "APPROVED"
     /\ state' = "IMPLEMENTED"
     /\ visited' = visited \cup {"IMPLEMENTED"}
-\* Trigger: GOVERNANCE_PROPOSAL_IMPLEMENT
+\* Trigger: GOVERNANCE_PROPOSAL_IMPLEMENTED
 
 DRAFT_TO_CANCELLED == 
     /\ state = "DRAFT"
     /\ state' = "CANCELLED"
     /\ visited' = visited \cup {"CANCELLED"}
-\* Trigger: GOVERNANCE_PROPOSAL_CANCEL
+\* Trigger: GOVERNANCE_PROPOSAL_CANCELLED
 
 DRAFT_TO_PENDING_REVIEW == 
     /\ state = "DRAFT"
     /\ state' = "PENDING_REVIEW"
     /\ visited' = visited \cup {"PENDING_REVIEW"}
-\* Trigger: GOVERNANCE_PROPOSAL_SUBMIT
+\* Trigger: GOVERNANCE_PROPOSAL_SUBMITTED
 
 PENDING_REVIEW_TO_APPROVED == 
     /\ state = "PENDING_REVIEW"
     /\ state' = "APPROVED"
     /\ visited' = visited \cup {"APPROVED"}
-\* Trigger: GOVERNANCE_PROPOSAL_APPROVE
+\* Trigger: GOVERNANCE_PROPOSAL_APPROVED
 
 PENDING_REVIEW_TO_CANCELLED == 
     /\ state = "PENDING_REVIEW"
     /\ state' = "CANCELLED"
     /\ visited' = visited \cup {"CANCELLED"}
-\* Trigger: GOVERNANCE_PROPOSAL_CANCEL
+\* Trigger: GOVERNANCE_PROPOSAL_CANCELLED
 
 PENDING_REVIEW_TO_EXPIRED == 
     /\ state = "PENDING_REVIEW"
@@ -55,7 +55,7 @@ PENDING_REVIEW_TO_REJECTED ==
     /\ state = "PENDING_REVIEW"
     /\ state' = "REJECTED"
     /\ visited' = visited \cup {"REJECTED"}
-\* Trigger: GOVERNANCE_PROPOSAL_REJECT
+\* Trigger: GOVERNANCE_PROPOSAL_REJECTED
 
 Terminated == 
     /\ state \in FinalStates

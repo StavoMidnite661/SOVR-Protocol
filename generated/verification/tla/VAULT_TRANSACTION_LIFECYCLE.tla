@@ -19,67 +19,67 @@ CREATED_TO_FAILED ==
     /\ state = "CREATED"
     /\ state' = "FAILED"
     /\ visited' = visited \cup {"FAILED"}
-\* Trigger: VAULT_TRANSACTION_CANCEL
+\* Trigger: VAULT_TRANSACTION_FAILED
 
 CREATED_TO_FUNDING_REQUESTED == 
     /\ state = "CREATED"
     /\ state' = "FUNDING_REQUESTED"
     /\ visited' = visited \cup {"FUNDING_REQUESTED"}
-\* Trigger: VAULT_TRANSACTION_FUND
+\* Trigger: VAULT_TRANSACTION_FUNDING_REQUESTED
 
 DISBURSED_TO_CLOSED == 
     /\ state = "DISBURSED"
     /\ state' = "CLOSED"
     /\ visited' = visited \cup {"CLOSED"}
-\* Trigger: AUTOMATIC
+\* Trigger: VAULT_TRANSACTION_CLOSED
 
 FUNDED_TO_RELEASE_PENDING == 
     /\ state = "FUNDED"
     /\ state' = "RELEASE_PENDING"
     /\ visited' = visited \cup {"RELEASE_PENDING"}
-\* Trigger: VAULT_TRANSACTION_AUTHORIZE_RELEASE
+\* Trigger: VAULT_TRANSACTION_RELEASE_PENDING
 
 FUNDING_PENDING_TO_FAILED == 
     /\ state = "FUNDING_PENDING"
     /\ state' = "FAILED"
     /\ visited' = visited \cup {"FAILED"}
-\* Trigger: TIMEOUT
+\* Trigger: VAULT_TRANSACTION_FAILED
 
 FUNDING_PENDING_TO_FUNDED == 
     /\ state = "FUNDING_PENDING"
     /\ state' = "FUNDED"
     /\ visited' = visited \cup {"FUNDED"}
-\* Trigger: FUNDING_SETTLEMENT_CONFIRMED
+\* Trigger: VAULT_TRANSACTION_FUNDED
 
 FUNDING_REQUESTED_TO_FAILED == 
     /\ state = "FUNDING_REQUESTED"
     /\ state' = "FAILED"
     /\ visited' = visited \cup {"FAILED"}
-\* Trigger: VAULT_TRANSACTION_CANCEL
+\* Trigger: VAULT_TRANSACTION_FAILED
 
 FUNDING_REQUESTED_TO_FUNDING_PENDING == 
     /\ state = "FUNDING_REQUESTED"
     /\ state' = "FUNDING_PENDING"
     /\ visited' = visited \cup {"FUNDING_PENDING"}
-\* Trigger: EXTERNAL_FUNDING_CONFIRMED
+\* Trigger: VAULT_TRANSACTION_FUNDING_PENDING
 
 RELEASE_AUTHORIZED_TO_DISBURSED == 
     /\ state = "RELEASE_AUTHORIZED"
     /\ state' = "DISBURSED"
     /\ visited' = visited \cup {"DISBURSED"}
-\* Trigger: VAULT_TRANSACTION_DISBURSE
+\* Trigger: VAULT_TRANSACTION_DISBURSED
 
 RELEASE_PENDING_TO_FAILED == 
     /\ state = "RELEASE_PENDING"
     /\ state' = "FAILED"
     /\ visited' = visited \cup {"FAILED"}
-\* Trigger: VAULT_TRANSACTION_CANCEL
+\* Trigger: VAULT_TRANSACTION_FAILED
 
 RELEASE_PENDING_TO_RELEASE_AUTHORIZED == 
     /\ state = "RELEASE_PENDING"
     /\ state' = "RELEASE_AUTHORIZED"
     /\ visited' = visited \cup {"RELEASE_AUTHORIZED"}
-\* Trigger: VAULT_TRANSACTION_AUTHORIZE_RELEASE
+\* Trigger: VAULT_TRANSACTION_RELEASE_AUTHORIZED
 
 Terminated == 
     /\ state \in FinalStates

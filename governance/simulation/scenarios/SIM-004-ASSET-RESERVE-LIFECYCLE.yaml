@@ -10,9 +10,13 @@ actor_context:
   identity_id: sim-vault-operator-id
   session_id: sim-vault-session-004
 
+# REPAIR (fail-closed canonicalization): terminal_state LOCKED named a state
+# that does not exist — vault_reservation_lifecycle calls the locked
+# reservation state ACTIVE ("Reservation locked, value committed"), reached
+# via the vault.reserve.locked event this scenario exercises.
 lifecycle:
   initial_state: REGISTERED
-  terminal_state: LOCKED
+  terminal_state: ACTIVE
 
 commands:
   - command_id: cmd-001

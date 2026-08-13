@@ -2,9 +2,9 @@
   "schema_version": "1.0.0",
   "generated_by": "@sovr/compiler v0.6.0",
   "protocol_version": "1.0.0",
-  "ir_hash": "33647881b0e5fdf6e5b5fd02557fd3d9ece575edd4a480c719be47231b6db447",
+  "ir_hash": "16c3f8b8a6352d35acc5f449b1a00251763341a6ec1ea12e680ded6a23381d6e",
   "stats": {
-    "nodes": 656,
+    "nodes": 663,
     "edges": 516
   },
   "nodes": [
@@ -488,6 +488,13 @@
       "id": "capability:ledger.reconcile.initiate",
       "type": "capability",
       "name": "ledger.reconcile.initiate",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:payment.adapter.disable",
+      "type": "capability",
+      "name": "payment.adapter.disable",
       "version": "1.0.0",
       "properties": {}
     },
@@ -6996,6 +7003,13 @@
       "properties": {}
     },
     {
+      "id": "event:agent.suspension_failed",
+      "type": "event",
+      "name": "agent.suspension_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:agent.terminated",
       "type": "event",
       "name": "agent.terminated",
@@ -7339,6 +7353,13 @@
       "properties": {}
     },
     {
+      "id": "event:governance.proposal.cancellation_failed",
+      "type": "event",
+      "name": "governance.proposal.cancellation_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:governance.proposal.cancelled",
       "type": "event",
       "name": "governance.proposal.cancelled",
@@ -7349,6 +7370,13 @@
       "id": "event:governance.proposal.expired",
       "type": "event",
       "name": "governance.proposal.expired",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:governance.proposal.implementation_failed",
+      "type": "event",
+      "name": "governance.proposal.implementation_failed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -7955,6 +7983,20 @@
       "properties": {}
     },
     {
+      "id": "event:payment.adapter.disable_failed",
+      "type": "event",
+      "name": "payment.adapter.disable_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:payment.adapter.disabled",
+      "type": "event",
+      "name": "payment.adapter.disabled",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:payment.compensation.completed",
       "type": "event",
       "name": "payment.compensation.completed",
@@ -8378,6 +8420,13 @@
       "id": "event:saga.compensating",
       "type": "event",
       "name": "saga.compensating",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:saga.compensation_failed",
+      "type": "event",
+      "name": "saga.compensation_failed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -9337,12 +9386,12 @@
   "edges": [
     {
       "source": "command:agent.suspend",
-      "target": "event:agent.terminated",
+      "target": "event:agent.suspended",
       "type": "command_produces_event"
     },
     {
       "source": "command:agent.suspend",
-      "target": "event:agent.termination_failed",
+      "target": "event:agent.suspension_failed",
       "type": "command_produces_event"
     },
     {
@@ -9577,22 +9626,22 @@
     },
     {
       "source": "command:governance.proposal.cancel",
-      "target": "event:governance.proposal.rejected",
+      "target": "event:governance.proposal.cancellation_failed",
       "type": "command_produces_event"
     },
     {
       "source": "command:governance.proposal.cancel",
-      "target": "event:governance.proposal.rejection_failed",
+      "target": "event:governance.proposal.cancelled",
       "type": "command_produces_event"
     },
     {
       "source": "command:governance.proposal.implement",
-      "target": "event:governance.proposal.approved",
+      "target": "event:governance.proposal.implementation_failed",
       "type": "command_produces_event"
     },
     {
       "source": "command:governance.proposal.implement",
-      "target": "event:governance.proposal.rejection_failed",
+      "target": "event:governance.proposal.implemented",
       "type": "command_produces_event"
     },
     {
@@ -9727,12 +9776,12 @@
     },
     {
       "source": "command:payment.adapter.disable",
-      "target": "event:payment.execution.compensation_failed",
+      "target": "event:payment.adapter.disable_failed",
       "type": "command_produces_event"
     },
     {
       "source": "command:payment.adapter.disable",
-      "target": "event:payment.request.cancelled",
+      "target": "event:payment.adapter.disabled",
       "type": "command_produces_event"
     },
     {
@@ -9867,12 +9916,12 @@
     },
     {
       "source": "command:saga.compensate",
-      "target": "event:payment.execution.compensated",
+      "target": "event:saga.compensated",
       "type": "command_produces_event"
     },
     {
       "source": "command:saga.compensate",
-      "target": "event:payment.execution.compensation_failed",
+      "target": "event:saga.compensation_failed",
       "type": "command_produces_event"
     },
     {
@@ -10512,7 +10561,7 @@
     },
     {
       "source": "command:payment.adapter.disable",
-      "target": "capability:payment.execution.compensate",
+      "target": "capability:payment.adapter.disable",
       "type": "command_requires_capability"
     },
     {
@@ -11366,6 +11415,11 @@
       "type": "entity_accepts_command"
     },
     {
+      "source": "domain:kernel",
+      "target": "command:saga.compensate",
+      "type": "entity_accepts_command"
+    },
+    {
       "source": "domain:ledger",
       "target": "command:ledger.account.create",
       "type": "entity_accepts_command"
@@ -11463,11 +11517,6 @@
     {
       "source": "domain:payment",
       "target": "command:payment.request.create",
-      "type": "entity_accepts_command"
-    },
-    {
-      "source": "domain:payment",
-      "target": "command:saga.compensate",
       "type": "entity_accepts_command"
     },
     {

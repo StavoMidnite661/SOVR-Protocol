@@ -1677,6 +1677,27 @@
       "risk_level": "MEDIUM",
       "scope_pattern": "ledger:{ledger_id}:reconciliation"
     },
+    "payment.adapter.disable": {
+      "abi": "v1",
+      "action": "EXECUTE",
+      "agent_executable": false,
+      "capability_id": "payment.adapter.disable",
+      "constitutional_constraint": "INV-003",
+      "default_for_actor_types": {
+        "abi": "v1"
+      },
+      "delegable": false,
+      "description": "Disable a failing or non-compliant payment rail adapter",
+      "domain": "PAYMENT",
+      "governance_approval_required": false,
+      "grantable_by": [
+        "governance"
+      ],
+      "max_delegation_depth": 0,
+      "resource_type": "rail_adapter",
+      "risk_level": "HIGH",
+      "scope_pattern": "payment:adapter:{adapter_id}:disable"
+    },
     "payment.compensation.execute": {
       "abi": "v1",
       "action": "EXECUTE",
@@ -3100,13 +3121,13 @@
       "scope_pattern": "asset:{asset_id}:valuation"
     }
   },
-  "entry_count": 126,
+  "entry_count": 127,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "3881139a01760fe0a66d44bd9cb618c9a1e282de250c66beb1455298461c68ea",
+    "hash": "9e8cc36f251f84ba7e9ce17c100fc4a57e8cec6165acea65b125a72aedb9bd0a",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "capabilities"

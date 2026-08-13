@@ -1,5 +1,5 @@
 {
-  "build_hash": "7a3ed4ceefceca4825c6dcdfd16e39051e3d86d5d56621b49b1233e1847db154",
+  "build_hash": "6bf0adb232ce813ac4507399b1184209aad6411fded95e685338e882fd6f6879",
   "command_lifecycle_coverage": {
     "covered": [
       {
@@ -244,7 +244,7 @@
       },
       {
         "command": "payment.adapter.disable",
-        "machine": "payment_execution_v06_lifecycle"
+        "machine": "payment_adapter_lifecycle"
       },
       {
         "command": "payment.execution.compensate",
@@ -321,6 +321,10 @@
       {
         "command": "RedeemSVU",
         "machine": "SettlementValueUnit"
+      },
+      {
+        "command": "saga.compensate",
+        "machine": "saga_lifecycle"
       },
       {
         "command": "SignAttestation",
@@ -478,17 +482,12 @@
         "command": "payment.receipt.issue",
         "governance_ref": "ADR-COMP-015",
         "reason": "Receipt issuance is notification/audit output after payment state is already represented."
-      },
-      {
-        "command": "saga.compensate",
-        "governance_ref": "ADR-COMP-015",
-        "reason": "Saga compensation is orchestrator-level cross-cutting behavior governed by saga lifecycle."
       }
     ],
     "fail_on_uncovered": true,
     "invalid_exemptions": [],
-    "lifecycle_exempt": 8,
-    "state_machine_covered": 110,
+    "lifecycle_exempt": 7,
+    "state_machine_covered": 111,
     "total_commands": 118,
     "uncovered": []
   },
@@ -1454,15 +1453,6 @@
       "category": "SEMANTIC",
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: 3600s elapsed without authorization",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: active_reservation_confirmed_valid",
       "severity": "WARNING",
       "stage": "PASS-008"
@@ -1473,33 +1463,6 @@
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: actor_requests_release",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: all authorization gates passed",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: all_validation_steps_passed",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: any_validation_step_failed",
       "severity": "WARNING",
       "stage": "PASS-008"
     },
@@ -1536,33 +1499,6 @@
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: authorization_valid",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: automated compensation triggered",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: balance_recalculated",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: balance_recalculated",
       "severity": "WARNING",
       "stage": "PASS-008"
     },
@@ -1616,15 +1552,6 @@
       "category": "SEMANTIC",
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: consuming_event_received",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: consuming_transaction_completed",
       "severity": "WARNING",
       "stage": "PASS-008"
@@ -1644,15 +1571,6 @@
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: consuming_transaction_failed",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: creation_timeout_exceeded",
       "severity": "WARNING",
       "stage": "PASS-008"
     },
@@ -1697,15 +1615,6 @@
       "category": "SEMANTIC",
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: execution",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: expiration_time_passed",
       "severity": "WARNING",
       "stage": "PASS-008"
@@ -1742,24 +1651,6 @@
       "category": "SEMANTIC",
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: governance",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: governance determines compensation necessary",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: governance_approved_or_policy_met",
       "severity": "WARNING",
       "stage": "PASS-008"
@@ -1778,15 +1669,6 @@
       "category": "SEMANTIC",
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: late failure received after unknown period",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: margin_ratio_below_maintenance",
       "severity": "WARNING",
       "stage": "PASS-008"
@@ -1797,15 +1679,6 @@
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: margin_ratio_restored_above_initial",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: no response received within SLA",
       "severity": "WARNING",
       "stage": "PASS-008"
     },
@@ -1841,61 +1714,7 @@
       "category": "SEMANTIC",
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: payment rail accepts instruction",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: payment rail did not respond within execution SLA",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: payment rail reports execution complete",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: payment rail returned failure",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: policy evaluation returned DENY",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: post_verification_rejection",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: proceeds_applied_to_obligation",
       "severity": "WARNING",
       "stage": "PASS-008"
     },
@@ -1913,88 +1732,7 @@
       "category": "SEMANTIC",
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: reconciliation_passed",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: reconciliation_passed_without_settlement",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: request payload fails validation",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: reservation_not_expired",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: response unparseable",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: settlement confirmation received from rail",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: settlement confirmation returned failure",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: settlement confirmed after unknown period",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: settlement confirmed atomically",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: settlement_event_received",
       "severity": "WARNING",
       "stage": "PASS-008"
     },
@@ -2066,24 +1804,6 @@
       "category": "SEMANTIC",
       "code": "SEM-002",
       "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: vault confirms reservation in ACTIVE state",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
-      "message": "Guard references unknown field: vault reservation reached expiry",
-      "severity": "WARNING",
-      "stage": "PASS-008"
-    },
-    {
-      "action": "REPORT_WARNINGS",
-      "category": "SEMANTIC",
-      "code": "SEM-002",
-      "file": "05_state-machines.yaml",
       "message": "Guard references unknown field: verification_failed",
       "severity": "WARNING",
       "stage": "PASS-008"
@@ -2120,6 +1840,7 @@
     "src/commands/governance/governance.commands.ts",
     "src/commands/identity/identity.commands.ts",
     "src/commands/intent/intent.commands.ts",
+    "src/commands/kernel/kernel.commands.ts",
     "src/commands/ledger/ledger.commands.ts",
     "src/commands/payment/payment.commands.ts",
     "src/commands/policy/policy.commands.ts",
@@ -2267,10 +1988,10 @@
     "00_protocol-manifest.yaml": "0dad6a686c26a85d7df99b84f90b4611626bd31e9f878d45b88362a73cd2af71",
     "01_constitution.yaml": "34dfbdc2de193f54f87bb873039603bb5a5502a8448ef6151133f54c77a54ed3",
     "02_domain-model.yaml": "10930d58f8b8bc7c0bdfe49ac460712d8bcb1707fda920b061d393da4aa88c8c",
-    "03_command-catalog.yaml": "c01b1c1e59b30b6d0ff54f7c46fcc6c3f05f6b2f9acdf79bc30445f88e7a83b7",
-    "04_event-catalog.yaml": "69c1a14de9fe7d008e0a9a0a75c3204462f6512d470becc0731d21c8ea772c8c",
-    "05_state-machines.yaml": "b04c86d5a6d8c55ef2c24a399284792d4ac17ca2e72ae982ed69aca50059b10d",
-    "08_security-capabilities.yaml": "5620e6fc08d8da930ef3976d7c10e60ca3424c1fa6636a1dc655bf3274cc9703",
+    "03_command-catalog.yaml": "6f0f4c3886d977c916a498c87518799695e1230e5c7b6f1a72a77ab1219b9912",
+    "04_event-catalog.yaml": "1be6edb4803c1a86da8f88e24584fdddc71750622541c9c08da9e1db4fc32b58",
+    "05_state-machines.yaml": "86f1bce6591ec46caea4880dab74f3519f835139d01cfb4a687688063c6fddba",
+    "08_security-capabilities.yaml": "e49cb8e7f439999b3da9e2bcbb39e0e122b4d5aae1f7ac12f9edb828b21ff8af",
     "09_saga-orchestration.yaml": "26872607b0c83d6c4373ad1aae3cf9604a215d1d02dbcda3e91450d09dc8d07e",
     "11_governance-amendments.yaml": "a7d39f9c5ab43f0063bb8be3535312d539e714b07a9f68bca4efe2c45986891f",
     "12_domain-contracts.yaml": "af31b4a0b1be15a0c2772c293943fab93504712ea69833458ac949774c7ee61c",
@@ -2301,14 +2022,15 @@
     "domains/treasury.yaml": "2662649a1a94e5bc4743f95e24cdc2e36c1f981beb48db8ccb34f7a899703bd4",
     "domains/vault.yaml": "7550686fedfef9c1c760096183de46b53bd60e28ae732463636c24b5bc507573",
     "governance/simulation/scenarios/SIM-001-VAULT-FUNDING-LIFECYCLE.yaml": "4bf4924ee6bcab7d4c2b55b398e6b2dfa2d14b3d8c819966c46ea1df10a3db7f",
-    "governance/simulation/scenarios/SIM-002-TREASURY-TRANSFER-APPROVAL.yaml": "67da422e3e9d060c6e4bd237776b2626fc7f09a738caf45169cd6ab776cac8a1",
+    "governance/simulation/scenarios/SIM-002-TREASURY-TRANSFER-APPROVAL.yaml": "11f611ad2b02947f855387431fd0d8f155b1a42f32654b1488474baba373f65f",
     "governance/simulation/scenarios/SIM-003-SYSTEM-INTEGRITY.yaml": "0f75f5c2b1213a909ca662bb604238c470fbac14fa95127102fdb26e42721286",
-    "governance/simulation/scenarios/SIM-004-ASSET-RESERVE-LIFECYCLE.yaml": "82af3f567d0d440076df6fd42fcd21b16666ba4b4b0f1e27e3fbba23d274a40f",
-    "governance/simulation/scenarios/SIM-005-TREASURY-CONTROL-LIFECYCLE.yaml": "6040f824d637b5ee5b0ff78861e5de45c9e7cd094222de726bdad67aeb0ff13a",
-    "governance/simulation/scenarios/SIM-006-LEDGER-RECONCILIATION-LIFECYCLE.yaml": "b1c137ca968939277badc8ee21076fd7f4374328fdf8a515fba50608f64ba5c3",
-    "governance/simulation/scenarios/SIM-007-SETTLEMENT-LIFECYCLE.yaml": "85d866b69bb505f75e720d6801bee05bdaeac6b896713507ed2895ef6eaf03c7",
+    "governance/simulation/scenarios/SIM-004-ASSET-RESERVE-LIFECYCLE.yaml": "2e7d3d32ad39d69b008733f960c0b8a59904192068c607bb83bbe948be264ffe",
+    "governance/simulation/scenarios/SIM-005-TREASURY-CONTROL-LIFECYCLE.yaml": "b92388527b8be5143a39fe7be6ca895e58e3d51e35a6151b823711b2138ae5b8",
+    "governance/simulation/scenarios/SIM-006-LEDGER-RECONCILIATION-LIFECYCLE.yaml": "6093993843651c1edab0259dc972a43c704145b47548b7b6dbdee694a5383f8d",
+    "governance/simulation/scenarios/SIM-007-SETTLEMENT-LIFECYCLE.yaml": "80475f098f126829ea1a94bbb6d52d9406991739fa6993a06ca05a0d160aad78",
     "governance/simulation/scenarios/SIM-008-COMMERCIAL-SETTLEMENT-LIFECYCLE.yaml": "c848f7c890645fe99321288666c8fddd1c3bf4083ec9194dc5edac238bd56dc9",
     "governance/simulation/scenarios/SIM-009-COMMERCIAL-SETTLEMENT-BRANCHES.yaml": "860257c0677014f60340e78f20af992b59a8c1eea2b40b2f4dfa581099346cd4",
+    "governance/simulation/scenarios/SIM-010-LEDGER-IMBALANCE-NEGATIVE.yaml": "e9b9c0c8743f9d5f642797b6645030e9787d2e5308954f306fa83d2f79c25543",
     "hybrid-boundary.yaml": "2843a075dc85f6ae9e6c95b764639869f64a70a402d454880706425a297eb12e",
     "phase_j_protocol_closure.yaml": "073cc52e85a1ce6fe11d445d8502e6091a2703c249475d00f7e0c8a9a8b96b16",
     "projection-engine.yaml": "fdaf0355754738034f4a055be7f701a73c4a6189d741fa1bc7567c80781244ec",
@@ -2319,31 +2041,31 @@
     "protocol/DOMAIN_REGISTRY.yaml": "8a916425212329e2d5e1501a972b09689c04abc39bc220edfd5fcb2502369f1f",
     "protocol/METADATA_STANDARD.yaml": "cbb398e2d1d04d7830ce66919a8e4a25f01e75c6b3022b341ff0bb3b6f85ecf3"
   },
-  "ir_hash": "33647881b0e5fdf6e5b5fd02557fd3d9ece575edd4a480c719be47231b6db447",
+  "ir_hash": "16c3f8b8a6352d35acc5f449b1a00251763341a6ec1ea12e680ded6a23381d6e",
   "output_hashes": {
     "COMPILER_RUNTIME_COVERAGE.yaml": "8c3fe53f73698cda2e9cd7c397edda80f683d6af23c007d6dde0283c0d66c8b5",
-    "config/kafka/topics.yaml": "5d74c1cf7172f5d157cb23f9b2c62748f59cd8c8b4f613cfcb9221306795321c",
-    "config/redis/streams.yaml": "606788f5fc31a0659d6088d7092e7934e311e5fcddb172520e99d2125fb664a6",
-    "docs/topology.md": "5e0e7fb8ba5b942dc8729030051278b0f111917ffab7ab8bae7acf48ba353a08",
-    "openapi.json": "ba2def7b1070f7c8fba0ec1f92bb741d2224c15dbfd0884d3a376aa97a01f5fd",
+    "config/kafka/topics.yaml": "661198fb1961a021ceb2b3b3628c148c0eb4a1a8531417da646e688a051f2c20",
+    "config/redis/streams.yaml": "4a3c41baa3549c6b849d08b6a1462051d758bfe7706af34142ee2fe4bc8ef6e9",
+    "docs/topology.md": "269618fa2d600135e46a3f3db6656e02b212420d6aff5ecdc3d96003709fe13b",
+    "openapi.json": "ed2e14aad347248164d45129bf015d6a06fe8745ae25bd47252fb36fa7ff2662",
     "prisma/schema.prisma": "eff3bb7a95a534250177c460e354701a35224f8ddf013533ae371d34a6e0fccc",
-    "protocol-topology.json": "26f061a93690fd26b6e2ea3275184ebdcc133add064dea7342db92844cfb7a89",
+    "protocol-topology.json": "1c22b6f896cace94a7e21a78fc8430a8cc11a3e49994542b75f33d48f6da9ca6",
     "registries/boot.registry.json": "f0697efa84b8ff779257b0ceba0a7eccd486db208fa73a24019ab295b54983be",
-    "registries/capabilities.registry.json": "aa7a8eb60f7c693126a72bfa6eb66066671b86768505b135af231f2159480e03",
-    "registries/commands.registry.json": "e81745e54a94231266223e3c5579fd2e7e301eb6b45b0ba3bfa8c941f85ff514",
+    "registries/capabilities.registry.json": "e605e73d25f7127b9f67cf85d783cc124f1a489e3583c0f374baaf009d2b88a4",
+    "registries/commands.registry.json": "aea2a41a59debd0f19e6f3c30695190cc34af947cbfe3d895b9d42ec49f34e4a",
     "registries/constitution.registry.json": "d85b9f34870eadb0f89ef862bba61fa8149e998f1869a5f7bcb6c8e0ef49adfd",
     "registries/contracts.registry.json": "250d73a5f02931d10c097914600bffea15c396fd85c836f32c660d57e7ccd2c5",
-    "registries/economic.registry.json": "94979c86126819390d7a56044726484e23409b0bc0ce4b25b1578b20da92411f",
+    "registries/economic.registry.json": "d53e788c75f851191756a187647169d42d9c4f11a520f2de725a8831bf37cedb",
     "registries/envelopes.registry.json": "0175d6e8c5c020584e8bb4b891d4b99839951c8d9c8f263f18912a71b3073c9e",
-    "registries/events.registry.json": "ce52e7668e36e186165d929f5afd10f519d44d11c58f19283feb158afcb8ebe8",
+    "registries/events.registry.json": "0deee45bb34fa3d56ca384bce727574d7cfeeedf83e9d1170e7a8bb046f584b5",
     "registries/execution-plans.registry.json": "e845582e9d52ce5d4c1c5b42955e7791450edaf6e4a30d1c891e73eaaf061eb5",
-    "registries/machines.registry.json": "9b83a61660d2469b776d088df8d7f5da7865b41f8019e17a062c9e6ba4870d1f",
+    "registries/machines.registry.json": "5ca5715755979f84a0b45831cb0595d3b698632be7644190d5b6116ed617b1a8",
     "registries/projections.registry.json": "b72df7ed42de9f6deab1815b1c344c004837956ca970edb3bc86c495ceac2e11",
     "registries/reserve.registry.json": "39da3e2262c515e019f0243e0f80ed6839769c7c3e90af8c9427a999b1f771c6",
-    "registries/schemas.registry.json": "74ee5791f6fd69f10bff84b98f460eaa36a60164d88ff3a2d05fbebb5067ac8e",
+    "registries/schemas.registry.json": "1d462ad9d3022a4286bbb63ee5c04dad28779ac7e764a6d11c6af5e32a5dc60c",
     "registries/settlement.registry.json": "57cdb89474fd37582e10bea1d07f2226455138ca368f00dc16de0acb7710b6b8",
     "registries/validation.registry.json": "e0947fdb86d3d7f3501600f41f7d7ebb11fab389f86f748ce42026648d4944c2",
-    "simulation/scenarios.registry.json": "5fadcd16e34437c4d02a8d46693ed7bf2cacce82313523efabaa3a73167307fc",
+    "simulation/scenarios.registry.json": "0badb324cbca5c84826ac7937ec6ba7fe1ca013add87a835a89e13b5d76b10f2",
     "src/commands/agent/agent.commands.ts": "bbae12fb6d258021dd6eaaa6a85435a51b354bcda280aed4ab00ab1c9e52cfdb",
     "src/commands/certification/certification.commands.ts": "c9365de9030daa23f694cdb9d69cb99e6e85a1f8da3d31a5e102a821a97d95f7",
     "src/commands/commercial/commercial.commands.ts": "851b35233cdfe494753690cdcafcc5dbad1ac25106f5823a537e931b6f7a31b1",
@@ -2351,23 +2073,24 @@
     "src/commands/governance/governance.commands.ts": "ea10f3ef12f8a8dc86b62264a54cd1b1e79c924700e55c043c857c840ac39f33",
     "src/commands/identity/identity.commands.ts": "264f1b04d1077f1ee62d0ee706d11743260d5cf65dd54c7b62b9b6d979b3e799",
     "src/commands/intent/intent.commands.ts": "e2306e52ddb32d59a9bc335787398fc8020b52dd24b6494476e7da35fec76d2c",
+    "src/commands/kernel/kernel.commands.ts": "bb7dba98b23034192c4c8f009d968467b75f15ccab0b2b66865c8c726712d724",
     "src/commands/ledger/ledger.commands.ts": "093abb282ff5366b189753d907770fefa84cffb20e82f36fddc7710cc64e99e3",
-    "src/commands/payment/payment.commands.ts": "f2c290a5b4bd1b91fe5cadc5ab7450692ac8b8291db565596d3c7cc04c296eb8",
+    "src/commands/payment/payment.commands.ts": "81573105886bd2d4e378af2e1d3be45643cc26881d2f350e31e3c6c92f452d6e",
     "src/commands/policy/policy.commands.ts": "0ea08ac417274ce8bacd3cbea17b37dcf70d45ae184e68f04b5a21ecc7da4b18",
     "src/commands/representation/representation.commands.ts": "86f1844f82b83d9c080d20de3c0b20b9bc058f1f0fe3c4d3928354f186664feb",
     "src/commands/settlement/settlement.commands.ts": "a428d689d9312516f8fb7b5541a720949a5d7a986192214de2c66a4326b886b3",
     "src/commands/treasury/treasury.commands.ts": "b4c7627e8b6ff1d83002c84b13ae8eadc02930fb0c419aa49a9510b6f0ca5218",
     "src/commands/vault/vault.commands.ts": "5fac4d0735fe83adaf8280634570e894e390174374d2c0d70c134ee664ddbb6e",
-    "src/events/agent/agent.events.ts": "44f3d1533b7c0b9f5a99f0d002b55da7d333df0058efeb8d10d8d2d740af8990",
+    "src/events/agent/agent.events.ts": "5d629ffc1232d1dc0d096d1e820cf4e47e205c09dd16a6cb3118073e4f35a054",
     "src/events/certification/certification.events.ts": "4d45260b4ab4fe93e0e906d382cf6d58eb770f36a0a03e513e6da054aa6fd5a0",
     "src/events/commercial/commercial.events.ts": "c553ff009587eb0fe879c08b5dc6ea6445c32ca13f98951be53158f0bb487cca",
     "src/events/escrow/escrow.events.ts": "6b2631258f354d0088a9420e309fce5fb05701f1cbc2f01f12c2012891079998",
-    "src/events/governance/governance.events.ts": "2cc179565d7b96cae4ac8becf0a9c5e3fdb678b630db30718cca0e2f89061c19",
+    "src/events/governance/governance.events.ts": "620200fb0e25dacfe3ca3eec6f308c49e7b9253574d8221524821494bfb26c52",
     "src/events/identity/identity.events.ts": "794224b0516fcbaec72569de28a9a2b92029fb8c00e900fac4ac4f61763ca9a3",
     "src/events/intent/intent.events.ts": "a9ab8baa6297c12383a2be75a692827e50455b320e20bcf7e773476a574028aa",
-    "src/events/kernel/kernel.events.ts": "2d6a3bc12f8d2b909521ba05d8b0002026bd108ee3ff59a151c03ac0dec3cd63",
+    "src/events/kernel/kernel.events.ts": "d6ebd42ec3fb0ac174af045274f8843fc0228e9f96e2f20c0e643dd34b5512a0",
     "src/events/ledger/ledger.events.ts": "3a2e953834e99a6e83f381626cef4be629b39bc067072c415469900009491134",
-    "src/events/payment/payment.events.ts": "67c5689570a441c2e8eca847a16d9e1c441c7431427afbfa428aa5071d648b91",
+    "src/events/payment/payment.events.ts": "928e35c10043a60238084949baac001c758daea09c7dbda0f21bcb050d02cc7a",
     "src/events/policy/policy.events.ts": "d4bf5cd18fa1c308502ec4d410fbb62b92772a32bad87ec4ee5850e645505df6",
     "src/events/representation/representation.events.ts": "3f0dd808d4789d906bef252e02ce9f4ba7e4690b312130ddd6b7404eb4d17066",
     "src/events/settlement/settlement.events.ts": "5a20152c554dafa0f81326e2bab0279ea9f9fceabaf114a7c6c9ad56e0c765e6",
@@ -2378,7 +2101,7 @@
     "src/policy/engine.ts": "c5fa75396b18fa0f91eaa6e2c3086dffb6b067bb5a8c7acc85bef635d833fd36",
     "src/policy/vel-evaluator.ts": "549f850bef6742ff0b2410ba57d058c5f861d9a5e0b5468efd7e28f59851b7dc",
     "src/sdk/agent-sandbox.ts": "016135ea2c51a730202576031a34541a256b404c1d336e16d6e8bf8421f4cee7",
-    "src/security/capability-engine.ts": "b899cafaaf7c25621e6de196a65ffff93ecadae1abfb736b98d6e5fd666d0e5a",
+    "src/security/capability-engine.ts": "6c531678605df3f510b591f0b4ead12487d82b5d25e8c78fc03fd4d7b69d442b",
     "src/types/agent/agent.types.ts": "169038cb37192544137de1d38a0f05bef249704220dd583e838dc015b0f64d84",
     "src/types/escrow/escrow.types.ts": "aad72b136f4df405f4df31f0798693bc033fc96a2d63d2d4a184d0270ef20b37",
     "src/types/governance/governance.types.ts": "cb08ebff8d0c9e2decb539b99d848376df685285958cf6ce4432e885b4e0f64f",
@@ -2404,7 +2127,7 @@
     "verification/tla/AGENT_EXECUTION_QUOTA_V06_LIFECYCLE.cfg": "c53f220df3f4a1539120e47b537027651323926ec50e1d04864bd689a882e0e2",
     "verification/tla/AGENT_EXECUTION_QUOTA_V06_LIFECYCLE.tla": "0d7c11bde1d1bfd8ee3cacb5aec6ba1437adca5070a3169f32e2355ff5435983",
     "verification/tla/AGENT_LIFECYCLE.cfg": "1d65d8689b6c97120a7aa11683e63f125f6f511e5ce7dff445a29f954bd8b329",
-    "verification/tla/AGENT_LIFECYCLE.tla": "63711f782fba638f2d2a9f3a886c57d39d0e20c60ebd86d7652c21f99745f59f",
+    "verification/tla/AGENT_LIFECYCLE.tla": "b28a9aa43e6480c5cf3227ae36681417db47079e72608a1392fc4cefd5975074",
     "verification/tla/AGENT_REGISTRATION_V06_LIFECYCLE.cfg": "aa8b3b5d44183c6a48222a3e24b3280cebfcecef30c556152ade58ee8758b9d0",
     "verification/tla/AGENT_REGISTRATION_V06_LIFECYCLE.tla": "399a4cc1d9352dd65316cd806b16ed730fbe7635be5b4b13fe3791af63745fb9",
     "verification/tla/COMMERCIALOBLIGATION.cfg": "4fa80c1e4d908d5096a92377ff4e125670a1198bcb941decb9f83bffce83d7e0",
@@ -2420,7 +2143,7 @@
     "verification/tla/GOVERNANCE_GOVERNANCE_AMENDMENT_V06_LIFECYCLE.cfg": "7fa48343c5335c2aef93d0196666d869850f89b48a4cb679c9deedcab637206d",
     "verification/tla/GOVERNANCE_GOVERNANCE_AMENDMENT_V06_LIFECYCLE.tla": "8d475a3b0bb3bde8d03688a2d63c60ffd524beb121e9345ddbabdcd3e9ecd249",
     "verification/tla/GOVERNANCE_PROPOSAL_LIFECYCLE.cfg": "8cac37374d9dbe4720f033a061057f17aff210d05908ce5b05da96dce60e1661",
-    "verification/tla/GOVERNANCE_PROPOSAL_LIFECYCLE.tla": "a42626651fab2fa5ee873db2f497a39e012793e72e04ac177edf0fa8b2919758",
+    "verification/tla/GOVERNANCE_PROPOSAL_LIFECYCLE.tla": "03e48ad26c449c3697fa908b43b33c24b44f49cd32c6ed5e146a48290ec4cb16",
     "verification/tla/GOVERNANCE_PROPOSAL_V06_LIFECYCLE.cfg": "9538ca26c765015d7e61524bceb49231a97e895c03d778353773beafa6f8ecdd",
     "verification/tla/GOVERNANCE_PROPOSAL_V06_LIFECYCLE.tla": "9a4c84899f4c8da095fbf604c4306f947650a3df9c02fe8bcf7d8e2a3b2781bc",
     "verification/tla/IDENTITY_ACTOR_LIFECYCLE.cfg": "9f531bea5e9648f7a01b79438a3341bfde7a8f4577e7400f85d15db60baf4948",
@@ -2438,15 +2161,15 @@
     "verification/tla/LEDGER_ACCOUNTING_PERIOD_V06_LIFECYCLE.cfg": "d600e339ca61fd793c05af9dfd89ddb429ac66e0404c29c75cafe3bed315b775",
     "verification/tla/LEDGER_ACCOUNTING_PERIOD_V06_LIFECYCLE.tla": "4b312ad6aa24c768380cdc5d8d04a38482c9127e025d7a8b2818bce958dc5d94",
     "verification/tla/LEDGER_ACCOUNT_LIFECYCLE.cfg": "b4e7672efa5547d2c53a98c7ff073919581a0eaa04d3889cb812cdbea1e88b0c",
-    "verification/tla/LEDGER_ACCOUNT_LIFECYCLE.tla": "63ac943bb9b26000c2077c2fa46c39bb1841a41a0ebb746ece60b2d85c108cb0",
+    "verification/tla/LEDGER_ACCOUNT_LIFECYCLE.tla": "d55ed6753eb9e06c7f120214f12f46ea7ca7baf7dfac116f2ea4778300df4a41",
     "verification/tla/LEDGER_JOURNAL_LIFECYCLE.cfg": "6a46245672d49045b4a635bbf8de3ccf7d7d2d9a8785deaed04e19f220b13557",
-    "verification/tla/LEDGER_JOURNAL_LIFECYCLE.tla": "edabd990db270e47701f309e5891794b2b71aa6ccff13e516e05899c5ba2e6df",
+    "verification/tla/LEDGER_JOURNAL_LIFECYCLE.tla": "caf84c52bc0c519c8462f9a33caa2a645de9f728ca13c3ce6524bf6f46f3bd79",
     "verification/tla/LEDGER_JOURNAL_V06_LIFECYCLE.cfg": "dc64ce03d9c40b97831054fcdea4257b60b50bf8faf6f45e0bf06e6faebd592b",
     "verification/tla/LEDGER_JOURNAL_V06_LIFECYCLE.tla": "09178e58e553577a32a28f0ae562ddc1262a11f730cfc562e36e1491aa9654a0",
     "verification/tla/LEDGER_RECONCILIATION_V06_LIFECYCLE.cfg": "55a4d7bcb562ee558f8115b4f30315f6fbae21dd7568b3ab6fbc2e37cf354575",
     "verification/tla/LEDGER_RECONCILIATION_V06_LIFECYCLE.tla": "ca08a61986e04792e364578b070edccd04cb979f5f1ee52942c787a0c268f0ec",
     "verification/tla/PAYMENT_ADAPTER_LIFECYCLE.cfg": "3e8367ecfdac976f665bad7fcd24a928946a499436a3de96886c9c8151844e6c",
-    "verification/tla/PAYMENT_ADAPTER_LIFECYCLE.tla": "07ac83627049568dc804c96200e4a2d72c0486c7123cfba029a1d26c8a137889",
+    "verification/tla/PAYMENT_ADAPTER_LIFECYCLE.tla": "fe9a6af11ae4c4f04a3c3e32fdf2805cb595c9ad64984779138d4240f31d8dd1",
     "verification/tla/PAYMENT_EXECUTION_PLAN_V06_LIFECYCLE.cfg": "93b622f7183660eb2c11f5376291d35ed7c86d1e15419c1f77285407c776559e",
     "verification/tla/PAYMENT_EXECUTION_PLAN_V06_LIFECYCLE.tla": "f3c65e2580cc7f3295e4d0124fa8c7c8d6a228983604d5fa68f6201c25bbf57c",
     "verification/tla/PAYMENT_EXECUTION_V06_LIFECYCLE.cfg": "8b8eede6c42cd10c7ea6ccd1158757c07998877e71dbbfb051a21ede28e5b5dd",
@@ -2454,7 +2177,7 @@
     "verification/tla/PAYMENT_RECONCILIATION_V06_LIFECYCLE.cfg": "500fd129940e82a14e1f6707f08efd2c8e2187783d5f3dcb2772d9b393a61c08",
     "verification/tla/PAYMENT_RECONCILIATION_V06_LIFECYCLE.tla": "87642e33449e5031340d112d14604edbcfb3a34b0e73aa0da3efddcab79f807d",
     "verification/tla/PAYMENT_REQUEST_LIFECYCLE.cfg": "08f30e1bc368a3bed916f0831616538ddc13755c371a002117b9aa1c8a0d9943",
-    "verification/tla/PAYMENT_REQUEST_LIFECYCLE.tla": "67e4b22bbc751e1773d64a9a3faa85b403f007091d8de608850fac56563c507a",
+    "verification/tla/PAYMENT_REQUEST_LIFECYCLE.tla": "a024e6922f754de1db2dd02eca379caa5820ba20969d9dd3a3999a7c5353274e",
     "verification/tla/POLICY_COMPLIANCE_REQUIREMENT_V06_LIFECYCLE.cfg": "dc7acb74fdd83b86dc3e68211681110c4cd4429daa5bf3304a65b058c774b4da",
     "verification/tla/POLICY_COMPLIANCE_REQUIREMENT_V06_LIFECYCLE.tla": "3cabc0e1af0adcf7924eb7147a7733bc1b651b53a33fe721f7fc125bdc4496fc",
     "verification/tla/POLICY_ESCALATION_V06_LIFECYCLE.cfg": "37cd3259232b6283bf6a6883dc57ab46e8e193f6c2d3db0f1b71fd47afb5ea7c",
@@ -2466,27 +2189,27 @@
     "verification/tla/POLICY_SET_V06_LIFECYCLE.cfg": "61a6211154022f26541fec9145f5f879666e330e34602909043e677060f8f89b",
     "verification/tla/POLICY_SET_V06_LIFECYCLE.tla": "7f04e322d2c991e44ea02bbe45186f254e8c30680e57b55d2ecf8347d50787b7",
     "verification/tla/SAGA_LIFECYCLE.cfg": "1b6ad31c0b46f880058f8509c27e4ac6aefcc7ebe274075da7c097270430eda6",
-    "verification/tla/SAGA_LIFECYCLE.tla": "ac06ba6680f28f34612dbe8662a165d6c6b3f862f5b5b6827e837e7ec021a23c",
+    "verification/tla/SAGA_LIFECYCLE.tla": "363756257ac8c8527a968efd559f4ba69932cf95af7af035d92d0cf75d7c284c",
     "verification/tla/SETTLEMENTRECORD.cfg": "55f97bc713096a266884022bf201a36c5fe587e042850e5e259a238d4ee1b57b",
     "verification/tla/SETTLEMENTRECORD.tla": "bfe6e590219b87902cbd4d5b18491061564733c2f1b14af0a44df25945d35281",
     "verification/tla/SETTLEMENTVALUEUNIT.cfg": "1e3359badacf803fb710c2df158c0da87ba0bfe01aabe7515a9a78499e95360d",
     "verification/tla/SETTLEMENTVALUEUNIT.tla": "e7d57173f2e3e5880ed9513d35f62e59e0055d2b8aed1d27f4fd17372b495532",
     "verification/tla/SYSTEM_HEALTH_LIFECYCLE.cfg": "32157e687427e3cd2bfe056ca9941cbde90c0dbafd2ffc594caf0f4d8fc32a78",
-    "verification/tla/SYSTEM_HEALTH_LIFECYCLE.tla": "b12467011939f9f557fc76087ee5bfbdde426317c5644091a5b8e5f6370053d0",
+    "verification/tla/SYSTEM_HEALTH_LIFECYCLE.tla": "eef1f25e6d4906ff84d64e97a7349aeff5aa691e98d6aaf8ede463470236b965",
     "verification/tla/TREASURY_LIQUIDITY_POSITION_V06_LIFECYCLE.cfg": "dbeb2f1ad6a3a1614cf3897843deea2b67944c7b39120d9111ba08e05f378a2a",
     "verification/tla/TREASURY_LIQUIDITY_POSITION_V06_LIFECYCLE.tla": "36e832b3b0daf8de6eca26f609f44c86ee07b23d91bd7b10ee1797c94bc00dc5",
     "verification/tla/TREASURY_TRANSFER_LIFECYCLE.cfg": "9997cd6d692db3c4f4abcec48ecb4a5f2b76f5c0faac457a0c642d911b4b9914",
-    "verification/tla/TREASURY_TRANSFER_LIFECYCLE.tla": "6c5e1bb2b1a06eb598cac4c1d55a4a50ab00071a42ea6ec8b98417a234a1a969",
+    "verification/tla/TREASURY_TRANSFER_LIFECYCLE.tla": "fced34a3eac07652dcabecc8205f45f5ab484874fe7858b79bd1029e73538df5",
     "verification/tla/VAULT_ASSET_LIFECYCLE.cfg": "36a5c84b4ca9c2f58df1eb5b2214cf03ee1ad82be22740155843ba5993575b90",
-    "verification/tla/VAULT_ASSET_LIFECYCLE.tla": "2fa6c97a28286e2435b1deae295503cf066a74c4db3596c500887c033869758e",
+    "verification/tla/VAULT_ASSET_LIFECYCLE.tla": "91b9a609fbb41984273f0d06f714c1e7c2581610b274d3f54337876478fb9c4d",
     "verification/tla/VAULT_COLLATERAL_LIFECYCLE.cfg": "09e3b8f859bffa856b77190059ea8e14fb164a5d04dd561f26ac4b3cedcbe6be",
-    "verification/tla/VAULT_COLLATERAL_LIFECYCLE.tla": "d164ee5c97cfecd9a5994254eb2e3162050c638bb2815c6e7e4c1c361d3884bc",
+    "verification/tla/VAULT_COLLATERAL_LIFECYCLE.tla": "397b2a157f97840653dc6730fd307aab66f52af5da1cb48d11c774d9f1c4210d",
     "verification/tla/VAULT_RECONCILIATION_V06_LIFECYCLE.cfg": "2343882ce60fcee3c778d68a9dd415a729841318b9bf7f7196cc253a8f1a18af",
     "verification/tla/VAULT_RECONCILIATION_V06_LIFECYCLE.tla": "41ed0544f1e597975c78f4b743092625abd517b5ae9a357f7bb4bebda83c8277",
     "verification/tla/VAULT_RESERVATION_LIFECYCLE.cfg": "ab5ddd721c02b98ce111f654aa3b13a8724abdc15e7622fd2222a0376be1ef8e",
-    "verification/tla/VAULT_RESERVATION_LIFECYCLE.tla": "38f7608dcd50848f9572f74d4db0f3ad51751337f16c4e6c11bc823e0360d4e4",
+    "verification/tla/VAULT_RESERVATION_LIFECYCLE.tla": "b0259962da95f0ffd51a08c8c6d3fc482597327575a52930a55adee2383c17b3",
     "verification/tla/VAULT_TRANSACTION_LIFECYCLE.cfg": "3df71cc4581abaebb891f64fa99283b787b97671197be863686ad780e6f4e414",
-    "verification/tla/VAULT_TRANSACTION_LIFECYCLE.tla": "c270a4879a4693f30478f07b1ab926ca799ad4048e0f5ad786b871d8d344dd33",
+    "verification/tla/VAULT_TRANSACTION_LIFECYCLE.tla": "01f11232ac69af326b8248bcdfb5b6aa8c88a3dce7939e8e63198fdd1c663528",
     "verification/tla/VAULT_VALUATION_V06_LIFECYCLE.cfg": "069099c36bd59ad55c8d86e8138c072f9e3dd436f30f83ddb9a4c88469136f47",
     "verification/tla/VAULT_VALUATION_V06_LIFECYCLE.tla": "11c947bfb33fa9cc42ecd5280f1aae7480c0fc47af5741114cf10b50777fb167"
   },
@@ -2512,13 +2235,13 @@
   },
   "schema_version": "1.0.0",
   "stats": {
-    "diagnostics_count": 177,
+    "diagnostics_count": 146,
     "errors": 0,
-    "generated_files": 168,
-    "input_files": 54,
+    "generated_files": 169,
+    "input_files": 55,
     "ir_edges": 516,
-    "ir_nodes": 656,
-    "warnings": 177
+    "ir_nodes": 663,
+    "warnings": 146
   },
   "timestamp_policy": "wall_clock_in_outputs: PROHIBITED (R5) — generated timestamp metadata carries the Canonical Compilation Timestamp (packages/compiler/src/utils/deterministic-time.ts; compiler/BUILD_MANIFEST.yaml timestamp_policy.canonical_generated_at); build_hash covers deterministic content only"
 }

@@ -1081,10 +1081,10 @@
       ],
       "resulting_events": {
         "failure": [
-          "agent.termination_failed"
+          "agent.suspension_failed"
         ],
         "success": [
-          "agent.terminated"
+          "agent.suspended"
         ]
       },
       "source_domain": "agent",
@@ -1927,10 +1927,10 @@
       ],
       "resulting_events": {
         "failure": [
-          "governance.proposal.rejection_failed"
+          "governance.proposal.cancellation_failed"
         ],
         "success": [
-          "governance.proposal.rejected"
+          "governance.proposal.cancelled"
         ]
       },
       "source_domain": "governance",
@@ -1971,10 +1971,10 @@
       ],
       "resulting_events": {
         "failure": [
-          "governance.proposal.rejection_failed"
+          "governance.proposal.implementation_failed"
         ],
         "success": [
-          "governance.proposal.approved"
+          "governance.proposal.implemented"
         ]
       },
       "source_domain": "governance",
@@ -3310,9 +3310,9 @@
     },
     "payment.adapter.disable": {
       "abi": "v1",
-      "aggregate": "execution",
+      "aggregate": "rail_adapter",
       "authorization_requirements": {
-        "capability": "payment.execution.compensate",
+        "capability": "payment.adapter.disable",
         "identity": "required"
       },
       "command_name": "payment.adapter.disable",
@@ -3330,7 +3330,7 @@
           "governance",
           "system"
         ],
-        "minimum_capability": "payment.execution.compensate"
+        "minimum_capability": "payment.adapter.disable"
       },
       "lifecycle": null,
       "lifecycle_exempt": true,
@@ -3342,10 +3342,10 @@
       ],
       "resulting_events": {
         "failure": [
-          "payment.execution.compensation_failed"
+          "payment.adapter.disable_failed"
         ],
         "success": [
-          "payment.request.cancelled"
+          "payment.adapter.disabled"
         ]
       },
       "source_domain": "payment",
@@ -4130,7 +4130,7 @@
     },
     "saga.compensate": {
       "abi": "v1",
-      "aggregate": "saga_execution",
+      "aggregate": "saga_instance",
       "authorization_requirements": {
         "capability": "system.internal",
         "identity": "required"
@@ -4142,7 +4142,7 @@
         "invariants": [],
         "policy_required": true
       },
-      "domain": "payment",
+      "domain": "kernel",
       "execution_gates": [],
       "issuer": {
         "actor_types": [
@@ -4160,13 +4160,13 @@
       ],
       "resulting_events": {
         "failure": [
-          "payment.execution.compensation_failed"
+          "saga.compensation_failed"
         ],
         "success": [
-          "payment.execution.compensated"
+          "saga.compensated"
         ]
       },
-      "source_domain": "payment",
+      "source_domain": "kernel",
       "validation_rule_ids": [
         "saga_must_be_failed_or_cancelling"
       ],
@@ -5577,7 +5577,7 @@
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "71634ac0829d9c60d2eb9526d7682978492d6d77faa00dd7333c36fcc436667a",
+    "hash": "0a0e7af33ff846da1e49d99dc5486617936f68b9c1ae195f6b754e13574e6c33",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "commands"

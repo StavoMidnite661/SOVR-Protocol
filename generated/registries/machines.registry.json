@@ -564,39 +564,57 @@
       "transitions": [
         {
           "abi": "v1",
-          "command": "agent.activate",
+          "emitted_events": [
+            "agent.activated"
+          ],
           "from": "REGISTERED",
-          "to": "ACTIVE"
+          "to": "ACTIVE",
+          "trigger": "agent.activated"
         },
         {
           "abi": "v1",
-          "command": "agent.suspend",
+          "emitted_events": [
+            "agent.suspended"
+          ],
           "from": "ACTIVE",
-          "to": "SUSPENDED"
+          "to": "SUSPENDED",
+          "trigger": "agent.suspended"
         },
         {
           "abi": "v1",
-          "command": "agent.activate",
+          "emitted_events": [
+            "agent.activated"
+          ],
           "from": "SUSPENDED",
-          "to": "ACTIVE"
+          "to": "ACTIVE",
+          "trigger": "agent.activated"
         },
         {
           "abi": "v1",
-          "command": "agent.terminate",
+          "emitted_events": [
+            "agent.terminated"
+          ],
           "from": "ACTIVE",
-          "to": "TERMINATED"
+          "to": "TERMINATED",
+          "trigger": "agent.terminated"
         },
         {
           "abi": "v1",
-          "command": "agent.terminate",
+          "emitted_events": [
+            "agent.terminated"
+          ],
           "from": "SUSPENDED",
-          "to": "TERMINATED"
+          "to": "TERMINATED",
+          "trigger": "agent.terminated"
         },
         {
           "abi": "v1",
-          "command": "agent.terminate",
+          "emitted_events": [
+            "agent.terminated"
+          ],
           "from": "REGISTERED",
-          "to": "TERMINATED"
+          "to": "TERMINATED",
+          "trigger": "agent.terminated"
         }
       ]
     },
@@ -920,22 +938,31 @@
       "transitions": [
         {
           "abi": "v1",
-          "command": "governance.proposal.submit",
+          "emitted_events": [
+            "governance.proposal.submitted"
+          ],
           "from": "DRAFT",
-          "to": "PENDING_REVIEW"
+          "to": "PENDING_REVIEW",
+          "trigger": "governance.proposal.submitted"
         },
         {
           "abi": "v1",
-          "command": "governance.proposal.approve",
+          "emitted_events": [
+            "governance.proposal.approved"
+          ],
           "from": "PENDING_REVIEW",
           "guard": "required_approvals_reached",
-          "to": "APPROVED"
+          "to": "APPROVED",
+          "trigger": "governance.proposal.approved"
         },
         {
           "abi": "v1",
-          "command": "governance.proposal.reject",
+          "emitted_events": [
+            "governance.proposal.rejected"
+          ],
           "from": "PENDING_REVIEW",
-          "to": "REJECTED"
+          "to": "REJECTED",
+          "trigger": "governance.proposal.rejected"
         },
         {
           "abi": "v1",
@@ -946,21 +973,30 @@
         },
         {
           "abi": "v1",
-          "command": "governance.proposal.cancel",
+          "emitted_events": [
+            "governance.proposal.cancelled"
+          ],
           "from": "PENDING_REVIEW",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "governance.proposal.cancelled"
         },
         {
           "abi": "v1",
-          "command": "governance.proposal.implement",
+          "emitted_events": [
+            "governance.proposal.implemented"
+          ],
           "from": "APPROVED",
-          "to": "IMPLEMENTED"
+          "to": "IMPLEMENTED",
+          "trigger": "governance.proposal.implemented"
         },
         {
           "abi": "v1",
-          "command": "governance.proposal.cancel",
+          "emitted_events": [
+            "governance.proposal.cancelled"
+          ],
           "from": "DRAFT",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "governance.proposal.cancelled"
         }
       ]
     },
@@ -1467,15 +1503,23 @@
       "transitions": [
         {
           "abi": "v1",
-          "command": "ledger.account.freeze",
+          "emitted_events": [
+            "ledger.account.frozen"
+          ],
           "from": "ACTIVE",
-          "to": "FROZEN"
+          "to": "FROZEN",
+          "trigger": "ledger.account.frozen"
         },
         {
           "abi": "v1",
-          "command": "ledger.period.close",
+          "emitted_events": [
+            "ledger.period.closing",
+            "ledger.entry.posted",
+            "ledger.period.closed"
+          ],
           "from": "ACTIVE",
-          "to": "CLOSED"
+          "to": "CLOSED",
+          "trigger": "ledger.period.closing"
         }
       ]
     },
@@ -1539,19 +1583,16 @@
       "aggregate": "journal_entry",
       "domain": "ledger",
       "final_states": [
-        "REJECTED"
+        "REVERSED",
+        "CORRECTED"
       ],
       "id": "state_machine:ledger_journal_lifecycle",
-      "initial_state": "CREATED",
+      "initial_state": "POSTED",
       "states": {
-        "CREATED": {
+        "CORRECTED": {
           "abi": "v1",
-          "allowed_commands": [
-            "system begins validation"
-          ],
-          "description": "Entry has been created but not yet validated",
-          "on_timeout": "REJECTED",
-          "time_limit": "300s"
+          "allowed_commands": [],
+          "description": "Entry has been superseded by a correcting entry; terminal"
         },
         "POSTED": {
           "abi": "v1",
@@ -1565,123 +1606,43 @@
             "emit ledger.entry.posted event"
           ]
         },
-        "RECONCILED": {
-          "abi": "v1",
-          "allowed_commands": [
-            "ledger.entry.reverse",
-            "ledger.entry.correct"
-          ],
-          "description": "Entry has been verified against external source",
-          "entry_actions": [
-            "mark as reconciled in projections"
-          ]
-        },
-        "REJECTED": {
+        "REVERSED": {
           "abi": "v1",
           "allowed_commands": [],
-          "description": "Entry failed validation and was not posted",
-          "entry_actions": [
-            "emit ledger.entry.rejected event",
-            "notify source domain"
-          ]
-        },
-        "SETTLED": {
-          "abi": "v1",
-          "allowed_commands": [
-            "ledger.entry.reverse",
-            "ledger.entry.correct"
-          ],
-          "description": "Entry has been confirmed by the originating domain",
-          "entry_actions": [
-            "mark as settled in projections"
-          ]
-        },
-        "VALIDATING": {
-          "abi": "v1",
-          "allowed_commands": [],
-          "description": "Entry is passing through the validation pipeline",
-          "on_timeout": "REJECTED",
-          "time_limit": "600s"
+          "description": "Entry has been reversed by a reversal entry; terminal"
         },
         "abi": "v1"
       },
       "transitions": {
-        "CREATED_to_REJECTED": {
+        "POSTED_to_CORRECTED": {
           "abi": "v1",
-          "condition": "creation_timeout_exceeded",
+          "condition": "status == 'POSTED'",
           "emitted_events": [
-            "ledger.entry.rejected"
+            "ledger.entry.corrected"
           ],
           "invalid": false,
-          "trigger": "timeout"
+          "trigger": "ledger.entry.corrected"
         },
-        "CREATED_to_VALIDATING": {
+        "POSTED_to_REVERSED": {
           "abi": "v1",
-          "condition": "none",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "validation_started"
-        },
-        "POSTED_to_RECONCILED": {
-          "abi": "v1",
-          "condition": "reconciliation_passed_without_settlement",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "reconciliation_confirms"
-        },
-        "POSTED_to_SETTLED": {
-          "abi": "v1",
-          "condition": "settlement_event_received",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "originating_domain_confirms"
-        },
-        "SETTLED_to_RECONCILED": {
-          "abi": "v1",
-          "condition": "reconciliation_passed",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "reconciliation_confirms"
-        },
-        "VALIDATING_to_POSTED": {
-          "abi": "v1",
-          "condition": "all_validation_steps_passed",
+          "condition": "status == 'POSTED'",
           "emitted_events": [
-            "ledger.entry.posted"
+            "ledger.entry.reversed"
           ],
           "invalid": false,
-          "trigger": "validation_passed"
-        },
-        "VALIDATING_to_REJECTED": {
-          "abi": "v1",
-          "condition": "any_validation_step_failed",
-          "emitted_events": [
-            "ledger.entry.rejected"
-          ],
-          "invalid": false,
-          "trigger": "validation_failed"
+          "trigger": "ledger.entry.reversed"
         },
         "abi": "v1",
         "invalid_transitions": [
           {
             "abi": "v1",
-            "from": "REJECTED",
+            "from": "REVERSED",
             "to": "any"
           },
           {
             "abi": "v1",
-            "from": "RECONCILED",
-            "to": "POSTED"
-          },
-          {
-            "abi": "v1",
-            "from": "SETTLED",
-            "to": "CREATED"
-          },
-          {
-            "abi": "v1",
-            "from": "VALIDATING",
-            "to": "POSTED"
+            "from": "CORRECTED",
+            "to": "any"
           }
         ]
       }
@@ -1809,15 +1770,21 @@
       "transitions": [
         {
           "abi": "v1",
-          "command": "payment.execution.prepare",
+          "emitted_events": [
+            "payment.execution.planned"
+          ],
           "from": "ENABLED",
-          "to": "PREPARING"
+          "to": "PREPARING",
+          "trigger": "payment.execution.planned"
         },
         {
           "abi": "v1",
-          "command": "payment.execution.execute",
+          "emitted_events": [
+            "payment.execution.started"
+          ],
           "from": "PREPARING",
-          "to": "EXECUTING"
+          "to": "EXECUTING",
+          "trigger": "payment.execution.started"
         },
         {
           "abi": "v1",
@@ -1827,9 +1794,12 @@
         },
         {
           "abi": "v1",
-          "command": "payment.adapter.disable",
+          "emitted_events": [
+            "payment.adapter.disabled"
+          ],
           "from": "ENABLED",
-          "to": "DISABLED"
+          "to": "DISABLED",
+          "trigger": "payment.adapter.disabled"
         }
       ]
     },
@@ -2088,16 +2058,22 @@
       "transitions": [
         {
           "abi": "v1",
-          "command": "payment.execution.plan",
+          "emitted_events": [
+            "payment.execution.planned"
+          ],
           "from": "RECEIVED",
           "guard": "execution_plan_does_not_exist",
-          "to": "PLANNING"
+          "to": "PLANNING",
+          "trigger": "payment.execution.planned"
         },
         {
           "abi": "v1",
-          "command": "payment.request.cancel",
+          "emitted_events": [
+            "payment.request.cancelled"
+          ],
           "from": "RECEIVED",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "payment.request.cancelled"
         },
         {
           "abi": "v1",
@@ -2114,16 +2090,22 @@
         },
         {
           "abi": "v1",
-          "command": "payment.request.cancel",
+          "emitted_events": [
+            "payment.request.cancelled"
+          ],
           "from": "PLANNING",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "payment.request.cancelled"
         },
         {
           "abi": "v1",
-          "command": "payment.execution.execute",
+          "emitted_events": [
+            "payment.execution.started"
+          ],
           "from": "ROUTING",
           "guard": "adapter_registered",
-          "to": "PREPARING"
+          "to": "PREPARING",
+          "trigger": "payment.execution.started"
         },
         {
           "abi": "v1",
@@ -2133,9 +2115,12 @@
         },
         {
           "abi": "v1",
-          "command": "payment.request.cancel",
+          "emitted_events": [
+            "payment.request.cancelled"
+          ],
           "from": "ROUTING",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "payment.request.cancelled"
         },
         {
           "abi": "v1",
@@ -2172,9 +2157,12 @@
         },
         {
           "abi": "v1",
-          "command": "payment.execution.compensate",
+          "emitted_events": [
+            "payment.compensation.started"
+          ],
           "from": "EXECUTING",
-          "to": "COMPENSATING"
+          "to": "COMPENSATING",
+          "trigger": "payment.compensation.started"
         },
         {
           "abi": "v1",
@@ -2191,9 +2179,12 @@
         },
         {
           "abi": "v1",
-          "command": "payment.execution.compensate",
+          "emitted_events": [
+            "payment.compensation.started"
+          ],
           "from": "CONFIRMING",
-          "to": "COMPENSATING"
+          "to": "COMPENSATING",
+          "trigger": "payment.compensation.started"
         },
         {
           "abi": "v1",
@@ -2204,16 +2195,22 @@
         },
         {
           "abi": "v1",
-          "command": "payment.receipt.issue",
+          "emitted_events": [
+            "payment.receipt.issued"
+          ],
           "from": "RECONCILING",
           "guard": "reconciliation_bypassed",
-          "to": "SETTLED"
+          "to": "SETTLED",
+          "trigger": "payment.receipt.issued"
         },
         {
           "abi": "v1",
-          "command": "payment.execution.compensate",
+          "emitted_events": [
+            "payment.compensation.started"
+          ],
           "from": "FAILED",
-          "to": "COMPENSATING"
+          "to": "COMPENSATING",
+          "trigger": "payment.compensation.started"
         },
         {
           "abi": "v1",
@@ -2531,9 +2528,12 @@
         },
         {
           "abi": "v1",
-          "command": "saga.compensate",
+          "emitted_events": [
+            "saga.compensated"
+          ],
           "from": "FAILED",
-          "to": "COMPENSATING"
+          "to": "COMPENSATING",
+          "trigger": "saga.compensated"
         },
         {
           "abi": "v1",
@@ -2604,15 +2604,21 @@
         },
         {
           "abi": "v1",
-          "command": "governance.emergency.halt",
+          "emitted_events": [
+            "governance.emergency_halt.issued"
+          ],
           "from": "HEALTHY",
-          "to": "HALTED"
+          "to": "HALTED",
+          "trigger": "governance.emergency_halt.issued"
         },
         {
           "abi": "v1",
-          "command": "governance.emergency.halt",
+          "emitted_events": [
+            "governance.emergency_halt.issued"
+          ],
           "from": "DEGRADED",
-          "to": "HALTED"
+          "to": "HALTED",
+          "trigger": "governance.emergency_halt.issued"
         },
         {
           "abi": "v1",
@@ -2743,162 +2749,150 @@
       "transitions": {
         "AUTHORIZED_to_REJECTED": {
           "abi": "v1",
-          "condition": "policy evaluation returned DENY",
+          "condition": "status == 'AUTHORIZED'",
           "emitted_events": [
             "treasury.transfer.rejected"
           ],
           "invalid": false,
-          "trigger": "policy denied"
+          "trigger": "treasury.transfer.rejected"
         },
         "AUTHORIZED_to_RESERVED": {
           "abi": "v1",
-          "condition": "vault confirms reservation in ACTIVE state",
+          "condition": "status == 'AUTHORIZED'",
           "emitted_events": [
             "treasury.transfer.reserved"
           ],
           "invalid": false,
-          "trigger": "vault reservation locked"
+          "trigger": "treasury.transfer.reserved"
         },
         "EXECUTING_to_FAILED": {
           "abi": "v1",
-          "condition": "payment rail returned failure",
+          "condition": "status == 'EXECUTING'",
           "emitted_events": [
             "treasury.transfer.failed"
           ],
           "invalid": false,
-          "trigger": "execution error"
-        },
-        "EXECUTING_to_PENDING_SETTLEMENT": {
-          "abi": "v1",
-          "condition": "payment rail reports execution complete",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "execution completed, awaiting confirmation"
+          "trigger": "treasury.transfer.failed"
         },
         "EXECUTING_to_SETTLED": {
           "abi": "v1",
-          "condition": "execution and settlement confirmed atomically",
+          "condition": "status == 'EXECUTING'",
           "emitted_events": [
             "treasury.transfer.settled",
             "treasury.settlement.confirmed"
           ],
           "invalid": false,
-          "trigger": "internal settlement confirmed directly"
-        },
-        "EXECUTING_to_UNKNOWN_EXTERNAL_STATE": {
-          "abi": "v1",
-          "condition": "payment rail did not respond within execution SLA",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "external timeout"
+          "trigger": "treasury.transfer.settled"
         },
         "FAILED_to_COMPENSATION_REQUIRED": {
           "abi": "v1",
-          "condition": "governance or automated compensation triggered",
+          "condition": "status == 'FAILED'",
           "emitted_events": [
             "treasury.transfer.compensation_required"
           ],
           "invalid": false,
-          "trigger": "compensation saga initiated"
+          "trigger": "treasury.transfer.compensation_required"
         },
         "PENDING_SETTLEMENT_to_FAILED": {
           "abi": "v1",
-          "condition": "settlement confirmation returned failure",
+          "condition": "status == 'PENDING_SETTLEMENT'",
           "emitted_events": [
             "treasury.transfer.failed"
           ],
           "invalid": false,
-          "trigger": "settlement failed"
+          "trigger": "treasury.transfer.failed"
         },
         "PENDING_SETTLEMENT_to_SETTLED": {
           "abi": "v1",
-          "condition": "settlement confirmation received from rail",
+          "condition": "status == 'PENDING_SETTLEMENT'",
           "emitted_events": [
             "treasury.transfer.settled",
             "treasury.settlement.confirmed"
           ],
           "invalid": false,
-          "trigger": "settlement confirmed"
-        },
-        "PENDING_SETTLEMENT_to_UNKNOWN_EXTERNAL_STATE": {
-          "abi": "v1",
-          "condition": "no response received within SLA or response unparseable",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "timeout or unknown response"
+          "trigger": "treasury.transfer.settled"
         },
         "REQUESTED_to_AUTHORIZED": {
           "abi": "v1",
-          "condition": "all authorization gates passed",
+          "condition": "status == 'REQUESTED'",
           "emitted_events": [
             "treasury.transfer.authorized"
           ],
           "invalid": false,
-          "trigger": "identity+capability+policy passed"
+          "trigger": "treasury.transfer.authorized"
         },
         "REQUESTED_to_EXPIRED": {
           "abi": "v1",
-          "condition": "3600s elapsed without authorization",
+          "condition": "status == 'REQUESTED'",
           "emitted_events": [
             "treasury.transfer.expired"
           ],
           "invalid": false,
-          "trigger": "timeout"
+          "trigger": "treasury.transfer.expired"
         },
         "REQUESTED_to_REJECTED": {
           "abi": "v1",
-          "condition": "request payload fails validation",
+          "condition": "status == 'REQUESTED'",
           "emitted_events": [
             "treasury.transfer.rejected"
           ],
           "invalid": false,
-          "trigger": "validation failed"
+          "trigger": "treasury.transfer.rejected"
         },
         "RESERVED_to_EXECUTING": {
           "abi": "v1",
-          "condition": "payment rail accepts instruction",
+          "condition": "status == 'RESERVED'",
           "emitted_events": [
             "treasury.transfer.executing"
           ],
           "invalid": false,
-          "trigger": "execution begins"
+          "trigger": "treasury.transfer.executing"
         },
         "RESERVED_to_EXPIRED": {
           "abi": "v1",
-          "condition": "vault reservation reached expiry",
+          "condition": "status == 'RESERVED'",
           "emitted_events": [
             "treasury.transfer.expired"
           ],
           "invalid": false,
-          "trigger": "vault reservation expired"
+          "trigger": "treasury.transfer.expired"
+        },
+        "SETTLED_to_SETTLED": {
+          "abi": "v1",
+          "condition": "status == 'SETTLED'",
+          "emitted_events": [
+            "treasury.settlement.confirmed"
+          ],
+          "invalid": false,
+          "trigger": "treasury.settlement.confirmed"
         },
         "UNKNOWN_EXTERNAL_STATE_to_COMPENSATION_REQUIRED": {
           "abi": "v1",
-          "condition": "governance determines compensation necessary",
+          "condition": "status == 'UNKNOWN_EXTERNAL_STATE'",
           "emitted_events": [
             "treasury.transfer.compensation_required"
           ],
           "invalid": false,
-          "trigger": "governance orders compensation"
+          "trigger": "treasury.transfer.compensation_required"
         },
         "UNKNOWN_EXTERNAL_STATE_to_FAILED": {
           "abi": "v1",
-          "condition": "late failure received after unknown period",
+          "condition": "status == 'UNKNOWN_EXTERNAL_STATE'",
           "emitted_events": [
             "treasury.transfer.failed"
           ],
           "invalid": false,
-          "trigger": "failure confirmed"
+          "trigger": "treasury.transfer.failed"
         },
         "UNKNOWN_EXTERNAL_STATE_to_SETTLED": {
           "abi": "v1",
-          "condition": "settlement confirmed after unknown period",
+          "condition": "status == 'UNKNOWN_EXTERNAL_STATE'",
           "emitted_events": [
             "treasury.transfer.settled",
             "treasury.settlement.confirmed"
           ],
           "invalid": false,
-          "trigger": "late confirmation received"
+          "trigger": "treasury.transfer.settled"
         },
         "abi": "v1"
       }
@@ -3045,13 +3039,6 @@
           "invalid": false,
           "trigger": "vault.reserve.created"
         },
-        "CONSUMED_to_AVAILABLE": {
-          "abi": "v1",
-          "condition": "balance_recalculated",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "automatic"
-        },
         "IMPAIRED_to_AVAILABLE": {
           "abi": "v1",
           "condition": "value_recovered_and_reconciliation_passed",
@@ -3122,13 +3109,6 @@
           ],
           "invalid": false,
           "trigger": "vault.asset.verified"
-        },
-        "RELEASED_to_AVAILABLE": {
-          "abi": "v1",
-          "condition": "balance_recalculated",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "automatic"
         },
         "RESERVED_to_AVAILABLE": {
           "abi": "v1",
@@ -3311,13 +3291,6 @@
           "invalid": false,
           "trigger": "vault.collateral.released"
         },
-        "LIQUIDATING_to_LIQUIDATED": {
-          "abi": "v1",
-          "condition": "proceeds_applied_to_obligation",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "liquidation_completed"
-        },
         "LIQUIDATING_to_RELEASED": {
           "abi": "v1",
           "condition": "governance_overrides_liquidation",
@@ -3325,7 +3298,7 @@
             "vault.collateral.released"
           ],
           "invalid": false,
-          "trigger": "liquidation_cancelled"
+          "trigger": "vault.collateral.released"
         },
         "MARGIN_CALL_to_ACTIVE": {
           "abi": "v1",
@@ -3343,7 +3316,7 @@
             "vault.collateral.liquidation_initiated"
           ],
           "invalid": false,
-          "trigger": "margin_call_timeout"
+          "trigger": "vault.collateral.liquidation_initiated"
         },
         "MARGIN_CALL_to_RELEASED": {
           "abi": "v1",
@@ -3489,13 +3462,6 @@
         "abi": "v1"
       },
       "transitions": {
-        "ACTIVE_to_CONSUMED": {
-          "abi": "v1",
-          "condition": "consuming_event_received",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "consuming_transaction_completed"
-        },
         "ACTIVE_to_EXPIRED": {
           "abi": "v1",
           "condition": "expiration_time_passed",
@@ -3683,7 +3649,7 @@
             "vault.transaction.failed"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.cancel"
+          "trigger": "vault.transaction.failed"
         },
         "CREATED_to_FUNDING_REQUESTED": {
           "abi": "v1",
@@ -3692,7 +3658,7 @@
             "vault.transaction.funding_requested"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.fund"
+          "trigger": "vault.transaction.funding_requested"
         },
         "DISBURSED_to_CLOSED": {
           "abi": "v1",
@@ -3701,7 +3667,7 @@
             "vault.transaction.closed"
           ],
           "invalid": false,
-          "trigger": "automatic"
+          "trigger": "vault.transaction.closed"
         },
         "FUNDED_to_RELEASE_PENDING": {
           "abi": "v1",
@@ -3710,7 +3676,7 @@
             "vault.transaction.release_pending"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.authorize_release"
+          "trigger": "vault.transaction.release_pending"
         },
         "FUNDING_PENDING_to_FAILED": {
           "abi": "v1",
@@ -3719,7 +3685,7 @@
             "vault.transaction.failed"
           ],
           "invalid": false,
-          "trigger": "timeout"
+          "trigger": "vault.transaction.failed"
         },
         "FUNDING_PENDING_to_FUNDED": {
           "abi": "v1",
@@ -3728,7 +3694,7 @@
             "vault.transaction.funded"
           ],
           "invalid": false,
-          "trigger": "funding_settlement_confirmed"
+          "trigger": "vault.transaction.funded"
         },
         "FUNDING_REQUESTED_to_FAILED": {
           "abi": "v1",
@@ -3737,14 +3703,14 @@
             "vault.transaction.failed"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.cancel"
+          "trigger": "vault.transaction.failed"
         },
         "FUNDING_REQUESTED_to_FUNDING_PENDING": {
           "abi": "v1",
           "condition": "confirmation_received",
           "emitted_events": [],
           "invalid": false,
-          "trigger": "external_funding_confirmed"
+          "trigger": "vault.transaction.funding_pending"
         },
         "RELEASE_AUTHORIZED_to_DISBURSED": {
           "abi": "v1",
@@ -3753,7 +3719,7 @@
             "vault.transaction.disbursed"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.disburse"
+          "trigger": "vault.transaction.disbursed"
         },
         "RELEASE_PENDING_to_FAILED": {
           "abi": "v1",
@@ -3762,7 +3728,7 @@
             "vault.transaction.failed"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.cancel"
+          "trigger": "vault.transaction.failed"
         },
         "RELEASE_PENDING_to_RELEASE_AUTHORIZED": {
           "abi": "v1",
@@ -3771,7 +3737,7 @@
             "vault.transaction.release_authorized"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.authorize_release"
+          "trigger": "vault.transaction.release_authorized"
         },
         "abi": "v1",
         "invalid_transitions": [
@@ -3838,7 +3804,7 @@
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "ced89770573f523405f6000e8c289eeb1dc46e83a4a81c430cd0c86dd04f96c8",
+    "hash": "28de89138ce8f8c2380eb803018f9d9b08a7e0e1a1f0a158a29a28eae02b7dde",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "machines"

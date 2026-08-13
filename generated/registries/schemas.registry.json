@@ -1960,6 +1960,24 @@
         }
       }
     },
+    "event:agent.suspension_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "agent_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
     "event:agent.terminated": {
       "abi": "v1",
       "data_fields": {
@@ -2772,6 +2790,24 @@
         }
       }
     },
+    "event:governance.proposal.cancellation_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
     "event:governance.proposal.cancelled": {
       "abi": "v1",
       "data_fields": {
@@ -2807,6 +2843,24 @@
         "proposal_id": {
           "abi": "v1",
           "format": "uuid",
+          "type": "string"
+        }
+      }
+    },
+    "event:governance.proposal.implementation_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "reason": {
+          "abi": "v1",
           "type": "string"
         }
       }
@@ -4873,6 +4927,42 @@
         }
       }
     },
+    "event:payment.adapter.disable_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "adapter_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:payment.adapter.disabled": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "adapter_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "disabled_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
     "event:payment.compensation.completed": {
       "abi": "v1",
       "data_fields": {
@@ -6340,6 +6430,24 @@
         "saga_id": {
           "abi": "v1",
           "format": "uuid",
+          "type": "string"
+        }
+      }
+    },
+    "event:saga.compensation_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "saga_id": {
+          "abi": "v1",
           "type": "string"
         }
       }
@@ -7903,13 +8011,13 @@
       }
     }
   },
-  "entry_count": 404,
+  "entry_count": 410,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "f99e93aad1d7061f6380055211b48789c0d631c945bcd15e133c59838cbdcba6",
+    "hash": "e9c33827eb4f701fd58d88915bd45090e2818846c4eeddd0a5e1223595018df7",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "schemas"

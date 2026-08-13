@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:agent
-// Hash: 3c6604b2bd5e687a6ab0af30450e9bd6b8437baf3133592b681912dce9896c64
+// Hash: 0dc14dcca10e4f617f2842bce429189bd25f59b8b4b33beb9f8adeed49e67dd2
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -132,6 +132,14 @@ export class AgentRegistrationSubmittedEvent {
 export class AgentSuspendedEvent {
   static readonly eventName = 'agent.suspended' as const;
   static readonly aggregate = 'instance' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class AgentSuspensionFailedEvent {
+  static readonly eventName = 'agent.suspension_failed' as const;
+  static readonly aggregate = 'agent_instance' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
   }

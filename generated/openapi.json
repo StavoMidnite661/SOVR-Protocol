@@ -3,7 +3,7 @@
     "warning": "SOVR GENERATED FILE — DO NOT EDIT",
     "compiler": "0.6.0",
     "protocol": "1.0.0",
-    "hash": "4412ef8a16a71b2eec62fee726db9891c5ea430a4764bdf46452360ac1a26bf2"
+    "hash": "485f1fcec63f91f6f020c7aa3d6b87ec012f0803f48b065574d42d5e750db9d8"
   },
   "openapi": "3.1.0",
   "info": {
@@ -1602,11 +1602,11 @@
         "x-capability-required": "ledger.reconcile"
       }
     },
-    "/api/v1/payment/execution": {
+    "/api/v1/payment/rail_adapter": {
       "post": {
-        "operationId": "payment_execution_prepare",
-        "summary": "payment.execution.prepare",
-        "description": "Command payment.execution.prepare requiring capability payment.execution.plan",
+        "operationId": "payment_rail_adapter_disable",
+        "summary": "payment.adapter.disable",
+        "description": "Command payment.adapter.disable requiring capability payment.adapter.disable",
         "tags": [
           "payment"
         ],
@@ -1651,7 +1651,7 @@
           "capability_required": true,
           "invariants": []
         },
-        "x-capability-required": "payment.execution.plan"
+        "x-capability-required": "payment.adapter.disable"
       }
     },
     "/api/v1/payment/payment_request": {
@@ -1711,6 +1711,58 @@
         "operationId": "payment_execution_plan_plan",
         "summary": "payment.execution.plan",
         "description": "Command payment.execution.plan requiring capability payment.execution.plan",
+        "tags": [
+          "payment"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": []
+        },
+        "x-capability-required": "payment.execution.plan"
+      }
+    },
+    "/api/v1/payment/execution": {
+      "post": {
+        "operationId": "payment_execution_prepare",
+        "summary": "payment.execution.prepare",
+        "description": "Command payment.execution.prepare requiring capability payment.execution.plan",
         "tags": [
           "payment"
         ],
@@ -2122,13 +2174,13 @@
         "x-capability-required": "policy.set.evaluate"
       }
     },
-    "/api/v1/payment/saga_execution": {
+    "/api/v1/kernel/saga_instance": {
       "post": {
-        "operationId": "payment_saga_execution_compensate",
+        "operationId": "kernel_saga_instance_compensate",
         "summary": "saga.compensate",
         "description": "Command saga.compensate requiring capability system.internal",
         "tags": [
-          "payment"
+          "kernel"
         ],
         "security": [
           {
@@ -2602,6 +2654,6 @@
     "schemas": {}
   },
   "x-compiler-version": "0.6.0",
-  "x-ir-hash": "33647881b0e5fdf6e5b5fd02557fd3d9ece575edd4a480c719be47231b6db447",
+  "x-ir-hash": "16c3f8b8a6352d35acc5f449b1a00251763341a6ec1ea12e680ded6a23381d6e",
   "x-generated": "SOVR generated file — do not edit"
 }

@@ -16,38 +16,15 @@ function loadCompiledRegistry(): Record<string, any> {
 
 describe('Phase 10C Ledger Certification', () => {
   it('rejects ledger imbalance with LEDGER_IMBALANCE_DETECTED', async () => {
+    // Negative-path certification is compiled authority: SIM-010 declares
+    // the imbalanced entry and its expected REJECTED outcome in the scenario
+    // corpus. Inline scenarios are refused by the integrity gate.
+    const registry = loadCompiledRegistry();
+    const compiled = registry['SIM-010-LEDGER-IMBALANCE-NEGATIVE'];
     const report = await runner.run({
-      scenario_id: 'LEDGER-IMBALANCE-TEST',
-      commands: [
-        {
-          command_id: 'imb-001',
-          command_name: 'ledger.entry.post',
-          domain: 'ledger',
-          aggregate: 'journal_entry',
-          payload: {
-            journal_id: 'journal-imbalance',
-            transaction_id: 'tx-imbalance',
-            event_reference: 'vault.asset.registered',
-            correlation_id: 'imb-001',
-            causation_id: 'imb-001',
-            description: 'Imbalanced ledger entry',
-            entry_type: 'STANDARD',
-            postings: [
-              { account_id: 'acc-imbalance-a', amount: 100, direction: 'DEBIT', asset_id: 'vault-asset-007', description: 'Debit' },
-              { account_id: 'acc-imbalance-b', amount: 50, direction: 'CREDIT', asset_id: 'vault-asset-007', description: 'Credit' },
-            ],
-          },
-          capability_id: 'ledger.entry.post',
-          scope: 'ledger.entry:*',
-          expected_result: 'REJECTED',
-        },
-      ],
-      actor_context: {
-        actor_id: 'sim-ledger-operator',
-        actor_type: 'system',
-        identity_id: 'sim-ledger-operator-id',
-        session_id: 'sim-ledger-session',
-      },
+      scenario_id: 'SIM-010-LEDGER-IMBALANCE-NEGATIVE',
+      commands: compiled.commands,
+      actor_context: compiled.actors[0],
       seed: 0xDEADBEEF,
     });
 
@@ -62,7 +39,7 @@ describe('Phase 10C Ledger Certification', () => {
     const registry = loadCompiledRegistry();
     const compiled = registry['SIM-006-LEDGER-RECONCILIATION-LIFECYCLE'];
     const scenario = {
-      scenario_id: 'LEDGER-BALANCED-TEST',
+      scenario_id: 'SIM-006-LEDGER-RECONCILIATION-LIFECYCLE',
       commands: compiled.commands,
       actor_context: compiled.actors[0],
       seed: 0xDEADBEEF,

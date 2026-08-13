@@ -3806,8 +3806,8 @@ commands:
       - proposal_id
       - implementation_hash
     resulting_events:
-      success: [governance.proposal.approved]
-      failure: [governance.proposal.rejection_failed]
+      success: [governance.proposal.implemented]
+      failure: [governance.proposal.implementation_failed]
     constitutional_gates:
       identity_required: true
       policy_required: true
@@ -3833,8 +3833,8 @@ commands:
       - proposal_id
       - cancellation_reason
     resulting_events:
-      success: [governance.proposal.rejected]
-      failure: [governance.proposal.rejection_failed]
+      success: [governance.proposal.cancelled]
+      failure: [governance.proposal.cancellation_failed]
     constitutional_gates:
       identity_required: true
       policy_required: true
@@ -3860,8 +3860,8 @@ commands:
       - agent_id
       - suspension_reason
     resulting_events:
-      success: [agent.terminated]
-      failure: [agent.termination_failed]
+      success: [agent.suspended]
+      failure: [agent.suspension_failed]
     constitutional_gates:
       identity_required: true
       policy_required: true
@@ -3897,16 +3897,16 @@ commands:
       invariants: []
 
   payment.adapter.disable:
-    aggregate: execution
+    aggregate: rail_adapter
     source_domain: payment
     version: 1.0.0
     description: Disable a failing or non-compliant payment rail adapter
     issuer:
       actor_types: [human, governance, system]
-      minimum_capability: payment.execution.compensate
+      minimum_capability: payment.adapter.disable
     authorization_requirements:
       identity: required
-      capability: payment.execution.compensate
+      capability: payment.adapter.disable
     validation_rules:
       - rule: adapter_must_be_registered
         check: adapter.registered == true
@@ -3915,8 +3915,8 @@ commands:
       - adapter_id
       - disable_reason
     resulting_events:
-      success: [payment.request.cancelled]
-      failure: [payment.execution.compensation_failed]
+      success: [payment.adapter.disabled]
+      failure: [payment.adapter.disable_failed]
     constitutional_gates:
       identity_required: true
       policy_required: true
@@ -3924,8 +3924,8 @@ commands:
       invariants: []
 
   saga.compensate:
-    aggregate: saga_execution
-    source_domain: payment
+    aggregate: saga_instance
+    source_domain: kernel
     version: 1.0.0
     description: Trigger saga compensation rollback across participating domains
     issuer:
@@ -3942,8 +3942,8 @@ commands:
       - saga_id
       - failed_step_id
     resulting_events:
-      success: [payment.execution.compensated]
-      failure: [payment.execution.compensation_failed]
+      success: [saga.compensated]
+      failure: [saga.compensation_failed]
     constitutional_gates:
       identity_required: true
       policy_required: true

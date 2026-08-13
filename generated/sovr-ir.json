@@ -2,12 +2,12 @@
   "edges": [
     {
       "from": "command:agent.suspend",
-      "to": "event:agent.terminated",
+      "to": "event:agent.suspended",
       "type": "command_produces_event"
     },
     {
       "from": "command:agent.suspend",
-      "to": "event:agent.termination_failed",
+      "to": "event:agent.suspension_failed",
       "type": "command_produces_event"
     },
     {
@@ -242,22 +242,22 @@
     },
     {
       "from": "command:governance.proposal.cancel",
-      "to": "event:governance.proposal.rejected",
+      "to": "event:governance.proposal.cancellation_failed",
       "type": "command_produces_event"
     },
     {
       "from": "command:governance.proposal.cancel",
-      "to": "event:governance.proposal.rejection_failed",
+      "to": "event:governance.proposal.cancelled",
       "type": "command_produces_event"
     },
     {
       "from": "command:governance.proposal.implement",
-      "to": "event:governance.proposal.approved",
+      "to": "event:governance.proposal.implementation_failed",
       "type": "command_produces_event"
     },
     {
       "from": "command:governance.proposal.implement",
-      "to": "event:governance.proposal.rejection_failed",
+      "to": "event:governance.proposal.implemented",
       "type": "command_produces_event"
     },
     {
@@ -392,12 +392,12 @@
     },
     {
       "from": "command:payment.adapter.disable",
-      "to": "event:payment.execution.compensation_failed",
+      "to": "event:payment.adapter.disable_failed",
       "type": "command_produces_event"
     },
     {
       "from": "command:payment.adapter.disable",
-      "to": "event:payment.request.cancelled",
+      "to": "event:payment.adapter.disabled",
       "type": "command_produces_event"
     },
     {
@@ -532,12 +532,12 @@
     },
     {
       "from": "command:saga.compensate",
-      "to": "event:payment.execution.compensated",
+      "to": "event:saga.compensated",
       "type": "command_produces_event"
     },
     {
       "from": "command:saga.compensate",
-      "to": "event:payment.execution.compensation_failed",
+      "to": "event:saga.compensation_failed",
       "type": "command_produces_event"
     },
     {
@@ -1177,7 +1177,7 @@
     },
     {
       "from": "command:payment.adapter.disable",
-      "to": "capability:payment.execution.compensate",
+      "to": "capability:payment.adapter.disable",
       "type": "command_requires_capability"
     },
     {
@@ -2031,6 +2031,11 @@
       "type": "entity_accepts_command"
     },
     {
+      "from": "domain:kernel",
+      "to": "command:saga.compensate",
+      "type": "entity_accepts_command"
+    },
+    {
       "from": "domain:ledger",
       "to": "command:ledger.account.create",
       "type": "entity_accepts_command"
@@ -2128,11 +2133,6 @@
     {
       "from": "domain:payment",
       "to": "command:payment.request.create",
-      "type": "entity_accepts_command"
-    },
-    {
-      "from": "domain:payment",
-      "to": "command:saga.compensate",
       "type": "entity_accepts_command"
     },
     {
@@ -2584,7 +2584,7 @@
   "meta": {
     "compilerVersion": "0.6.0",
     "generatedWithoutWallClock": true,
-    "irHash": "33647881b0e5fdf6e5b5fd02557fd3d9ece575edd4a480c719be47231b6db447",
+    "irHash": "16c3f8b8a6352d35acc5f449b1a00251763341a6ec1ea12e680ded6a23381d6e",
     "protocolVersion": "1.0.0"
   },
   "nodes": [
@@ -3664,6 +3664,22 @@
     },
     {
       "action": "EXECUTE",
+      "capabilityId": "payment.adapter.disable",
+      "constitutionalRefs": [
+        "INV-003"
+      ],
+      "domain": "payment",
+      "id": "capability:payment.adapter.disable",
+      "resourceType": "rail_adapter",
+      "riskLevel": "HIGH",
+      "scopePattern": "payment:adapter:{adapter_id}:disable",
+      "sourceFile": "08_security-capabilities.yaml",
+      "sourceRef": "payment.adapter.disable",
+      "type": "capability",
+      "version": "1.0.0"
+    },
+    {
+      "action": "EXECUTE",
       "capabilityId": "payment.compensation.execute",
       "constitutionalRefs": [
         "INV-003"
@@ -4692,8 +4708,8 @@
         "suspension_reason"
       ],
       "resultingEvents": [
-        "agent.terminated",
-        "agent.termination_failed"
+        "agent.suspended",
+        "agent.suspension_failed"
       ],
       "sourceFile": "03_command-catalog.yaml",
       "sourceRef": "agent.suspend",
@@ -5455,8 +5471,8 @@
         "cancellation_reason"
       ],
       "resultingEvents": [
-        "governance.proposal.rejected",
-        "governance.proposal.rejection_failed"
+        "governance.proposal.cancelled",
+        "governance.proposal.cancellation_failed"
       ],
       "sourceFile": "03_command-catalog.yaml",
       "sourceRef": "governance.proposal.cancel",
@@ -5480,8 +5496,8 @@
         "implementation_hash"
       ],
       "resultingEvents": [
-        "governance.proposal.approved",
-        "governance.proposal.rejection_failed"
+        "governance.proposal.implemented",
+        "governance.proposal.implementation_failed"
       ],
       "sourceFile": "03_command-catalog.yaml",
       "sourceRef": "governance.proposal.implement",
@@ -6228,8 +6244,8 @@
       "version": "1.0.0"
     },
     {
-      "aggregate": "execution",
-      "capability": "payment.execution.compensate",
+      "aggregate": "rail_adapter",
+      "capability": "payment.adapter.disable",
       "constitutionalRefs": [],
       "domain": "payment",
       "gates": {
@@ -6244,8 +6260,8 @@
         "disable_reason"
       ],
       "resultingEvents": [
-        "payment.request.cancelled",
-        "payment.execution.compensation_failed"
+        "payment.adapter.disabled",
+        "payment.adapter.disable_failed"
       ],
       "sourceFile": "03_command-catalog.yaml",
       "sourceRef": "payment.adapter.disable",
@@ -6747,10 +6763,10 @@
       "version": "1.0.0"
     },
     {
-      "aggregate": "saga_execution",
+      "aggregate": "saga_instance",
       "capability": "system.internal",
       "constitutionalRefs": [],
-      "domain": "payment",
+      "domain": "kernel",
       "gates": {
         "capability_required": true,
         "identity_required": true,
@@ -6763,8 +6779,8 @@
         "failed_step_id"
       ],
       "resultingEvents": [
-        "payment.execution.compensated",
-        "payment.execution.compensation_failed"
+        "saga.compensated",
+        "saga.compensation_failed"
       ],
       "sourceFile": "03_command-catalog.yaml",
       "sourceRef": "saga.compensate",
@@ -16020,6 +16036,241 @@
       "id": "event:agent.suspended",
       "sourceFile": "04_event-catalog.yaml",
       "sourceRef": "agent.suspended",
+      "type": "event",
+      "version": "1.0.0"
+    },
+    {
+      "aggregate": "agent_instance",
+      "constitutionalRefs": [],
+      "dataFields": {
+        "agent_id": {
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "agent",
+      "envelope": {
+        "compile_target": true,
+        "description": "Every event in SOVR must include these envelope fields. No event may be published without a complete envelope. This is the authoritative event contract for the protocol compiler.\n",
+        "fields": {
+          "actor_id": {
+            "description": "UUID of the actor who initiated the operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate": {
+            "description": "The aggregate/entity this event relates to",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate_id": {
+            "description": "The specific instance of the aggregate",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "audit": {
+            "description": "Audit metadata for governance and compliance",
+            "fields": {
+              "constitutional_rules_referenced": {
+                "description": "Invariant IDs evaluated during command execution",
+                "items": {
+                  "type": "string"
+                },
+                "required": true,
+                "type": "array"
+              },
+              "enforcement_actions": {
+                "description": "Any enforcement actions taken during this event lifecycle",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "retention_class": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "permanent",
+                  "regulatory_7y",
+                  "operational_90d",
+                  "session"
+                ]
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "capability_id": {
+            "description": "The capability that was exercised (e.g. vault.asset.create)",
+            "required": true,
+            "type": "string"
+          },
+          "causation_id": {
+            "description": "The event_id that caused this event (parent event in chain)",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "command_id": {
+            "description": "UUID of the command that caused this event",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "correlation_id": {
+            "description": "Groups all events from a single business operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_id": {
+            "description": "Globally unique event identifier",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_name": {
+            "description": "Fully qualified event name (domain.aggregate.action)",
+            "required": true,
+            "type": "string"
+          },
+          "event_version": {
+            "description": "Event schema version",
+            "format": "semver",
+            "required": true,
+            "type": "string"
+          },
+          "identity_context": {
+            "description": "Identity state at the time of event production",
+            "fields": {
+              "actor_type": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "human",
+                  "organization",
+                  "ai_agent",
+                  "service_account",
+                  "governance",
+                  "external_system",
+                  "system"
+                ]
+              },
+              "agent_id": {
+                "description": "Required if actor_type is ai_agent",
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              },
+              "delegation_chain": {
+                "description": "Chain of delegating identity IDs (if delegated)",
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "identity_id": {
+                "format": "uuid",
+                "required": true,
+                "type": "string"
+              },
+              "model_version": {
+                "description": "Required if actor_type is ai_agent",
+                "required": false,
+                "type": "string"
+              },
+              "session_id": {
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "payload": {
+            "description": "Event-specific data fields (defined per event type)",
+            "required": true,
+            "type": "object"
+          },
+          "policy_decision_id": {
+            "description": "UUID of the PolicyDecision that authorized the triggering command",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "projection_effect": {
+            "description": "Instructions for projection engine on how to process this event",
+            "fields": {
+              "invalidation_keys": {
+                "description": "Cache keys to invalidate",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "operation": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "insert",
+                  "update",
+                  "delete",
+                  "append",
+                  "no_op"
+                ]
+              },
+              "target": {
+                "description": "Target read model / projection name",
+                "required": true,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "source_domain": {
+            "description": "The domain that produced this event",
+            "required": true,
+            "type": "enum",
+            "values": [
+              "vault",
+              "ledger",
+              "treasury",
+              "identity",
+              "policy",
+              "intent",
+              "agent",
+              "payment",
+              "governance"
+            ]
+          },
+          "timestamp": {
+            "description": "When the event occurred (domain time, not wall clock)",
+            "required": true,
+            "type": "timestamp"
+          },
+          "triggering_command": {
+            "description": "Fully qualified command name (e.g. vault.asset.register)",
+            "required": true,
+            "type": "string"
+          }
+        }
+      },
+      "id": "event:agent.suspension_failed",
+      "sourceFile": "04_event-catalog.yaml",
+      "sourceRef": "agent.suspension_failed",
       "type": "event",
       "version": "1.0.0"
     },
@@ -27702,6 +27953,241 @@
       "aggregate": "governance_proposal",
       "constitutionalRefs": [],
       "dataFields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "governance",
+      "envelope": {
+        "compile_target": true,
+        "description": "Every event in SOVR must include these envelope fields. No event may be published without a complete envelope. This is the authoritative event contract for the protocol compiler.\n",
+        "fields": {
+          "actor_id": {
+            "description": "UUID of the actor who initiated the operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate": {
+            "description": "The aggregate/entity this event relates to",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate_id": {
+            "description": "The specific instance of the aggregate",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "audit": {
+            "description": "Audit metadata for governance and compliance",
+            "fields": {
+              "constitutional_rules_referenced": {
+                "description": "Invariant IDs evaluated during command execution",
+                "items": {
+                  "type": "string"
+                },
+                "required": true,
+                "type": "array"
+              },
+              "enforcement_actions": {
+                "description": "Any enforcement actions taken during this event lifecycle",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "retention_class": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "permanent",
+                  "regulatory_7y",
+                  "operational_90d",
+                  "session"
+                ]
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "capability_id": {
+            "description": "The capability that was exercised (e.g. vault.asset.create)",
+            "required": true,
+            "type": "string"
+          },
+          "causation_id": {
+            "description": "The event_id that caused this event (parent event in chain)",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "command_id": {
+            "description": "UUID of the command that caused this event",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "correlation_id": {
+            "description": "Groups all events from a single business operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_id": {
+            "description": "Globally unique event identifier",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_name": {
+            "description": "Fully qualified event name (domain.aggregate.action)",
+            "required": true,
+            "type": "string"
+          },
+          "event_version": {
+            "description": "Event schema version",
+            "format": "semver",
+            "required": true,
+            "type": "string"
+          },
+          "identity_context": {
+            "description": "Identity state at the time of event production",
+            "fields": {
+              "actor_type": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "human",
+                  "organization",
+                  "ai_agent",
+                  "service_account",
+                  "governance",
+                  "external_system",
+                  "system"
+                ]
+              },
+              "agent_id": {
+                "description": "Required if actor_type is ai_agent",
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              },
+              "delegation_chain": {
+                "description": "Chain of delegating identity IDs (if delegated)",
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "identity_id": {
+                "format": "uuid",
+                "required": true,
+                "type": "string"
+              },
+              "model_version": {
+                "description": "Required if actor_type is ai_agent",
+                "required": false,
+                "type": "string"
+              },
+              "session_id": {
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "payload": {
+            "description": "Event-specific data fields (defined per event type)",
+            "required": true,
+            "type": "object"
+          },
+          "policy_decision_id": {
+            "description": "UUID of the PolicyDecision that authorized the triggering command",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "projection_effect": {
+            "description": "Instructions for projection engine on how to process this event",
+            "fields": {
+              "invalidation_keys": {
+                "description": "Cache keys to invalidate",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "operation": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "insert",
+                  "update",
+                  "delete",
+                  "append",
+                  "no_op"
+                ]
+              },
+              "target": {
+                "description": "Target read model / projection name",
+                "required": true,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "source_domain": {
+            "description": "The domain that produced this event",
+            "required": true,
+            "type": "enum",
+            "values": [
+              "vault",
+              "ledger",
+              "treasury",
+              "identity",
+              "policy",
+              "intent",
+              "agent",
+              "payment",
+              "governance"
+            ]
+          },
+          "timestamp": {
+            "description": "When the event occurred (domain time, not wall clock)",
+            "required": true,
+            "type": "timestamp"
+          },
+          "triggering_command": {
+            "description": "Fully qualified command name (e.g. vault.asset.register)",
+            "required": true,
+            "type": "string"
+          }
+        }
+      },
+      "id": "event:governance.proposal.cancellation_failed",
+      "sourceFile": "04_event-catalog.yaml",
+      "sourceRef": "governance.proposal.cancellation_failed",
+      "type": "event",
+      "version": "1.0.0"
+    },
+    {
+      "aggregate": "governance_proposal",
+      "constitutionalRefs": [],
+      "dataFields": {
         "cancelled_at": {
           "type": "timestamp"
         },
@@ -28168,6 +28654,241 @@
       "id": "event:governance.proposal.expired",
       "sourceFile": "04_event-catalog.yaml",
       "sourceRef": "governance.proposal.expired",
+      "type": "event",
+      "version": "1.0.0"
+    },
+    {
+      "aggregate": "governance_proposal",
+      "constitutionalRefs": [],
+      "dataFields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "governance",
+      "envelope": {
+        "compile_target": true,
+        "description": "Every event in SOVR must include these envelope fields. No event may be published without a complete envelope. This is the authoritative event contract for the protocol compiler.\n",
+        "fields": {
+          "actor_id": {
+            "description": "UUID of the actor who initiated the operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate": {
+            "description": "The aggregate/entity this event relates to",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate_id": {
+            "description": "The specific instance of the aggregate",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "audit": {
+            "description": "Audit metadata for governance and compliance",
+            "fields": {
+              "constitutional_rules_referenced": {
+                "description": "Invariant IDs evaluated during command execution",
+                "items": {
+                  "type": "string"
+                },
+                "required": true,
+                "type": "array"
+              },
+              "enforcement_actions": {
+                "description": "Any enforcement actions taken during this event lifecycle",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "retention_class": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "permanent",
+                  "regulatory_7y",
+                  "operational_90d",
+                  "session"
+                ]
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "capability_id": {
+            "description": "The capability that was exercised (e.g. vault.asset.create)",
+            "required": true,
+            "type": "string"
+          },
+          "causation_id": {
+            "description": "The event_id that caused this event (parent event in chain)",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "command_id": {
+            "description": "UUID of the command that caused this event",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "correlation_id": {
+            "description": "Groups all events from a single business operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_id": {
+            "description": "Globally unique event identifier",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_name": {
+            "description": "Fully qualified event name (domain.aggregate.action)",
+            "required": true,
+            "type": "string"
+          },
+          "event_version": {
+            "description": "Event schema version",
+            "format": "semver",
+            "required": true,
+            "type": "string"
+          },
+          "identity_context": {
+            "description": "Identity state at the time of event production",
+            "fields": {
+              "actor_type": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "human",
+                  "organization",
+                  "ai_agent",
+                  "service_account",
+                  "governance",
+                  "external_system",
+                  "system"
+                ]
+              },
+              "agent_id": {
+                "description": "Required if actor_type is ai_agent",
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              },
+              "delegation_chain": {
+                "description": "Chain of delegating identity IDs (if delegated)",
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "identity_id": {
+                "format": "uuid",
+                "required": true,
+                "type": "string"
+              },
+              "model_version": {
+                "description": "Required if actor_type is ai_agent",
+                "required": false,
+                "type": "string"
+              },
+              "session_id": {
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "payload": {
+            "description": "Event-specific data fields (defined per event type)",
+            "required": true,
+            "type": "object"
+          },
+          "policy_decision_id": {
+            "description": "UUID of the PolicyDecision that authorized the triggering command",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "projection_effect": {
+            "description": "Instructions for projection engine on how to process this event",
+            "fields": {
+              "invalidation_keys": {
+                "description": "Cache keys to invalidate",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "operation": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "insert",
+                  "update",
+                  "delete",
+                  "append",
+                  "no_op"
+                ]
+              },
+              "target": {
+                "description": "Target read model / projection name",
+                "required": true,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "source_domain": {
+            "description": "The domain that produced this event",
+            "required": true,
+            "type": "enum",
+            "values": [
+              "vault",
+              "ledger",
+              "treasury",
+              "identity",
+              "policy",
+              "intent",
+              "agent",
+              "payment",
+              "governance"
+            ]
+          },
+          "timestamp": {
+            "description": "When the event occurred (domain time, not wall clock)",
+            "required": true,
+            "type": "timestamp"
+          },
+          "triggering_command": {
+            "description": "Fully qualified command name (e.g. vault.asset.register)",
+            "required": true,
+            "type": "string"
+          }
+        }
+      },
+      "id": "event:governance.proposal.implementation_failed",
+      "sourceFile": "04_event-catalog.yaml",
+      "sourceRef": "governance.proposal.implementation_failed",
       "type": "event",
       "version": "1.0.0"
     },
@@ -48883,6 +49604,476 @@
       "version": "1.0.0"
     },
     {
+      "aggregate": "rail_adapter",
+      "constitutionalRefs": [],
+      "dataFields": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "envelope": {
+        "compile_target": true,
+        "description": "Every event in SOVR must include these envelope fields. No event may be published without a complete envelope. This is the authoritative event contract for the protocol compiler.\n",
+        "fields": {
+          "actor_id": {
+            "description": "UUID of the actor who initiated the operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate": {
+            "description": "The aggregate/entity this event relates to",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate_id": {
+            "description": "The specific instance of the aggregate",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "audit": {
+            "description": "Audit metadata for governance and compliance",
+            "fields": {
+              "constitutional_rules_referenced": {
+                "description": "Invariant IDs evaluated during command execution",
+                "items": {
+                  "type": "string"
+                },
+                "required": true,
+                "type": "array"
+              },
+              "enforcement_actions": {
+                "description": "Any enforcement actions taken during this event lifecycle",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "retention_class": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "permanent",
+                  "regulatory_7y",
+                  "operational_90d",
+                  "session"
+                ]
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "capability_id": {
+            "description": "The capability that was exercised (e.g. vault.asset.create)",
+            "required": true,
+            "type": "string"
+          },
+          "causation_id": {
+            "description": "The event_id that caused this event (parent event in chain)",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "command_id": {
+            "description": "UUID of the command that caused this event",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "correlation_id": {
+            "description": "Groups all events from a single business operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_id": {
+            "description": "Globally unique event identifier",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_name": {
+            "description": "Fully qualified event name (domain.aggregate.action)",
+            "required": true,
+            "type": "string"
+          },
+          "event_version": {
+            "description": "Event schema version",
+            "format": "semver",
+            "required": true,
+            "type": "string"
+          },
+          "identity_context": {
+            "description": "Identity state at the time of event production",
+            "fields": {
+              "actor_type": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "human",
+                  "organization",
+                  "ai_agent",
+                  "service_account",
+                  "governance",
+                  "external_system",
+                  "system"
+                ]
+              },
+              "agent_id": {
+                "description": "Required if actor_type is ai_agent",
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              },
+              "delegation_chain": {
+                "description": "Chain of delegating identity IDs (if delegated)",
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "identity_id": {
+                "format": "uuid",
+                "required": true,
+                "type": "string"
+              },
+              "model_version": {
+                "description": "Required if actor_type is ai_agent",
+                "required": false,
+                "type": "string"
+              },
+              "session_id": {
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "payload": {
+            "description": "Event-specific data fields (defined per event type)",
+            "required": true,
+            "type": "object"
+          },
+          "policy_decision_id": {
+            "description": "UUID of the PolicyDecision that authorized the triggering command",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "projection_effect": {
+            "description": "Instructions for projection engine on how to process this event",
+            "fields": {
+              "invalidation_keys": {
+                "description": "Cache keys to invalidate",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "operation": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "insert",
+                  "update",
+                  "delete",
+                  "append",
+                  "no_op"
+                ]
+              },
+              "target": {
+                "description": "Target read model / projection name",
+                "required": true,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "source_domain": {
+            "description": "The domain that produced this event",
+            "required": true,
+            "type": "enum",
+            "values": [
+              "vault",
+              "ledger",
+              "treasury",
+              "identity",
+              "policy",
+              "intent",
+              "agent",
+              "payment",
+              "governance"
+            ]
+          },
+          "timestamp": {
+            "description": "When the event occurred (domain time, not wall clock)",
+            "required": true,
+            "type": "timestamp"
+          },
+          "triggering_command": {
+            "description": "Fully qualified command name (e.g. vault.asset.register)",
+            "required": true,
+            "type": "string"
+          }
+        }
+      },
+      "id": "event:payment.adapter.disable_failed",
+      "sourceFile": "04_event-catalog.yaml",
+      "sourceRef": "payment.adapter.disable_failed",
+      "type": "event",
+      "version": "1.0.0"
+    },
+    {
+      "aggregate": "rail_adapter",
+      "constitutionalRefs": [],
+      "dataFields": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "disabled_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "envelope": {
+        "compile_target": true,
+        "description": "Every event in SOVR must include these envelope fields. No event may be published without a complete envelope. This is the authoritative event contract for the protocol compiler.\n",
+        "fields": {
+          "actor_id": {
+            "description": "UUID of the actor who initiated the operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate": {
+            "description": "The aggregate/entity this event relates to",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate_id": {
+            "description": "The specific instance of the aggregate",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "audit": {
+            "description": "Audit metadata for governance and compliance",
+            "fields": {
+              "constitutional_rules_referenced": {
+                "description": "Invariant IDs evaluated during command execution",
+                "items": {
+                  "type": "string"
+                },
+                "required": true,
+                "type": "array"
+              },
+              "enforcement_actions": {
+                "description": "Any enforcement actions taken during this event lifecycle",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "retention_class": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "permanent",
+                  "regulatory_7y",
+                  "operational_90d",
+                  "session"
+                ]
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "capability_id": {
+            "description": "The capability that was exercised (e.g. vault.asset.create)",
+            "required": true,
+            "type": "string"
+          },
+          "causation_id": {
+            "description": "The event_id that caused this event (parent event in chain)",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "command_id": {
+            "description": "UUID of the command that caused this event",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "correlation_id": {
+            "description": "Groups all events from a single business operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_id": {
+            "description": "Globally unique event identifier",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_name": {
+            "description": "Fully qualified event name (domain.aggregate.action)",
+            "required": true,
+            "type": "string"
+          },
+          "event_version": {
+            "description": "Event schema version",
+            "format": "semver",
+            "required": true,
+            "type": "string"
+          },
+          "identity_context": {
+            "description": "Identity state at the time of event production",
+            "fields": {
+              "actor_type": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "human",
+                  "organization",
+                  "ai_agent",
+                  "service_account",
+                  "governance",
+                  "external_system",
+                  "system"
+                ]
+              },
+              "agent_id": {
+                "description": "Required if actor_type is ai_agent",
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              },
+              "delegation_chain": {
+                "description": "Chain of delegating identity IDs (if delegated)",
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "identity_id": {
+                "format": "uuid",
+                "required": true,
+                "type": "string"
+              },
+              "model_version": {
+                "description": "Required if actor_type is ai_agent",
+                "required": false,
+                "type": "string"
+              },
+              "session_id": {
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "payload": {
+            "description": "Event-specific data fields (defined per event type)",
+            "required": true,
+            "type": "object"
+          },
+          "policy_decision_id": {
+            "description": "UUID of the PolicyDecision that authorized the triggering command",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "projection_effect": {
+            "description": "Instructions for projection engine on how to process this event",
+            "fields": {
+              "invalidation_keys": {
+                "description": "Cache keys to invalidate",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "operation": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "insert",
+                  "update",
+                  "delete",
+                  "append",
+                  "no_op"
+                ]
+              },
+              "target": {
+                "description": "Target read model / projection name",
+                "required": true,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "source_domain": {
+            "description": "The domain that produced this event",
+            "required": true,
+            "type": "enum",
+            "values": [
+              "vault",
+              "ledger",
+              "treasury",
+              "identity",
+              "policy",
+              "intent",
+              "agent",
+              "payment",
+              "governance"
+            ]
+          },
+          "timestamp": {
+            "description": "When the event occurred (domain time, not wall clock)",
+            "required": true,
+            "type": "timestamp"
+          },
+          "triggering_command": {
+            "description": "Fully qualified command name (e.g. vault.asset.register)",
+            "required": true,
+            "type": "string"
+          }
+        }
+      },
+      "id": "event:payment.adapter.disabled",
+      "sourceFile": "04_event-catalog.yaml",
+      "sourceRef": "payment.adapter.disabled",
+      "type": "event",
+      "version": "1.0.0"
+    },
+    {
       "aggregate": "payment_request",
       "constitutionalRefs": [],
       "dataFields": {
@@ -63524,6 +64715,241 @@
       "id": "event:saga.compensating",
       "sourceFile": "04_event-catalog.yaml",
       "sourceRef": "saga.compensating",
+      "type": "event",
+      "version": "1.0.0"
+    },
+    {
+      "aggregate": "saga_instance",
+      "constitutionalRefs": [],
+      "dataFields": {
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "saga_id": {
+          "type": "string"
+        }
+      },
+      "domain": "kernel",
+      "envelope": {
+        "compile_target": true,
+        "description": "Every event in SOVR must include these envelope fields. No event may be published without a complete envelope. This is the authoritative event contract for the protocol compiler.\n",
+        "fields": {
+          "actor_id": {
+            "description": "UUID of the actor who initiated the operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate": {
+            "description": "The aggregate/entity this event relates to",
+            "required": true,
+            "type": "string"
+          },
+          "aggregate_id": {
+            "description": "The specific instance of the aggregate",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "audit": {
+            "description": "Audit metadata for governance and compliance",
+            "fields": {
+              "constitutional_rules_referenced": {
+                "description": "Invariant IDs evaluated during command execution",
+                "items": {
+                  "type": "string"
+                },
+                "required": true,
+                "type": "array"
+              },
+              "enforcement_actions": {
+                "description": "Any enforcement actions taken during this event lifecycle",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "retention_class": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "permanent",
+                  "regulatory_7y",
+                  "operational_90d",
+                  "session"
+                ]
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "capability_id": {
+            "description": "The capability that was exercised (e.g. vault.asset.create)",
+            "required": true,
+            "type": "string"
+          },
+          "causation_id": {
+            "description": "The event_id that caused this event (parent event in chain)",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "command_id": {
+            "description": "UUID of the command that caused this event",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "correlation_id": {
+            "description": "Groups all events from a single business operation",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_id": {
+            "description": "Globally unique event identifier",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "event_name": {
+            "description": "Fully qualified event name (domain.aggregate.action)",
+            "required": true,
+            "type": "string"
+          },
+          "event_version": {
+            "description": "Event schema version",
+            "format": "semver",
+            "required": true,
+            "type": "string"
+          },
+          "identity_context": {
+            "description": "Identity state at the time of event production",
+            "fields": {
+              "actor_type": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "human",
+                  "organization",
+                  "ai_agent",
+                  "service_account",
+                  "governance",
+                  "external_system",
+                  "system"
+                ]
+              },
+              "agent_id": {
+                "description": "Required if actor_type is ai_agent",
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              },
+              "delegation_chain": {
+                "description": "Chain of delegating identity IDs (if delegated)",
+                "items": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "identity_id": {
+                "format": "uuid",
+                "required": true,
+                "type": "string"
+              },
+              "model_version": {
+                "description": "Required if actor_type is ai_agent",
+                "required": false,
+                "type": "string"
+              },
+              "session_id": {
+                "format": "uuid",
+                "required": false,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "payload": {
+            "description": "Event-specific data fields (defined per event type)",
+            "required": true,
+            "type": "object"
+          },
+          "policy_decision_id": {
+            "description": "UUID of the PolicyDecision that authorized the triggering command",
+            "format": "uuid",
+            "required": true,
+            "type": "string"
+          },
+          "projection_effect": {
+            "description": "Instructions for projection engine on how to process this event",
+            "fields": {
+              "invalidation_keys": {
+                "description": "Cache keys to invalidate",
+                "items": {
+                  "type": "string"
+                },
+                "required": false,
+                "type": "array"
+              },
+              "operation": {
+                "required": true,
+                "type": "enum",
+                "values": [
+                  "insert",
+                  "update",
+                  "delete",
+                  "append",
+                  "no_op"
+                ]
+              },
+              "target": {
+                "description": "Target read model / projection name",
+                "required": true,
+                "type": "string"
+              }
+            },
+            "required": true,
+            "type": "object"
+          },
+          "source_domain": {
+            "description": "The domain that produced this event",
+            "required": true,
+            "type": "enum",
+            "values": [
+              "vault",
+              "ledger",
+              "treasury",
+              "identity",
+              "policy",
+              "intent",
+              "agent",
+              "payment",
+              "governance"
+            ]
+          },
+          "timestamp": {
+            "description": "When the event occurred (domain time, not wall clock)",
+            "required": true,
+            "type": "timestamp"
+          },
+          "triggering_command": {
+            "description": "Fully qualified command name (e.g. vault.asset.register)",
+            "required": true,
+            "type": "string"
+          }
+        }
+      },
+      "id": "event:saga.compensation_failed",
+      "sourceFile": "04_event-catalog.yaml",
+      "sourceRef": "saga.compensation_failed",
       "type": "event",
       "version": "1.0.0"
     },
@@ -84082,34 +85508,52 @@
       },
       "transitions": [
         {
-          "command": "agent.activate",
+          "emitted_events": [
+            "agent.activated"
+          ],
           "from": "REGISTERED",
-          "to": "ACTIVE"
+          "to": "ACTIVE",
+          "trigger": "agent.activated"
         },
         {
-          "command": "agent.suspend",
+          "emitted_events": [
+            "agent.suspended"
+          ],
           "from": "ACTIVE",
-          "to": "SUSPENDED"
+          "to": "SUSPENDED",
+          "trigger": "agent.suspended"
         },
         {
-          "command": "agent.activate",
+          "emitted_events": [
+            "agent.activated"
+          ],
           "from": "SUSPENDED",
-          "to": "ACTIVE"
+          "to": "ACTIVE",
+          "trigger": "agent.activated"
         },
         {
-          "command": "agent.terminate",
+          "emitted_events": [
+            "agent.terminated"
+          ],
           "from": "ACTIVE",
-          "to": "TERMINATED"
+          "to": "TERMINATED",
+          "trigger": "agent.terminated"
         },
         {
-          "command": "agent.terminate",
+          "emitted_events": [
+            "agent.terminated"
+          ],
           "from": "SUSPENDED",
-          "to": "TERMINATED"
+          "to": "TERMINATED",
+          "trigger": "agent.terminated"
         },
         {
-          "command": "agent.terminate",
+          "emitted_events": [
+            "agent.terminated"
+          ],
           "from": "REGISTERED",
-          "to": "TERMINATED"
+          "to": "TERMINATED",
+          "trigger": "agent.terminated"
         }
       ],
       "type": "state_machine",
@@ -84619,20 +86063,29 @@
       },
       "transitions": [
         {
-          "command": "governance.proposal.submit",
+          "emitted_events": [
+            "governance.proposal.submitted"
+          ],
           "from": "DRAFT",
-          "to": "PENDING_REVIEW"
+          "to": "PENDING_REVIEW",
+          "trigger": "governance.proposal.submitted"
         },
         {
-          "command": "governance.proposal.approve",
+          "emitted_events": [
+            "governance.proposal.approved"
+          ],
           "from": "PENDING_REVIEW",
           "guard": "required_approvals_reached",
-          "to": "APPROVED"
+          "to": "APPROVED",
+          "trigger": "governance.proposal.approved"
         },
         {
-          "command": "governance.proposal.reject",
+          "emitted_events": [
+            "governance.proposal.rejected"
+          ],
           "from": "PENDING_REVIEW",
-          "to": "REJECTED"
+          "to": "REJECTED",
+          "trigger": "governance.proposal.rejected"
         },
         {
           "event": "governance.proposal.expired",
@@ -84641,19 +86094,28 @@
           "to": "EXPIRED"
         },
         {
-          "command": "governance.proposal.cancel",
+          "emitted_events": [
+            "governance.proposal.cancelled"
+          ],
           "from": "PENDING_REVIEW",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "governance.proposal.cancelled"
         },
         {
-          "command": "governance.proposal.implement",
+          "emitted_events": [
+            "governance.proposal.implemented"
+          ],
           "from": "APPROVED",
-          "to": "IMPLEMENTED"
+          "to": "IMPLEMENTED",
+          "trigger": "governance.proposal.implemented"
         },
         {
-          "command": "governance.proposal.cancel",
+          "emitted_events": [
+            "governance.proposal.cancelled"
+          ],
           "from": "DRAFT",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "governance.proposal.cancelled"
         }
       ],
       "type": "state_machine",
@@ -85182,14 +86644,22 @@
       },
       "transitions": [
         {
-          "command": "ledger.account.freeze",
+          "emitted_events": [
+            "ledger.account.frozen"
+          ],
           "from": "ACTIVE",
-          "to": "FROZEN"
+          "to": "FROZEN",
+          "trigger": "ledger.account.frozen"
         },
         {
-          "command": "ledger.period.close",
+          "emitted_events": [
+            "ledger.period.closing",
+            "ledger.entry.posted",
+            "ledger.period.closed"
+          ],
           "from": "ACTIVE",
-          "to": "CLOSED"
+          "to": "CLOSED",
+          "trigger": "ledger.period.closing"
         }
       ],
       "type": "state_machine",
@@ -85255,27 +86725,25 @@
     {
       "aggregate": "journal_entry",
       "constitutionalRefs": [],
-      "description": "Manages the lifecycle of a journal entry from creation through validation, posting, settlement, and reconciliation.\n",
+      "description": "Manages the lifecycle of a journal entry from posting through reversal or correction. REPAIR NOTE (fail-closed canonicalization): the previous form of this machine (CREATED → VALIDATING → POSTED → SETTLED → RECONCILED) was unrealizable in the event-sourced architecture: no command creates an unposted entry (ledger.entry.post validates and posts atomically — validation gates run BEFORE the ledger.entry.posted success event is emitted, per 03_command-catalog), no event exists for \"validation started/passed\", and settlement/reconciliation events are aggregated to transfer_order/reconciliation, never to journal_entry. A journal entry is therefore born POSTED. The states CREATED, VALIDATING, SETTLED, RECONCILED, REJECTED and their seven prose-triggered transitions were retired; the only ratified post-posting operations are ledger.entry.reverse and ledger.entry.correct, realized by ledger.entry.reversed and ledger.entry.corrected. REVERSED and CORRECTED were absent as states despite ratified commands/events targeting them — added by direct derivation from the event catalog so those flows can no longer hard-fault the kernel.\n",
       "domain": "ledger",
       "finalStates": [
-        "REJECTED"
+        "REVERSED",
+        "CORRECTED"
       ],
       "final_states": [
-        "REJECTED"
+        "REVERSED",
+        "CORRECTED"
       ],
       "id": "state_machine:ledger_journal_lifecycle",
-      "initialState": "CREATED",
-      "initial_state": "CREATED",
+      "initialState": "POSTED",
+      "initial_state": "POSTED",
       "sourceFile": "05_state-machines.yaml",
       "sourceRef": "ledger_journal_lifecycle",
       "states": {
-        "CREATED": {
-          "allowed_commands": [
-            "system begins validation"
-          ],
-          "description": "Entry has been created but not yet validated",
-          "on_timeout": "REJECTED",
-          "time_limit": "300s"
+        "CORRECTED": {
+          "allowed_commands": [],
+          "description": "Entry has been superseded by a correcting entry; terminal"
         },
         "POSTED": {
           "allowed_commands": [
@@ -85288,106 +86756,36 @@
             "emit ledger.entry.posted event"
           ]
         },
-        "RECONCILED": {
-          "allowed_commands": [
-            "ledger.entry.reverse",
-            "ledger.entry.correct"
-          ],
-          "description": "Entry has been verified against external source",
-          "entry_actions": [
-            "mark as reconciled in projections"
-          ]
-        },
-        "REJECTED": {
+        "REVERSED": {
           "allowed_commands": [],
-          "description": "Entry failed validation and was not posted",
-          "entry_actions": [
-            "emit ledger.entry.rejected event",
-            "notify source domain"
-          ]
-        },
-        "SETTLED": {
-          "allowed_commands": [
-            "ledger.entry.reverse",
-            "ledger.entry.correct"
-          ],
-          "description": "Entry has been confirmed by the originating domain",
-          "entry_actions": [
-            "mark as settled in projections"
-          ]
-        },
-        "VALIDATING": {
-          "allowed_commands": [],
-          "description": "Entry is passing through the validation pipeline",
-          "on_timeout": "REJECTED",
-          "time_limit": "600s"
+          "description": "Entry has been reversed by a reversal entry; terminal"
         }
       },
       "transitions": {
-        "CREATED_to_REJECTED": {
-          "condition": "creation_timeout_exceeded",
+        "POSTED_to_CORRECTED": {
+          "condition": "status == 'POSTED'",
           "emitted_events": [
-            "ledger.entry.rejected"
+            "ledger.entry.corrected"
           ],
           "invalid": false,
-          "trigger": "timeout"
+          "trigger": "ledger.entry.corrected"
         },
-        "CREATED_to_VALIDATING": {
-          "condition": "none",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "validation_started"
-        },
-        "POSTED_to_RECONCILED": {
-          "condition": "reconciliation_passed_without_settlement",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "reconciliation_confirms"
-        },
-        "POSTED_to_SETTLED": {
-          "condition": "settlement_event_received",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "originating_domain_confirms"
-        },
-        "SETTLED_to_RECONCILED": {
-          "condition": "reconciliation_passed",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "reconciliation_confirms"
-        },
-        "VALIDATING_to_POSTED": {
-          "condition": "all_validation_steps_passed",
+        "POSTED_to_REVERSED": {
+          "condition": "status == 'POSTED'",
           "emitted_events": [
-            "ledger.entry.posted"
+            "ledger.entry.reversed"
           ],
           "invalid": false,
-          "trigger": "validation_passed"
-        },
-        "VALIDATING_to_REJECTED": {
-          "condition": "any_validation_step_failed",
-          "emitted_events": [
-            "ledger.entry.rejected"
-          ],
-          "invalid": false,
-          "trigger": "validation_failed"
+          "trigger": "ledger.entry.reversed"
         },
         "invalid_transitions": [
           {
-            "from": "REJECTED",
+            "from": "REVERSED",
             "to": "any"
           },
           {
-            "from": "RECONCILED",
-            "to": "POSTED"
-          },
-          {
-            "from": "SETTLED",
-            "to": "CREATED"
-          },
-          {
-            "from": "VALIDATING",
-            "to": "POSTED"
+            "from": "CORRECTED",
+            "to": "any"
           }
         ]
       },
@@ -85525,14 +86923,20 @@
       },
       "transitions": [
         {
-          "command": "payment.execution.prepare",
+          "emitted_events": [
+            "payment.execution.planned"
+          ],
           "from": "ENABLED",
-          "to": "PREPARING"
+          "to": "PREPARING",
+          "trigger": "payment.execution.planned"
         },
         {
-          "command": "payment.execution.execute",
+          "emitted_events": [
+            "payment.execution.started"
+          ],
           "from": "PREPARING",
-          "to": "EXECUTING"
+          "to": "EXECUTING",
+          "trigger": "payment.execution.started"
         },
         {
           "event": "payment.execution.settled",
@@ -85540,9 +86944,12 @@
           "to": "ENABLED"
         },
         {
-          "command": "payment.adapter.disable",
+          "emitted_events": [
+            "payment.adapter.disabled"
+          ],
           "from": "ENABLED",
-          "to": "DISABLED"
+          "to": "DISABLED",
+          "trigger": "payment.adapter.disabled"
         }
       ],
       "type": "state_machine",
@@ -85809,15 +87216,21 @@
       },
       "transitions": [
         {
-          "command": "payment.execution.plan",
+          "emitted_events": [
+            "payment.execution.planned"
+          ],
           "from": "RECEIVED",
           "guard": "execution_plan_does_not_exist",
-          "to": "PLANNING"
+          "to": "PLANNING",
+          "trigger": "payment.execution.planned"
         },
         {
-          "command": "payment.request.cancel",
+          "emitted_events": [
+            "payment.request.cancelled"
+          ],
           "from": "RECEIVED",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "payment.request.cancelled"
         },
         {
           "event": "payment.execution.planned",
@@ -85831,15 +87244,21 @@
           "to": "FAILED"
         },
         {
-          "command": "payment.request.cancel",
+          "emitted_events": [
+            "payment.request.cancelled"
+          ],
           "from": "PLANNING",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "payment.request.cancelled"
         },
         {
-          "command": "payment.execution.execute",
+          "emitted_events": [
+            "payment.execution.started"
+          ],
           "from": "ROUTING",
           "guard": "adapter_registered",
-          "to": "PREPARING"
+          "to": "PREPARING",
+          "trigger": "payment.execution.started"
         },
         {
           "event": "payment.execution.start_failed",
@@ -85847,9 +87266,12 @@
           "to": "FAILED"
         },
         {
-          "command": "payment.request.cancel",
+          "emitted_events": [
+            "payment.request.cancelled"
+          ],
           "from": "ROUTING",
-          "to": "CANCELLED"
+          "to": "CANCELLED",
+          "trigger": "payment.request.cancelled"
         },
         {
           "event": "payment.rail.prepared",
@@ -85880,9 +87302,12 @@
           "to": "FAILED"
         },
         {
-          "command": "payment.execution.compensate",
+          "emitted_events": [
+            "payment.compensation.started"
+          ],
           "from": "EXECUTING",
-          "to": "COMPENSATING"
+          "to": "COMPENSATING",
+          "trigger": "payment.compensation.started"
         },
         {
           "event": "payment.rail.confirmed",
@@ -85896,9 +87321,12 @@
           "to": "FAILED"
         },
         {
-          "command": "payment.execution.compensate",
+          "emitted_events": [
+            "payment.compensation.started"
+          ],
           "from": "CONFIRMING",
-          "to": "COMPENSATING"
+          "to": "COMPENSATING",
+          "trigger": "payment.compensation.started"
         },
         {
           "event": "payment.reconciliation.completed",
@@ -85907,15 +87335,21 @@
           "to": "SETTLED"
         },
         {
-          "command": "payment.receipt.issue",
+          "emitted_events": [
+            "payment.receipt.issued"
+          ],
           "from": "RECONCILING",
           "guard": "reconciliation_bypassed",
-          "to": "SETTLED"
+          "to": "SETTLED",
+          "trigger": "payment.receipt.issued"
         },
         {
-          "command": "payment.execution.compensate",
+          "emitted_events": [
+            "payment.compensation.started"
+          ],
           "from": "FAILED",
-          "to": "COMPENSATING"
+          "to": "COMPENSATING",
+          "trigger": "payment.compensation.started"
         },
         {
           "event": "payment.compensation.completed",
@@ -86246,9 +87680,12 @@
           "to": "FAILED"
         },
         {
-          "command": "saga.compensate",
+          "emitted_events": [
+            "saga.compensated"
+          ],
           "from": "FAILED",
-          "to": "COMPENSATING"
+          "to": "COMPENSATING",
+          "trigger": "saga.compensated"
         },
         {
           "event": "saga.compensated",
@@ -86472,14 +87909,20 @@
           "to": "HEALTHY"
         },
         {
-          "command": "governance.emergency.halt",
+          "emitted_events": [
+            "governance.emergency_halt.issued"
+          ],
           "from": "HEALTHY",
-          "to": "HALTED"
+          "to": "HALTED",
+          "trigger": "governance.emergency_halt.issued"
         },
         {
-          "command": "governance.emergency.halt",
+          "emitted_events": [
+            "governance.emergency_halt.issued"
+          ],
           "from": "DEGRADED",
-          "to": "HALTED"
+          "to": "HALTED",
+          "trigger": "governance.emergency_halt.issued"
         },
         {
           "event": "system.health.unknown",
@@ -86524,7 +87967,7 @@
     {
       "aggregate": "transfer_order",
       "constitutionalRefs": [],
-      "description": "Manages the lifecycle of a treasury transfer order from request through authorization, vault reservation, execution, settlement, and potential failure or compensation.\n",
+      "description": "Manages the lifecycle of a treasury transfer order from request through authorization, vault reservation, execution, settlement, and potential failure or compensation. REPAIR NOTE (fail-closed canonicalization): all transition triggers are now bound to ratified catalog events — the previous prose triggers (\"settlement confirmed\", \"timeout\", …) matched no event and left this machine unenforceable. Three prose transitions were retired because the event catalog contains no event that realizes them: EXECUTING_to_PENDING_SETTLEMENT (\"execution completed, awaiting confirmation\"), EXECUTING_to_UNKNOWN_EXTERNAL_STATE (\"external timeout\"), and PENDING_SETTLEMENT_to_UNKNOWN_EXTERNAL_STATE (\"timeout or unknown response\"). Only rail-callback events (none have been ratified) can realize those transitions; the catalog's settlement flow (treasury.settlement.confirm) reaches SETTLED directly from EXECUTING. PENDING_SETTLEMENT and UNKNOWN_EXTERNAL_STATE remain declared, with their outbound transitions intact, pending a governance amendment ratifying rail-callback events. The stale invalid_transitions entry UNKNOWN_EXTERNAL_STATE→FAILED (which contradicted the valid transition of the same name) and the blanket SETTLED→any (which would forbid the idempotent confirmation self-loop) were removed.\n",
       "domain": "treasury",
       "finalStates": [
         "SETTLED",
@@ -86609,145 +88052,135 @@
       },
       "transitions": {
         "AUTHORIZED_to_REJECTED": {
-          "condition": "policy evaluation returned DENY",
+          "condition": "status == 'AUTHORIZED'",
           "emitted_events": [
             "treasury.transfer.rejected"
           ],
           "invalid": false,
-          "trigger": "policy denied"
+          "trigger": "treasury.transfer.rejected"
         },
         "AUTHORIZED_to_RESERVED": {
-          "condition": "vault confirms reservation in ACTIVE state",
+          "condition": "status == 'AUTHORIZED'",
           "emitted_events": [
             "treasury.transfer.reserved"
           ],
           "invalid": false,
-          "trigger": "vault reservation locked"
+          "trigger": "treasury.transfer.reserved"
         },
         "EXECUTING_to_FAILED": {
-          "condition": "payment rail returned failure",
+          "condition": "status == 'EXECUTING'",
           "emitted_events": [
             "treasury.transfer.failed"
           ],
           "invalid": false,
-          "trigger": "execution error"
-        },
-        "EXECUTING_to_PENDING_SETTLEMENT": {
-          "condition": "payment rail reports execution complete",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "execution completed, awaiting confirmation"
+          "trigger": "treasury.transfer.failed"
         },
         "EXECUTING_to_SETTLED": {
-          "condition": "execution and settlement confirmed atomically",
+          "condition": "status == 'EXECUTING'",
           "emitted_events": [
             "treasury.transfer.settled",
             "treasury.settlement.confirmed"
           ],
           "invalid": false,
-          "trigger": "internal settlement confirmed directly"
-        },
-        "EXECUTING_to_UNKNOWN_EXTERNAL_STATE": {
-          "condition": "payment rail did not respond within execution SLA",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "external timeout"
+          "trigger": "treasury.transfer.settled"
         },
         "FAILED_to_COMPENSATION_REQUIRED": {
-          "condition": "governance or automated compensation triggered",
+          "condition": "status == 'FAILED'",
           "emitted_events": [
             "treasury.transfer.compensation_required"
           ],
           "invalid": false,
-          "trigger": "compensation saga initiated"
+          "trigger": "treasury.transfer.compensation_required"
         },
         "PENDING_SETTLEMENT_to_FAILED": {
-          "condition": "settlement confirmation returned failure",
+          "condition": "status == 'PENDING_SETTLEMENT'",
           "emitted_events": [
             "treasury.transfer.failed"
           ],
           "invalid": false,
-          "trigger": "settlement failed"
+          "trigger": "treasury.transfer.failed"
         },
         "PENDING_SETTLEMENT_to_SETTLED": {
-          "condition": "settlement confirmation received from rail",
+          "condition": "status == 'PENDING_SETTLEMENT'",
           "emitted_events": [
             "treasury.transfer.settled",
             "treasury.settlement.confirmed"
           ],
           "invalid": false,
-          "trigger": "settlement confirmed"
-        },
-        "PENDING_SETTLEMENT_to_UNKNOWN_EXTERNAL_STATE": {
-          "condition": "no response received within SLA or response unparseable",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "timeout or unknown response"
+          "trigger": "treasury.transfer.settled"
         },
         "REQUESTED_to_AUTHORIZED": {
-          "condition": "all authorization gates passed",
+          "condition": "status == 'REQUESTED'",
           "emitted_events": [
             "treasury.transfer.authorized"
           ],
           "invalid": false,
-          "trigger": "identity+capability+policy passed"
+          "trigger": "treasury.transfer.authorized"
         },
         "REQUESTED_to_EXPIRED": {
-          "condition": "3600s elapsed without authorization",
+          "condition": "status == 'REQUESTED'",
           "emitted_events": [
             "treasury.transfer.expired"
           ],
           "invalid": false,
-          "trigger": "timeout"
+          "trigger": "treasury.transfer.expired"
         },
         "REQUESTED_to_REJECTED": {
-          "condition": "request payload fails validation",
+          "condition": "status == 'REQUESTED'",
           "emitted_events": [
             "treasury.transfer.rejected"
           ],
           "invalid": false,
-          "trigger": "validation failed"
+          "trigger": "treasury.transfer.rejected"
         },
         "RESERVED_to_EXECUTING": {
-          "condition": "payment rail accepts instruction",
+          "condition": "status == 'RESERVED'",
           "emitted_events": [
             "treasury.transfer.executing"
           ],
           "invalid": false,
-          "trigger": "execution begins"
+          "trigger": "treasury.transfer.executing"
         },
         "RESERVED_to_EXPIRED": {
-          "condition": "vault reservation reached expiry",
+          "condition": "status == 'RESERVED'",
           "emitted_events": [
             "treasury.transfer.expired"
           ],
           "invalid": false,
-          "trigger": "vault reservation expired"
+          "trigger": "treasury.transfer.expired"
+        },
+        "SETTLED_to_SETTLED": {
+          "condition": "status == 'SETTLED'",
+          "emitted_events": [
+            "treasury.settlement.confirmed"
+          ],
+          "invalid": false,
+          "trigger": "treasury.settlement.confirmed"
         },
         "UNKNOWN_EXTERNAL_STATE_to_COMPENSATION_REQUIRED": {
-          "condition": "governance determines compensation necessary",
+          "condition": "status == 'UNKNOWN_EXTERNAL_STATE'",
           "emitted_events": [
             "treasury.transfer.compensation_required"
           ],
           "invalid": false,
-          "trigger": "governance orders compensation"
+          "trigger": "treasury.transfer.compensation_required"
         },
         "UNKNOWN_EXTERNAL_STATE_to_FAILED": {
-          "condition": "late failure received after unknown period",
+          "condition": "status == 'UNKNOWN_EXTERNAL_STATE'",
           "emitted_events": [
             "treasury.transfer.failed"
           ],
           "invalid": false,
-          "trigger": "failure confirmed"
+          "trigger": "treasury.transfer.failed"
         },
         "UNKNOWN_EXTERNAL_STATE_to_SETTLED": {
-          "condition": "settlement confirmed after unknown period",
+          "condition": "status == 'UNKNOWN_EXTERNAL_STATE'",
           "emitted_events": [
             "treasury.transfer.settled",
             "treasury.settlement.confirmed"
           ],
           "invalid": false,
-          "trigger": "late confirmation received"
+          "trigger": "treasury.transfer.settled"
         }
       },
       "type": "state_machine",
@@ -86890,12 +88323,6 @@
           "invalid": false,
           "trigger": "vault.reserve.created"
         },
-        "CONSUMED_to_AVAILABLE": {
-          "condition": "balance_recalculated",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "automatic"
-        },
         "IMPAIRED_to_AVAILABLE": {
           "condition": "value_recovered_and_reconciliation_passed",
           "emitted_events": [
@@ -86958,12 +88385,6 @@
           ],
           "invalid": false,
           "trigger": "vault.asset.verified"
-        },
-        "RELEASED_to_AVAILABLE": {
-          "condition": "balance_recalculated",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "automatic"
         },
         "RESERVED_to_AVAILABLE": {
           "condition": "none",
@@ -87131,19 +88552,13 @@
           "invalid": false,
           "trigger": "vault.collateral.released"
         },
-        "LIQUIDATING_to_LIQUIDATED": {
-          "condition": "proceeds_applied_to_obligation",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "liquidation_completed"
-        },
         "LIQUIDATING_to_RELEASED": {
           "condition": "governance_overrides_liquidation",
           "emitted_events": [
             "vault.collateral.released"
           ],
           "invalid": false,
-          "trigger": "liquidation_cancelled"
+          "trigger": "vault.collateral.released"
         },
         "MARGIN_CALL_to_ACTIVE": {
           "condition": "margin_ratio_restored_above_initial",
@@ -87159,7 +88574,7 @@
             "vault.collateral.liquidation_initiated"
           ],
           "invalid": false,
-          "trigger": "margin_call_timeout"
+          "trigger": "vault.collateral.liquidation_initiated"
         },
         "MARGIN_CALL_to_RELEASED": {
           "condition": "obligation_satisfied_despite_margin_call",
@@ -87303,12 +88718,6 @@
         }
       },
       "transitions": {
-        "ACTIVE_to_CONSUMED": {
-          "condition": "consuming_event_received",
-          "emitted_events": [],
-          "invalid": false,
-          "trigger": "consuming_transaction_completed"
-        },
         "ACTIVE_to_EXPIRED": {
           "condition": "expiration_time_passed",
           "emitted_events": [
@@ -87482,7 +88891,7 @@
             "vault.transaction.failed"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.cancel"
+          "trigger": "vault.transaction.failed"
         },
         "CREATED_to_FUNDING_REQUESTED": {
           "condition": "funding_source_valid",
@@ -87490,7 +88899,7 @@
             "vault.transaction.funding_requested"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.fund"
+          "trigger": "vault.transaction.funding_requested"
         },
         "DISBURSED_to_CLOSED": {
           "condition": "reconciliation_complete",
@@ -87498,7 +88907,7 @@
             "vault.transaction.closed"
           ],
           "invalid": false,
-          "trigger": "automatic"
+          "trigger": "vault.transaction.closed"
         },
         "FUNDED_to_RELEASE_PENDING": {
           "condition": "authorization_valid",
@@ -87506,7 +88915,7 @@
             "vault.transaction.release_pending"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.authorize_release"
+          "trigger": "vault.transaction.release_pending"
         },
         "FUNDING_PENDING_to_FAILED": {
           "condition": "funding_not_confirmed_within_timeout",
@@ -87514,7 +88923,7 @@
             "vault.transaction.failed"
           ],
           "invalid": false,
-          "trigger": "timeout"
+          "trigger": "vault.transaction.failed"
         },
         "FUNDING_PENDING_to_FUNDED": {
           "condition": "settlement_verified",
@@ -87522,7 +88931,7 @@
             "vault.transaction.funded"
           ],
           "invalid": false,
-          "trigger": "funding_settlement_confirmed"
+          "trigger": "vault.transaction.funded"
         },
         "FUNDING_REQUESTED_to_FAILED": {
           "condition": "cancellation_before_funding",
@@ -87530,13 +88939,13 @@
             "vault.transaction.failed"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.cancel"
+          "trigger": "vault.transaction.failed"
         },
         "FUNDING_REQUESTED_to_FUNDING_PENDING": {
           "condition": "confirmation_received",
           "emitted_events": [],
           "invalid": false,
-          "trigger": "external_funding_confirmed"
+          "trigger": "vault.transaction.funding_pending"
         },
         "RELEASE_AUTHORIZED_to_DISBURSED": {
           "condition": "disbursement_completed",
@@ -87544,7 +88953,7 @@
             "vault.transaction.disbursed"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.disburse"
+          "trigger": "vault.transaction.disbursed"
         },
         "RELEASE_PENDING_to_FAILED": {
           "condition": "cancellation_before_disbursement",
@@ -87552,7 +88961,7 @@
             "vault.transaction.failed"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.cancel"
+          "trigger": "vault.transaction.failed"
         },
         "RELEASE_PENDING_to_RELEASE_AUTHORIZED": {
           "condition": "governance_approved_or_policy_met",
@@ -87560,7 +88969,7 @@
             "vault.transaction.release_authorized"
           ],
           "invalid": false,
-          "trigger": "vault.transaction.authorize_release"
+          "trigger": "vault.transaction.release_authorized"
         },
         "invalid_transitions": [
           {

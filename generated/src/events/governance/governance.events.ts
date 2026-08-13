@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:governance
-// Hash: e75ede70b21b23d8b7bd510107e40c7d0181a3f401f648a5762ee1969c411361
+// Hash: 5844e9921c19d9a8d57708247241efc9be4346e8633e1830e8ebbd03fc9309ea
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -249,6 +249,14 @@ export class GovernanceProposalApprovedEvent {
   }
 }
 
+export class GovernanceProposalCancellationFailedEvent {
+  static readonly eventName = 'governance.proposal.cancellation_failed' as const;
+  static readonly aggregate = 'governance_proposal' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
 export class GovernanceProposalCancelledEvent {
   static readonly eventName = 'governance.proposal.cancelled' as const;
   static readonly aggregate = 'governance_proposal' as const;
@@ -259,6 +267,14 @@ export class GovernanceProposalCancelledEvent {
 
 export class GovernanceProposalExpiredEvent {
   static readonly eventName = 'governance.proposal.expired' as const;
+  static readonly aggregate = 'governance_proposal' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class GovernanceProposalImplementationFailedEvent {
+  static readonly eventName = 'governance.proposal.implementation_failed' as const;
   static readonly aggregate = 'governance_proposal' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };

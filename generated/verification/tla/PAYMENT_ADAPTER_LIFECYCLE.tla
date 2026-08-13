@@ -19,13 +19,13 @@ ENABLED_TO_DISABLED ==
     /\ state = "ENABLED"
     /\ state' = "DISABLED"
     /\ visited' = visited \cup {"DISABLED"}
-\* Trigger: PAYMENT_ADAPTER_DISABLE
+\* Trigger: PAYMENT_ADAPTER_DISABLED
 
 ENABLED_TO_PREPARING == 
     /\ state = "ENABLED"
     /\ state' = "PREPARING"
     /\ visited' = visited \cup {"PREPARING"}
-\* Trigger: PAYMENT_EXECUTION_PREPARE
+\* Trigger: PAYMENT_EXECUTION_PLANNED
 
 EXECUTING_TO_ENABLED == 
     /\ state = "EXECUTING"
@@ -37,7 +37,7 @@ PREPARING_TO_EXECUTING ==
     /\ state = "PREPARING"
     /\ state' = "EXECUTING"
     /\ visited' = visited \cup {"EXECUTING"}
-\* Trigger: PAYMENT_EXECUTION_EXECUTE
+\* Trigger: PAYMENT_EXECUTION_STARTED
 
 Terminated == 
     /\ state \in FinalStates
