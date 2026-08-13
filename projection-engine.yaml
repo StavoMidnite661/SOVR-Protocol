@@ -733,6 +733,1453 @@ projections:
         asset_type: { type: string }
         state: { type: string }
 
+  # DERIVED (projection-effect convergence): events declared target
+  # account_balance_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  account_balance_view:
+    projection_id: PRJ-101
+    name: account_balance_view
+    source_domain: ledger
+    description: Read model materialized from event projection_effect contracts (3 events)
+    source_events:
+      - ledger.entry.corrected
+      - ledger.entry.posted
+      - ledger.entry.reversed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        for each posting: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # accounting_period_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  accounting_period_view:
+    projection_id: PRJ-102
+    name: accounting_period_view
+    source_domain: ledger
+    description: Read model materialized from event projection_effect contracts (3 events)
+    source_events:
+      - ledger.period.close_failed
+      - ledger.period.closed
+      - ledger.period.closing
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+        closing_entries_recorded: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # agent_capability_binding_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  agent_capability_binding_view:
+    projection_id: PRJ-103
+    name: agent_capability_binding_view
+    source_domain: agent
+    description: Read model materialized from event projection_effect contracts (2 events)
+    source_events:
+      - agent.capability.bound
+      - agent.capability.revoked
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # agent_execution_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  agent_execution_view:
+    projection_id: PRJ-104
+    name: agent_execution_view
+    source_domain: agent
+    description: Read model materialized from event projection_effect contracts (4 events)
+    source_events:
+      - agent.execution.completed
+      - agent.execution.escalated
+      - agent.execution.failed
+      - agent.execution.started
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # agent_governance_override_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  agent_governance_override_view:
+    projection_id: PRJ-105
+    name: agent_governance_override_view
+    source_domain: agent
+    description: Read model materialized from event projection_effect contracts (1 event)
+    source_events:
+      - agent.governance.override.issued
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # agent_instance_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  agent_instance_view:
+    projection_id: PRJ-106
+    name: agent_instance_view
+    source_domain: agent
+    description: Read model materialized from event projection_effect contracts (5 events)
+    source_events:
+      - agent.activated
+      - agent.concurrency.limit_reached
+      - agent.quota.exceeded
+      - agent.suspended
+      - agent.terminated
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+        quota_exceeded: { type: string }
+        concurrency_limit_reached: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # agent_registration_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  agent_registration_view:
+    projection_id: PRJ-107
+    name: agent_registration_view
+    source_domain: agent
+    description: Read model materialized from event projection_effect contracts (3 events)
+    source_events:
+      - agent.registration.approved
+      - agent.registration.rejected
+      - agent.registration.submitted
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # audit_record_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  audit_record_view:
+    projection_id: PRJ-108
+    name: audit_record_view
+    source_domain: governance
+    description: Read model materialized from event projection_effect contracts (2 events)
+    source_events:
+      - governance.audit.queried
+      - governance.oversight.reviewed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        completed_at: { type: timestamp }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # capability_grant_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  capability_grant_view:
+    projection_id: PRJ-109
+    name: capability_grant_view
+    source_domain: governance
+    description: Read model materialized from event projection_effect contracts (2 events)
+    source_events:
+      - governance.capability.granted
+      - governance.capability.revoked
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        revoked_at: { type: timestamp }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # chart_of_accounts_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  chart_of_accounts_view:
+    projection_id: PRJ-110
+    name: chart_of_accounts_view
+    source_domain: ledger
+    description: Read model materialized from event projection_effect contracts (4 events)
+    source_events:
+      - ledger.account.closed
+      - ledger.account.created
+      - ledger.account.freeze_failed
+      - ledger.account.frozen
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # emergency_halt_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  emergency_halt_view:
+    projection_id: PRJ-111
+    name: emergency_halt_view
+    source_domain: governance
+    description: Read model materialized from event projection_effect contracts (2 events)
+    source_events:
+      - governance.emergency_halt.issued
+      - governance.emergency_halt.lifted
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        lifted_at: { type: timestamp }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # governance_amendment_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  governance_amendment_view:
+    projection_id: PRJ-112
+    name: governance_amendment_view
+    source_domain: governance
+    description: Read model materialized from event projection_effect contracts (2 events)
+    source_events:
+      - governance.amendment.proposed
+      - governance.amendment.ratified
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        ratified_at: { type: timestamp }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # governance_escalation_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  governance_escalation_view:
+    projection_id: PRJ-113
+    name: governance_escalation_view
+    source_domain: governance
+    description: Read model materialized from event projection_effect contracts (3 events)
+    source_events:
+      - governance.escalation.expired
+      - governance.escalation.resolved
+      - governance.escalation.submitted
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        resolved_at: { type: timestamp }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # governance_proposal_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  governance_proposal_view:
+    projection_id: PRJ-114
+    name: governance_proposal_view
+    source_domain: governance
+    description: Read model materialized from event projection_effect contracts (6 events)
+    source_events:
+      - governance.proposal.approved
+      - governance.proposal.cancelled
+      - governance.proposal.expired
+      - governance.proposal.implemented
+      - governance.proposal.rejected
+      - governance.proposal.submitted
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        current_approvals: { type: integer }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # identity_actor_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  identity_actor_view:
+    projection_id: PRJ-115
+    name: identity_actor_view
+    source_domain: identity
+    description: Read model materialized from event projection_effect contracts (4 events)
+    source_events:
+      - identity.actor.registered
+      - identity.actor.revoked
+      - identity.actor.suspended
+      - identity.actor.verified
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        verification_status: { type: string }
+        trust_level: { type: enum }
+        status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # identity_credential_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  identity_credential_view:
+    projection_id: PRJ-116
+    name: identity_credential_view
+    source_domain: identity
+    description: Read model materialized from event projection_effect contracts (3 events)
+    source_events:
+      - identity.credential.expired
+      - identity.credential.issued
+      - identity.credential.revoked
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # identity_delegation_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  identity_delegation_view:
+    projection_id: PRJ-117
+    name: identity_delegation_view
+    source_domain: identity
+    description: Read model materialized from event projection_effect contracts (4 events)
+    source_events:
+      - identity.delegation.created
+      - identity.delegation.expired
+      - identity.delegation.limit_exceeded
+      - identity.delegation.revoked
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # identity_session_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  identity_session_view:
+    projection_id: PRJ-118
+    name: identity_session_view
+    source_domain: identity
+    description: Read model materialized from event projection_effect contracts (6 events)
+    source_events:
+      - identity.authentication.failed
+      - identity.authentication.succeeded
+      - identity.session.authentication_failed
+      - identity.session.created
+      - identity.session.expired
+      - identity.session.terminated
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+        authentication_status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # identity_trust_anchor_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  identity_trust_anchor_view:
+    projection_id: PRJ-119
+    name: identity_trust_anchor_view
+    source_domain: identity
+    description: Read model materialized from event projection_effect contracts (1 event)
+    source_events:
+      - identity.trust_anchor.registered
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # intent_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  intent_view:
+    projection_id: PRJ-120
+    name: intent_view
+    source_domain: intent
+    description: Read model materialized from event projection_effect contracts (14 events)
+    source_events:
+      - intent.archived
+      - intent.cancelled
+      - intent.converted_to_command
+      - intent.enriching.completed
+      - intent.enriching.failed
+      - intent.enriching.started
+      - intent.expired
+      - intent.failed
+      - intent.multi_step.completed
+      - intent.multi_step.failed
+      - intent.multi_step.step_completed
+      - intent.received
+      - intent.validated
+      - intent.validation.completed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+        confidence: { type: enum }
+        validation_status: { type: string }
+        command_id: { type: string }
+        current_step: { type: integer }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # ledger_journal_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  ledger_journal_view:
+    projection_id: PRJ-121
+    name: ledger_journal_view
+    source_domain: ledger
+    description: Read model materialized from event projection_effect contracts (1 event)
+    source_events:
+      - ledger.journal.created
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # liquidity_position_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  liquidity_position_view:
+    projection_id: PRJ-122
+    name: liquidity_position_view
+    source_domain: treasury
+    description: Read model materialized from event projection_effect contracts (1 event)
+    source_events:
+      - treasury.liquidity.warning
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        warning_active: { type: string }
+        warning_level: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # payment_status_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  payment_status_view:
+    projection_id: PRJ-123
+    name: payment_status_view
+    source_domain: payment
+    description: Read model materialized from event projection_effect contracts (32 events)
+    source_events:
+      - payment.compensation.completed
+      - payment.compensation.start_failed
+      - payment.compensation.started
+      - payment.compensation.timed_out
+      - payment.execution.completed
+      - payment.execution.confirmation_failed
+      - payment.execution.failed
+      - payment.execution.planned
+      - payment.execution.planning_failed
+      - payment.execution.settled
+      - payment.execution.start_failed
+      - payment.execution.started
+      - payment.rail.confirmation_timed_out
+      - payment.rail.confirmed
+      - payment.rail.confirming
+      - payment.rail.executed
+      - payment.rail.executing
+      - payment.rail.execution_timed_out
+      - payment.rail.failed
+      - payment.rail.prepare_timed_out
+      - payment.rail.prepared
+      - payment.rail.preparing
+      - payment.rail.validated
+      - payment.rail.validating
+      - payment.rail.validation_timed_out
+      - payment.request.cancellation_failed
+      - payment.request.cancelled
+      - payment.request.created
+      - payment.request.creation_failed
+      - payment.settlement.completed
+      - payment.settlement.confirmed
+      - payment.settlement.failed
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        settlement_status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # policy_compliance_requirement_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  policy_compliance_requirement_view:
+    projection_id: PRJ-124
+    name: policy_compliance_requirement_view
+    source_domain: policy
+    description: Read model materialized from event projection_effect contracts (1 event)
+    source_events:
+      - policy.compliance.requirement.registered
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # policy_escalation_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  policy_escalation_view:
+    projection_id: PRJ-125
+    name: policy_escalation_view
+    source_domain: policy
+    description: Read model materialized from event projection_effect contracts (2 events)
+    source_events:
+      - policy.escalation.created
+      - policy.escalation.resolved
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        status: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # policy_evaluation_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  policy_evaluation_view:
+    projection_id: PRJ-126
+    name: policy_evaluation_view
+    source_domain: policy
+    description: Read model materialized from event projection_effect contracts (5 events)
+    source_events:
+      - policy.compliance.violation.detected
+      - policy.evaluation.completed
+      - policy.evaluation.deferred
+      - policy.evaluation.denied
+      - policy.evaluation.escalated
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        decision: { type: string }
+        compliance_violation: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # policy_rule_notification_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  policy_rule_notification_view:
+    projection_id: PRJ-127
+    name: policy_rule_notification_view
+    source_domain: governance
+    description: Read model materialized from event projection_effect contracts (1 event)
+    source_events:
+      - governance.policy_rule.activated.notification.sent
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # policy_rule_review_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  policy_rule_review_view:
+    projection_id: PRJ-128
+    name: policy_rule_review_view
+    source_domain: governance
+    description: Read model materialized from event projection_effect contracts (1 event)
+    source_events:
+      - governance.policy_rule.review_requested
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # policy_rule_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  policy_rule_view:
+    projection_id: PRJ-129
+    name: policy_rule_view
+    source_domain: policy
+    description: Read model materialized from event projection_effect contracts (4 events)
+    source_events:
+      - policy.rule.activated
+      - policy.rule.created
+      - policy.rule.deactivated
+      - policy.rule.updated
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        version: { type: string }
+        updated_at: { type: timestamp }
+        status: { type: string }
+        effective_from: { type: timestamp }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # rail_adapter_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  rail_adapter_view:
+    projection_id: PRJ-130
+    name: rail_adapter_view
+    source_domain: payment
+    description: Read model materialized from event projection_effect contracts (1 event)
+    source_events:
+      - payment.adapter.disabled
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # receipt_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  receipt_view:
+    projection_id: PRJ-131
+    name: receipt_view
+    source_domain: payment
+    description: Read model materialized from event projection_effect contracts (2 events)
+    source_events:
+      - payment.receipt.issuance_failed
+      - payment.receipt.issued
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # reconciliation_dashboard_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  reconciliation_dashboard_view:
+    projection_id: PRJ-132
+    name: reconciliation_dashboard_view
+    source_domain: ledger
+    description: Read model materialized from event projection_effect contracts (5 events)
+    source_events:
+      - ledger.reconciliation.completed
+      - ledger.reconciliation.mismatch_detected
+      - ledger.reconciliation.resolution_failed
+      - ledger.reconciliation.start_failed
+      - ledger.reconciliation.started
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        severity: { type: enum }
+        discrepancy_amount: { type: decimal }
+        resolution_method: { type: enum }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # reconciliation_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  reconciliation_view:
+    projection_id: PRJ-133
+    name: reconciliation_view
+    source_domain: payment
+    description: Read model materialized from event projection_effect contracts (6 events)
+    source_events:
+      - payment.reconciliation.completed
+      - payment.reconciliation.completion_failed
+      - payment.reconciliation.discrepancy
+      - payment.reconciliation.start_failed
+      - payment.reconciliation.started
+      - payment.reconciliation.timed_out
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # saga_instance_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  saga_instance_view:
+    projection_id: PRJ-134
+    name: saga_instance_view
+    source_domain: kernel
+    description: Read model materialized from event projection_effect contracts (5 events)
+    source_events:
+      - saga.compensated
+      - saga.compensating
+      - saga.completed
+      - saga.failed
+      - saga.started
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # system_health_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  system_health_view:
+    projection_id: PRJ-135
+    name: system_health_view
+    source_domain: kernel
+    description: Read model materialized from event projection_effect contracts (4 events)
+    source_events:
+      - system.health.degraded
+      - system.health.halted
+      - system.health.restored
+      - system.health.unknown
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # transfer_order_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  transfer_order_view:
+    projection_id: PRJ-136
+    name: transfer_order_view
+    source_domain: treasury
+    description: Read model materialized from event projection_effect contracts (10 events)
+    source_events:
+      - treasury.settlement.confirmed
+      - treasury.transfer.authorized
+      - treasury.transfer.compensation_required
+      - treasury.transfer.executing
+      - treasury.transfer.expired
+      - treasury.transfer.failed
+      - treasury.transfer.rejected
+      - treasury.transfer.requested
+      - treasury.transfer.reserved
+      - treasury.transfer.settled
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        authorized_at: { type: timestamp }
+        rejection_reason: { type: string }
+        vault_reservation_id: { type: string }
+        vault_lock_id: { type: string }
+        instruction_id: { type: string }
+        settled_at: { type: timestamp }
+        failure_reason: { type: string }
+        expired_at: { type: timestamp }
+        current_compensation_step: { type: string }
+        settlement_status: { type: string }
+        settlement_reference: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # vault_asset_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  vault_asset_view:
+    projection_id: PRJ-137
+    name: vault_asset_view
+    source_domain: vault
+    description: Read model materialized from event projection_effect contracts (7 events)
+    source_events:
+      - vault.asset.impaired
+      - vault.asset.registered
+      - vault.asset.rejected
+      - vault.asset.verified
+      - vault.asset.write_down
+      - vault.ownership.transferred
+      - vault.valuation.updated
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        verified_at: { type: timestamp }
+        current_valuation: { type: string }
+        valuation_updated_at: { type: timestamp }
+        ownership_id: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # vault_balance_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  vault_balance_view:
+    projection_id: PRJ-138
+    name: vault_balance_view
+    source_domain: vault
+    description: Read model materialized from event projection_effect contracts (4 events)
+    source_events:
+      - vault.reserve.created
+      - vault.reserve.expired
+      - vault.reserve.locked
+      - vault.reserve.released
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        reserved_balance: { type: string }
+        available_balance: { type: string }
+        locked_balance: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # vault_collateral_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  vault_collateral_view:
+    projection_id: PRJ-139
+    name: vault_collateral_view
+    source_domain: vault
+    description: Read model materialized from event projection_effect contracts (6 events)
+    source_events:
+      - vault.collateral.added
+      - vault.collateral.liquidation_initiated
+      - vault.collateral.margin_call
+      - vault.collateral.released
+      - vault.collateral.revalued
+      - vault.collateral.valued
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        gross_value: { type: string }
+        effective_value: { type: string }
+        last_valued_at: { type: timestamp }
+        margin_ratio: { type: string }
+        state: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # vault_custody_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  vault_custody_view:
+    projection_id: PRJ-140
+    name: vault_custody_view
+    source_domain: vault
+    description: Read model materialized from event projection_effect contracts (2 events)
+    source_events:
+      - vault.custody.attested
+      - vault.custody.proof_expired
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        is_current: { type: string }
+
+  # DERIVED (projection-effect convergence): events declared target
+  # vault_reconciliation_view via projection_effect, but no compiled projection existed.
+  # source_events, operations, and field set are taken verbatim from
+  # those declarations; nothing here was invented.
+  vault_reconciliation_view:
+    projection_id: PRJ-141
+    name: vault_reconciliation_view
+    source_domain: vault
+    description: Read model materialized from event projection_effect contracts (3 events)
+    source_events:
+      - vault.reconciliation.completed
+      - vault.reconciliation.discrepancy_found
+      - vault.reconciliation.started
+    ordering: event_timestamp_asc
+    conflict_resolution: LAST_WRITE_WINS
+    rebuild_strategy: FULL_REPLAY_FROM_BEGINNING
+    caching:
+      enabled: true
+      ttl_seconds: 60
+      invalidation_keys: []
+    versioning:
+      strategy: EVENT_SOURCE_VERSION
+      compatible_from: "1.0.0"
+    invalidation:
+      trigger_events: []
+      strategy: INCREMENTAL_UPDATE
+    output_schema:
+      type: object
+      fields:
+        aggregate: { type: string }
+        aggregate_id: { type: string }
+        state: { type: string }
+        completed_at: { type: timestamp }
+
 replay_protocol:
 
   full_replay:

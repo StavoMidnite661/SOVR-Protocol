@@ -1,6 +1,56 @@
 {
   "abi": "v1",
   "entries": {
+    "account_balance_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (3 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "account_balance_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "for each posting": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-101",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "ledger",
+      "source_events": [
+        "ledger.entry.corrected",
+        "ledger.entry.posted",
+        "ledger.entry.reversed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
     "account_summary": {
       "abi": "v1",
       "caching": {
@@ -84,6 +134,60 @@
         "treasury.transfer.failed",
         "treasury.transfer.expired",
         "treasury.liquidity.warning"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "accounting_period_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (3 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "accounting_period_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "closing_entries_recorded": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-102",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "ledger",
+      "source_events": [
+        "ledger.period.close_failed",
+        "ledger.period.closed",
+        "ledger.period.closing"
       ],
       "versioning": {
         "abi": "v1",
@@ -195,6 +299,313 @@
         "strategy": "IMMUTABLE_APPEND"
       }
     },
+    "agent_capability_binding_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (2 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "agent_capability_binding_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-103",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "agent",
+      "source_events": [
+        "agent.capability.bound",
+        "agent.capability.revoked"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "agent_execution_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (4 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "agent_execution_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-104",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "agent",
+      "source_events": [
+        "agent.execution.completed",
+        "agent.execution.escalated",
+        "agent.execution.failed",
+        "agent.execution.started"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "agent_governance_override_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (1 event)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "agent_governance_override_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-105",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "agent",
+      "source_events": [
+        "agent.governance.override.issued"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "agent_instance_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (5 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "agent_instance_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "concurrency_limit_reached": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "quota_exceeded": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-106",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "agent",
+      "source_events": [
+        "agent.activated",
+        "agent.concurrency.limit_reached",
+        "agent.quota.exceeded",
+        "agent.suspended",
+        "agent.terminated"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "agent_registration_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (3 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "agent_registration_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-107",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "agent",
+      "source_events": [
+        "agent.registration.approved",
+        "agent.registration.rejected",
+        "agent.registration.submitted"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "audit_record_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (2 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "audit_record_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "completed_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-108",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "governance",
+      "source_events": [
+        "governance.audit.queried",
+        "governance.oversight.reviewed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
     "audit_timeline": {
       "abi": "v1",
       "caching": {
@@ -284,6 +695,110 @@
         "strategy": "IMMUTABLE_APPEND"
       }
     },
+    "capability_grant_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (2 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "capability_grant_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "revoked_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-109",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "governance",
+      "source_events": [
+        "governance.capability.granted",
+        "governance.capability.revoked"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "chart_of_accounts_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (4 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "chart_of_accounts_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-110",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "ledger",
+      "source_events": [
+        "ledger.account.closed",
+        "ledger.account.created",
+        "ledger.account.freeze_failed",
+        "ledger.account.frozen"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
     "compliance_report": {
       "abi": "v1",
       "caching": {
@@ -347,6 +862,59 @@
       "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
       "source_domain": "ALL",
       "source_events": "ALL_EVENTS",
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "emergency_halt_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (2 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "emergency_halt_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "lifted_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-111",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "governance",
+      "source_events": [
+        "governance.emergency_halt.issued",
+        "governance.emergency_halt.lifted"
+      ],
       "versioning": {
         "abi": "v1",
         "compatible_from": "1.0.0",
@@ -429,6 +997,59 @@
         "strategy": "EVENT_SOURCE_VERSION"
       }
     },
+    "governance_amendment_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (2 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "governance_amendment_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "ratified_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-112",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "governance",
+      "source_events": [
+        "governance.amendment.proposed",
+        "governance.amendment.ratified"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
     "governance_dashboard": {
       "abi": "v1",
       "caching": {
@@ -500,6 +1121,277 @@
         "payment.reconciliation.discrepancy",
         "hybrid.reorg.detected",
         "hybrid.reorg.resolved"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "governance_escalation_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (3 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "governance_escalation_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "resolved_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-113",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "governance",
+      "source_events": [
+        "governance.escalation.expired",
+        "governance.escalation.resolved",
+        "governance.escalation.submitted"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "governance_proposal_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (6 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "governance_proposal_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "current_approvals": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-114",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "governance",
+      "source_events": [
+        "governance.proposal.approved",
+        "governance.proposal.cancelled",
+        "governance.proposal.expired",
+        "governance.proposal.implemented",
+        "governance.proposal.rejected",
+        "governance.proposal.submitted"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "identity_actor_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (4 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "identity_actor_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "trust_level": {
+            "abi": "v1",
+            "type": "enum"
+          },
+          "verification_status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-115",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "identity",
+      "source_events": [
+        "identity.actor.registered",
+        "identity.actor.revoked",
+        "identity.actor.suspended",
+        "identity.actor.verified"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "identity_credential_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (3 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "identity_credential_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-116",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "identity",
+      "source_events": [
+        "identity.credential.expired",
+        "identity.credential.issued",
+        "identity.credential.revoked"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "identity_delegation_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (4 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "identity_delegation_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-117",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "identity",
+      "source_events": [
+        "identity.delegation.created",
+        "identity.delegation.expired",
+        "identity.delegation.limit_exceeded",
+        "identity.delegation.revoked"
       ],
       "versioning": {
         "abi": "v1",
@@ -589,6 +1481,107 @@
         "identity.delegation.expired",
         "identity.session.created",
         "identity.session.terminated"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "identity_session_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (6 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "identity_session_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "authentication_status": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-118",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "identity",
+      "source_events": [
+        "identity.authentication.failed",
+        "identity.authentication.succeeded",
+        "identity.session.authentication_failed",
+        "identity.session.created",
+        "identity.session.expired",
+        "identity.session.terminated"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "identity_trust_anchor_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (1 event)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "identity_trust_anchor_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-119",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "identity",
+      "source_events": [
+        "identity.trust_anchor.registered"
       ],
       "versioning": {
         "abi": "v1",
@@ -689,6 +1682,127 @@
         "strategy": "EVENT_SOURCE_VERSION"
       }
     },
+    "intent_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (14 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "intent_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "command_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "confidence": {
+            "abi": "v1",
+            "type": "enum"
+          },
+          "current_step": {
+            "abi": "v1",
+            "type": "integer"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "validation_status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-120",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "intent",
+      "source_events": [
+        "intent.archived",
+        "intent.cancelled",
+        "intent.converted_to_command",
+        "intent.enriching.completed",
+        "intent.enriching.failed",
+        "intent.enriching.started",
+        "intent.expired",
+        "intent.failed",
+        "intent.multi_step.completed",
+        "intent.multi_step.failed",
+        "intent.multi_step.step_completed",
+        "intent.received",
+        "intent.validated",
+        "intent.validation.completed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "ledger_journal_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (1 event)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "ledger_journal_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-121",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "ledger",
+      "source_events": [
+        "ledger.journal.created"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
     "liquidity_position": {
       "abi": "v1",
       "caching": {
@@ -768,6 +1882,58 @@
         "treasury.transfer.settled",
         "treasury.transfer.failed",
         "treasury.settlement.confirmed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "liquidity_position_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (1 event)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "liquidity_position_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "warning_active": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "warning_level": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-122",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "treasury",
+      "source_events": [
+        "treasury.liquidity.warning"
       ],
       "versioning": {
         "abi": "v1",
@@ -868,6 +2034,133 @@
         "strategy": "EVENT_SOURCE_VERSION"
       }
     },
+    "payment_status_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (32 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "payment_status_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "settlement_status": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-123",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "payment",
+      "source_events": [
+        "payment.compensation.completed",
+        "payment.compensation.start_failed",
+        "payment.compensation.started",
+        "payment.compensation.timed_out",
+        "payment.execution.completed",
+        "payment.execution.confirmation_failed",
+        "payment.execution.failed",
+        "payment.execution.planned",
+        "payment.execution.planning_failed",
+        "payment.execution.settled",
+        "payment.execution.start_failed",
+        "payment.execution.started",
+        "payment.rail.confirmation_timed_out",
+        "payment.rail.confirmed",
+        "payment.rail.confirming",
+        "payment.rail.executed",
+        "payment.rail.executing",
+        "payment.rail.execution_timed_out",
+        "payment.rail.failed",
+        "payment.rail.prepare_timed_out",
+        "payment.rail.prepared",
+        "payment.rail.preparing",
+        "payment.rail.validated",
+        "payment.rail.validating",
+        "payment.rail.validation_timed_out",
+        "payment.request.cancellation_failed",
+        "payment.request.cancelled",
+        "payment.request.created",
+        "payment.request.creation_failed",
+        "payment.settlement.completed",
+        "payment.settlement.confirmed",
+        "payment.settlement.failed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "policy_compliance_requirement_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (1 event)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "policy_compliance_requirement_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-124",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "policy",
+      "source_events": [
+        "policy.compliance.requirement.registered"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
     "policy_decisions": {
       "abi": "v1",
       "caching": {
@@ -959,6 +2252,262 @@
         "strategy": "IMMUTABLE_APPEND"
       }
     },
+    "policy_escalation_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (2 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "policy_escalation_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-125",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "policy",
+      "source_events": [
+        "policy.escalation.created",
+        "policy.escalation.resolved"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "policy_evaluation_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (5 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "policy_evaluation_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "compliance_violation": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "decision": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-126",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "policy",
+      "source_events": [
+        "policy.compliance.violation.detected",
+        "policy.evaluation.completed",
+        "policy.evaluation.deferred",
+        "policy.evaluation.denied",
+        "policy.evaluation.escalated"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "policy_rule_notification_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (1 event)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "policy_rule_notification_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-127",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "governance",
+      "source_events": [
+        "governance.policy_rule.activated.notification.sent"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "policy_rule_review_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (1 event)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "policy_rule_review_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-128",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "governance",
+      "source_events": [
+        "governance.policy_rule.review_requested"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "policy_rule_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (4 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "policy_rule_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "effective_from": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "status": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "updated_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "version": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-129",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "policy",
+      "source_events": [
+        "policy.rule.activated",
+        "policy.rule.created",
+        "policy.rule.deactivated",
+        "policy.rule.updated"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
     "portfolio": {
       "abi": "v1",
       "caching": {
@@ -1047,6 +2596,216 @@
         "strategy": "EVENT_SOURCE_VERSION"
       }
     },
+    "rail_adapter_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (1 event)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "rail_adapter_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-130",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "payment",
+      "source_events": [
+        "payment.adapter.disabled"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "receipt_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (2 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "receipt_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-131",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "payment",
+      "source_events": [
+        "payment.receipt.issuance_failed",
+        "payment.receipt.issued"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "reconciliation_dashboard_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (5 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "reconciliation_dashboard_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "discrepancy_amount": {
+            "abi": "v1",
+            "type": "decimal"
+          },
+          "resolution_method": {
+            "abi": "v1",
+            "type": "enum"
+          },
+          "severity": {
+            "abi": "v1",
+            "type": "enum"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-132",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "ledger",
+      "source_events": [
+        "ledger.reconciliation.completed",
+        "ledger.reconciliation.mismatch_detected",
+        "ledger.reconciliation.resolution_failed",
+        "ledger.reconciliation.start_failed",
+        "ledger.reconciliation.started"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "reconciliation_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (6 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "reconciliation_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-133",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "payment",
+      "source_events": [
+        "payment.reconciliation.completed",
+        "payment.reconciliation.completion_failed",
+        "payment.reconciliation.discrepancy",
+        "payment.reconciliation.start_failed",
+        "payment.reconciliation.started",
+        "payment.reconciliation.timed_out"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
     "risk_dashboard": {
       "abi": "v1",
       "caching": {
@@ -1123,6 +2882,58 @@
         "vault.collateral.liquidation_initiated",
         "vault.reserve.expired",
         "treasury.liquidity.warning"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "saga_instance_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (5 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "saga_instance_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-134",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "kernel",
+      "source_events": [
+        "saga.compensated",
+        "saga.compensating",
+        "saga.completed",
+        "saga.failed",
+        "saga.started"
       ],
       "versioning": {
         "abi": "v1",
@@ -1214,6 +3025,158 @@
         "strategy": "EVENT_SOURCE_VERSION"
       }
     },
+    "system_health_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (4 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "system_health_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-135",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "kernel",
+      "source_events": [
+        "system.health.degraded",
+        "system.health.halted",
+        "system.health.restored",
+        "system.health.unknown"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "transfer_order_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (10 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "transfer_order_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "authorized_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "current_compensation_step": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "expired_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "failure_reason": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "instruction_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "rejection_reason": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "settled_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "settlement_reference": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "settlement_status": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "vault_lock_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "vault_reservation_id": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-136",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "treasury",
+      "source_events": [
+        "treasury.settlement.confirmed",
+        "treasury.transfer.authorized",
+        "treasury.transfer.compensation_required",
+        "treasury.transfer.executing",
+        "treasury.transfer.expired",
+        "treasury.transfer.failed",
+        "treasury.transfer.rejected",
+        "treasury.transfer.requested",
+        "treasury.transfer.reserved",
+        "treasury.transfer.settled"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
     "treasury_dashboard": {
       "abi": "v1",
       "caching": {
@@ -1288,6 +3251,253 @@
         "treasury.liquidity.warning",
         "treasury.liquidity.allocated",
         "treasury.settlement.confirmed"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "vault_asset_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (7 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "vault_asset_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "current_valuation": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "ownership_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "valuation_updated_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "verified_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-137",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "vault",
+      "source_events": [
+        "vault.asset.impaired",
+        "vault.asset.registered",
+        "vault.asset.rejected",
+        "vault.asset.verified",
+        "vault.asset.write_down",
+        "vault.ownership.transferred",
+        "vault.valuation.updated"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "vault_balance_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (4 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "vault_balance_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "available_balance": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "locked_balance": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "reserved_balance": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-138",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "vault",
+      "source_events": [
+        "vault.reserve.created",
+        "vault.reserve.expired",
+        "vault.reserve.locked",
+        "vault.reserve.released"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "vault_collateral_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (6 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "vault_collateral_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "effective_value": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "gross_value": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "last_valued_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "margin_ratio": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-139",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "vault",
+      "source_events": [
+        "vault.collateral.added",
+        "vault.collateral.liquidation_initiated",
+        "vault.collateral.margin_call",
+        "vault.collateral.released",
+        "vault.collateral.revalued",
+        "vault.collateral.valued"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
+    },
+    "vault_custody_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (2 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "vault_custody_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "is_current": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-140",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "vault",
+      "source_events": [
+        "vault.custody.attested",
+        "vault.custody.proof_expired"
       ],
       "versioning": {
         "abi": "v1",
@@ -1389,15 +3599,69 @@
         "compatible_from": "1.0.0",
         "strategy": "EVENT_SOURCE_VERSION"
       }
+    },
+    "vault_reconciliation_view": {
+      "abi": "v1",
+      "caching": {
+        "abi": "v1",
+        "enabled": true,
+        "invalidation_keys": [],
+        "ttl_seconds": 60
+      },
+      "conflict_resolution": "LAST_WRITE_WINS",
+      "description": "Read model materialized from event projection_effect contracts (3 events)",
+      "invalidation": {
+        "abi": "v1",
+        "strategy": "INCREMENTAL_UPDATE",
+        "trigger_events": []
+      },
+      "name": "vault_reconciliation_view",
+      "ordering": "event_timestamp_asc",
+      "output_schema": {
+        "abi": "v1",
+        "fields": {
+          "abi": "v1",
+          "aggregate": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "aggregate_id": {
+            "abi": "v1",
+            "type": "string"
+          },
+          "completed_at": {
+            "abi": "v1",
+            "type": "timestamp"
+          },
+          "state": {
+            "abi": "v1",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "projection_id": "PRJ-141",
+      "rebuild_strategy": "FULL_REPLAY_FROM_BEGINNING",
+      "source_domain": "vault",
+      "source_events": [
+        "vault.reconciliation.completed",
+        "vault.reconciliation.discrepancy_found",
+        "vault.reconciliation.started"
+      ],
+      "versioning": {
+        "abi": "v1",
+        "compatible_from": "1.0.0",
+        "strategy": "EVENT_SOURCE_VERSION"
+      }
     }
   },
-  "entry_count": 16,
+  "entry_count": 57,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "2439cf7c5288b351435ef65852402cdfa1a4aa96c6a77620f9050b768d17ab8d",
+    "hash": "9ea0bce8ee8d2ebf58db9a98959d4df4394b727011bfe56d3c8cc3f961d61c05",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "projections"

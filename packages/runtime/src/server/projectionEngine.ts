@@ -24,6 +24,8 @@ import {
   createTreasuryDashboard,
   createVaultHoldings,
 } from '../projections/index.js';
+import { createGenericEventProjection } from '../projections/generic-event-projection.js';
+import projectionsRegistry from '../../../../generated/registries/projections.registry.json' with { type: 'json' };
 
 export interface Projection {
   name: string;
@@ -65,6 +67,18 @@ export class ProjectionEngine {
     ];
 
     for (const p of list) this.projections.set(p.name, p);
+
+    // Registry-driven tail: every remaining compiled projection definition
+    // (including the 41 derived from event projection_effect contracts) is
+    // materialized by the generic interpreter. Hand-written models keep
+    // precedence; nothing is registered from outside the compiled registry.
+    const compiled = Object.values((projectionsRegistry as any).entries ?? {}) as any[];
+    for (const entry of compiled) {
+      const name = entry?.name;
+      if (!name || this.projections.has(name)) continue;
+      this.projections.set(name, createGenericEventProjection(entry));
+    }
+
     console.log(`👁️ Projection engine registered ${this.projections.size} read models`);
   }
 

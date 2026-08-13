@@ -200,7 +200,7 @@ npm run protocol:runtime-audit
 | Events | 259 | ✅ |
 | State Machines | 43 | ✅ |
 | Capabilities | 113 | ✅ |
-| Projections | 16 | ✅ |
+| Projections | 57 | ✅ |
 | IR nodes / edges | 594 / 459 | ✅ |
 | Generated artifacts | 147 | ✅ |
 | Registry JSON files | 11 | ✅ |
@@ -850,7 +850,7 @@ The SOVR reference runtime (`@sovr/runtime v0.6.0`) is the execution environment
 ✅ Evaluates limited policy checks pre-execution
 ✅ Enforces INV-002 (double-entry balance) pre-execution
 ✅ Emits events to append-only in-process event store
-✅ Rebuilds 16 projections from event log on startup
+✅ Rebuilds 57 projections from event log on startup
 ✅ Exposes HTTP API (Fastify) with generated OpenAPI contract
 ✅ Publishes events to Kafka and Redis (non-authoritative)
 ✅ Boots through 8-runlevel sequence with attestation
@@ -922,7 +922,7 @@ SOVR implements an **8-runlevel boot sequence** modeled after Linux kernel initi
 | 3 | Mount root fs | CORE_DOMAINS | Vault, Ledger, Treasury — topological order |
 | 4 | Load LSM/SELinux | SECURITY_SUBSYSTEM | Identity, Policy, Intent, Agent |
 | 5 | Load drivers | EXECUTION_BOUNDARY | Payment rails, Hybrid boundaries, Oracles |
-| 6 | Mount /proc | INTERPRETATION | Projection engine — 16 read models rebuilt from genesis |
+| 6 | Mount /proc | INTERPRETATION | Projection engine — 57 read models rebuilt from genesis |
 | 7 | systemd → graphical | USERLAND | Runtime SDK, OpenAPI endpoints, boot attestation |
 
 **Frontend gate:** The frontend must not accept financial commands until Runlevel 7 returns `HEALTHY`.
@@ -1075,7 +1075,7 @@ npm run build
 # Boot Protocol API Service on :3001
 PORT=3001 node dist/server/index.js
 # → SYSTEM HEALTHY — 8 runlevels complete
-# → 16 projections rebuilt from genesis
+# → 57 projections rebuilt from genesis
 # → API at http://localhost:3001/api/v1
 ```
 
@@ -1246,7 +1246,7 @@ SOVR-Protocol/
 │   ├── 13_compiler-adr.yaml          ← 12 architectural decision records
 │   ├── compiler.yaml                 ← Compiler specification
 │   ├── hybrid-boundary.yaml          ← Blockchain + oracle boundaries
-│   ├── projection-engine.yaml        ← 16 read model definitions
+│   ├── projection-engine.yaml        ← 57 read model definitions (16 hand-interpreted + 41 derived)
 │   ├── phase_j_protocol_closure.yaml ← Phase J protocol closure record
 │   └── acceptance-tests.yaml         ← 60 acceptance tests
 │
@@ -1348,7 +1348,7 @@ SOVR-Protocol/
 | TLA+ models generated | 43 | ✅ |
 | Registry JSON files | 11 | ✅ |
 | Generated artifacts | 104 | ✅ |
-| Projections | 16 | ✅ |
+| Projections | 57 | ✅ |
 | OpenAPI paths | 44 | ✅ |
 | Boot runlevels | 8/8 HEALTHY | ✅ |
 | Boot self-test | 7/7 PASS | ✅ |

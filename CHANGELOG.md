@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased] — 2026-08-12 — Projection Corpus Convergence
+
+### Fixed (protocol corpus)
+- **Projection-effect convergence.** 42 event-declared `projection_effect`
+  targets (`vault_asset_view`, `transfer_order_view`, `payment_status_view`,
+  …) had no compiled projection definition — the server mapped aggregates
+  to those views and got empty records forever. 41 projections are now
+  compiled from the events' own declarations (source_events, operations,
+  and field sets taken verbatim; escrow_account_view already existed).
+  Projection count: 16 → 57. All derived entries carry provenance comments.
+
+### Runtime
+- New `GenericEventProjection`: executes the compiled projection contract
+  (key = envelope aggregate_id; record = payload + resolved `event.X`
+  updates; insert/update/insert_or_update = upsert-merge; LAST_WRITE_WINS).
+- ProjectionEngine registration is now registry-driven: 16 hand-written
+  models keep precedence, remaining compiled definitions materialize
+  generically. The runtime consumes the compiled registry, and only it.
+
+### Certification status
+- Live integration 26/26 across both suites (was 25/26): the 7-stage
+  pipeline test's vault_asset_view round-trip passes.
+
+---
+
 ## [Unreleased] — 2026-08-12 — Executable Machine Canonicalization (prose-trigger elimination)
 
 ### Fixed (protocol corpus)

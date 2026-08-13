@@ -1,13 +1,13 @@
 {
-  "build_hash": "6bf0adb232ce813ac4507399b1184209aad6411fded95e685338e882fd6f6879",
+  "build_hash": "231517634d44c24bdd0a945f44fbf6e291845558127bfc1ceac99b9e3b602b29",
   "deterministic_proof": {
-    "artifacts_hash": "bf0bbd68acf5534dc7e54589cd4943c72ef877b51383899c306a56544c230e68",
+    "artifacts_hash": "bf3cb82d7e5e3c291498d66b5a0bc2595c909a9282940ef2b534368e9171fe34",
     "compared_artifacts": 173,
     "differences": [],
     "identical": true,
     "method": "two_independent_compilations",
-    "run_1_hash": "6bf0adb232ce813ac4507399b1184209aad6411fded95e685338e882fd6f6879",
-    "run_2_hash": "6bf0adb232ce813ac4507399b1184209aad6411fded95e685338e882fd6f6879"
+    "run_1_hash": "231517634d44c24bdd0a945f44fbf6e291845558127bfc1ceac99b9e3b602b29",
+    "run_2_hash": "231517634d44c24bdd0a945f44fbf6e291845558127bfc1ceac99b9e3b602b29"
   },
   "input_hashes": {
     "00_protocol-manifest.yaml": "0dad6a686c26a85d7df99b84f90b4611626bd31e9f878d45b88362a73cd2af71",
@@ -58,7 +58,7 @@
     "governance/simulation/scenarios/SIM-010-LEDGER-IMBALANCE-NEGATIVE.yaml": "e9b9c0c8743f9d5f642797b6645030e9787d2e5308954f306fa83d2f79c25543",
     "hybrid-boundary.yaml": "2843a075dc85f6ae9e6c95b764639869f64a70a402d454880706425a297eb12e",
     "phase_j_protocol_closure.yaml": "073cc52e85a1ce6fe11d445d8502e6091a2703c249475d00f7e0c8a9a8b96b16",
-    "projection-engine.yaml": "fdaf0355754738034f4a055be7f701a73c4a6189d741fa1bc7567c80781244ec",
+    "projection-engine.yaml": "822ccf8d960db3e20bc9244bc264e8635a075c3310bc08daaff687fccdd043a8",
     "protocol/ACCEPTANCE_STANDARD.yaml": "97d7b5d9c0a0351a106b93e88278503474613b927e2fb9518cec39a7c352662c",
     "protocol/AGGREGATE_REGISTRY.yaml": "3def59b44ff06cbae577ace85a15103739af6124854a78f95c8c64441b9a315c",
     "protocol/BOOT_SEQUENCE.yaml": "a31a43d2d96a1b238c324ac4841d52792313dfc341e108894893f2cf0f8575a5",
@@ -79,7 +79,7 @@
     "events.registry.json": "0deee45bb34fa3d56ca384bce727574d7cfeeedf83e9d1170e7a8bb046f584b5",
     "execution-plans.registry.json": "e845582e9d52ce5d4c1c5b42955e7791450edaf6e4a30d1c891e73eaaf061eb5",
     "machines.registry.json": "5ca5715755979f84a0b45831cb0595d3b698632be7644190d5b6116ed617b1a8",
-    "projections.registry.json": "b72df7ed42de9f6deab1815b1c344c004837956ca970edb3bc86c495ceac2e11",
+    "projections.registry.json": "96fba44f45691c80dc7669338e27a88235ef89623bc8d5e96432f2b7d4bb693c",
     "reserve.registry.json": "39da3e2262c515e019f0243e0f80ed6839769c7c3e90af8c9427a999b1f771c6",
     "schemas.registry.json": "1d462ad9d3022a4286bbb63ee5c04dad28779ac7e764a6d11c6af5e32a5dc60c",
     "settlement.registry.json": "57cdb89474fd37582e10bea1d07f2226455138ca368f00dc16de0acb7710b6b8",
