@@ -78,6 +78,717 @@
     "schema_version": "1.0.0"
   },
   "entries": {
+    "ArchivePackage": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "authorization_requirements": {
+        "capability": "certification.package.archive",
+        "identity": "required",
+        "policy": "evidence_package_archival_policy",
+        "scope": "evidence_package"
+      },
+      "command_name": "ArchivePackage",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "certification",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "system",
+          "governance"
+        ],
+        "minimum_capability": "certification.package.archive"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "package_id",
+        "evidence_package_id",
+        "archived_by"
+      ],
+      "resulting_events": {
+        "failure": [
+          "EvidencePackageArchivalFailed"
+        ],
+        "success": [
+          "EvidencePackageArchived"
+        ]
+      },
+      "source_domain": "certification",
+      "validation_rule_ids": [
+        "package_must_be_signed_or_published",
+        "retention_period_must_be_met"
+      ],
+      "version": "1.0.0"
+    },
+    "AuthorizeSettlement": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "authorization_requirements": {
+        "capability": "settlement.record.authorize",
+        "identity": "required",
+        "policy": "settlement_authorization_policy",
+        "scope": "settlement_record"
+      },
+      "command_name": "AuthorizeSettlement",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-003",
+          "INV-005",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "settlement",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "settlement.record.authorize"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "settlement_id",
+        "settlement_record_id",
+        "commercial_obligation_id",
+        "authorized_by",
+        "settlement_amount_cents"
+      ],
+      "resulting_events": {
+        "failure": [
+          "SettlementAuthorizationFailed"
+        ],
+        "success": [
+          "SettlementAuthorized"
+        ]
+      },
+      "source_domain": "settlement",
+      "validation_rule_ids": [
+        "obligation_must_be_validated",
+        "authorizer_must_have_settlement_authority",
+        "settlement_amount_must_be_positive"
+      ],
+      "version": "1.0.0"
+    },
+    "CancelObligation": {
+      "abi": "v1",
+      "aggregate": "commercial_obligation",
+      "authorization_requirements": {
+        "capability": "commercial.obligation.cancel",
+        "identity": "required",
+        "policy": "commercial_obligation_cancellation_policy",
+        "scope": "commercial_obligation"
+      },
+      "command_name": "CancelObligation",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "commercial",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "commercial.obligation.cancel"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "obligation_id",
+        "cancelled_by",
+        "cancellation_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "ObligationCancellationFailed"
+        ],
+        "success": [
+          "ObligationCancelled"
+        ]
+      },
+      "source_domain": "commercial",
+      "validation_rule_ids": [
+        "obligation_must_exist",
+        "obligation_must_be_pre_settlement",
+        "canceller_must_have_authority"
+      ],
+      "version": "1.0.0"
+    },
+    "CancelSettlement": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "authorization_requirements": {
+        "capability": "settlement.record.cancel",
+        "identity": "required",
+        "policy": "settlement_cancellation_policy",
+        "scope": "settlement_record"
+      },
+      "command_name": "CancelSettlement",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "settlement",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "settlement.record.cancel"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "settlement_id",
+        "settlement_record_id",
+        "cancelled_by",
+        "cancellation_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "SettlementCancellationFailed"
+        ],
+        "success": [
+          "SettlementCancelled"
+        ]
+      },
+      "source_domain": "settlement",
+      "validation_rule_ids": [
+        "settlement_must_exist",
+        "settlement_must_be_pre_execution",
+        "canceller_must_have_authority"
+      ],
+      "version": "1.0.0"
+    },
+    "CreateCommercialObligation": {
+      "abi": "v1",
+      "aggregate": "commercial_obligation",
+      "authorization_requirements": {
+        "capability": "commercial.obligation.create",
+        "identity": "required",
+        "policy": "commercial_obligation_registration_policy",
+        "scope": "commercial_obligation"
+      },
+      "command_name": "CreateCommercialObligation",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-003",
+          "INV-005",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "commercial",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "commercial.obligation.create"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "obligation_id",
+        "vault_asset_reference",
+        "originator",
+        "counterparty",
+        "obligation_type",
+        "amount_cents",
+        "authorization_reference",
+        "source_document_hash"
+      ],
+      "resulting_events": {
+        "failure": [
+          "CommercialRecordCreationFailed"
+        ],
+        "success": [
+          "CommercialRecordCreated"
+        ]
+      },
+      "source_domain": "commercial",
+      "validation_rule_ids": [
+        "vault_asset_must_exist",
+        "originator_must_be_registered",
+        "counterparty_must_be_registered",
+        "amount_must_not_exceed_vault_asset"
+      ],
+      "version": "1.0.0"
+    },
+    "DisputeSettlement": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "authorization_requirements": {
+        "capability": "settlement.record.dispute",
+        "identity": "required",
+        "policy": "settlement_dispute_policy",
+        "scope": "settlement_record"
+      },
+      "command_name": "DisputeSettlement",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "settlement",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "settlement.record.dispute"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "settlement_id",
+        "settlement_record_id",
+        "disputed_by",
+        "dispute_reason"
+      ],
+      "resulting_events": {
+        "failure": [
+          "SettlementDisputeFailed"
+        ],
+        "success": [
+          "SettlementDisputed"
+        ]
+      },
+      "source_domain": "settlement",
+      "validation_rule_ids": [
+        "settlement_must_be_finalized",
+        "dispute_window_must_be_open",
+        "disputer_must_be_counterparty"
+      ],
+      "version": "1.0.0"
+    },
+    "ExecuteSettlement": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "authorization_requirements": {
+        "capability": "settlement.record.execute",
+        "identity": "required",
+        "policy": "settlement_execution_policy",
+        "scope": "settlement_record"
+      },
+      "command_name": "ExecuteSettlement",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-007",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "settlement",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "system",
+          "governance",
+          "human"
+        ],
+        "minimum_capability": "settlement.record.execute"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "settlement_id",
+        "settlement_record_id",
+        "treasury_transfer_reference",
+        "tigerbeetle_transfer_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "SettlementExecutionFailed"
+        ],
+        "success": [
+          "SettlementExecuted"
+        ]
+      },
+      "source_domain": "settlement",
+      "validation_rule_ids": [
+        "settlement_must_be_pending_execution",
+        "treasury_transfer_must_be_complete",
+        "tigerbeetle_transfer_must_be_confirmed"
+      ],
+      "version": "1.0.0"
+    },
+    "GenerateEvidencePackage": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "authorization_requirements": {
+        "capability": "certification.package.generate",
+        "identity": "required",
+        "policy": "evidence_package_generation_policy",
+        "scope": "evidence_package"
+      },
+      "command_name": "GenerateEvidencePackage",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "certification",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "system",
+          "governance",
+          "human"
+        ],
+        "minimum_capability": "certification.package.generate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "package_id",
+        "evidence_package_id",
+        "settlement_id",
+        "commercial_obligation_id",
+        "tigerbeetle_transfer_id"
+      ],
+      "resulting_events": {
+        "failure": [
+          "EvidencePackageGenerationFailed"
+        ],
+        "success": [
+          "EvidencePackageGenerated"
+        ]
+      },
+      "source_domain": "certification",
+      "validation_rule_ids": [
+        "settlement_must_be_executed",
+        "tigerbeetle_transfer_must_be_confirmed"
+      ],
+      "version": "1.0.0"
+    },
+    "IssueSVU": {
+      "abi": "v1",
+      "aggregate": "settlement_value_unit",
+      "authorization_requirements": {
+        "capability": "representation.svu.issue",
+        "identity": "required",
+        "policy": "svu_issuance_policy",
+        "scope": "settlement_value_unit"
+      },
+      "command_name": "IssueSVU",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-003",
+          "INV-005",
+          "INV-007",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "representation",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "governance",
+          "human"
+        ],
+        "minimum_capability": "representation.svu.issue"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "svu_id",
+        "settlement_value_unit_id",
+        "evidence_package_id",
+        "recipient",
+        "amount_cents",
+        "multisig_authorization"
+      ],
+      "resulting_events": {
+        "failure": [
+          "SVUIssuanceFailed"
+        ],
+        "success": [
+          "SVUIssued"
+        ]
+      },
+      "source_domain": "representation",
+      "validation_rule_ids": [
+        "evidence_package_must_be_signed",
+        "multisig_threshold_must_be_met",
+        "supply_must_not_exceed_reserve_cap",
+        "provenance_chain_must_be_traceable"
+      ],
+      "version": "1.0.0"
+    },
+    "PublishPackage": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "authorization_requirements": {
+        "capability": "certification.package.publish",
+        "identity": "required",
+        "policy": "evidence_package_publication_policy",
+        "scope": "evidence_package"
+      },
+      "command_name": "PublishPackage",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "certification",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance",
+          "system"
+        ],
+        "minimum_capability": "certification.package.publish"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "package_id",
+        "evidence_package_id",
+        "published_by",
+        "channel"
+      ],
+      "resulting_events": {
+        "failure": [
+          "EvidencePackagePublicationFailed"
+        ],
+        "success": [
+          "EvidencePackagePublished"
+        ]
+      },
+      "source_domain": "certification",
+      "validation_rule_ids": [
+        "package_must_be_signed",
+        "storage_adapter_must_be_available"
+      ],
+      "version": "1.0.0"
+    },
+    "RedeemSVU": {
+      "abi": "v1",
+      "aggregate": "settlement_value_unit",
+      "authorization_requirements": {
+        "capability": "representation.svu.redeem",
+        "identity": "required",
+        "policy": "svu_redemption_policy",
+        "scope": "settlement_value_unit"
+      },
+      "command_name": "RedeemSVU",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-003",
+          "INV-005",
+          "INV-007",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "representation",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "representation.svu.redeem"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "svu_id",
+        "settlement_value_unit_id",
+        "from_address",
+        "amount_cents",
+        "settlement_reference"
+      ],
+      "resulting_events": {
+        "failure": [
+          "SVURedemptionFailed"
+        ],
+        "success": [
+          "SVURedeemed"
+        ]
+      },
+      "source_domain": "representation",
+      "validation_rule_ids": [
+        "svu_must_be_issued",
+        "balance_must_be_sufficient",
+        "settlement_reference_must_be_valid"
+      ],
+      "version": "1.0.0"
+    },
+    "SignAttestation": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "authorization_requirements": {
+        "capability": "certification.package.sign",
+        "identity": "required",
+        "policy": "attestation_signing_policy",
+        "scope": "evidence_package"
+      },
+      "command_name": "SignAttestation",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "certification",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "certification.package.sign"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "package_id",
+        "evidence_package_id",
+        "settlement_id",
+        "attestor",
+        "signature"
+      ],
+      "resulting_events": {
+        "failure": [
+          "AttestationSigningFailed"
+        ],
+        "success": [
+          "AttestationSigned",
+          "SettlementFinalized"
+        ]
+      },
+      "source_domain": "certification",
+      "validation_rule_ids": [
+        "package_must_be_verified",
+        "attestor_must_have_attestation_authority",
+        "signature_must_be_valid_ecdsa"
+      ],
+      "version": "1.0.0"
+    },
+    "ValidateObligation": {
+      "abi": "v1",
+      "aggregate": "commercial_obligation",
+      "authorization_requirements": {
+        "capability": "commercial.obligation.validate",
+        "identity": "required",
+        "policy": "commercial_obligation_validation_policy",
+        "scope": "commercial_obligation"
+      },
+      "command_name": "ValidateObligation",
+      "constitutional_gates": {
+        "capability_required": true,
+        "identity_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-008"
+        ],
+        "policy_required": true
+      },
+      "domain": "commercial",
+      "execution_gates": [],
+      "issuer": {
+        "actor_types": [
+          "human",
+          "governance"
+        ],
+        "minimum_capability": "commercial.obligation.validate"
+      },
+      "lifecycle": null,
+      "lifecycle_exempt": false,
+      "required_payload": [
+        "obligation_id",
+        "validated_by",
+        "validation_reference"
+      ],
+      "resulting_events": {
+        "failure": [
+          "ObligationValidationFailed"
+        ],
+        "success": [
+          "ObligationValidated"
+        ]
+      },
+      "source_domain": "commercial",
+      "validation_rule_ids": [
+        "obligation_must_exist",
+        "obligation_must_be_draft",
+        "validator_must_have_authority"
+      ],
+      "version": "1.0.0"
+    },
     "agent.activate": {
       "abi": "v1",
       "aggregate": "instance",
@@ -370,10 +1081,10 @@
       ],
       "resulting_events": {
         "failure": [
-          "agent.termination_failed"
+          "agent.suspension_failed"
         ],
         "success": [
-          "agent.terminated"
+          "agent.suspended"
         ]
       },
       "source_domain": "agent",
@@ -1216,10 +1927,10 @@
       ],
       "resulting_events": {
         "failure": [
-          "governance.proposal.rejection_failed"
+          "governance.proposal.cancellation_failed"
         ],
         "success": [
-          "governance.proposal.rejected"
+          "governance.proposal.cancelled"
         ]
       },
       "source_domain": "governance",
@@ -1260,10 +1971,10 @@
       ],
       "resulting_events": {
         "failure": [
-          "governance.proposal.rejection_failed"
+          "governance.proposal.implementation_failed"
         ],
         "success": [
-          "governance.proposal.approved"
+          "governance.proposal.implemented"
         ]
       },
       "source_domain": "governance",
@@ -2599,9 +3310,9 @@
     },
     "payment.adapter.disable": {
       "abi": "v1",
-      "aggregate": "execution",
+      "aggregate": "rail_adapter",
       "authorization_requirements": {
-        "capability": "payment.execution.compensate",
+        "capability": "payment.adapter.disable",
         "identity": "required"
       },
       "command_name": "payment.adapter.disable",
@@ -2619,7 +3330,7 @@
           "governance",
           "system"
         ],
-        "minimum_capability": "payment.execution.compensate"
+        "minimum_capability": "payment.adapter.disable"
       },
       "lifecycle": null,
       "lifecycle_exempt": true,
@@ -2631,10 +3342,10 @@
       ],
       "resulting_events": {
         "failure": [
-          "payment.execution.compensation_failed"
+          "payment.adapter.disable_failed"
         ],
         "success": [
-          "payment.request.cancelled"
+          "payment.adapter.disabled"
         ]
       },
       "source_domain": "payment",
@@ -3419,7 +4130,7 @@
     },
     "saga.compensate": {
       "abi": "v1",
-      "aggregate": "saga_execution",
+      "aggregate": "saga_instance",
       "authorization_requirements": {
         "capability": "system.internal",
         "identity": "required"
@@ -3431,7 +4142,7 @@
         "invariants": [],
         "policy_required": true
       },
-      "domain": "payment",
+      "domain": "kernel",
       "execution_gates": [],
       "issuer": {
         "actor_types": [
@@ -3449,13 +4160,13 @@
       ],
       "resulting_events": {
         "failure": [
-          "payment.execution.compensation_failed"
+          "saga.compensation_failed"
         ],
         "success": [
-          "payment.execution.compensated"
+          "saga.compensated"
         ]
       },
-      "source_domain": "payment",
+      "source_domain": "kernel",
       "validation_rule_ids": [
         "saga_must_be_failed_or_cancelling"
       ],
@@ -4860,13 +5571,13 @@
       "version": "1.0.0"
     }
   },
-  "entry_count": 105,
+  "entry_count": 118,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "ab58df9972efc64091454c09937ab0e47fa8b3f78d7eff1053bb92cb4b884395",
+    "hash": "0a0e7af33ff846da1e49d99dc5486617936f68b9c1ae195f6b754e13574e6c33",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "commands"

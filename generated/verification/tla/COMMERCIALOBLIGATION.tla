@@ -7,9 +7,9 @@ EXTENDS Naturals, Sequences
 
 VARIABLES state, visited
 
-States == {"0", "1", "2", "3", "4", "5"}
+States == {"CANCELLED", "DRAFT", "VALIDATED"}
 
-FinalStates == {}
+FinalStates == {"CANCELLED"}
 
 Init == 
     /\ state = "DRAFT"
@@ -19,44 +19,26 @@ DRAFT_TO_CANCELLED ==
     /\ state = "DRAFT"
     /\ state' = "CANCELLED"
     /\ visited' = visited \cup {"CANCELLED"}
-\* Trigger: CANCELOBLIGATION
+\* Trigger: OBLIGATIONCANCELLED
 
 DRAFT_TO_VALIDATED == 
     /\ state = "DRAFT"
     /\ state' = "VALIDATED"
     /\ visited' = visited \cup {"VALIDATED"}
-\* Trigger: VALIDATEOBLIGATION
-
-SETTLED_TO_DISPUTED == 
-    /\ state = "SETTLED"
-    /\ state' = "DISPUTED"
-    /\ visited' = visited \cup {"DISPUTED"}
-\* Trigger: DISPUTESETTLEMENT
-
-SETTLEMENT_REQUESTED_TO_SETTLED == 
-    /\ state = "SETTLEMENT_REQUESTED"
-    /\ state' = "SETTLED"
-    /\ visited' = visited \cup {"SETTLED"}
-\* Trigger: 2
+\* Trigger: OBLIGATIONVALIDATED
 
 VALIDATED_TO_CANCELLED == 
     /\ state = "VALIDATED"
     /\ state' = "CANCELLED"
     /\ visited' = visited \cup {"CANCELLED"}
-\* Trigger: CANCELOBLIGATION
-
-VALIDATED_TO_SETTLEMENT_REQUESTED == 
-    /\ state = "VALIDATED"
-    /\ state' = "SETTLEMENT_REQUESTED"
-    /\ visited' = visited \cup {"SETTLEMENT_REQUESTED"}
-\* Trigger: AUTHORIZESETTLEMENT
+\* Trigger: OBLIGATIONCANCELLED
 
 Terminated == 
-    /\ FALSE
+    /\ state \in FinalStates
     /\ UNCHANGED <<state, visited>>
 
 Next == 
-    DRAFT_TO_CANCELLED \/ DRAFT_TO_VALIDATED \/ SETTLED_TO_DISPUTED \/ SETTLEMENT_REQUESTED_TO_SETTLED \/ VALIDATED_TO_CANCELLED \/ VALIDATED_TO_SETTLEMENT_REQUESTED \/ Terminated
+    DRAFT_TO_CANCELLED \/ DRAFT_TO_VALIDATED \/ VALIDATED_TO_CANCELLED \/ Terminated
 
 \* INV-006: state is always one the compiled machine declares.
 \* Falsifiable: a transition to an undeclared state breaks this.
@@ -66,7 +48,7 @@ TypeOK == state \in States
 ReachableStatesDeclared == visited \subseteq States
 
 \* Liveness: a terminal state remains reachable from anywhere.
-CanTerminate == TRUE
+CanTerminate == <>(state \in FinalStates)
 
 Spec == Init /\ [][Next]_<<state, visited>>
 

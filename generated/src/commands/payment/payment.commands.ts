@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 03_command-catalog.yaml:payment
-// Hash: 09c94416f92fc8c64ded5b614260dec54b50cb792bfdfa697dc22812a7cb67ee
+// Hash: 3d53fc15e6a1c36cfda35abfb95d8a4482fb604c029934de7be0ae6d5a5c3776
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -19,7 +19,7 @@ import { z } from 'zod';
 
 export class PaymentAdapterDisableCommand {
   static readonly commandName = 'payment.adapter.disable' as const;
-  static readonly capability = 'payment.execution.compensate' as const;
+  static readonly capability = 'payment.adapter.disable' as const;
   static readonly version = '1.0.0' as const;
   constructor(public readonly payload: {
     adapterId: unknown;

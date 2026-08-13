@@ -18,11 +18,13 @@ describe('Phase 10C Economic Event Lineage Certification', () => {
   it('generates economic lineage report with zero orphan events', async () => {
     const registry = loadCompiledRegistry();
     const compiled = registry['SIM-007-SETTLEMENT-LIFECYCLE'];
+    // Registered authority id only — ad-hoc ids are refused by the
+    // authority-registry integrity gate.
     const scenario = {
-      scenario_id: 'LINEAGE-REPORT-001',
+      scenario_id: 'SIM-007-SETTLEMENT-LIFECYCLE',
       commands: compiled.commands,
       actor_context: compiled.actors[0],
-      lifecycle: { initial_state: 'CREATED', terminal_state: 'VERIFIED' },
+      lifecycle: compiled.lifecycle,
       seed: 0xDEADBEEF,
     };
 
@@ -37,15 +39,16 @@ describe('Phase 10C Economic Event Lineage Certification', () => {
     const registry = loadCompiledRegistry();
     const compiled = registry['SIM-007-SETTLEMENT-LIFECYCLE'];
     const scenario = {
-      scenario_id: 'LINEAGE-REPORT-002',
+      scenario_id: 'SIM-007-SETTLEMENT-LIFECYCLE',
       commands: compiled.commands,
       actor_context: compiled.actors[0],
-      lifecycle: { initial_state: 'CREATED', terminal_state: 'VERIFIED' },
+      lifecycle: compiled.lifecycle,
       seed: 0xDEADBEEF,
     };
 
     await runner.run(scenario);
-    const reportPath = join(ROOT, 'generated', 'simulation', 'reports', 'LINEAGE-REPORT-002-event-lineage.json');
+    // Lineage reports are named after the compiled authority scenario id.
+    const reportPath = join(ROOT, 'generated', 'simulation', 'reports', 'SIM-007-SETTLEMENT-LIFECYCLE-event-lineage.json');
     const exists = require('fs').existsSync(reportPath);
     expect(exists).toBe(true);
 

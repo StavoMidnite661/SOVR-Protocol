@@ -19,37 +19,37 @@ ACTIVE_TO_SUSPENDED ==
     /\ state = "ACTIVE"
     /\ state' = "SUSPENDED"
     /\ visited' = visited \cup {"SUSPENDED"}
-\* Trigger: AGENT_SUSPEND
+\* Trigger: AGENT_SUSPENDED
 
 ACTIVE_TO_TERMINATED == 
     /\ state = "ACTIVE"
     /\ state' = "TERMINATED"
     /\ visited' = visited \cup {"TERMINATED"}
-\* Trigger: AGENT_TERMINATE
+\* Trigger: AGENT_TERMINATED
 
 REGISTERED_TO_ACTIVE == 
     /\ state = "REGISTERED"
     /\ state' = "ACTIVE"
     /\ visited' = visited \cup {"ACTIVE"}
-\* Trigger: AGENT_ACTIVATE
+\* Trigger: AGENT_ACTIVATED
 
 REGISTERED_TO_TERMINATED == 
     /\ state = "REGISTERED"
     /\ state' = "TERMINATED"
     /\ visited' = visited \cup {"TERMINATED"}
-\* Trigger: AGENT_TERMINATE
+\* Trigger: AGENT_TERMINATED
 
 SUSPENDED_TO_ACTIVE == 
     /\ state = "SUSPENDED"
     /\ state' = "ACTIVE"
     /\ visited' = visited \cup {"ACTIVE"}
-\* Trigger: AGENT_ACTIVATE
+\* Trigger: AGENT_ACTIVATED
 
 SUSPENDED_TO_TERMINATED == 
     /\ state = "SUSPENDED"
     /\ state' = "TERMINATED"
     /\ visited' = visited \cup {"TERMINATED"}
-\* Trigger: AGENT_TERMINATE
+\* Trigger: AGENT_TERMINATED
 
 Terminated == 
     /\ state \in FinalStates

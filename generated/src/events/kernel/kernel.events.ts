@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:kernel
-// Hash: 4af2095f595409bd46056e4c5462c8b486f43b9618000ddb2a2d3f637d7acb79
+// Hash: 234907c974cfff5d1d0102217e70938370b2819a6a7763141ee6633eff954539
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -27,6 +27,14 @@ export class SagaCompensatedEvent {
 
 export class SagaCompensatingEvent {
   static readonly eventName = 'saga.compensating' as const;
+  static readonly aggregate = 'saga_instance' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class SagaCompensationFailedEvent {
+  static readonly eventName = 'saga.compensation_failed' as const;
   static readonly aggregate = 'saga_instance' as const;
   static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
     return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };

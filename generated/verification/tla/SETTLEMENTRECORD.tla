@@ -7,62 +7,44 @@ EXTENDS Naturals, Sequences
 
 VARIABLES state, visited
 
-States == {"0", "1", "2", "3", "4", "5", "6", "7"}
+States == {"CANCELLED", "DISPUTED", "FINALIZED", "LEDGER_POSTED", "PENDING"}
 
-FinalStates == {}
+FinalStates == {"CANCELLED", "FINALIZED"}
 
 Init == 
     /\ state = "PENDING"
     /\ visited = {"PENDING"}
 
-AUTHORIZED_TO_EXECUTING == 
-    /\ state = "AUTHORIZED"
-    /\ state' = "EXECUTING"
-    /\ visited' = visited \cup {"EXECUTING"}
-\* Trigger: EXECUTESETTLEMENT
-
-EVIDENCE_GENERATED_TO_FINALIZED == 
-    /\ state = "EVIDENCE_GENERATED"
-    /\ state' = "FINALIZED"
-    /\ visited' = visited \cup {"FINALIZED"}
-\* Trigger: 4
-
-EXECUTING_TO_LEDGER_POSTED == 
-    /\ state = "EXECUTING"
-    /\ state' = "LEDGER_POSTED"
-    /\ visited' = visited \cup {"LEDGER_POSTED"}
-\* Trigger: 2
-
 FINALIZED_TO_DISPUTED == 
     /\ state = "FINALIZED"
     /\ state' = "DISPUTED"
     /\ visited' = visited \cup {"DISPUTED"}
-\* Trigger: DISPUTESETTLEMENT
+\* Trigger: SETTLEMENTDISPUTED
 
-LEDGER_POSTED_TO_EVIDENCE_GENERATED == 
+LEDGER_POSTED_TO_FINALIZED == 
     /\ state = "LEDGER_POSTED"
-    /\ state' = "EVIDENCE_GENERATED"
-    /\ visited' = visited \cup {"EVIDENCE_GENERATED"}
-\* Trigger: 3
+    /\ state' = "FINALIZED"
+    /\ visited' = visited \cup {"FINALIZED"}
+\* Trigger: SETTLEMENTFINALIZED
 
-PENDING_TO_AUTHORIZED == 
+PENDING_TO_CANCELLED == 
     /\ state = "PENDING"
-    /\ state' = "AUTHORIZED"
-    /\ visited' = visited \cup {"AUTHORIZED"}
-\* Trigger: AUTHORIZESETTLEMENT
-
-PENDING,AUTHORIZED_TO_CANCELLED == 
-    /\ state = "PENDING,AUTHORIZED"
     /\ state' = "CANCELLED"
     /\ visited' = visited \cup {"CANCELLED"}
-\* Trigger: CANCELSETTLEMENT
+\* Trigger: SETTLEMENTCANCELLED
+
+PENDING_TO_LEDGER_POSTED == 
+    /\ state = "PENDING"
+    /\ state' = "LEDGER_POSTED"
+    /\ visited' = visited \cup {"LEDGER_POSTED"}
+\* Trigger: SETTLEMENTEXECUTED
 
 Terminated == 
-    /\ FALSE
+    /\ state \in FinalStates
     /\ UNCHANGED <<state, visited>>
 
 Next == 
-    AUTHORIZED_TO_EXECUTING \/ EVIDENCE_GENERATED_TO_FINALIZED \/ EXECUTING_TO_LEDGER_POSTED \/ FINALIZED_TO_DISPUTED \/ LEDGER_POSTED_TO_EVIDENCE_GENERATED \/ PENDING_TO_AUTHORIZED \/ PENDING,AUTHORIZED_TO_CANCELLED \/ Terminated
+    FINALIZED_TO_DISPUTED \/ LEDGER_POSTED_TO_FINALIZED \/ PENDING_TO_CANCELLED \/ PENDING_TO_LEDGER_POSTED \/ Terminated
 
 \* INV-006: state is always one the compiled machine declares.
 \* Falsifiable: a transition to an undeclared state breaks this.
@@ -72,7 +54,7 @@ TypeOK == state \in States
 ReachableStatesDeclared == visited \subseteq States
 
 \* Liveness: a terminal state remains reachable from anywhere.
-CanTerminate == TRUE
+CanTerminate == <>(state \in FinalStates)
 
 Spec == Init /\ [][Next]_<<state, visited>>
 

@@ -27,17 +27,11 @@ ACTIVE_TO_RELEASED ==
     /\ visited' = visited \cup {"RELEASED"}
 \* Trigger: VAULT_COLLATERAL_RELEASED
 
-LIQUIDATING_TO_LIQUIDATED == 
-    /\ state = "LIQUIDATING"
-    /\ state' = "LIQUIDATED"
-    /\ visited' = visited \cup {"LIQUIDATED"}
-\* Trigger: LIQUIDATION_COMPLETED
-
 LIQUIDATING_TO_RELEASED == 
     /\ state = "LIQUIDATING"
     /\ state' = "RELEASED"
     /\ visited' = visited \cup {"RELEASED"}
-\* Trigger: LIQUIDATION_CANCELLED
+\* Trigger: VAULT_COLLATERAL_RELEASED
 
 MARGIN_CALL_TO_ACTIVE == 
     /\ state = "MARGIN_CALL"
@@ -49,7 +43,7 @@ MARGIN_CALL_TO_LIQUIDATING ==
     /\ state = "MARGIN_CALL"
     /\ state' = "LIQUIDATING"
     /\ visited' = visited \cup {"LIQUIDATING"}
-\* Trigger: MARGIN_CALL_TIMEOUT
+\* Trigger: VAULT_COLLATERAL_LIQUIDATION_INITIATED
 
 MARGIN_CALL_TO_RELEASED == 
     /\ state = "MARGIN_CALL"
@@ -74,7 +68,7 @@ Terminated ==
     /\ UNCHANGED <<state, visited>>
 
 Next == 
-    ACTIVE_TO_MARGIN_CALL \/ ACTIVE_TO_RELEASED \/ LIQUIDATING_TO_LIQUIDATED \/ LIQUIDATING_TO_RELEASED \/ MARGIN_CALL_TO_ACTIVE \/ MARGIN_CALL_TO_LIQUIDATING \/ MARGIN_CALL_TO_RELEASED \/ PROPOSED_TO_ACTIVE \/ PROPOSED_TO_FAILED \/ Terminated
+    ACTIVE_TO_MARGIN_CALL \/ ACTIVE_TO_RELEASED \/ LIQUIDATING_TO_RELEASED \/ MARGIN_CALL_TO_ACTIVE \/ MARGIN_CALL_TO_LIQUIDATING \/ MARGIN_CALL_TO_RELEASED \/ PROPOSED_TO_ACTIVE \/ PROPOSED_TO_FAILED \/ Terminated
 
 \* INV-006: state is always one the compiled machine declares.
 \* Falsifiable: a transition to an undeclared state breaks this.

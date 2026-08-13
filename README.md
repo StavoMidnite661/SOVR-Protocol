@@ -200,7 +200,7 @@ npm run protocol:runtime-audit
 | Events | 259 | ✅ |
 | State Machines | 43 | ✅ |
 | Capabilities | 113 | ✅ |
-| Projections | 16 | ✅ |
+| Projections | 57 | ✅ |
 | IR nodes / edges | 594 / 459 | ✅ |
 | Generated artifacts | 147 | ✅ |
 | Registry JSON files | 11 | ✅ |
@@ -416,7 +416,7 @@ SOVR defines **10 first-class financial domains** covering the complete operatio
 | Representation (EXT) | Can a settlement value unit be issued? | — | — |
 | Gateway (EXT) | Can the settlement provenance be independently verified? | — | — |
 
-**Total: 113 commands. 268 events. 52 entities.**
+**Total: 118 commands. 292 events. 52 entities.**
 
 ### Vault Domain
 
@@ -534,7 +534,7 @@ Escrow was added through the XV.3 Constitutional Proof using YAML-only changes. 
 
 ## Command Catalog
 
-**113 commands** across 10 canonical domains plus 5 extension domains.
+**118 commands** across 10 canonical domains plus 5 extension domains.
 
 Every command is defined with:
 
@@ -576,7 +576,7 @@ Event Publication
 
 ## Event Catalog
 
-**268 events** across 10 canonical domains plus 5 extension domains and kernel events.
+**292 events** across 10 canonical domains plus 5 extension domains and kernel events.
 
 Every event carries the mandatory **21-field event envelope**:
 
@@ -850,7 +850,7 @@ The SOVR reference runtime (`@sovr/runtime v0.6.0`) is the execution environment
 ✅ Evaluates limited policy checks pre-execution
 ✅ Enforces INV-002 (double-entry balance) pre-execution
 ✅ Emits events to append-only in-process event store
-✅ Rebuilds 16 projections from event log on startup
+✅ Rebuilds 57 projections from event log on startup
 ✅ Exposes HTTP API (Fastify) with generated OpenAPI contract
 ✅ Publishes events to Kafka and Redis (non-authoritative)
 ✅ Boots through 8-runlevel sequence with attestation
@@ -867,7 +867,7 @@ The SOVR reference runtime (`@sovr/runtime v0.6.0`) is the execution environment
 ### What the Runtime Does Not Do Yet
 
 ```text
-🔧 Execute complete YAML-driven routing for all 113 commands without compatibility fallbacks
+🔧 Execute complete YAML-driven routing for all 118 commands without compatibility fallbacks
 🔧 Interpret saga orchestration from spec
 🔧 Wire all generated TypeScript artifacts into execution
 🔧 Connect to a production-durable event store
@@ -922,7 +922,7 @@ SOVR implements an **8-runlevel boot sequence** modeled after Linux kernel initi
 | 3 | Mount root fs | CORE_DOMAINS | Vault, Ledger, Treasury — topological order |
 | 4 | Load LSM/SELinux | SECURITY_SUBSYSTEM | Identity, Policy, Intent, Agent |
 | 5 | Load drivers | EXECUTION_BOUNDARY | Payment rails, Hybrid boundaries, Oracles |
-| 6 | Mount /proc | INTERPRETATION | Projection engine — 16 read models rebuilt from genesis |
+| 6 | Mount /proc | INTERPRETATION | Projection engine — 57 read models rebuilt from genesis |
 | 7 | systemd → graphical | USERLAND | Runtime SDK, OpenAPI endpoints, boot attestation |
 
 **Frontend gate:** The frontend must not accept financial commands until Runlevel 7 returns `HEALTHY`.
@@ -1075,7 +1075,7 @@ npm run build
 # Boot Protocol API Service on :3001
 PORT=3001 node dist/server/index.js
 # → SYSTEM HEALTHY — 8 runlevels complete
-# → 16 projections rebuilt from genesis
+# → 57 projections rebuilt from genesis
 # → API at http://localhost:3001/api/v1
 ```
 
@@ -1236,8 +1236,8 @@ SOVR-Protocol/
 │   ├── 00_protocol-manifest.yaml     ← Entry point: layers, domains, build phases
 │   ├── 01_constitution.yaml          ← Supreme law: 10 invariants, authority, enforcement
 │   ├── 02_domain-model.yaml          ← 52 entities across 10 domains + 5 extensions
-│   ├── 03_command-catalog.yaml       ← 113 commands with validation rules
-│   ├── 04_event-catalog.yaml         ← 268 events with full envelope
+│   ├── 03_command-catalog.yaml       ← 118 commands with validation rules
+│   ├── 04_event-catalog.yaml         ← 292 events with full envelope
 │   ├── 05_state-machines.yaml        ← 46 state machines
 │   ├── 08_security-capabilities.yaml ← 113 capabilities + scope language
 │   ├── 09_saga-orchestration.yaml    ← Saga definitions + compensation model
@@ -1246,7 +1246,7 @@ SOVR-Protocol/
 │   ├── 13_compiler-adr.yaml          ← 12 architectural decision records
 │   ├── compiler.yaml                 ← Compiler specification
 │   ├── hybrid-boundary.yaml          ← Blockchain + oracle boundaries
-│   ├── projection-engine.yaml        ← 16 read model definitions
+│   ├── projection-engine.yaml        ← 57 read model definitions (16 hand-interpreted + 41 derived)
 │   ├── phase_j_protocol_closure.yaml ← Phase J protocol closure record
 │   └── acceptance-tests.yaml         ← 60 acceptance tests
 │
@@ -1348,7 +1348,7 @@ SOVR-Protocol/
 | TLA+ models generated | 43 | ✅ |
 | Registry JSON files | 11 | ✅ |
 | Generated artifacts | 104 | ✅ |
-| Projections | 16 | ✅ |
+| Projections | 57 | ✅ |
 | OpenAPI paths | 44 | ✅ |
 | Boot runlevels | 8/8 HEALTHY | ✅ |
 | Boot self-test | 7/7 PASS | ✅ |
@@ -1390,7 +1390,7 @@ SOVR uses a constitution-governed development model.
 | Priority | Area | Description |
 |---|---|---|
 | 🔴 Critical | Pass Runner Hardening | Expand the initial PASS-001 through PASS-020 runner into fully certified pass contracts per `compiler/PASS_REGISTRY.yaml` |
-| 🔴 Critical | State Machine Coverage | Extend CommandBus state-machine routing to all 113 commands and saga paths |
+| 🔴 Critical | State Machine Coverage | Extend CommandBus state-machine routing to all 118 commands and saga paths |
 | 🔴 Critical | Fail-Closed Enforcement | Extend ERROR/FATAL halt behavior across every compiler diagnostic path and prevent partial artifact output |
 | 🟡 High | Invariant Enforcement | Wire all 10 constitutional invariants into the runtime execution path |
 | 🟡 High | Generated Artifact Wiring | Connect compiler-generated types, routes, and aggregates into runtime execution |

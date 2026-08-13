@@ -19,13 +19,13 @@ ACTIVE_TO_CLOSED ==
     /\ state = "ACTIVE"
     /\ state' = "CLOSED"
     /\ visited' = visited \cup {"CLOSED"}
-\* Trigger: LEDGER_PERIOD_CLOSE
+\* Trigger: LEDGER_PERIOD_CLOSING
 
 ACTIVE_TO_FROZEN == 
     /\ state = "ACTIVE"
     /\ state' = "FROZEN"
     /\ visited' = visited \cup {"FROZEN"}
-\* Trigger: LEDGER_ACCOUNT_FREEZE
+\* Trigger: LEDGER_ACCOUNT_FROZEN
 
 Terminated == 
     /\ state \in FinalStates

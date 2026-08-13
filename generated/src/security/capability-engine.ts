@@ -1,5 +1,5 @@
 // SOVR GENERATED FILE — DO NOT EDIT
-// hash 9830821bab1d29a3059bc753505b2cb56175da80da479940266f598baa72fa7b
+// hash 4732e5b73f172dc3d6e8b752db7349b965295a3fd52e2c3b06cb363a2ff9ae79
 // SOVR GENERATED — Capability Engine
 // Compiler: 0.6.0 Protocol: 1.0.0
 // Implements INV-003, INV-008 gate 2+3
@@ -54,6 +54,13 @@ export class CapabilityEngine {
   "agent.quota.update",
   "agent.register",
   "agent.terminate",
+  "certification.package.archive",
+  "certification.package.generate",
+  "certification.package.publish",
+  "certification.package.sign",
+  "commercial.obligation.cancel",
+  "commercial.obligation.create",
+  "commercial.obligation.validate",
   "escrow.account.cancel",
   "escrow.account.create",
   "escrow.account.fund",
@@ -109,6 +116,7 @@ export class CapabilityEngine {
   "ledger.period.manage",
   "ledger.reconcile",
   "ledger.reconcile.initiate",
+  "payment.adapter.disable",
   "payment.compensation.execute",
   "payment.execution.compensate",
   "payment.execution.confirm",
@@ -131,6 +139,12 @@ export class CapabilityEngine {
   "policy.rule.update",
   "policy.set.create",
   "policy.set.evaluate",
+  "representation.svu.issue",
+  "representation.svu.redeem",
+  "settlement.record.authorize",
+  "settlement.record.cancel",
+  "settlement.record.dispute",
+  "settlement.record.execute",
   "system.internal",
   "treasury.liquidity.manage",
   "treasury.liquidity.read",

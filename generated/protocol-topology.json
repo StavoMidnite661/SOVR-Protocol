@@ -2,10 +2,10 @@
   "schema_version": "1.0.0",
   "generated_by": "@sovr/compiler v0.6.0",
   "protocol_version": "1.0.0",
-  "ir_hash": "6327d0523d685ebe4e00fedebd2c4bbe7900be872efbf82348335a0ae740b40d",
+  "ir_hash": "16c3f8b8a6352d35acc5f449b1a00251763341a6ec1ea12e680ded6a23381d6e",
   "stats": {
-    "nodes": 610,
-    "edges": 462
+    "nodes": 663,
+    "edges": 516
   },
   "nodes": [
     {
@@ -54,6 +54,55 @@
       "id": "capability:agent.terminate",
       "type": "capability",
       "name": "agent.terminate",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:certification.package.archive",
+      "type": "capability",
+      "name": "certification.package.archive",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:certification.package.generate",
+      "type": "capability",
+      "name": "certification.package.generate",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:certification.package.publish",
+      "type": "capability",
+      "name": "certification.package.publish",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:certification.package.sign",
+      "type": "capability",
+      "name": "certification.package.sign",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:commercial.obligation.cancel",
+      "type": "capability",
+      "name": "commercial.obligation.cancel",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:commercial.obligation.create",
+      "type": "capability",
+      "name": "commercial.obligation.create",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:commercial.obligation.validate",
+      "type": "capability",
+      "name": "commercial.obligation.validate",
       "version": "1.0.0",
       "properties": {}
     },
@@ -443,6 +492,13 @@
       "properties": {}
     },
     {
+      "id": "capability:payment.adapter.disable",
+      "type": "capability",
+      "name": "payment.adapter.disable",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "capability:payment.compensation.execute",
       "type": "capability",
       "name": "payment.compensation.execute",
@@ -593,6 +649,48 @@
       "id": "capability:policy.set.evaluate",
       "type": "capability",
       "name": "policy.set.evaluate",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:representation.svu.issue",
+      "type": "capability",
+      "name": "representation.svu.issue",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:representation.svu.redeem",
+      "type": "capability",
+      "name": "representation.svu.redeem",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:settlement.record.authorize",
+      "type": "capability",
+      "name": "settlement.record.authorize",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:settlement.record.cancel",
+      "type": "capability",
+      "name": "settlement.record.cancel",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:settlement.record.dispute",
+      "type": "capability",
+      "name": "settlement.record.dispute",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "capability:settlement.record.execute",
+      "type": "capability",
+      "name": "settlement.record.execute",
       "version": "1.0.0",
       "properties": {}
     },
@@ -908,6 +1006,107 @@
       }
     },
     {
+      "id": "command:ArchivePackage",
+      "type": "command",
+      "name": "ArchivePackage",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:AuthorizeSettlement",
+      "type": "command",
+      "name": "AuthorizeSettlement",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-003",
+          "INV-005",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:CancelObligation",
+      "type": "command",
+      "name": "CancelObligation",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:CancelSettlement",
+      "type": "command",
+      "name": "CancelSettlement",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:CreateCommercialObligation",
+      "type": "command",
+      "name": "CreateCommercialObligation",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-003",
+          "INV-005",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:DisputeSettlement",
+      "type": "command",
+      "name": "DisputeSettlement",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-008"
+        ]
+      }
+    },
+    {
       "id": "command:escrow.account.cancel",
       "type": "command",
       "name": "escrow.account.cancel",
@@ -963,6 +1162,40 @@
         "capability_required": true,
         "invariants": [
           "INV-003",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:ExecuteSettlement",
+      "type": "command",
+      "name": "ExecuteSettlement",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-007",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:GenerateEvidencePackage",
+      "type": "command",
+      "name": "GenerateEvidencePackage",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
           "INV-008"
         ]
       }
@@ -1388,6 +1621,24 @@
       }
     },
     {
+      "id": "command:IssueSVU",
+      "type": "command",
+      "name": "IssueSVU",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-003",
+          "INV-005",
+          "INV-007",
+          "INV-008"
+        ]
+      }
+    },
+    {
       "id": "command:ledger.account.create",
       "type": "command",
       "name": "ledger.account.create",
@@ -1724,6 +1975,40 @@
       }
     },
     {
+      "id": "command:PublishPackage",
+      "type": "command",
+      "name": "PublishPackage",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-008"
+        ]
+      }
+    },
+    {
+      "id": "command:RedeemSVU",
+      "type": "command",
+      "name": "RedeemSVU",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-003",
+          "INV-005",
+          "INV-007",
+          "INV-008"
+        ]
+      }
+    },
+    {
       "id": "command:saga.compensate",
       "type": "command",
       "name": "saga.compensate",
@@ -1733,6 +2018,22 @@
         "policy_required": true,
         "capability_required": true,
         "invariants": []
+      }
+    },
+    {
+      "id": "command:SignAttestation",
+      "type": "command",
+      "name": "SignAttestation",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-008"
+        ]
       }
     },
     {
@@ -1841,6 +2142,23 @@
         "policy_required": true,
         "capability_required": true,
         "invariants": []
+      }
+    },
+    {
+      "id": "command:ValidateObligation",
+      "type": "command",
+      "name": "ValidateObligation",
+      "version": "1.0.0",
+      "properties": {
+        "identity_required": true,
+        "policy_required": true,
+        "capability_required": true,
+        "invariants": [
+          "INV-001",
+          "INV-005",
+          "INV-006",
+          "INV-008"
+        ]
       }
     },
     {
@@ -6685,6 +7003,13 @@
       "properties": {}
     },
     {
+      "id": "event:agent.suspension_failed",
+      "type": "event",
+      "name": "agent.suspension_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:agent.terminated",
       "type": "event",
       "name": "agent.terminated",
@@ -6706,9 +7031,23 @@
       "properties": {}
     },
     {
+      "id": "event:AttestationSigningFailed",
+      "type": "event",
+      "name": "AttestationSigningFailed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:CommercialRecordCreated",
       "type": "event",
       "name": "CommercialRecordCreated",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:CommercialRecordCreationFailed",
+      "type": "event",
+      "name": "CommercialRecordCreationFailed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -6730,6 +7069,13 @@
       "id": "event:escalation.resolution.notification.sent",
       "type": "event",
       "name": "escalation.resolution.notification.sent",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:escrow.account.cancellation_failed",
+      "type": "event",
+      "name": "escrow.account.cancellation_failed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -6783,9 +7129,44 @@
       "properties": {}
     },
     {
+      "id": "event:EvidencePackageArchivalFailed",
+      "type": "event",
+      "name": "EvidencePackageArchivalFailed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:EvidencePackageArchived",
+      "type": "event",
+      "name": "EvidencePackageArchived",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:EvidencePackageGenerated",
       "type": "event",
       "name": "EvidencePackageGenerated",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:EvidencePackageGenerationFailed",
+      "type": "event",
+      "name": "EvidencePackageGenerationFailed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:EvidencePackagePublicationFailed",
+      "type": "event",
+      "name": "EvidencePackagePublicationFailed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:EvidencePackagePublished",
+      "type": "event",
+      "name": "EvidencePackagePublished",
       "version": "1.0.0",
       "properties": {}
     },
@@ -6972,6 +7353,13 @@
       "properties": {}
     },
     {
+      "id": "event:governance.proposal.cancellation_failed",
+      "type": "event",
+      "name": "governance.proposal.cancellation_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:governance.proposal.cancelled",
       "type": "event",
       "name": "governance.proposal.cancelled",
@@ -6982,6 +7370,13 @@
       "id": "event:governance.proposal.expired",
       "type": "event",
       "name": "governance.proposal.expired",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:governance.proposal.implementation_failed",
+      "type": "event",
+      "name": "governance.proposal.implementation_failed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -7560,9 +7955,44 @@
       "properties": {}
     },
     {
+      "id": "event:ObligationCancellationFailed",
+      "type": "event",
+      "name": "ObligationCancellationFailed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:ObligationCancelled",
+      "type": "event",
+      "name": "ObligationCancelled",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:ObligationValidated",
       "type": "event",
       "name": "ObligationValidated",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:ObligationValidationFailed",
+      "type": "event",
+      "name": "ObligationValidationFailed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:payment.adapter.disable_failed",
+      "type": "event",
+      "name": "payment.adapter.disable_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:payment.adapter.disabled",
+      "type": "event",
+      "name": "payment.adapter.disabled",
       "version": "1.0.0",
       "properties": {}
     },
@@ -7994,6 +8424,13 @@
       "properties": {}
     },
     {
+      "id": "event:saga.compensation_failed",
+      "type": "event",
+      "name": "saga.compensation_failed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:saga.completed",
       "type": "event",
       "name": "saga.completed",
@@ -8015,9 +8452,44 @@
       "properties": {}
     },
     {
+      "id": "event:SettlementAuthorizationFailed",
+      "type": "event",
+      "name": "SettlementAuthorizationFailed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:SettlementAuthorized",
       "type": "event",
       "name": "SettlementAuthorized",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SettlementCancellationFailed",
+      "type": "event",
+      "name": "SettlementCancellationFailed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SettlementCancelled",
+      "type": "event",
+      "name": "SettlementCancelled",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SettlementDisputed",
+      "type": "event",
+      "name": "SettlementDisputed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SettlementDisputeFailed",
+      "type": "event",
+      "name": "SettlementDisputeFailed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8029,9 +8501,23 @@
       "properties": {}
     },
     {
+      "id": "event:SettlementExecutionFailed",
+      "type": "event",
+      "name": "SettlementExecutionFailed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "event:SettlementFinalized",
       "type": "event",
       "name": "SettlementFinalized",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SVUIssuanceFailed",
+      "type": "event",
+      "name": "SVUIssuanceFailed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8046,6 +8532,13 @@
       "id": "event:SVURedeemed",
       "type": "event",
       "name": "SVURedeemed",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
+      "id": "event:SVURedemptionFailed",
+      "type": "event",
+      "name": "SVURedemptionFailed",
       "version": "1.0.0",
       "properties": {}
     },
@@ -8820,6 +9313,13 @@
       "properties": {}
     },
     {
+      "id": "state_machine:SettlementValueUnit",
+      "type": "state_machine",
+      "name": "SettlementValueUnit",
+      "version": "1.0.0",
+      "properties": {}
+    },
+    {
       "id": "state_machine:system_health_lifecycle",
       "type": "state_machine",
       "name": "system_health_lifecycle",
@@ -8886,12 +9386,72 @@
   "edges": [
     {
       "source": "command:agent.suspend",
-      "target": "event:agent.terminated",
+      "target": "event:agent.suspended",
       "type": "command_produces_event"
     },
     {
       "source": "command:agent.suspend",
-      "target": "event:agent.termination_failed",
+      "target": "event:agent.suspension_failed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:ArchivePackage",
+      "target": "event:EvidencePackageArchivalFailed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:ArchivePackage",
+      "target": "event:EvidencePackageArchived",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:AuthorizeSettlement",
+      "target": "event:SettlementAuthorizationFailed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:AuthorizeSettlement",
+      "target": "event:SettlementAuthorized",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:CancelObligation",
+      "target": "event:ObligationCancellationFailed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:CancelObligation",
+      "target": "event:ObligationCancelled",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:CancelSettlement",
+      "target": "event:SettlementCancellationFailed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:CancelSettlement",
+      "target": "event:SettlementCancelled",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:CreateCommercialObligation",
+      "target": "event:CommercialRecordCreated",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:CreateCommercialObligation",
+      "target": "event:CommercialRecordCreationFailed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:DisputeSettlement",
+      "target": "event:SettlementDisputed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:DisputeSettlement",
+      "target": "event:SettlementDisputeFailed",
       "type": "command_produces_event"
     },
     {
@@ -8932,6 +9492,26 @@
     {
       "source": "command:escrow.account.release",
       "target": "event:escrow.account.released",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:ExecuteSettlement",
+      "target": "event:SettlementExecuted",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:ExecuteSettlement",
+      "target": "event:SettlementExecutionFailed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:GenerateEvidencePackage",
+      "target": "event:EvidencePackageGenerated",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:GenerateEvidencePackage",
+      "target": "event:EvidencePackageGenerationFailed",
       "type": "command_produces_event"
     },
     {
@@ -9046,22 +9626,22 @@
     },
     {
       "source": "command:governance.proposal.cancel",
-      "target": "event:governance.proposal.rejected",
+      "target": "event:governance.proposal.cancellation_failed",
       "type": "command_produces_event"
     },
     {
       "source": "command:governance.proposal.cancel",
-      "target": "event:governance.proposal.rejection_failed",
+      "target": "event:governance.proposal.cancelled",
       "type": "command_produces_event"
     },
     {
       "source": "command:governance.proposal.implement",
-      "target": "event:governance.proposal.approved",
+      "target": "event:governance.proposal.implementation_failed",
       "type": "command_produces_event"
     },
     {
       "source": "command:governance.proposal.implement",
-      "target": "event:governance.proposal.rejection_failed",
+      "target": "event:governance.proposal.implemented",
       "type": "command_produces_event"
     },
     {
@@ -9082,6 +9662,16 @@
     {
       "source": "command:governance.proposal.submit",
       "target": "event:governance.proposal.submitted",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:IssueSVU",
+      "target": "event:SVUIssuanceFailed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:IssueSVU",
+      "target": "event:SVUIssued",
       "type": "command_produces_event"
     },
     {
@@ -9186,12 +9776,12 @@
     },
     {
       "source": "command:payment.adapter.disable",
-      "target": "event:payment.execution.compensation_failed",
+      "target": "event:payment.adapter.disable_failed",
       "type": "command_produces_event"
     },
     {
       "source": "command:payment.adapter.disable",
-      "target": "event:payment.request.cancelled",
+      "target": "event:payment.adapter.disabled",
       "type": "command_produces_event"
     },
     {
@@ -9305,13 +9895,48 @@
       "type": "command_produces_event"
     },
     {
-      "source": "command:saga.compensate",
-      "target": "event:payment.execution.compensated",
+      "source": "command:PublishPackage",
+      "target": "event:EvidencePackagePublicationFailed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:PublishPackage",
+      "target": "event:EvidencePackagePublished",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:RedeemSVU",
+      "target": "event:SVURedeemed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:RedeemSVU",
+      "target": "event:SVURedemptionFailed",
       "type": "command_produces_event"
     },
     {
       "source": "command:saga.compensate",
-      "target": "event:payment.execution.compensation_failed",
+      "target": "event:saga.compensated",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:saga.compensate",
+      "target": "event:saga.compensation_failed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:SignAttestation",
+      "target": "event:AttestationSigned",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:SignAttestation",
+      "target": "event:AttestationSigningFailed",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:SignAttestation",
+      "target": "event:SettlementFinalized",
       "type": "command_produces_event"
     },
     {
@@ -9392,6 +10017,16 @@
     {
       "source": "command:treasury.transfer.reserve",
       "target": "event:treasury.transfer.reserved",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:ValidateObligation",
+      "target": "event:ObligationValidated",
+      "type": "command_produces_event"
+    },
+    {
+      "source": "command:ValidateObligation",
+      "target": "event:ObligationValidationFailed",
       "type": "command_produces_event"
     },
     {
@@ -9640,6 +10275,36 @@
       "type": "command_requires_capability"
     },
     {
+      "source": "command:ArchivePackage",
+      "target": "capability:certification.package.archive",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:AuthorizeSettlement",
+      "target": "capability:settlement.record.authorize",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:CancelObligation",
+      "target": "capability:commercial.obligation.cancel",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:CancelSettlement",
+      "target": "capability:settlement.record.cancel",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:CreateCommercialObligation",
+      "target": "capability:commercial.obligation.create",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:DisputeSettlement",
+      "target": "capability:settlement.record.dispute",
+      "type": "command_requires_capability"
+    },
+    {
       "source": "command:escrow.account.cancel",
       "target": "capability:escrow.account.cancel",
       "type": "command_requires_capability"
@@ -9657,6 +10322,16 @@
     {
       "source": "command:escrow.account.release",
       "target": "capability:escrow.account.release",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:ExecuteSettlement",
+      "target": "capability:settlement.record.execute",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:GenerateEvidencePackage",
+      "target": "capability:certification.package.generate",
       "type": "command_requires_capability"
     },
     {
@@ -9835,6 +10510,11 @@
       "type": "command_requires_capability"
     },
     {
+      "source": "command:IssueSVU",
+      "target": "capability:representation.svu.issue",
+      "type": "command_requires_capability"
+    },
+    {
       "source": "command:ledger.account.create",
       "target": "capability:ledger.account.manage",
       "type": "command_requires_capability"
@@ -9881,7 +10561,7 @@
     },
     {
       "source": "command:payment.adapter.disable",
-      "target": "capability:payment.execution.compensate",
+      "target": "capability:payment.adapter.disable",
       "type": "command_requires_capability"
     },
     {
@@ -9975,8 +10655,23 @@
       "type": "command_requires_capability"
     },
     {
+      "source": "command:PublishPackage",
+      "target": "capability:certification.package.publish",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:RedeemSVU",
+      "target": "capability:representation.svu.redeem",
+      "type": "command_requires_capability"
+    },
+    {
       "source": "command:saga.compensate",
       "target": "capability:system.internal",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:SignAttestation",
+      "target": "capability:certification.package.sign",
       "type": "command_requires_capability"
     },
     {
@@ -10022,6 +10717,11 @@
     {
       "source": "command:treasury.transfer.reserve",
       "target": "capability:treasury.transfer.reserve",
+      "type": "command_requires_capability"
+    },
+    {
+      "source": "command:ValidateObligation",
+      "target": "capability:commercial.obligation.validate",
       "type": "command_requires_capability"
     },
     {
@@ -10485,6 +11185,41 @@
       "type": "entity_accepts_command"
     },
     {
+      "source": "domain:certification",
+      "target": "command:ArchivePackage",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:certification",
+      "target": "command:GenerateEvidencePackage",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:certification",
+      "target": "command:PublishPackage",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:certification",
+      "target": "command:SignAttestation",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:commercial",
+      "target": "command:CancelObligation",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:commercial",
+      "target": "command:CreateCommercialObligation",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:commercial",
+      "target": "command:ValidateObligation",
+      "type": "entity_accepts_command"
+    },
+    {
       "source": "domain:escrow",
       "target": "command:escrow.account.cancel",
       "type": "entity_accepts_command"
@@ -10680,6 +11415,11 @@
       "type": "entity_accepts_command"
     },
     {
+      "source": "domain:kernel",
+      "target": "command:saga.compensate",
+      "type": "entity_accepts_command"
+    },
+    {
       "source": "domain:ledger",
       "target": "command:ledger.account.create",
       "type": "entity_accepts_command"
@@ -10820,8 +11560,33 @@
       "type": "entity_accepts_command"
     },
     {
-      "source": "domain:saga",
-      "target": "command:saga.compensate",
+      "source": "domain:representation",
+      "target": "command:IssueSVU",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:representation",
+      "target": "command:RedeemSVU",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:settlement",
+      "target": "command:AuthorizeSettlement",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:settlement",
+      "target": "command:CancelSettlement",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:settlement",
+      "target": "command:DisputeSettlement",
+      "type": "entity_accepts_command"
+    },
+    {
+      "source": "domain:settlement",
+      "target": "command:ExecuteSettlement",
       "type": "entity_accepts_command"
     },
     {
@@ -11147,6 +11912,11 @@
     {
       "source": "domain:policy",
       "target": "state_machine:policy_set_v06_lifecycle",
+      "type": "state_machine_governs_entity"
+    },
+    {
+      "source": "domain:representation",
+      "target": "state_machine:SettlementValueUnit",
       "type": "state_machine_governs_entity"
     },
     {

@@ -10,6 +10,7 @@
     "typecheck": "npm run --prefix packages/compiler build -- --noEmit && npm run --prefix packages/runtime build -- --noEmit",
     "lint": "npm run typecheck",
     "compile": "node packages/compiler/dist/cli.js compile",
+    "build:protocol": "npm run compile && node packages/compiler/dist/cli.js verify && node packages/compiler/dist/cli.js boot",
     "compile:economic": "npm run compile && node scripts/verify-economic-registries.mjs",
     "test": "npm run test:genesis && npm run test:integration",
     "test:genesis": "node packages/compiler/scripts/verify-spec.mjs genesis",

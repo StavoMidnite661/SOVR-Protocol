@@ -8,26 +8,69 @@
     "vault"
   ],
   "entries": {
-    "SettlementAuthorized": {
+    "AuthorizeSettlement": {
       "abi": "v1",
-      "aggregate": "",
-      "data_fields": {},
+      "aggregate": "settlement_record",
+      "capability": "settlement.record.authorize",
+      "command_name": "AuthorizeSettlement",
       "domain": "settlement",
-      "event_name": "SettlementAuthorized"
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "SettlementAuthorizationFailed"
+        ],
+        "success": [
+          "SettlementAuthorized"
+        ]
+      }
     },
-    "SettlementExecuted": {
+    "CancelSettlement": {
       "abi": "v1",
-      "aggregate": "",
-      "data_fields": {},
+      "aggregate": "settlement_record",
+      "capability": "settlement.record.cancel",
+      "command_name": "CancelSettlement",
       "domain": "settlement",
-      "event_name": "SettlementExecuted"
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "SettlementCancellationFailed"
+        ],
+        "success": [
+          "SettlementCancelled"
+        ]
+      }
     },
-    "SettlementFinalized": {
+    "DisputeSettlement": {
       "abi": "v1",
-      "aggregate": "",
-      "data_fields": {},
+      "aggregate": "settlement_record",
+      "capability": "settlement.record.dispute",
+      "command_name": "DisputeSettlement",
       "domain": "settlement",
-      "event_name": "SettlementFinalized"
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "SettlementDisputeFailed"
+        ],
+        "success": [
+          "SettlementDisputed"
+        ]
+      }
+    },
+    "ExecuteSettlement": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "capability": "settlement.record.execute",
+      "command_name": "ExecuteSettlement",
+      "domain": "settlement",
+      "execution_gates": [],
+      "resulting_events": {
+        "failure": [
+          "SettlementExecutionFailed"
+        ],
+        "success": [
+          "SettlementExecuted"
+        ]
+      }
     },
     "ledger.account.closed": {
       "abi": "v1",
@@ -888,19 +931,53 @@
     },
     "payment.adapter.disable": {
       "abi": "v1",
-      "aggregate": "execution",
-      "capability": "payment.execution.compensate",
+      "aggregate": "rail_adapter",
+      "capability": "payment.adapter.disable",
       "command_name": "payment.adapter.disable",
       "domain": "payment",
       "execution_gates": [],
       "resulting_events": {
         "failure": [
-          "payment.execution.compensation_failed"
+          "payment.adapter.disable_failed"
         ],
         "success": [
-          "payment.request.cancelled"
+          "payment.adapter.disabled"
         ]
       }
+    },
+    "payment.adapter.disable_failed": {
+      "abi": "v1",
+      "aggregate": "rail_adapter",
+      "data_fields": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "failed_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.adapter.disable_failed"
+    },
+    "payment.adapter.disabled": {
+      "abi": "v1",
+      "aggregate": "rail_adapter",
+      "data_fields": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "disabled_at": {
+          "type": "timestamp"
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "domain": "payment",
+      "event_name": "payment.adapter.disabled"
     },
     "payment.compensation.completed": {
       "abi": "v1",
@@ -2013,22 +2090,6 @@
       },
       "domain": "payment",
       "event_name": "payment.settlement.failed"
-    },
-    "saga.compensate": {
-      "abi": "v1",
-      "aggregate": "saga_execution",
-      "capability": "system.internal",
-      "command_name": "saga.compensate",
-      "domain": "payment",
-      "execution_gates": [],
-      "resulting_events": {
-        "failure": [
-          "payment.execution.compensation_failed"
-        ],
-        "success": [
-          "payment.execution.compensated"
-        ]
-      }
     },
     "treasury.liquidity.allocate": {
       "abi": "v1",
@@ -3782,13 +3843,13 @@
       "event_name": "vault.valuation.updated"
     }
   },
-  "entry_count": 168,
+  "entry_count": 170,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "41c8fc06bb888fa535b809c8dd22c65e27b0166be9965daab7c521368b4ca187",
+    "hash": "3ca09bc28e94208b64f3d266137ce0666c79c6cf298d313b84905665c528a678",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "economic"

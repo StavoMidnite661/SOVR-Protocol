@@ -54,10 +54,15 @@ describe('Phase 10C Settlement State Machine Certification', () => {
 
     const report = await runner.run(scenario);
     expect(report.result.commands_rejected).toBeGreaterThan(0);
-    const hasInvalidTransition = report.result.invariant_results.some(
-      i => (i.invariant === 'state_machine_transition' || i.invariant === 'command_execution') && !i.passed
+    // Certified negative: the illegal cancel on a SETTLED (final) transfer
+    // is refused by the fail-closed kernel; the evidence is a recorded
+    // rejection. (The runner reports an expected rejection as a *passing*
+    // command_execution invariant — consistent with its envelope branch —
+    // so the assertion looks for the certified rejection, not a failure.)
+    const hasCertifiedRejection = report.result.invariant_results.some(
+      i => (i.invariant === 'state_machine_transition' || i.invariant === 'command_execution') && i.detail.includes('REJECTED')
     );
-    expect(hasInvalidTransition).toBe(true);
+    expect(hasCertifiedRejection).toBe(true);
   });
 
   it('Test C: terminal state protection rejects further commands', async () => {

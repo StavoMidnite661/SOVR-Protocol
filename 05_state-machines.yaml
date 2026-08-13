@@ -193,17 +193,12 @@ state_machines:
         emitted_events: [vault.reserve.released]
         invalid: false
 
-      CONSUMED_to_AVAILABLE:
-        trigger: automatic
-        condition: balance_recalculated
-        emitted_events: []
-        invalid: false
-
-      RELEASED_to_AVAILABLE:
-        trigger: automatic
-        condition: balance_recalculated
-        emitted_events: []
-        invalid: false
+      # RETIRED (fail-closed canonicalization): CONSUMED_to_AVAILABLE and
+      # RELEASED_to_AVAILABLE used trigger "automatic" / condition
+      # "balance_recalculated" with no emitted event; no catalog event
+      # realizes a balance-recalculation transition. No silent dropping:
+      # recorded here pending a governance amendment for a
+      # vault.asset.balance_recalculated-style event.
 
       # Reconciliation flow
       RECONCILIATION_REQUIRED_to_AVAILABLE:
@@ -326,11 +321,13 @@ state_machines:
         emitted_events: [vault.reserve.creation_failed]
         invalid: false
 
-      ACTIVE_to_CONSUMED:
-        trigger: consuming_transaction_completed
-        condition: consuming_event_received
-        emitted_events: []
-        invalid: false
+      # RETIRED (fail-closed canonicalization): ACTIVE_to_CONSUMED used
+      # prose trigger "consuming_transaction_completed" with no emitted
+      # event; the catalog has no vault.reserve.consumed-style event.
+      # CONSUMED remains declared pending a governance amendment ratifying
+      # a reservation-consumption event (treasury.transfer.settled
+      # documents "vault reservation will be consumed" as a guarantee but
+      # is aggregated to transfer_order, so it cannot drive this machine).
 
       ACTIVE_to_RELEASED:
         trigger: vault.reserve.released
@@ -435,7 +432,8 @@ state_machines:
         invalid: false
 
       MARGIN_CALL_to_LIQUIDATING:
-        trigger: margin_call_timeout
+        trigger: vault.collateral.liquidation_initiated
+        # was: prose trigger "margin_call_timeout"
         condition: unresolved_past_deadline
         emitted_events: [vault.collateral.liquidation_initiated]
         invalid: false
@@ -446,14 +444,15 @@ state_machines:
         emitted_events: [vault.collateral.released]
         invalid: false
 
-      LIQUIDATING_to_LIQUIDATED:
-        trigger: liquidation_completed
-        condition: proceeds_applied_to_obligation
-        emitted_events: []
-        invalid: false
-
+      # RETIRED (fail-closed canonicalization): LIQUIDATING_to_LIQUIDATED
+      # used prose trigger "liquidation_completed" with no emitted event;
+      # the catalog ends at vault.collateral.liquidation_initiated.
+      # LIQUIDATED remains declared (and final) pending a governance
+      # amendment ratifying a liquidation-completion event.
       LIQUIDATING_to_RELEASED:
-        trigger: liquidation_cancelled
+        trigger: vault.collateral.released
+        # was: prose trigger "liquidation_cancelled" (cancellation releases
+        # the collateral — derived from this transition's own emission list)
         condition: governance_overrides_liquidation
         emitted_events: [vault.collateral.released]
         invalid: false
@@ -550,67 +549,67 @@ state_machines:
     transitions:
 
       CREATED_to_FUNDING_REQUESTED:
-        trigger: vault.transaction.fund
+        trigger: vault.transaction.funding_requested
         condition: funding_source_valid
         emitted_events: [vault.transaction.funding_requested]
         invalid: false
 
       FUNDING_REQUESTED_to_FUNDING_PENDING:
-        trigger: external_funding_confirmed
+        trigger: vault.transaction.funding_pending
         condition: confirmation_received
         emitted_events: []
         invalid: false
 
       FUNDING_PENDING_to_FUNDED:
-        trigger: funding_settlement_confirmed
+        trigger: vault.transaction.funded
         condition: settlement_verified
         emitted_events: [vault.transaction.funded]
         invalid: false
 
       FUNDING_PENDING_to_FAILED:
-        trigger: timeout
+        trigger: vault.transaction.failed
         condition: funding_not_confirmed_within_timeout
         emitted_events: [vault.transaction.failed]
         invalid: false
 
       FUNDED_to_RELEASE_PENDING:
-        trigger: vault.transaction.authorize_release
+        trigger: vault.transaction.release_pending
         condition: authorization_valid
         emitted_events: [vault.transaction.release_pending]
         invalid: false
 
       RELEASE_PENDING_to_RELEASE_AUTHORIZED:
-        trigger: vault.transaction.authorize_release
+        trigger: vault.transaction.release_authorized
         condition: governance_approved_or_policy_met
         emitted_events: [vault.transaction.release_authorized]
         invalid: false
 
       RELEASE_AUTHORIZED_to_DISBURSED:
-        trigger: vault.transaction.disburse
+        trigger: vault.transaction.disbursed
         condition: disbursement_completed
         emitted_events: [vault.transaction.disbursed]
         invalid: false
 
       DISBURSED_to_CLOSED:
-        trigger: automatic
+        trigger: vault.transaction.closed
         condition: reconciliation_complete
         emitted_events: [vault.transaction.closed]
         invalid: false
 
       CREATED_to_FAILED:
-        trigger: vault.transaction.cancel
+        trigger: vault.transaction.failed
         condition: cancellation_requested
         emitted_events: [vault.transaction.failed]
         invalid: false
 
       FUNDING_REQUESTED_to_FAILED:
-        trigger: vault.transaction.cancel
+        trigger: vault.transaction.failed
         condition: cancellation_before_funding
         emitted_events: [vault.transaction.failed]
         invalid: false
 
       RELEASE_PENDING_to_FAILED:
-        trigger: vault.transaction.cancel
+        trigger: vault.transaction.failed
         condition: cancellation_before_disbursement
         emitted_events: [vault.transaction.failed]
         invalid: false
@@ -628,26 +627,30 @@ state_machines:
   ledger_journal_lifecycle:
     domain: ledger
     aggregate: journal_entry
-    initial_state: CREATED
-    final_states: [REJECTED]
+    initial_state: POSTED
+    final_states: [REVERSED, CORRECTED]
     description: >
-      Manages the lifecycle of a journal entry from creation
-      through validation, posting, settlement, and reconciliation.
+      Manages the lifecycle of a journal entry from posting through
+      reversal or correction.
+      REPAIR NOTE (fail-closed canonicalization): the previous form of
+      this machine (CREATED → VALIDATING → POSTED → SETTLED → RECONCILED)
+      was unrealizable in the event-sourced architecture: no command
+      creates an unposted entry (ledger.entry.post validates and posts
+      atomically — validation gates run BEFORE the ledger.entry.posted
+      success event is emitted, per 03_command-catalog), no event exists
+      for "validation started/passed", and settlement/reconciliation
+      events are aggregated to transfer_order/reconciliation, never to
+      journal_entry. A journal entry is therefore born POSTED. The
+      states CREATED, VALIDATING, SETTLED, RECONCILED, REJECTED and their
+      seven prose-triggered transitions were retired; the only ratified
+      post-posting operations are ledger.entry.reverse and
+      ledger.entry.correct, realized by ledger.entry.reversed and
+      ledger.entry.corrected. REVERSED and CORRECTED were absent as
+      states despite ratified commands/events targeting them — added by
+      direct derivation from the event catalog so those flows can no
+      longer hard-fault the kernel.
 
     states:
-
-      CREATED:
-        description: Entry has been created but not yet validated
-        allowed_commands:
-          - system begins validation
-        time_limit: 300s
-        on_timeout: REJECTED
-
-      VALIDATING:
-        description: Entry is passing through the validation pipeline
-        allowed_commands: []  # system-driven
-        time_limit: 600s
-        on_timeout: REJECTED
 
       POSTED:
         description: Entry has passed validation and been appended to the journal
@@ -658,78 +661,31 @@ state_machines:
           - update account balance projections
           - emit ledger.entry.posted event
 
-      SETTLED:
-        description: Entry has been confirmed by the originating domain
-        allowed_commands:
-          - ledger.entry.reverse
-          - ledger.entry.correct
-        entry_actions:
-          - mark as settled in projections
-
-      RECONCILED:
-        description: Entry has been verified against external source
-        allowed_commands:
-          - ledger.entry.reverse
-          - ledger.entry.correct
-        entry_actions:
-          - mark as reconciled in projections
-
-      REJECTED:
-        description: Entry failed validation and was not posted
+      REVERSED:
+        description: Entry has been reversed by a reversal entry; terminal
         allowed_commands: []
-        entry_actions:
-          - emit ledger.entry.rejected event
-          - notify source domain
+
+      CORRECTED:
+        description: Entry has been superseded by a correcting entry; terminal
+        allowed_commands: []
 
     transitions:
 
-      CREATED_to_VALIDATING:
-        trigger: validation_started
-        condition: none
-        emitted_events: []
+      POSTED_to_REVERSED:
+        trigger: ledger.entry.reversed
+        condition: status == 'POSTED'
+        emitted_events: [ledger.entry.reversed]
         invalid: false
 
-      VALIDATING_to_POSTED:
-        trigger: validation_passed
-        condition: all_validation_steps_passed
-        emitted_events: [ledger.entry.posted]
-        invalid: false
-
-      VALIDATING_to_REJECTED:
-        trigger: validation_failed
-        condition: any_validation_step_failed
-        emitted_events: [ledger.entry.rejected]
-        invalid: false
-
-      CREATED_to_REJECTED:
-        trigger: timeout
-        condition: creation_timeout_exceeded
-        emitted_events: [ledger.entry.rejected]
-        invalid: false
-
-      POSTED_to_SETTLED:
-        trigger: originating_domain_confirms
-        condition: settlement_event_received
-        emitted_events: []
-        invalid: false
-
-      SETTLED_to_RECONCILED:
-        trigger: reconciliation_confirms
-        condition: reconciliation_passed
-        emitted_events: []
-        invalid: false
-
-      POSTED_to_RECONCILED:
-        trigger: reconciliation_confirms
-        condition: reconciliation_passed_without_settlement
-        emitted_events: []
+      POSTED_to_CORRECTED:
+        trigger: ledger.entry.corrected
+        condition: status == 'POSTED'
+        emitted_events: [ledger.entry.corrected]
         invalid: false
 
       invalid_transitions:
-        - { from: REJECTED, to: any }
-        - { from: RECONCILED, to: POSTED }
-        - { from: SETTLED, to: CREATED }
-        - { from: VALIDATING, to: POSTED }  # must go through VALIDATING_to_POSTED
+        - { from: REVERSED, to: any }
+        - { from: CORRECTED, to: any }
 
   # ========================================================
   # LEDGER — RECONCILIATION LIFECYCLE
@@ -744,6 +700,24 @@ state_machines:
       Manages the lifecycle of a treasury transfer order from
       request through authorization, vault reservation, execution,
       settlement, and potential failure or compensation.
+      REPAIR NOTE (fail-closed canonicalization): all transition triggers
+      are now bound to ratified catalog events — the previous prose
+      triggers ("settlement confirmed", "timeout", …) matched no event and
+      left this machine unenforceable. Three prose transitions were retired
+      because the event catalog contains no event that realizes them:
+      EXECUTING_to_PENDING_SETTLEMENT ("execution completed, awaiting
+      confirmation"), EXECUTING_to_UNKNOWN_EXTERNAL_STATE ("external
+      timeout"), and PENDING_SETTLEMENT_to_UNKNOWN_EXTERNAL_STATE
+      ("timeout or unknown response"). Only rail-callback events (none have
+      been ratified) can realize those transitions; the catalog's
+      settlement flow (treasury.settlement.confirm) reaches SETTLED
+      directly from EXECUTING. PENDING_SETTLEMENT and
+      UNKNOWN_EXTERNAL_STATE remain declared, with their outbound
+      transitions intact, pending a governance amendment ratifying
+      rail-callback events. The stale invalid_transitions entry
+      UNKNOWN_EXTERNAL_STATE→FAILED (which contradicted the valid
+      transition of the same name) and the blanket SETTLED→any (which
+      would forbid the idempotent confirmation self-loop) were removed.
 
     states:
 
@@ -808,116 +782,129 @@ state_machines:
 
     transitions:
 
+      # Every transition is bound to the ratified catalog event whose
+      # emission realizes it (command resulting_events in 03_command-catalog).
+      # Three former prose transitions were retired because the catalog has
+      # no event for them; they are recorded in the machine description above.
       REQUESTED_to_AUTHORIZED:
-        trigger: identity+capability+policy passed
-        condition: all authorization gates passed
+        trigger: treasury.transfer.authorized
+        # was: "identity+capability+policy passed"
+        condition: status == 'REQUESTED'
         emitted_events: [treasury.transfer.authorized]
         invalid: false
 
       AUTHORIZED_to_RESERVED:
-        trigger: vault reservation locked
-        condition: vault confirms reservation in ACTIVE state
+        trigger: treasury.transfer.reserved
+        # was: "vault reservation locked"
+        condition: status == 'AUTHORIZED'
         emitted_events: [treasury.transfer.reserved]
         invalid: false
 
       RESERVED_to_EXECUTING:
-        trigger: execution begins
-        condition: payment rail accepts instruction
+        trigger: treasury.transfer.executing
+        # was: "execution begins"
+        condition: status == 'RESERVED'
         emitted_events: [treasury.transfer.executing]
         invalid: false
 
-      EXECUTING_to_PENDING_SETTLEMENT:
-        trigger: execution completed, awaiting confirmation
-        condition: payment rail reports execution complete
-        emitted_events: []
-        invalid: false
-
-      PENDING_SETTLEMENT_to_SETTLED:
-        trigger: settlement confirmed
-        condition: settlement confirmation received from rail
+      EXECUTING_to_SETTLED:
+        trigger: treasury.transfer.settled
+        # was: "internal settlement confirmed directly"
+        condition: status == 'EXECUTING'
         emitted_events: [treasury.transfer.settled, treasury.settlement.confirmed]
         invalid: false
 
-      EXECUTING_to_SETTLED:
-        trigger: internal settlement confirmed directly
-        condition: execution and settlement confirmed atomically
+      SETTLED_to_SETTLED:
+        # Idempotent settlement confirmation: treasury.settlement.confirm
+        # emits [treasury.transfer.settled, treasury.settlement.confirmed]
+        # atomically; the confirmation event therefore always arrives on an
+        # aggregate that has just become SETTLED within the same command.
+        # This self-loop is derived from that ratified two-event emission and
+        # from the machine's own "late confirmation received" semantics; it
+        # records receipt without mutating state.
+        trigger: treasury.settlement.confirmed
+        condition: status == 'SETTLED'
+        emitted_events: [treasury.settlement.confirmed]
+        invalid: false
+
+      PENDING_SETTLEMENT_to_SETTLED:
+        trigger: treasury.transfer.settled
+        # was: "settlement confirmed"
+        condition: status == 'PENDING_SETTLEMENT'
         emitted_events: [treasury.transfer.settled, treasury.settlement.confirmed]
         invalid: false
 
       REQUESTED_to_REJECTED:
-        trigger: validation failed
-        condition: request payload fails validation
+        trigger: treasury.transfer.rejected
+        # was: "validation failed"
+        condition: status == 'REQUESTED'
         emitted_events: [treasury.transfer.rejected]
         invalid: false
 
       AUTHORIZED_to_REJECTED:
-        trigger: policy denied
-        condition: policy evaluation returned DENY
+        trigger: treasury.transfer.rejected
+        # was: "policy denied"
+        condition: status == 'AUTHORIZED'
         emitted_events: [treasury.transfer.rejected]
         invalid: false
 
       REQUESTED_to_EXPIRED:
-        trigger: timeout
-        condition: 3600s elapsed without authorization
+        trigger: treasury.transfer.expired
+        # was: "timeout" (declarative on_timeout retained on the state)
+        condition: status == 'REQUESTED'
         emitted_events: [treasury.transfer.expired]
         invalid: false
 
       RESERVED_to_EXPIRED:
-        trigger: vault reservation expired
-        condition: vault reservation reached expiry
+        trigger: treasury.transfer.expired
+        # was: "vault reservation expired"
+        condition: status == 'RESERVED'
         emitted_events: [treasury.transfer.expired]
         invalid: false
 
       EXECUTING_to_FAILED:
-        trigger: execution error
-        condition: payment rail returned failure
+        trigger: treasury.transfer.failed
+        # was: "execution error"
+        condition: status == 'EXECUTING'
         emitted_events: [treasury.transfer.failed]
         invalid: false
 
       PENDING_SETTLEMENT_to_FAILED:
-        trigger: settlement failed
-        condition: settlement confirmation returned failure
+        trigger: treasury.transfer.failed
+        # was: "settlement failed"
+        condition: status == 'PENDING_SETTLEMENT'
         emitted_events: [treasury.transfer.failed]
         invalid: false
 
-      PENDING_SETTLEMENT_to_UNKNOWN_EXTERNAL_STATE:
-        trigger: timeout or unknown response
-        condition: no response received within SLA or response unparseable
-        emitted_events: []
-        invalid: false
-
-      EXECUTING_to_UNKNOWN_EXTERNAL_STATE:
-        trigger: external timeout
-        condition: payment rail did not respond within execution SLA
-        emitted_events: []
-        invalid: false
-
       FAILED_to_COMPENSATION_REQUIRED:
-        trigger: compensation saga initiated
-        condition: governance or automated compensation triggered
+        trigger: treasury.transfer.compensation_required
+        # was: "compensation saga initiated"
+        condition: status == 'FAILED'
         emitted_events: [treasury.transfer.compensation_required]
         invalid: false
 
       UNKNOWN_EXTERNAL_STATE_to_SETTLED:
-        trigger: late confirmation received
-        condition: settlement confirmed after unknown period
+        trigger: treasury.transfer.settled
+        # was: "late confirmation received"
+        condition: status == 'UNKNOWN_EXTERNAL_STATE'
         emitted_events: [treasury.transfer.settled, treasury.settlement.confirmed]
         invalid: false
 
       UNKNOWN_EXTERNAL_STATE_to_FAILED:
-        trigger: failure confirmed
-        condition: late failure received after unknown period
+        trigger: treasury.transfer.failed
+        # was: "failure confirmed"
+        condition: status == 'UNKNOWN_EXTERNAL_STATE'
         emitted_events: [treasury.transfer.failed]
         invalid: false
 
       UNKNOWN_EXTERNAL_STATE_to_COMPENSATION_REQUIRED:
-        trigger: governance orders compensation
-        condition: governance determines compensation necessary
+        trigger: treasury.transfer.compensation_required
+        # was: "governance orders compensation"
+        condition: status == 'UNKNOWN_EXTERNAL_STATE'
         emitted_events: [treasury.transfer.compensation_required]
         invalid: false
 
     invalid_transitions:
-      - { from: SETTLED, to: any }
       - { from: REJECTED, to: any }
       - { from: EXPIRED, to: any }
       - { from: REQUESTED, to: EXECUTING }
@@ -925,7 +912,6 @@ state_machines:
       - { from: EXECUTING, to: REQUESTED }
       - { from: PENDING_SETTLEMENT, to: AUTHORIZED }
       - { from: FAILED, to: SETTLED }
-      - { from: UNKNOWN_EXTERNAL_STATE, to: FAILED }
 
   # ========================================================
   # IDENTITY — ACTOR LIFECYCLE
@@ -1490,11 +1476,15 @@ state_machines:
     transitions:
       - from: RECEIVED
         to: PLANNING
-        command: payment.execution.plan
+        trigger: payment.execution.planned
+        # was: command payment.execution.plan (canonical event-trigger binding)
+        emitted_events: [payment.execution.planned]
         guard: execution_plan_does_not_exist
       - from: RECEIVED
         to: CANCELLED
-        command: payment.request.cancel
+        trigger: payment.request.cancelled
+        # was: command payment.request.cancel (canonical event-trigger binding)
+        emitted_events: [payment.request.cancelled]
       - from: PLANNING
         to: ROUTING
         event: payment.execution.planned
@@ -1504,17 +1494,23 @@ state_machines:
         event: payment.execution.planning_failed
       - from: PLANNING
         to: CANCELLED
-        command: payment.request.cancel
+        trigger: payment.request.cancelled
+        # was: command payment.request.cancel (canonical event-trigger binding)
+        emitted_events: [payment.request.cancelled]
       - from: ROUTING
         to: PREPARING
-        command: payment.execution.execute
+        trigger: payment.execution.started
+        # was: command payment.execution.execute (canonical event-trigger binding)
+        emitted_events: [payment.execution.started]
         guard: adapter_registered
       - from: ROUTING
         to: FAILED
         event: payment.execution.start_failed
       - from: ROUTING
         to: CANCELLED
-        command: payment.request.cancel
+        trigger: payment.request.cancelled
+        # was: command payment.request.cancel (canonical event-trigger binding)
+        emitted_events: [payment.request.cancelled]
       - from: PREPARING
         to: EXECUTING
         event: payment.rail.prepared
@@ -1535,7 +1531,9 @@ state_machines:
         guard: not_retryable
       - from: EXECUTING
         to: COMPENSATING
-        command: payment.execution.compensate
+        trigger: payment.compensation.started
+        # was: command payment.execution.compensate (canonical event-trigger binding)
+        emitted_events: [payment.compensation.started]
       - from: CONFIRMING
         to: RECONCILING
         event: payment.rail.confirmed
@@ -1545,18 +1543,24 @@ state_machines:
         event: payment.rail.failed
       - from: CONFIRMING
         to: COMPENSATING
-        command: payment.execution.compensate
+        trigger: payment.compensation.started
+        # was: command payment.execution.compensate (canonical event-trigger binding)
+        emitted_events: [payment.compensation.started]
       - from: RECONCILING
         to: SETTLED
         event: payment.reconciliation.completed
         guard: reconciliation_matched
       - from: RECONCILING
         to: SETTLED
-        command: payment.receipt.issue
+        trigger: payment.receipt.issued
+        # was: command payment.receipt.issue (canonical event-trigger binding)
+        emitted_events: [payment.receipt.issued]
         guard: reconciliation_bypassed
       - from: FAILED
         to: COMPENSATING
-        command: payment.execution.compensate
+        trigger: payment.compensation.started
+        # was: command payment.execution.compensate (canonical event-trigger binding)
+        emitted_events: [payment.compensation.started]
       - from: COMPENSATING
         to: REVERSED
         event: payment.compensation.completed
@@ -1632,27 +1636,39 @@ state_machines:
     transitions:
       - from: DRAFT
         to: PENDING_REVIEW
-        command: governance.proposal.submit
+        trigger: governance.proposal.submitted
+        # was: command governance.proposal.submit (canonical event-trigger binding)
+        emitted_events: [governance.proposal.submitted]
       - from: PENDING_REVIEW
         to: APPROVED
-        command: governance.proposal.approve
+        trigger: governance.proposal.approved
+        # was: command governance.proposal.approve (canonical event-trigger binding)
+        emitted_events: [governance.proposal.approved]
         guard: required_approvals_reached
       - from: PENDING_REVIEW
         to: REJECTED
-        command: governance.proposal.reject
+        trigger: governance.proposal.rejected
+        # was: command governance.proposal.reject (canonical event-trigger binding)
+        emitted_events: [governance.proposal.rejected]
       - from: PENDING_REVIEW
         to: EXPIRED
         event: governance.proposal.expired
         guard: expiration_reached
       - from: PENDING_REVIEW
         to: CANCELLED
-        command: governance.proposal.cancel
+        trigger: governance.proposal.cancelled
+        # was: command governance.proposal.cancel (canonical event-trigger binding)
+        emitted_events: [governance.proposal.cancelled]
       - from: APPROVED
         to: IMPLEMENTED
-        command: governance.proposal.implement
+        trigger: governance.proposal.implemented
+        # was: command governance.proposal.implement (canonical event-trigger binding)
+        emitted_events: [governance.proposal.implemented]
       - from: DRAFT
         to: CANCELLED
-        command: governance.proposal.cancel
+        trigger: governance.proposal.cancelled
+        # was: command governance.proposal.cancel (canonical event-trigger binding)
+        emitted_events: [governance.proposal.cancelled]
 
   # ========================================================
   # LEDGER — ACCOUNT LIFECYCLE
@@ -1693,10 +1709,14 @@ state_machines:
     transitions:
       - from: ACTIVE
         to: FROZEN
-        command: ledger.account.freeze
+        trigger: ledger.account.frozen
+        # was: command ledger.account.freeze (canonical event-trigger binding)
+        emitted_events: [ledger.account.frozen]
       - from: ACTIVE
         to: CLOSED
-        command: ledger.period.close
+        trigger: ledger.period.closing
+        # was: command ledger.period.close (canonical event-trigger binding)
+        emitted_events: [ledger.period.closing, ledger.entry.posted, ledger.period.closed]
 
   # ========================================================
   # AGENT — LIFECYCLE
@@ -1750,22 +1770,34 @@ state_machines:
     transitions:
       - from: REGISTERED
         to: ACTIVE
-        command: agent.activate
+        trigger: agent.activated
+        # was: command agent.activate (canonical event-trigger binding)
+        emitted_events: [agent.activated]
       - from: ACTIVE
         to: SUSPENDED
-        command: agent.suspend
+        trigger: agent.suspended
+        # was: command agent.suspend (canonical event-trigger binding)
+        emitted_events: [agent.suspended]
       - from: SUSPENDED
         to: ACTIVE
-        command: agent.activate
+        trigger: agent.activated
+        # was: command agent.activate (canonical event-trigger binding)
+        emitted_events: [agent.activated]
       - from: ACTIVE
         to: TERMINATED
-        command: agent.terminate
+        trigger: agent.terminated
+        # was: command agent.terminate (canonical event-trigger binding)
+        emitted_events: [agent.terminated]
       - from: SUSPENDED
         to: TERMINATED
-        command: agent.terminate
+        trigger: agent.terminated
+        # was: command agent.terminate (canonical event-trigger binding)
+        emitted_events: [agent.terminated]
       - from: REGISTERED
         to: TERMINATED
-        command: agent.terminate
+        trigger: agent.terminated
+        # was: command agent.terminate (canonical event-trigger binding)
+        emitted_events: [agent.terminated]
 
   # ========================================================
   # PAYMENT — ADAPTER LIFECYCLE
@@ -1810,16 +1842,22 @@ state_machines:
     transitions:
       - from: ENABLED
         to: PREPARING
-        command: payment.execution.prepare
+        trigger: payment.execution.planned
+        # was: command payment.execution.prepare (canonical event-trigger binding)
+        emitted_events: [payment.execution.planned]
       - from: PREPARING
         to: EXECUTING
-        command: payment.execution.execute
+        trigger: payment.execution.started
+        # was: command payment.execution.execute (canonical event-trigger binding)
+        emitted_events: [payment.execution.started]
       - from: EXECUTING
         to: ENABLED
         event: payment.execution.settled
       - from: ENABLED
         to: DISABLED
-        command: payment.adapter.disable
+        trigger: payment.adapter.disabled
+        # was: command payment.adapter.disable (canonical event-trigger binding)
+        emitted_events: [payment.adapter.disabled]
 
   # ========================================================
   # KERNEL — SAGA LIFECYCLE
@@ -1888,7 +1926,9 @@ state_machines:
         event: saga.failed
       - from: FAILED
         to: COMPENSATING
-        command: saga.compensate
+        trigger: saga.compensated
+        # was: command saga.compensate (canonical event-trigger binding)
+        emitted_events: [saga.compensated]
       - from: COMPENSATING
         to: COMPENSATED
         event: saga.compensated
@@ -1944,10 +1984,14 @@ state_machines:
         event: system.health.restored
       - from: HEALTHY
         to: HALTED
-        command: governance.emergency.halt
+        trigger: governance.emergency_halt.issued
+        # was: command governance.emergency.halt (canonical event-trigger binding)
+        emitted_events: [governance.emergency_halt.issued]
       - from: DEGRADED
         to: HALTED
-        command: governance.emergency.halt
+        trigger: governance.emergency_halt.issued
+        # was: command governance.emergency.halt (canonical event-trigger binding)
+        emitted_events: [governance.emergency_halt.issued]
       - from: HEALTHY
         to: UNKNOWN
         event: system.health.unknown
@@ -2529,153 +2573,288 @@ state_machines:
         emitted_events: [escrow.account.cancelled]
         invalid: false
 
-# ============================================================
-# AMD-0005 EXTENSION STATE MACHINES
-# Ratified: 2026-08-05
-# Commercial Settlement Suite
-# Append after existing state machine definitions
-# ============================================================
+  # ========================================================
+  # COMMERCIAL SETTLEMENT SUITE — EXECUTABLE LIFECYCLES (AMD-0005)
+  # Canonical state-machine schema (states map + event-triggered
+  # transitions), matching how the runtime interpreter actually
+  # advances aggregates: a command's success events are the
+  # transition triggers; the creating command's first event enters
+  # the initial state. Cross-domain completion status is composed
+  # by projection (see machine descriptions); machine-gated states
+  # below are exactly the states this domain's commands can reach.
+  # ========================================================
 
   CommercialObligation:
     amendment: AMD-0005
     domain: commercial
+    aggregate: commercial_obligation
     entity: CommercialObligation
     initial_state: DRAFT
+    final_states: [CANCELLED]
+    description: >
+      Commercial-domain gateway lifecycle of a commercial obligation.
+      Creation enters DRAFT from CommercialRecordCreated (synthetic
+      initial transition). Validation advances DRAFT to VALIDATED;
+      cancellation is permitted until settlement authorization is
+      requested. Settlement-phase status of the obligation
+      (SETTLEMENT_REQUESTED, SETTLED, DISPUTED) is projection-derived
+      from settlement domain events (SettlementAuthorized,
+      SettlementFinalized, SettlementDisputed) under
+      commercial_obligation_view; those are projection states of the
+      obligation record, not machine-gated states, because settlement
+      authority belongs to the settlement domain.
+
     states:
-      - DRAFT
-      - VALIDATED
-      - SETTLEMENT_REQUESTED
-      - SETTLED
-      - CANCELLED
-      - DISPUTED
+
+      DRAFT:
+        description: Obligation recorded; awaiting validation
+        allowed_commands:
+          - ValidateObligation
+          - CancelObligation
+        entry_actions: []
+        exit_actions: []
+
+      VALIDATED:
+        description: Validated; eligible for settlement authorization
+        allowed_commands:
+          - CancelObligation
+        entry_actions: []
+        exit_actions: []
+
+      CANCELLED:
+        description: Cancelled before settlement authorization; terminal
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
     transitions:
-      - from: DRAFT
-        to: VALIDATED
-        command: ValidateObligation
-        event: ObligationValidated
-        guard: validator_has_authority
 
-      - from: VALIDATED
-        to: SETTLEMENT_REQUESTED
-        command: AuthorizeSettlement
-        event: SettlementAuthorized
-        guard: authorizer_has_settlement_authority
+      DRAFT_to_VALIDATED:
+        trigger: ObligationValidated
+        condition: status == 'DRAFT'
+        emitted_events: [ObligationValidated]
+        invalid: false
 
-      - from: SETTLEMENT_REQUESTED
-        to: SETTLED
-        event: SettlementFinalized
-        guard: evidence_package_signed
+      DRAFT_to_CANCELLED:
+        trigger: ObligationCancelled
+        condition: status == 'DRAFT'
+        emitted_events: [ObligationCancelled]
+        invalid: false
 
-      - from: DRAFT
-        to: CANCELLED
-        command: CancelObligation
-        guard: canceller_has_authority
+      VALIDATED_to_CANCELLED:
+        trigger: ObligationCancelled
+        condition: status == 'VALIDATED'
+        emitted_events: [ObligationCancelled]
+        invalid: false
 
-      - from: VALIDATED
-        to: CANCELLED
-        command: CancelObligation
-        guard: canceller_has_authority
-
-      - from: SETTLED
-        to: DISPUTED
-        command: DisputeSettlement
-        guard: dispute_window_open
+      invalid_transitions:
+        - { from: CANCELLED, to: any }  # terminal
 
   SettlementRecord:
     amendment: AMD-0005
     domain: settlement
+    aggregate: settlement_record
     entity: SettlementRecord
     initial_state: PENDING
+    final_states: [FINALIZED, CANCELLED]
+    description: >
+      Executable settlement record lifecycle under settlement-domain
+      authority. The record is created by AuthorizeSettlement and enters
+      PENDING on SettlementAuthorized (authorization is the creating act,
+      so the authorized state is the initial state). ExecuteSettlement
+      posts the TigerBeetle transfer: SettlementExecuted advances the
+      record to LEDGER_POSTED. When the certification domain's attestation
+      completes, SignAttestation records SettlementFinalized (the AMD-0005
+      chain-of-custody design), advancing the record to its FINALIZED
+      terminal success state. Cancellation is pre-execution only; dispute
+      is post-finalization within the dispute window.
+
     states:
-      - PENDING
-      - AUTHORIZED
-      - EXECUTING
-      - LEDGER_POSTED
-      - EVIDENCE_GENERATED
-      - FINALIZED
-      - DISPUTED
-      - CANCELLED
+
+      PENDING:
+        description: Authorized settlement awaiting execution/ledger posting
+        allowed_commands:
+          - ExecuteSettlement
+          - CancelSettlement
+        entry_actions: []
+        exit_actions: []
+
+      LEDGER_POSTED:
+        description: TigerBeetle transfer confirmed posted; awaiting attestation
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      FINALIZED:
+        description: Attestation complete; chain of custody closed; value-final
+        allowed_commands:
+          - DisputeSettlement
+        entry_actions: []
+        exit_actions: []
+
+      DISPUTED:
+        description: Dispute opened within the dispute window
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+      CANCELLED:
+        description: Cancelled before execution; terminal
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
     transitions:
-      - from: PENDING
-        to: AUTHORIZED
-        command: AuthorizeSettlement
-        event: SettlementAuthorized
-        guard: obligation_is_validated
 
-      - from: AUTHORIZED
-        to: EXECUTING
-        command: ExecuteSettlement
-        guard: treasury_transfer_initiated
+      PENDING_to_LEDGER_POSTED:
+        trigger: SettlementExecuted
+        condition: status == 'PENDING'
+        emitted_events: [SettlementExecuted]
+        invalid: false
 
-      - from: EXECUTING
-        to: LEDGER_POSTED
-        event: SettlementExecuted
-        guard: tigerbeetle_transfer_confirmed
+      LEDGER_POSTED_to_FINALIZED:
+        trigger: SettlementFinalized
+        condition: status == 'LEDGER_POSTED'
+        emitted_events: [SettlementFinalized]
+        invalid: false
 
-      - from: LEDGER_POSTED
-        to: EVIDENCE_GENERATED
-        event: EvidencePackageGenerated
-        guard: all_10_documents_rendered
+      PENDING_to_CANCELLED:
+        trigger: SettlementCancelled
+        condition: status == 'PENDING'
+        emitted_events: [SettlementCancelled]
+        invalid: false
 
-      - from: EVIDENCE_GENERATED
-        to: FINALIZED
-        event: SettlementFinalized
-        guard: attestation_signed
+      FINALIZED_to_DISPUTED:
+        trigger: SettlementDisputed
+        condition: status == 'FINALIZED'
+        emitted_events: [SettlementDisputed]
+        invalid: false
 
-      - from: FINALIZED
-        to: DISPUTED
-        command: DisputeSettlement
-        guard: dispute_window_open
-
-      - from: [PENDING, AUTHORIZED]
-        to: CANCELLED
-        command: CancelSettlement
-        guard: canceller_has_authority
+      invalid_transitions:
+        - { from: FINALIZED, to: any }
+        - { from: CANCELLED, to: any }  # terminal
 
   EvidencePackage:
     amendment: AMD-0005
     domain: certification
+    aggregate: evidence_package
     entity: EvidencePackage
     storage: TB_LEDGER.SYSTEM
     storage_code: MEMORANDUM
-    initial_state: PENDING
+    initial_state: GENERATED
+    final_states: [ARCHIVED]
+    description: >
+      Executable evidence package lifecycle under certification-domain
+      authority. Package generation is integral to the creating command:
+      GenerateEvidencePackage renders and hashes the 10 JDE documents,
+      computes the manifest and package hashes, and stores the memorandum,
+      so the package enters GENERATED on EvidencePackageGenerated.
+      SignAttestation verifies the package hash and applies the attestor
+      signature, advancing to SIGNED; publication through the optional
+      boundary adapter moves SIGNED to PUBLISHED; archival closes the
+      lifecycle from SIGNED or PUBLISHED once the retention period is met.
+      The original draft's GENERATING/VERIFIED intermediates are enforced
+      as preconditions of the creating/signing commands rather than as
+      machine states, because only command-emitted events advance
+      aggregates at runtime.
+
     states:
-      - PENDING
-      - GENERATING
-      - GENERATED
-      - VERIFIED
-      - SIGNED
-      - PUBLISHED
-      - ARCHIVED
+
+      GENERATED:
+        description: Package rendered, hashed, and stored; awaiting attestation
+        allowed_commands:
+          - SignAttestation
+        entry_actions: []
+        exit_actions: []
+
+      SIGNED:
+        description: Attestor signature applied; chain of custody complete
+        allowed_commands:
+          - PublishPackage
+          - ArchivePackage
+        entry_actions: []
+        exit_actions: []
+
+      PUBLISHED:
+        description: Published through the optional boundary adapter
+        allowed_commands:
+          - ArchivePackage
+        entry_actions: []
+        exit_actions: []
+
+      ARCHIVED:
+        description: Long-term retention; terminal
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
     transitions:
-      - from: PENDING
-        to: GENERATING
-        command: GenerateEvidencePackage
-        guard: settlement_is_executed
 
-      - from: GENERATING
-        to: GENERATED
-        event: EvidencePackageGenerated
-        guard: all_10_documents_rendered_and_hashed
+      GENERATED_to_SIGNED:
+        trigger: AttestationSigned
+        condition: status == 'GENERATED'
+        emitted_events: [AttestationSigned]
+        invalid: false
 
-      - from: GENERATED
-        to: VERIFIED
-        action: verify_manifest_hash
-        guard: manifest_hash_matches_document_hashes
+      SIGNED_to_PUBLISHED:
+        trigger: EvidencePackagePublished
+        condition: status == 'SIGNED'
+        emitted_events: [EvidencePackagePublished]
+        invalid: false
 
-      - from: VERIFIED
-        to: SIGNED
-        command: SignAttestation
-        event: AttestationSigned
-        guard: attestor_has_authority
+      SIGNED_to_ARCHIVED:
+        trigger: EvidencePackageArchived
+        condition: status == 'SIGNED'
+        emitted_events: [EvidencePackageArchived]
+        invalid: false
 
-      - from: SIGNED
-        to: PUBLISHED
-        command: PublishPackage
-        guard: storage_adapter_available
-        note: Optional boundary adapter. Not required for FINALIZED.
+      PUBLISHED_to_ARCHIVED:
+        trigger: EvidencePackageArchived
+        condition: status == 'PUBLISHED'
+        emitted_events: [EvidencePackageArchived]
+        invalid: false
 
-      - from: [SIGNED, PUBLISHED]
-        to: ARCHIVED
-        command: ArchivePackage
-        guard: retention_period_met
+      invalid_transitions:
+        - { from: ARCHIVED, to: any }  # terminal
+
+  SettlementValueUnit:
+    amendment: AMD-0005
+    domain: representation
+    aggregate: settlement_value_unit
+    entity: SettlementValueUnit
+    initial_state: ISSUED
+    final_states: [REDEEMED]
+    description: >
+      Settlement Value Unit lifecycle under representation-domain
+      authority. IssueSVU creates the unit after the full provenance
+      chain is verified (signed evidence package, 2-of-3 multisig,
+      reserve cap), entering ISSUED on SVUIssued. RedeemSVU burns the
+      unit against its settlement reference, advancing ISSUED to
+      REDEEMED. Issuance rules are enforced as preconditions of
+      IssueSVU; the machine gates the post-issuance lifecycle.
+
+    states:
+
+      ISSUED:
+        description: SVU issued and circulating against settlement value
+        allowed_commands:
+          - RedeemSVU
+        entry_actions: []
+        exit_actions: []
+
+      REDEEMED:
+        description: SVU redeemed and burned; full audit trail preserved
+        allowed_commands: []
+        entry_actions: []
+        exit_actions: []
+
+    transitions:
+
+      ISSUED_to_REDEEMED:
+        trigger: SVURedeemed
+        condition: status == 'ISSUED'
+        emitted_events: [SVURedeemed]
+        invalid: false
+
+      invalid_transitions:
+        - { from: REDEEMED, to: any }  # terminal

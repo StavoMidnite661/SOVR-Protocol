@@ -87,11 +87,11 @@ export function validateReferences(parsed) {
                     diagnostics.push({
                         code: 'REF-003',
                         category: 'REFERENCE',
-                        severity: 'WARNING',
+                        severity: 'ERROR',
                         stage: 'PASS-006',
                         file: '03_command-catalog.yaml',
                         message: `Command ${cmdName} references unknown event ${ev}`,
-                        action: 'REPORT_WARNINGS',
+                        action: 'ABORT_WITH_RESOLUTION_ERROR',
                         findingRef: 'G-09',
                     });
                 }
@@ -134,31 +134,209 @@ export function validateReferences(parsed) {
                         diagnostics.push({
                             code: 'REF-002',
                             category: 'REFERENCE',
-                            severity: 'WARNING',
+                            severity: 'ERROR',
                             stage: 'PASS-006',
                             file: '05_state-machines.yaml',
                             message: `State machine ${smName} state ${sName} references unknown command ${cmd}`,
-                            action: 'REPORT_WARNINGS',
+                            action: 'ABORT_WITH_RESOLUTION_ERROR',
                             findingRef: 'AMD-0003',
                         });
                     }
                 }
             }
             const transitions = smDef.transitions || {};
-            for (const [tName, tDef] of Object.entries(transitions)) {
+            const transitionsList = Array.isArray(transitions)
+                ? transitions.map((t, i) => [String(i), t])
+                : Object.entries(transitions);
+            for (const [tName, tDef] of transitionsList) {
                 const cmd = tDef.command;
                 if (typeof cmd === 'string' && !commands.has(cmd) && !cmd.startsWith('system ') && !cmd.includes(' ')) {
                     diagnostics.push({
                         code: 'REF-002',
                         category: 'REFERENCE',
-                        severity: 'WARNING',
+                        severity: 'ERROR',
                         stage: 'PASS-006',
                         file: '05_state-machines.yaml',
                         message: `State machine ${smName} transition ${tName} references unknown command ${cmd}`,
-                        action: 'REPORT_WARNINGS',
+                        action: 'ABORT_WITH_RESOLUTION_ERROR',
                         findingRef: 'AMD-0003',
                     });
                 }
+            }
+            // REF-008: transition triggers must resolve to the event catalog.
+            // The kernel and the interpreter are event-driven: a transition whose
+            // trigger names no catalog event can never fire, which leaves the
+            // machine declaratively present but executably inert (the failure
+            // class behind the unbindable prose triggers: "settlement confirmed",
+            // "timeout", "automatic"). This is not a style preference; an
+            // unbindable trigger means the declared authority transition cannot
+            // be consumed by the runtime, so the build must fail rather than
+            // silently compile dead authority. Likewise every emitted_event must
+            // resolve. Ambiguity stops compilation — it is never repaired by
+            // manufacturing a plausible-looking event.
+            for (const [tName, tDef] of transitionsList) {
+                if (tName === 'invalid_transitions')
+                    continue;
+                if (tName === 'abi' || (tDef && typeof tDef === 'object' && tDef.abi && Object.keys(tDef).length <= 2))
+                    continue;
+                if (Array.isArray(tDef))
+                    continue; // bookkeeping arrays (invalid_transitions)
+                if (!tDef || typeof tDef !== 'object')
+                    continue;
+                const trigger = tDef.trigger ?? tDef.event;
+                if (trigger === undefined || trigger === null || String(trigger).trim() === '') {
+                    diagnostics.push({
+                        code: 'REF-008',
+                        category: 'REFERENCE',
+                        severity: 'ERROR',
+                        stage: 'PASS-006',
+                        file: '05_state-machines.yaml',
+                        message: `State machine ${smName} transition ${tName} has no trigger; event-driven transitions require a catalog event trigger`,
+                        action: 'ABORT_WITH_RESOLUTION_ERROR',
+                    });
+                    continue;
+                }
+                if (!events.has(String(trigger))) {
+                    diagnostics.push({
+                        code: 'REF-008',
+                        category: 'REFERENCE',
+                        severity: 'ERROR',
+                        stage: 'PASS-006',
+                        file: '05_state-machines.yaml',
+                        message: `State machine ${smName} transition ${tName} trigger '${trigger}' resolves to no event in the catalog — the transition can never fire`,
+                        action: 'ABORT_WITH_RESOLUTION_ERROR',
+                    });
+                }
+                const emitted = Array.isArray(tDef.emitted_events) ? tDef.emitted_events : [];
+                for (const ev of emitted) {
+                    if (typeof ev === 'string' && !events.has(ev)) {
+                        diagnostics.push({
+                            code: 'REF-008',
+                            category: 'REFERENCE',
+                            severity: 'ERROR',
+                            stage: 'PASS-006',
+                            file: '05_state-machines.yaml',
+                            message: `State machine ${smName} transition ${tName} emits unknown event ${ev}`,
+                            action: 'ABORT_WITH_RESOLUTION_ERROR',
+                        });
+                    }
+                }
+            }
+        }
+    }
+    // REF-005: saga step command references. Live sagas are executable
+    // orchestration authority — an unresolved step command is a broken
+    // deployment, so it fails the build. saga_templates are documentary
+    // patterns until instantiated; unresolved references there are reported
+    // loudly but do not halt compilation.
+    if (sagaCatalog) {
+        const checkSteps = (list, source, severity) => {
+            const seen = new Set();
+            for (const saga of list) {
+                for (const step of (saga?.steps ?? [])) {
+                    const cmd = step?.command;
+                    if (typeof cmd !== 'string' || !cmd)
+                        continue;
+                    if (cmd.startsWith('system.internal.') || cmd.startsWith('system ') || cmd.includes(' '))
+                        continue;
+                    if (commands.has(cmd))
+                        continue;
+                    const key = `${source}:${saga?.saga_id ?? '?'}:${cmd}`;
+                    if (seen.has(key))
+                        continue;
+                    seen.add(key);
+                    diagnostics.push({
+                        code: 'REF-005',
+                        category: 'REFERENCE',
+                        severity,
+                        stage: 'PASS-006',
+                        file: '09_saga-orchestration.yaml',
+                        message: `${source} ${saga?.saga_id ?? '?'} step references unknown command ${cmd}`,
+                        action: severity === 'ERROR' ? 'ABORT_WITH_RESOLUTION_ERROR' : 'REPORT_WARNINGS',
+                    });
+                }
+            }
+        };
+        checkSteps(Array.isArray(sagaCatalog.sagas) ? sagaCatalog.sagas : [], 'saga', 'ERROR');
+        checkSteps(Array.isArray(sagaCatalog.saga_templates) ? sagaCatalog.saga_templates : [], 'saga_template', 'WARNING');
+    }
+    // REF-006 / REF-007: no silent dropping, no ambiguous authority.
+    //
+    // REF-006 (ERROR): a command-shaped definition that the compiler does
+    // not consume as authority. The authoritative command collection is the
+    // commands: map of 03_command-catalog.yaml. A command-shaped entry in
+    // any other section of the catalog is dropped from every registry while
+    // looking exactly like protocol content — the AMD-0005 failure class —
+    // so it fails the build.
+    const commandShapeKeys = ['inputs', 'outputs', 'preconditions', 'resulting_events', 'required_payload'];
+    const isCommandShaped = (v) => {
+        if (!v || typeof v !== 'object' || Array.isArray(v))
+            return false;
+        const keys = Object.keys(v);
+        return commandShapeKeys.filter((k) => keys.includes(k)).length >= 2;
+    };
+    if (commandCatalog) {
+        for (const [section, value] of Object.entries(commandCatalog)) {
+            if (section === 'commands' || section === 'meta')
+                continue;
+            if (!value || typeof value !== 'object')
+                continue;
+            for (const [entryKey, entryVal] of Object.entries(value)) {
+                if (isCommandShaped(entryVal)) {
+                    diagnostics.push({
+                        code: 'REF-006',
+                        category: 'REFERENCE',
+                        severity: 'ERROR',
+                        stage: 'PASS-006',
+                        file: '03_command-catalog.yaml',
+                        message: `Command-shaped definition '${entryKey}' under '${section}:' is outside the authoritative commands: map and is not compiled into any registry (silent drop)`,
+                        action: 'ABORT_WITH_RESOLUTION_ERROR',
+                        findingRef: 'AMD-0005',
+                    });
+                }
+            }
+        }
+    }
+    // Cross-file authority audit: per-domain files (domains/*.yaml,
+    // hybrid-boundary.yaml) carry their own commands: maps. Entries that
+    // exactly mirror an authoritative command are documentary duplicates —
+    // reported (REF-007 WARNING), never silent. Entries with no counterpart
+    // in the authoritative map are authority the compiler does not consume —
+    // reported per-entry (REF-006 WARNING) so the divergence is loud and
+    // counted; promoting these to ERROR requires a governance decision on
+    // the divergent naming (e.g. hybrid.oracle.request_price vs
+    // hybrid.oracle.price.fetch) that the compiler must not invent.
+    for (const f of files) {
+        if (f.relativePath.includes('03_command-catalog'))
+            continue;
+        const catalog = f.parsed?.commands;
+        // Only top-level key→definition MAPS are candidate command authority.
+        // Simulation scenarios carry `commands:` as an ordered invocation list —
+        // executions, not definitions — and are out of scope for this check.
+        if (!catalog || typeof catalog !== 'object' || Array.isArray(catalog))
+            continue;
+        for (const entryName of Object.keys(catalog)) {
+            if (commands.has(entryName)) {
+                diagnostics.push({
+                    code: 'REF-007',
+                    category: 'REFERENCE',
+                    severity: 'WARNING',
+                    stage: 'PASS-006',
+                    file: f.relativePath,
+                    message: `Mirrored command definition '${entryName}' duplicates the authoritative catalog entry; documentary only, not consumed`,
+                    action: 'REPORT_WARNINGS',
+                });
+            }
+            else {
+                diagnostics.push({
+                    code: 'REF-006',
+                    category: 'REFERENCE',
+                    severity: 'WARNING',
+                    stage: 'PASS-006',
+                    file: f.relativePath,
+                    message: `Command definition '${entryName}' exists outside the authoritative commands: map and is not compiled into any registry (unconsumed authority)`,
+                    action: 'REPORT_WARNINGS',
+                });
             }
         }
     }

@@ -1,10 +1,10 @@
 commands:
-  total: 105
-  generated: 105
+  total: 118
+  generated: 118
   manual: 0
 state_machines:
-  total: 46
-  generated: 46
+  total: 47
+  generated: 47
   manual: 0
 runtime_bridges:
   count: 0

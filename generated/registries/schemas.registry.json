@@ -1,6 +1,130 @@
 {
   "abi": "v1",
   "entries": {
+    "command:ArchivePackage": {
+      "abi": "v1",
+      "required_payload": [
+        "package_id",
+        "evidence_package_id",
+        "archived_by"
+      ]
+    },
+    "command:AuthorizeSettlement": {
+      "abi": "v1",
+      "required_payload": [
+        "settlement_id",
+        "settlement_record_id",
+        "commercial_obligation_id",
+        "authorized_by",
+        "settlement_amount_cents"
+      ]
+    },
+    "command:CancelObligation": {
+      "abi": "v1",
+      "required_payload": [
+        "obligation_id",
+        "cancelled_by",
+        "cancellation_reason"
+      ]
+    },
+    "command:CancelSettlement": {
+      "abi": "v1",
+      "required_payload": [
+        "settlement_id",
+        "settlement_record_id",
+        "cancelled_by",
+        "cancellation_reason"
+      ]
+    },
+    "command:CreateCommercialObligation": {
+      "abi": "v1",
+      "required_payload": [
+        "obligation_id",
+        "vault_asset_reference",
+        "originator",
+        "counterparty",
+        "obligation_type",
+        "amount_cents",
+        "authorization_reference",
+        "source_document_hash"
+      ]
+    },
+    "command:DisputeSettlement": {
+      "abi": "v1",
+      "required_payload": [
+        "settlement_id",
+        "settlement_record_id",
+        "disputed_by",
+        "dispute_reason"
+      ]
+    },
+    "command:ExecuteSettlement": {
+      "abi": "v1",
+      "required_payload": [
+        "settlement_id",
+        "settlement_record_id",
+        "treasury_transfer_reference",
+        "tigerbeetle_transfer_id"
+      ]
+    },
+    "command:GenerateEvidencePackage": {
+      "abi": "v1",
+      "required_payload": [
+        "package_id",
+        "evidence_package_id",
+        "settlement_id",
+        "commercial_obligation_id",
+        "tigerbeetle_transfer_id"
+      ]
+    },
+    "command:IssueSVU": {
+      "abi": "v1",
+      "required_payload": [
+        "svu_id",
+        "settlement_value_unit_id",
+        "evidence_package_id",
+        "recipient",
+        "amount_cents",
+        "multisig_authorization"
+      ]
+    },
+    "command:PublishPackage": {
+      "abi": "v1",
+      "required_payload": [
+        "package_id",
+        "evidence_package_id",
+        "published_by",
+        "channel"
+      ]
+    },
+    "command:RedeemSVU": {
+      "abi": "v1",
+      "required_payload": [
+        "svu_id",
+        "settlement_value_unit_id",
+        "from_address",
+        "amount_cents",
+        "settlement_reference"
+      ]
+    },
+    "command:SignAttestation": {
+      "abi": "v1",
+      "required_payload": [
+        "package_id",
+        "evidence_package_id",
+        "settlement_id",
+        "attestor",
+        "signature"
+      ]
+    },
+    "command:ValidateObligation": {
+      "abi": "v1",
+      "required_payload": [
+        "obligation_id",
+        "validated_by",
+        "validation_reference"
+      ]
+    },
     "command:agent.activate": {
       "abi": "v1",
       "required_payload": []
@@ -749,55 +873,663 @@
     "event:AttestationSigned": {
       "abi": "v1",
       "data_fields": {
-        "abi": "v1"
+        "abi": "v1",
+        "attestation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "attestor": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "package_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "signature": {
+          "abi": "v1",
+          "type": "bytes"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      }
+    },
+    "event:AttestationSigningFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        }
       }
     },
     "event:CommercialRecordCreated": {
       "abi": "v1",
       "data_fields": {
-        "abi": "v1"
+        "abi": "v1",
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "authorization_reference": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "counterparty": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "currency": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_type": {
+          "abi": "v1",
+          "type": "enum"
+        },
+        "originator": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "source_document_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "vault_asset_reference": {
+          "abi": "v1",
+          "type": "AssetId"
+        }
+      }
+    },
+    "event:CommercialRecordCreationFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:EvidencePackageArchivalFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:EvidencePackageArchived": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "archived_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       }
     },
     "event:EvidencePackageGenerated": {
       "abi": "v1",
       "data_fields": {
-        "abi": "v1"
+        "abi": "v1",
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "document_count": {
+          "abi": "v1",
+          "type": "integer"
+        },
+        "document_hashes": {
+          "abi": "v1",
+          "type": "map"
+        },
+        "manifest_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "package_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "tigerbeetle_transfer_id": {
+          "abi": "v1",
+          "type": "uint128"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      }
+    },
+    "event:EvidencePackageGenerationFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:EvidencePackagePublicationFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:EvidencePackagePublished": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "channel": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "published_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      }
+    },
+    "event:ObligationCancellationFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:ObligationCancelled": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "cancellation_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "cancelled_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       }
     },
     "event:ObligationValidated": {
       "abi": "v1",
       "data_fields": {
-        "abi": "v1"
+        "abi": "v1",
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "validated_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "validation_reference": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:ObligationValidationFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:SVUIssuanceFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "svu_id": {
+          "abi": "v1",
+          "type": "string"
+        }
       }
     },
     "event:SVUIssued": {
       "abi": "v1",
       "data_fields": {
-        "abi": "v1"
+        "abi": "v1",
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "attestation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "blockchain_tx_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "evidence_package_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "evidence_package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "recipient": {
+          "abi": "v1",
+          "type": "address"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "svu_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "tigerbeetle_transfer_id": {
+          "abi": "v1",
+          "type": "uint128"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       }
     },
     "event:SVURedeemed": {
       "abi": "v1",
       "data_fields": {
-        "abi": "v1"
+        "abi": "v1",
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "from_address": {
+          "abi": "v1",
+          "type": "address"
+        },
+        "settlement_reference": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "svu_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      }
+    },
+    "event:SVURedemptionFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "svu_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:SettlementAuthorizationFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        }
       }
     },
     "event:SettlementAuthorized": {
       "abi": "v1",
       "data_fields": {
-        "abi": "v1"
+        "abi": "v1",
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "authorized_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "currency": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      }
+    },
+    "event:SettlementCancellationFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:SettlementCancelled": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "cancellation_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "cancelled_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      }
+    },
+    "event:SettlementDisputeFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:SettlementDisputed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "dispute_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "disputed_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       }
     },
     "event:SettlementExecuted": {
       "abi": "v1",
       "data_fields": {
-        "abi": "v1"
+        "abi": "v1",
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "credit_account": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "debit_account": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "tigerbeetle_transfer_id": {
+          "abi": "v1",
+          "type": "uint128"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "treasury_transfer_reference": {
+          "abi": "v1",
+          "type": "TransferId"
+        }
+      }
+    },
+    "event:SettlementExecutionFailed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        }
       }
     },
     "event:SettlementFinalized": {
       "abi": "v1",
       "data_fields": {
-        "abi": "v1"
+        "abi": "v1",
+        "attestation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "evidence_package_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "evidence_package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "tigerbeetle_transfer_id": {
+          "abi": "v1",
+          "type": "uint128"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       }
     },
     "event:agent.activated": {
@@ -1228,6 +1960,24 @@
         }
       }
     },
+    "event:agent.suspension_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "agent_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
     "event:agent.terminated": {
       "abi": "v1",
       "data_fields": {
@@ -1309,6 +2059,24 @@
         "sent_at": {
           "abi": "v1",
           "type": "timestamp"
+        }
+      }
+    },
+    "event:escrow.account.cancellation_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "escrow_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
         }
       }
     },
@@ -2022,6 +2790,24 @@
         }
       }
     },
+    "event:governance.proposal.cancellation_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
     "event:governance.proposal.cancelled": {
       "abi": "v1",
       "data_fields": {
@@ -2057,6 +2843,24 @@
         "proposal_id": {
           "abi": "v1",
           "format": "uuid",
+          "type": "string"
+        }
+      }
+    },
+    "event:governance.proposal.implementation_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "reason": {
+          "abi": "v1",
           "type": "string"
         }
       }
@@ -4123,6 +4927,42 @@
         }
       }
     },
+    "event:payment.adapter.disable_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "adapter_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
+    "event:payment.adapter.disabled": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "adapter_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "disabled_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      }
+    },
     "event:payment.compensation.completed": {
       "abi": "v1",
       "data_fields": {
@@ -5590,6 +6430,24 @@
         "saga_id": {
           "abi": "v1",
           "format": "uuid",
+          "type": "string"
+        }
+      }
+    },
+    "event:saga.compensation_failed": {
+      "abi": "v1",
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "saga_id": {
+          "abi": "v1",
           "type": "string"
         }
       }
@@ -7153,13 +8011,13 @@
       }
     }
   },
-  "entry_count": 372,
+  "entry_count": 410,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "e75517545ecd26edf334e2e4bf8cd2702fac6a6acc84ee6f15575d5353c0ffc9",
+    "hash": "e9c33827eb4f701fd58d88915bd45090e2818846c4eeddd0a5e1223595018df7",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "schemas"

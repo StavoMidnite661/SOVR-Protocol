@@ -15,12 +15,6 @@ Init ==
     /\ state = "PENDING"
     /\ visited = {"PENDING"}
 
-ACTIVE_TO_CONSUMED == 
-    /\ state = "ACTIVE"
-    /\ state' = "CONSUMED"
-    /\ visited' = visited \cup {"CONSUMED"}
-\* Trigger: CONSUMING_TRANSACTION_COMPLETED
-
 ACTIVE_TO_EXPIRED == 
     /\ state = "ACTIVE"
     /\ state' = "EXPIRED"
@@ -62,7 +56,7 @@ Terminated ==
     /\ UNCHANGED <<state, visited>>
 
 Next == 
-    ACTIVE_TO_CONSUMED \/ ACTIVE_TO_EXPIRED \/ ACTIVE_TO_RELEASED \/ PENDING_TO_ACTIVE \/ PENDING_TO_EXPIRED \/ PENDING_TO_FAILED \/ PENDING_TO_RELEASED \/ Terminated
+    ACTIVE_TO_EXPIRED \/ ACTIVE_TO_RELEASED \/ PENDING_TO_ACTIVE \/ PENDING_TO_EXPIRED \/ PENDING_TO_FAILED \/ PENDING_TO_RELEASED \/ Terminated
 
 \* INV-006: state is always one the compiled machine declares.
 \* Falsifiable: a transition to an undeclared state breaks this.

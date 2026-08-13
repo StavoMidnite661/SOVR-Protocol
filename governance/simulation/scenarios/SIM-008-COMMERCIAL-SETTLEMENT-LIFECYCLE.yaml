@@ -1,0 +1,174 @@
+scenario_id: SIM-008-COMMERCIAL-SETTLEMENT-LIFECYCLE
+name: Commercial Settlement Lifecycle (AMD-0005)
+description: >
+  End-to-end execution proof of the AMD-0005 Commercial Settlement Suite
+  against the compiled registries: obligation creation and validation,
+  settlement authorization and execution, evidence package generation,
+  attestation (which records settlement finalization), optional package
+  publication and archival, SVU issuance, and SVU redemption.
+actor_context:
+  actor_id: sim-commercial-operator
+  actor_type: human
+  identity_id: sim-commercial-operator-id
+  session_id: sim-commercial-session-008
+
+lifecycle:
+  initial_state: DRAFT
+  terminal_state: REDEEMED
+
+commands:
+  - command_id: cmd-001
+    command_name: CreateCommercialObligation
+    domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id: SOVR-OBL-000001
+    payload:
+      obligation_id: SOVR-OBL-000001
+      commercial_obligation_id: SOVR-OBL-000001
+      vault_asset_reference: vault-asset-000001
+      originator: sim-originator-008
+      counterparty: sim-counterparty-008
+      obligation_type: PAYMENT
+      amount_cents: 125000
+      authorization_reference: AUTH-REF-000008
+      source_document_hash: 9f2c1a4b6d8e0f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3
+    capability_id: commercial.obligation.create
+    scope: commercial_obligation:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-002
+    command_name: ValidateObligation
+    domain: commercial
+    aggregate: commercial_obligation
+    aggregate_id: SOVR-OBL-000001
+    payload:
+      obligation_id: SOVR-OBL-000001
+      commercial_obligation_id: SOVR-OBL-000001
+      validated_by: sim-commercial-operator
+      validation_reference: VAL-REF-000008
+    capability_id: commercial.obligation.validate
+    scope: commercial_obligation:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-003
+    command_name: AuthorizeSettlement
+    domain: settlement
+    aggregate: settlement_record
+    aggregate_id: SOVR-SET-000001
+    payload:
+      settlement_id: SOVR-SET-000001
+      settlement_record_id: SOVR-SET-000001
+      commercial_obligation_id: SOVR-OBL-000001
+      authorized_by: sim-commercial-operator
+      settlement_amount_cents: 125000
+    capability_id: settlement.record.authorize
+    scope: settlement_record:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-004
+    command_name: ExecuteSettlement
+    domain: settlement
+    aggregate: settlement_record
+    aggregate_id: SOVR-SET-000001
+    payload:
+      settlement_id: SOVR-SET-000001
+      settlement_record_id: SOVR-SET-000001
+      commercial_obligation_id: SOVR-OBL-000001
+      treasury_transfer_reference: TRF-000008
+      tigerbeetle_transfer_id: '1099511627776'
+    capability_id: settlement.record.execute
+    scope: settlement_record:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-005
+    command_name: GenerateEvidencePackage
+    domain: certification
+    aggregate: evidence_package
+    aggregate_id: SOVR-EVP-000001
+    payload:
+      package_id: SOVR-EVP-000001
+      evidence_package_id: SOVR-EVP-000001
+      settlement_id: SOVR-SET-000001
+      commercial_obligation_id: SOVR-OBL-000001
+      tigerbeetle_transfer_id: '1099511627776'
+    capability_id: certification.package.generate
+    scope: evidence_package:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-006
+    command_name: SignAttestation
+    domain: certification
+    aggregate: evidence_package
+    aggregate_id: SOVR-EVP-000001
+    payload:
+      package_id: SOVR-EVP-000001
+      evidence_package_id: SOVR-EVP-000001
+      settlement_id: SOVR-SET-000001
+      attestor: sim-attestor-008
+      signature: ecdsa-signature-000008
+    capability_id: certification.package.sign
+    scope: evidence_package:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-007
+    command_name: PublishPackage
+    domain: certification
+    aggregate: evidence_package
+    aggregate_id: SOVR-EVP-000001
+    payload:
+      package_id: SOVR-EVP-000001
+      evidence_package_id: SOVR-EVP-000001
+      published_by: sim-commercial-operator
+      channel: boundary_adapter_primary
+    capability_id: certification.package.publish
+    scope: evidence_package:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-008
+    command_name: ArchivePackage
+    domain: certification
+    aggregate: evidence_package
+    aggregate_id: SOVR-EVP-000001
+    actor_context:
+      actor_id: sim-archival-service
+      actor_type: system
+      identity_id: sim-archival-service-id
+      session_id: sim-archival-session-008
+    payload:
+      package_id: SOVR-EVP-000001
+      evidence_package_id: SOVR-EVP-000001
+      archived_by: sim-commercial-operator
+    capability_id: certification.package.archive
+    scope: evidence_package:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-009
+    command_name: IssueSVU
+    domain: representation
+    aggregate: settlement_value_unit
+    aggregate_id: SOVR-SVU-000001
+    payload:
+      svu_id: SOVR-SVU-000001
+      settlement_value_unit_id: SOVR-SVU-000001
+      evidence_package_id: SOVR-EVP-000001
+      recipient: 0x0000000000000000000000000000000000000008
+      amount_cents: 125000
+      multisig_authorization: multisig-2-of-3-000008
+    capability_id: representation.svu.issue
+    scope: settlement_value_unit:*
+    expected_result: ACCEPTED
+
+  - command_id: cmd-010
+    command_name: RedeemSVU
+    domain: representation
+    aggregate: settlement_value_unit
+    aggregate_id: SOVR-SVU-000001
+    payload:
+      svu_id: SOVR-SVU-000001
+      settlement_value_unit_id: SOVR-SVU-000001
+      from_address: 0x0000000000000000000000000000000000000008
+      amount_cents: 125000
+      settlement_reference: SOVR-SET-000001
+    capability_id: representation.svu.redeem
+    scope: settlement_value_unit:*
+    expected_result: ACCEPTED

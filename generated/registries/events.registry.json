@@ -3,186 +3,1123 @@
   "entries": {
     "AttestationSigned": {
       "abi": "v1",
+      "aggregate": "evidence_package",
+      "aggregate_id_field": "package_id",
       "amendment": "AMD-0005",
-      "description": "Attestor signed evidence package. Constitutional chain of custody verified. SVU issuance unlocked.\n",
-      "domain": "certification",
-      "event_name": "AttestationSigned",
-      "payload": {
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "evidence_package_view"
+      ],
+      "data_fields": {
         "abi": "v1",
-        "attestation_id": "string",
-        "attestor": "EntityId",
-        "package_hash": "bytes32",
-        "package_id": "string",
-        "settlement_id": "string",
-        "signature": "bytes",
-        "timestamp": "ISO-8601"
+        "attestation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "attestor": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "package_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "signature": {
+          "abi": "v1",
+          "type": "bytes"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       },
+      "description": "Attestor signed evidence package. Constitutional chain of custody verified. SVU issuance unlocked.\n",
+      "event_name": "AttestationSigned",
+      "producer": "certification_service",
+      "source_domain": "certification",
       "triggered_by": "SignAttestation",
       "triggers": [
         "SettlementFinalized"
-      ]
+      ],
+      "version": "1.0.0"
+    },
+    "AttestationSigningFailed": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "aggregate_id_field": "package_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Attestation signing rejected",
+      "event_name": "AttestationSigningFailed",
+      "producer": "certification_service",
+      "source_domain": "certification",
+      "triggered_by": "SignAttestation",
+      "version": "1.0.0"
     },
     "CommercialRecordCreated": {
       "abi": "v1",
+      "aggregate": "commercial_obligation",
+      "aggregate_id_field": "obligation_id",
       "amendment": "AMD-0005",
-      "description": "Genesis event of the constitutional chain of custody. Commercial obligation formally recorded in SOVR. Nothing may precede this event in the provenance chain.\n",
-      "domain": "commercial",
-      "event_name": "CommercialRecordCreated",
-      "payload": {
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "commercial_obligation_view"
+      ],
+      "data_fields": {
         "abi": "v1",
-        "amount_cents": "uint64",
-        "authorization_reference": "string",
-        "counterparty": "EntityId",
-        "currency": "string",
-        "obligation_id": "string",
-        "obligation_type": "enum",
-        "originator": "EntityId",
-        "source_document_hash": "bytes32",
-        "timestamp": "ISO-8601",
-        "vault_asset_reference": "AssetId"
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "authorization_reference": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "counterparty": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "currency": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_type": {
+          "abi": "v1",
+          "type": "enum"
+        },
+        "originator": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "source_document_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "vault_asset_reference": {
+          "abi": "v1",
+          "type": "AssetId"
+        }
       },
+      "description": "Genesis event of the constitutional chain of custody. Commercial obligation formally recorded in SOVR. Nothing may precede this event in the provenance chain.\n",
+      "event_name": "CommercialRecordCreated",
+      "producer": "commercial_service",
+      "source_domain": "commercial",
       "triggered_by": "CreateCommercialObligation",
-      "triggers": "none"
+      "triggers": "none",
+      "version": "1.0.0"
+    },
+    "CommercialRecordCreationFailed": {
+      "abi": "v1",
+      "aggregate": "commercial_obligation",
+      "aggregate_id_field": "obligation_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Commercial obligation creation rejected",
+      "event_name": "CommercialRecordCreationFailed",
+      "producer": "commercial_service",
+      "source_domain": "commercial",
+      "triggered_by": "CreateCommercialObligation",
+      "version": "1.0.0"
+    },
+    "EvidencePackageArchivalFailed": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "aggregate_id_field": "package_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Evidence package archival rejected",
+      "event_name": "EvidencePackageArchivalFailed",
+      "producer": "certification_service",
+      "source_domain": "certification",
+      "triggered_by": "ArchivePackage",
+      "version": "1.0.0"
+    },
+    "EvidencePackageArchived": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "aggregate_id_field": "package_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "evidence_package_view"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "archived_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      },
+      "description": "Evidence package archived into long-term retention after the retention period was met.\n",
+      "event_name": "EvidencePackageArchived",
+      "producer": "certification_service",
+      "source_domain": "certification",
+      "triggered_by": "ArchivePackage",
+      "triggers": "none",
+      "version": "1.0.0"
     },
     "EvidencePackageGenerated": {
       "abi": "v1",
+      "aggregate": "evidence_package",
+      "aggregate_id_field": "package_id",
       "amendment": "AMD-0005",
-      "description": "JDE evidence package generated. 10 documents rendered. SHA-256 manifest computed. Awaiting attestor signature.\n",
-      "domain": "certification",
-      "event_name": "EvidencePackageGenerated",
-      "payload": {
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "evidence_package_view"
+      ],
+      "data_fields": {
         "abi": "v1",
-        "commercial_obligation_id": "string",
-        "document_count": "integer",
-        "document_hashes": "map",
-        "manifest_hash": "bytes32",
-        "package_hash": "bytes32",
-        "package_id": "string",
-        "settlement_id": "string",
-        "tigerbeetle_transfer_id": "uint128",
-        "timestamp": "ISO-8601"
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "document_count": {
+          "abi": "v1",
+          "type": "integer"
+        },
+        "document_hashes": {
+          "abi": "v1",
+          "type": "map"
+        },
+        "manifest_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "package_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "tigerbeetle_transfer_id": {
+          "abi": "v1",
+          "type": "uint128"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       },
+      "description": "JDE evidence package generated. 10 documents rendered. SHA-256 manifest computed. Awaiting attestor signature.\n",
+      "event_name": "EvidencePackageGenerated",
+      "producer": "certification_service",
+      "source_domain": "certification",
       "triggered_by": "GenerateEvidencePackage",
-      "triggers": "none"
+      "triggers": "none",
+      "version": "1.0.0"
+    },
+    "EvidencePackageGenerationFailed": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "aggregate_id_field": "package_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Evidence package generation rejected",
+      "event_name": "EvidencePackageGenerationFailed",
+      "producer": "certification_service",
+      "source_domain": "certification",
+      "triggered_by": "GenerateEvidencePackage",
+      "version": "1.0.0"
+    },
+    "EvidencePackagePublicationFailed": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "aggregate_id_field": "package_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Evidence package publication rejected",
+      "event_name": "EvidencePackagePublicationFailed",
+      "producer": "certification_service",
+      "source_domain": "certification",
+      "triggered_by": "PublishPackage",
+      "version": "1.0.0"
+    },
+    "EvidencePackagePublished": {
+      "abi": "v1",
+      "aggregate": "evidence_package",
+      "aggregate_id_field": "package_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "evidence_package_view"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "channel": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "published_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      },
+      "description": "Signed evidence package published through the optional boundary adapter channel.\n",
+      "event_name": "EvidencePackagePublished",
+      "producer": "certification_service",
+      "source_domain": "certification",
+      "triggered_by": "PublishPackage",
+      "triggers": "none",
+      "version": "1.0.0"
+    },
+    "ObligationCancellationFailed": {
+      "abi": "v1",
+      "aggregate": "commercial_obligation",
+      "aggregate_id_field": "obligation_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Obligation cancellation rejected",
+      "event_name": "ObligationCancellationFailed",
+      "producer": "commercial_service",
+      "source_domain": "commercial",
+      "triggered_by": "CancelObligation",
+      "version": "1.0.0"
+    },
+    "ObligationCancelled": {
+      "abi": "v1",
+      "aggregate": "commercial_obligation",
+      "aggregate_id_field": "obligation_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "commercial_obligation_view"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "cancellation_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "cancelled_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      },
+      "description": "Commercial obligation cancelled before settlement authorization. Terminal for the obligation lifecycle.\n",
+      "event_name": "ObligationCancelled",
+      "producer": "commercial_service",
+      "source_domain": "commercial",
+      "triggered_by": "CancelObligation",
+      "triggers": "none",
+      "version": "1.0.0"
     },
     "ObligationValidated": {
       "abi": "v1",
+      "aggregate": "commercial_obligation",
+      "aggregate_id_field": "obligation_id",
       "amendment": "AMD-0005",
-      "description": "Commercial obligation confirmed valid and eligible for settlement processing.\n",
-      "domain": "commercial",
-      "event_name": "ObligationValidated",
-      "payload": {
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "commercial_obligation_view"
+      ],
+      "data_fields": {
         "abi": "v1",
-        "obligation_id": "string",
-        "timestamp": "ISO-8601",
-        "validated_by": "EntityId",
-        "validation_reference": "string"
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "validated_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "validation_reference": {
+          "abi": "v1",
+          "type": "string"
+        }
       },
+      "description": "Commercial obligation confirmed valid and eligible for settlement processing.\n",
+      "event_name": "ObligationValidated",
+      "producer": "commercial_service",
+      "source_domain": "commercial",
       "triggered_by": "ValidateObligation",
-      "triggers": "none"
+      "triggers": "none",
+      "version": "1.0.0"
+    },
+    "ObligationValidationFailed": {
+      "abi": "v1",
+      "aggregate": "commercial_obligation",
+      "aggregate_id_field": "obligation_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Obligation validation rejected",
+      "event_name": "ObligationValidationFailed",
+      "producer": "commercial_service",
+      "source_domain": "commercial",
+      "triggered_by": "ValidateObligation",
+      "version": "1.0.0"
+    },
+    "SVUIssuanceFailed": {
+      "abi": "v1",
+      "aggregate": "settlement_value_unit",
+      "aggregate_id_field": "svu_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "svu_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "SVU issuance rejected",
+      "event_name": "SVUIssuanceFailed",
+      "producer": "representation_service",
+      "source_domain": "representation",
+      "triggered_by": "IssueSVU",
+      "version": "1.0.0"
     },
     "SVUIssued": {
       "abi": "v1",
+      "aggregate": "settlement_value_unit",
+      "aggregate_id_field": "svu_id",
       "amendment": "AMD-0005",
-      "description": "Settlement Value Units issued with full provenance. Every field traces back through the complete chain.\n",
-      "domain": "representation",
-      "event_name": "SVUIssued",
-      "payload": {
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005",
+        "INV-007"
+      ],
+      "consumers": [
+        "audit_projection",
+        "settlement_value_unit_view"
+      ],
+      "data_fields": {
         "abi": "v1",
-        "amount_cents": "uint64",
-        "attestation_id": "string",
-        "blockchain_tx_hash": "bytes32",
-        "commercial_obligation_id": "string",
-        "evidence_package_hash": "bytes32",
-        "evidence_package_id": "string",
-        "recipient": "address",
-        "settlement_id": "string",
-        "svu_id": "string",
-        "tigerbeetle_transfer_id": "uint128",
-        "timestamp": "ISO-8601"
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "attestation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "blockchain_tx_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "evidence_package_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "evidence_package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "recipient": {
+          "abi": "v1",
+          "type": "address"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "svu_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "tigerbeetle_transfer_id": {
+          "abi": "v1",
+          "type": "uint128"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       },
+      "description": "Settlement Value Units issued with full provenance. Every field traces back through the complete chain.\n",
+      "event_name": "SVUIssued",
+      "producer": "representation_service",
+      "source_domain": "representation",
       "triggered_by": "IssueSVU",
-      "triggers": "none"
+      "triggers": "none",
+      "version": "1.0.0"
     },
     "SVURedeemed": {
       "abi": "v1",
+      "aggregate": "settlement_value_unit",
+      "aggregate_id_field": "svu_id",
       "amendment": "AMD-0005",
-      "description": "SVU redeemed against settlement obligation. Full audit trail preserved. Tokens burned.\n",
-      "domain": "representation",
-      "event_name": "SVURedeemed",
-      "payload": {
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005",
+        "INV-007"
+      ],
+      "consumers": [
+        "audit_projection",
+        "settlement_value_unit_view"
+      ],
+      "data_fields": {
         "abi": "v1",
-        "amount_cents": "uint64",
-        "from_address": "address",
-        "settlement_reference": "string",
-        "svu_id": "string",
-        "timestamp": "ISO-8601"
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "from_address": {
+          "abi": "v1",
+          "type": "address"
+        },
+        "settlement_reference": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "svu_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       },
+      "description": "SVU redeemed against settlement obligation. Full audit trail preserved. Tokens burned.\n",
+      "event_name": "SVURedeemed",
+      "producer": "representation_service",
+      "source_domain": "representation",
       "triggered_by": "RedeemSVU",
-      "triggers": "none"
+      "triggers": "none",
+      "version": "1.0.0"
+    },
+    "SVURedemptionFailed": {
+      "abi": "v1",
+      "aggregate": "settlement_value_unit",
+      "aggregate_id_field": "svu_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "svu_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "SVU redemption rejected",
+      "event_name": "SVURedemptionFailed",
+      "producer": "representation_service",
+      "source_domain": "representation",
+      "triggered_by": "RedeemSVU",
+      "version": "1.0.0"
+    },
+    "SettlementAuthorizationFailed": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "aggregate_id_field": "settlement_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Settlement authorization rejected",
+      "event_name": "SettlementAuthorizationFailed",
+      "producer": "settlement_service",
+      "source_domain": "settlement",
+      "triggered_by": "AuthorizeSettlement",
+      "version": "1.0.0"
     },
     "SettlementAuthorized": {
       "abi": "v1",
+      "aggregate": "settlement_record",
+      "aggregate_id_field": "settlement_id",
       "amendment": "AMD-0005",
-      "description": "Settlement formally authorized. Treasury transfer workflow initiated. Ledger posting imminent.\n",
-      "domain": "settlement",
-      "event_name": "SettlementAuthorized",
-      "payload": {
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "settlement_record_view"
+      ],
+      "data_fields": {
         "abi": "v1",
-        "amount_cents": "uint64",
-        "authorized_by": "EntityId",
-        "commercial_obligation_id": "string",
-        "currency": "string",
-        "settlement_id": "string",
-        "timestamp": "ISO-8601"
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "authorized_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "currency": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       },
+      "description": "Settlement formally authorized. Treasury transfer workflow initiated. Ledger posting imminent.\n",
+      "event_name": "SettlementAuthorized",
+      "producer": "settlement_service",
+      "source_domain": "settlement",
       "triggered_by": "AuthorizeSettlement",
       "triggers": [
         "treasury.InitiateTransfer"
-      ]
+      ],
+      "version": "1.0.0"
+    },
+    "SettlementCancellationFailed": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "aggregate_id_field": "settlement_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Settlement cancellation rejected",
+      "event_name": "SettlementCancellationFailed",
+      "producer": "settlement_service",
+      "source_domain": "settlement",
+      "triggered_by": "CancelSettlement",
+      "version": "1.0.0"
+    },
+    "SettlementCancelled": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "aggregate_id_field": "settlement_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "settlement_record_view"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "cancellation_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "cancelled_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      },
+      "description": "Settlement record cancelled before execution posted to the ledger. Terminal for the settlement lifecycle.\n",
+      "event_name": "SettlementCancelled",
+      "producer": "settlement_service",
+      "source_domain": "settlement",
+      "triggered_by": "CancelSettlement",
+      "triggers": "none",
+      "version": "1.0.0"
+    },
+    "SettlementDisputeFailed": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "aggregate_id_field": "settlement_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Settlement dispute rejected",
+      "event_name": "SettlementDisputeFailed",
+      "producer": "settlement_service",
+      "source_domain": "settlement",
+      "triggered_by": "DisputeSettlement",
+      "version": "1.0.0"
+    },
+    "SettlementDisputed": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "aggregate_id_field": "settlement_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "settlement_record_view"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "dispute_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "disputed_by": {
+          "abi": "v1",
+          "type": "EntityId"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
+      },
+      "description": "Dispute opened on a ledger-posted settlement within the dispute window.\n",
+      "event_name": "SettlementDisputed",
+      "producer": "settlement_service",
+      "source_domain": "settlement",
+      "triggered_by": "DisputeSettlement",
+      "triggers": "none",
+      "version": "1.0.0"
     },
     "SettlementExecuted": {
       "abi": "v1",
+      "aggregate": "settlement_record",
+      "aggregate_id_field": "settlement_id",
       "amendment": "AMD-0005",
-      "description": "Settlement workflow completed. TigerBeetle transfer posted. Evidence generation triggered.\n",
-      "domain": "settlement",
-      "event_name": "SettlementExecuted",
-      "payload": {
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "settlement_record_view"
+      ],
+      "data_fields": {
         "abi": "v1",
-        "amount_cents": "uint64",
-        "commercial_obligation_id": "string",
-        "credit_account": "uint64",
-        "debit_account": "uint64",
-        "settlement_id": "string",
-        "tigerbeetle_transfer_id": "uint128",
-        "timestamp": "ISO-8601",
-        "treasury_transfer_reference": "TransferId"
+        "amount_cents": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "credit_account": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "debit_account": {
+          "abi": "v1",
+          "type": "uint64"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "tigerbeetle_transfer_id": {
+          "abi": "v1",
+          "type": "uint128"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "treasury_transfer_reference": {
+          "abi": "v1",
+          "type": "TransferId"
+        }
       },
+      "description": "Settlement workflow completed. TigerBeetle transfer posted. Evidence generation triggered.\n",
+      "event_name": "SettlementExecuted",
+      "producer": "settlement_service",
+      "source_domain": "settlement",
       "triggered_by": "ExecuteSettlement",
       "triggers": [
         "GenerateEvidencePackage"
-      ]
+      ],
+      "version": "1.0.0"
+    },
+    "SettlementExecutionFailed": {
+      "abi": "v1",
+      "aggregate": "settlement_record",
+      "aggregate_id_field": "settlement_id",
+      "amendment": "AMD-0005",
+      "constitutional_refs": [
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Settlement execution rejected",
+      "event_name": "SettlementExecutionFailed",
+      "producer": "settlement_service",
+      "source_domain": "settlement",
+      "triggered_by": "ExecuteSettlement",
+      "version": "1.0.0"
     },
     "SettlementFinalized": {
       "abi": "v1",
+      "aggregate": "settlement_record",
+      "aggregate_id_field": "settlement_id",
       "amendment": "AMD-0005",
-      "description": "Settlement confirmed finalized. Evidence package signed. SVU issuance now permitted if required.\n",
-      "domain": "settlement",
-      "event_name": "SettlementFinalized",
-      "payload": {
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "consumers": [
+        "audit_projection",
+        "settlement_record_view",
+        "commercial_obligation_view"
+      ],
+      "data_fields": {
         "abi": "v1",
-        "attestation_id": "string",
-        "commercial_obligation_id": "string",
-        "evidence_package_hash": "bytes32",
-        "evidence_package_id": "string",
-        "settlement_id": "string",
-        "tigerbeetle_transfer_id": "uint128",
-        "timestamp": "ISO-8601"
+        "attestation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "commercial_obligation_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "evidence_package_hash": {
+          "abi": "v1",
+          "type": "bytes32"
+        },
+        "evidence_package_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "settlement_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "tigerbeetle_transfer_id": {
+          "abi": "v1",
+          "type": "uint128"
+        },
+        "timestamp": {
+          "abi": "v1",
+          "type": "timestamp"
+        }
       },
+      "description": "Settlement confirmed finalized. Evidence package signed. SVU issuance now permitted if required. Recorded by the attestation act in the certification domain per the AMD-0005 chain-of-custody design.\n",
+      "event_name": "SettlementFinalized",
+      "producer": "settlement_service",
+      "source_domain": "settlement",
       "triggered_by": "SignAttestation",
       "triggers": [
         "IssueSVU (conditional on representation domain)"
-      ]
+      ],
+      "version": "1.0.0"
     },
     "agent.activated": {
       "abi": "v1",
@@ -1063,6 +2000,42 @@
       "source_domain": "agent",
       "version": "1.0.0"
     },
+    "agent.suspension_failed": {
+      "abi": "v1",
+      "aggregate": "agent_instance",
+      "aggregate_id_field": "agent_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "agent_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Agent suspension failed",
+      "event_name": "agent.suspension_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "agent_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
+      },
+      "source_domain": "agent",
+      "version": "1.0.0"
+    },
     "agent.terminated": {
       "abi": "v1",
       "aggregate": "instance",
@@ -1252,6 +2225,43 @@
         "target": "none"
       },
       "source_domain": "governance",
+      "version": "1.0.0"
+    },
+    "escrow.account.cancellation_failed": {
+      "abi": "v1",
+      "aggregate": "escrow_account",
+      "aggregate_id_field": "escrow_id",
+      "constitutional_refs": [
+        "INV-001",
+        "INV-005"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "escrow_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "failure_reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Escrow account cancellation failed",
+      "event_name": "escrow.account.cancellation_failed",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "update",
+        "target": "escrow_account_view"
+      },
+      "projection_effects": [
+        "MARK_CANCELLATION_FAILED"
+      ],
+      "retention_class": "regulatory_7y",
+      "source_domain": "escrow",
       "version": "1.0.0"
     },
     "escrow.account.cancelled": {
@@ -2571,6 +3581,42 @@
       "source_domain": "governance",
       "version": "1.0.0"
     },
+    "governance.proposal.cancellation_failed": {
+      "abi": "v1",
+      "aggregate": "governance_proposal",
+      "aggregate_id_field": "proposal_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Proposal cancellation failed",
+      "event_name": "governance.proposal.cancellation_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "governance_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
+      },
+      "source_domain": "governance",
+      "version": "1.0.0"
+    },
     "governance.proposal.cancelled": {
       "abi": "v1",
       "aggregate": "governance_proposal",
@@ -2646,6 +3692,42 @@
           "abi": "v1",
           "state": "EXPIRED"
         }
+      },
+      "source_domain": "governance",
+      "version": "1.0.0"
+    },
+    "governance.proposal.implementation_failed": {
+      "abi": "v1",
+      "aggregate": "governance_proposal",
+      "aggregate_id_field": "proposal_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "proposal_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Proposal implementation failed",
+      "event_name": "governance.proposal.implementation_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "governance_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
       },
       "source_domain": "governance",
       "version": "1.0.0"
@@ -6556,6 +7638,83 @@
       "source_domain": "ledger",
       "version": "1.0.0"
     },
+    "payment.adapter.disable_failed": {
+      "abi": "v1",
+      "aggregate": "rail_adapter",
+      "aggregate_id_field": "adapter_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "adapter_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Payment rail adapter disable operation failed",
+      "event_name": "payment.adapter.disable_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "payment_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
+      },
+      "source_domain": "payment",
+      "version": "1.0.0"
+    },
+    "payment.adapter.disabled": {
+      "abi": "v1",
+      "aggregate": "rail_adapter",
+      "aggregate_id_field": "adapter_id",
+      "consumers": [
+        "payment_projection",
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "adapter_id": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "disabled_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "A payment rail adapter has been disabled",
+      "event_name": "payment.adapter.disabled",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "payment_service",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "update",
+        "target": "rail_adapter_view",
+        "updates": {
+          "abi": "v1",
+          "state": "DISABLED"
+        }
+      },
+      "source_domain": "payment",
+      "version": "1.0.0"
+    },
     "payment.compensation.completed": {
       "abi": "v1",
       "aggregate": "payment_request",
@@ -9291,6 +10450,42 @@
           "abi": "v1",
           "state": "COMPENSATING"
         }
+      },
+      "source_domain": "kernel",
+      "version": "1.0.0"
+    },
+    "saga.compensation_failed": {
+      "abi": "v1",
+      "aggregate": "saga_instance",
+      "aggregate_id_field": "saga_id",
+      "consumers": [
+        "audit_projection"
+      ],
+      "data_fields": {
+        "abi": "v1",
+        "failed_at": {
+          "abi": "v1",
+          "type": "timestamp"
+        },
+        "reason": {
+          "abi": "v1",
+          "type": "string"
+        },
+        "saga_id": {
+          "abi": "v1",
+          "type": "string"
+        }
+      },
+      "description": "Saga compensation could not be completed",
+      "event_name": "saga.compensation_failed",
+      "guarantees": [
+        "INV-005: audit trail maintained"
+      ],
+      "producer": "saga_orchestrator",
+      "projection_effect": {
+        "abi": "v1",
+        "operation": "no_op",
+        "target": "none"
       },
       "source_domain": "kernel",
       "version": "1.0.0"
@@ -12230,7 +13425,7 @@
       "version": "1.0.0"
     }
   },
-  "entry_count": 267,
+  "entry_count": 292,
   "event_envelope": {
     "abi": "v1",
     "compile_target": true,
@@ -12489,7 +13684,7 @@
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "9ece00ce4f26ab0c80f050d6af49f751d36ede46f93a98c082ef1604143488e7",
+    "hash": "7bbd93bde681dcf6805cf905acf7dae0a792fb50c4ed0991c17320913b4606b0",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "events"

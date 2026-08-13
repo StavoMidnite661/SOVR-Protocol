@@ -11,9 +11,14 @@ actor_context:
   identity_id: sim-settlement-operator-id
   session_id: sim-settlement-session-007
 
+# REPAIR (fail-closed canonicalization): VERIFIED referenced a settlement-
+# catalog state that no command in this scenario instantiates — no aggregate
+# could ever reach it, so the lifecycle declaration was unverifiable. The
+# scenario's own settlement act is the treasury transfer it drives to
+# SETTLED; that is now the declared terminal state.
 lifecycle:
-  initial_state: CREATED
-  terminal_state: VERIFIED
+  initial_state: REQUESTED
+  terminal_state: SETTLED
 
 commands:
   - command_id: cmd-001
@@ -160,12 +165,17 @@ commands:
     command_name: governance.audit.query
     domain: governance
     aggregate: audit_record
+    aggregate_id: sim-audit-007
     actor_context:
       actor_id: sim-governance-verifier
       actor_type: governance
       identity_id: sim-governance-verifier-id
       session_id: sim-governance-session-007
     payload:
+      # REPAIR: audit_id assigned explicitly. Without it the kernel minted a
+      # random aggregate id per run (crypto.randomUUID fallback), making
+      # same-seed replay nondeterministic.
+      audit_id: sim-audit-007
       audit_type: settlement
       target_domains: [treasury, ledger]
       start_date: "2026-08-01T00:00:00Z"

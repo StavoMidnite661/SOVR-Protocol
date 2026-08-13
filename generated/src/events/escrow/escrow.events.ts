@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:escrow
-// Hash: d77d0df55316d097f8ae64220af4eb237a4a6348e8f9354761b7996e0affa0ba
+// Hash: ea6ff8a7edbc2fa722b6ab02b1ca1ca7cade679eeaaae74abbe5da7b0400d631
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -16,6 +16,14 @@
 
 // Domain: escrow — Events
 import { EventEnvelope } from '../../events/event-envelope.js';
+
+export class EscrowAccountCancellationFailedEvent {
+  static readonly eventName = 'escrow.account.cancellation_failed' as const;
+  static readonly aggregate = 'escrow_account' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
 
 export class EscrowAccountCancelledEvent {
   static readonly eventName = 'escrow.account.cancelled' as const;

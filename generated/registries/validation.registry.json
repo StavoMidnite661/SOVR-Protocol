@@ -1,6 +1,839 @@
 {
   "abi": "v1",
   "entries": {
+    "ArchivePackage_rules": {
+      "abi": "v1",
+      "command": "ArchivePackage",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PACKAGE_ID",
+          "error_message": "package_id is required",
+          "field": "payload.package_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EVIDENCE_PACKAGE_ID",
+          "error_message": "evidence_package_id is required",
+          "field": "payload.evidence_package_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ARCHIVED_BY",
+          "error_message": "archived_by is required",
+          "field": "payload.archived_by",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "evidence_package_state_in_signed_published",
+          "error_code": "PACKAGE_MUST_BE_SIGNED_OR_PUBLISHED_FAILED",
+          "error_message": "package_must_be_signed_or_published failed",
+          "on_failure": "REJECT",
+          "rule_id": "package_must_be_signed_or_published",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "now_evidence_package_retention_eligible_at",
+          "error_code": "RETENTION_PERIOD_MUST_BE_MET_FAILED",
+          "error_message": "retention_period_must_be_met failed",
+          "on_failure": "REJECT",
+          "rule_id": "retention_period_must_be_met",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "AuthorizeSettlement_rules": {
+      "abi": "v1",
+      "command": "AuthorizeSettlement",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_ID",
+          "error_message": "settlement_id is required",
+          "field": "payload.settlement_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_RECORD_ID",
+          "error_message": "settlement_record_id is required",
+          "field": "payload.settlement_record_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_COMMERCIAL_OBLIGATION_ID",
+          "error_message": "commercial_obligation_id is required",
+          "field": "payload.commercial_obligation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AUTHORIZED_BY",
+          "error_message": "authorized_by is required",
+          "field": "payload.authorized_by",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_AMOUNT_CENTS",
+          "error_message": "settlement_amount_cents is required",
+          "field": "payload.settlement_amount_cents",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "commercial_obligation_state_validated",
+          "error_code": "OBLIGATION_MUST_BE_VALIDATED_FAILED",
+          "error_message": "obligation_must_be_validated failed",
+          "on_failure": "REJECT",
+          "rule_id": "obligation_must_be_validated",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_holds_settlement_record_authorize_capability",
+          "error_code": "AUTHORIZER_MUST_HAVE_SETTLEMENT_AUTHORITY_FAILED",
+          "error_message": "authorizer_must_have_settlement_authority failed",
+          "on_failure": "REJECT",
+          "rule_id": "authorizer_must_have_settlement_authority",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_amount_cents_0",
+          "error_code": "SETTLEMENT_AMOUNT_MUST_BE_POSITIVE_FAILED",
+          "error_message": "settlement_amount_must_be_positive failed",
+          "on_failure": "REJECT",
+          "rule_id": "settlement_amount_must_be_positive",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "CancelObligation_rules": {
+      "abi": "v1",
+      "command": "CancelObligation",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_OBLIGATION_ID",
+          "error_message": "obligation_id is required",
+          "field": "payload.obligation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CANCELLED_BY",
+          "error_message": "cancelled_by is required",
+          "field": "payload.cancelled_by",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CANCELLATION_REASON",
+          "error_message": "cancellation_reason is required",
+          "field": "payload.cancellation_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "commercial_obligation_with_obligation_id_exists",
+          "error_code": "OBLIGATION_MUST_EXIST_FAILED",
+          "error_message": "obligation_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "obligation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "commercial_obligation_state_in_draft_validated",
+          "error_code": "OBLIGATION_MUST_BE_PRE_SETTLEMENT_FAILED",
+          "error_message": "obligation_must_be_pre_settlement failed",
+          "on_failure": "REJECT",
+          "rule_id": "obligation_must_be_pre_settlement",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_holds_commercial_obligation_cancel_capability_scoped_to_the_obligation",
+          "error_code": "CANCELLER_MUST_HAVE_AUTHORITY_FAILED",
+          "error_message": "canceller_must_have_authority failed",
+          "on_failure": "REJECT",
+          "rule_id": "canceller_must_have_authority",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "CancelSettlement_rules": {
+      "abi": "v1",
+      "command": "CancelSettlement",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_ID",
+          "error_message": "settlement_id is required",
+          "field": "payload.settlement_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_RECORD_ID",
+          "error_message": "settlement_record_id is required",
+          "field": "payload.settlement_record_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CANCELLED_BY",
+          "error_message": "cancelled_by is required",
+          "field": "payload.cancelled_by",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CANCELLATION_REASON",
+          "error_message": "cancellation_reason is required",
+          "field": "payload.cancellation_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_record_with_settlement_id_exists",
+          "error_code": "SETTLEMENT_MUST_EXIST_FAILED",
+          "error_message": "settlement_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "settlement_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_record_state_pending",
+          "error_code": "SETTLEMENT_MUST_BE_PRE_EXECUTION_FAILED",
+          "error_message": "settlement_must_be_pre_execution failed",
+          "on_failure": "REJECT",
+          "rule_id": "settlement_must_be_pre_execution",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_holds_settlement_record_cancel_capability_scoped_to_the_settlement",
+          "error_code": "CANCELLER_MUST_HAVE_AUTHORITY_FAILED",
+          "error_message": "canceller_must_have_authority failed",
+          "on_failure": "REJECT",
+          "rule_id": "canceller_must_have_authority",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "CreateCommercialObligation_rules": {
+      "abi": "v1",
+      "command": "CreateCommercialObligation",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_OBLIGATION_ID",
+          "error_message": "obligation_id is required",
+          "field": "payload.obligation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_VAULT_ASSET_REFERENCE",
+          "error_message": "vault_asset_reference is required",
+          "field": "payload.vault_asset_reference",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ORIGINATOR",
+          "error_message": "originator is required",
+          "field": "payload.originator",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_COUNTERPARTY",
+          "error_message": "counterparty is required",
+          "field": "payload.counterparty",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_OBLIGATION_TYPE",
+          "error_message": "obligation_type is required",
+          "field": "payload.obligation_type",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT_CENTS",
+          "error_message": "amount_cents is required",
+          "field": "payload.amount_cents",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AUTHORIZATION_REFERENCE",
+          "error_message": "authorization_reference is required",
+          "field": "payload.authorization_reference",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SOURCE_DOCUMENT_HASH",
+          "error_message": "source_document_hash is required",
+          "field": "payload.source_document_hash",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "vault_asset_with_vault_asset_reference_exists",
+          "error_code": "VAULT_ASSET_MUST_EXIST_FAILED",
+          "error_message": "vault_asset_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "vault_asset_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "identity_for_originator_exists_and_is_verified",
+          "error_code": "ORIGINATOR_MUST_BE_REGISTERED_FAILED",
+          "error_message": "originator_must_be_registered failed",
+          "on_failure": "REJECT",
+          "rule_id": "originator_must_be_registered",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "identity_for_counterparty_exists_and_is_verified",
+          "error_code": "COUNTERPARTY_MUST_BE_REGISTERED_FAILED",
+          "error_message": "counterparty_must_be_registered failed",
+          "on_failure": "REJECT",
+          "rule_id": "counterparty_must_be_registered",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "amount_cents_referenced_vault_asset_face_value",
+          "error_code": "AMOUNT_MUST_NOT_EXCEED_VAULT_ASSET_FAILED",
+          "error_message": "amount_must_not_exceed_vault_asset failed",
+          "on_failure": "REJECT",
+          "rule_id": "amount_must_not_exceed_vault_asset",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "DisputeSettlement_rules": {
+      "abi": "v1",
+      "command": "DisputeSettlement",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_ID",
+          "error_message": "settlement_id is required",
+          "field": "payload.settlement_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_RECORD_ID",
+          "error_message": "settlement_record_id is required",
+          "field": "payload.settlement_record_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DISPUTED_BY",
+          "error_message": "disputed_by is required",
+          "field": "payload.disputed_by",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_DISPUTE_REASON",
+          "error_message": "dispute_reason is required",
+          "field": "payload.dispute_reason",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_record_state_finalized",
+          "error_code": "SETTLEMENT_MUST_BE_FINALIZED_FAILED",
+          "error_message": "settlement_must_be_finalized failed",
+          "on_failure": "REJECT",
+          "rule_id": "settlement_must_be_finalized",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "now_settlement_record_dispute_window_close",
+          "error_code": "DISPUTE_WINDOW_MUST_BE_OPEN_FAILED",
+          "error_message": "dispute_window_must_be_open failed",
+          "on_failure": "REJECT",
+          "rule_id": "dispute_window_must_be_open",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_is_obligation_originator_or_counterparty",
+          "error_code": "DISPUTER_MUST_BE_COUNTERPARTY_FAILED",
+          "error_message": "disputer_must_be_counterparty failed",
+          "on_failure": "REJECT",
+          "rule_id": "disputer_must_be_counterparty",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ExecuteSettlement_rules": {
+      "abi": "v1",
+      "command": "ExecuteSettlement",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_ID",
+          "error_message": "settlement_id is required",
+          "field": "payload.settlement_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_RECORD_ID",
+          "error_message": "settlement_record_id is required",
+          "field": "payload.settlement_record_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TREASURY_TRANSFER_REFERENCE",
+          "error_message": "treasury_transfer_reference is required",
+          "field": "payload.treasury_transfer_reference",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TIGERBEETLE_TRANSFER_ID",
+          "error_message": "tigerbeetle_transfer_id is required",
+          "field": "payload.tigerbeetle_transfer_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_record_state_pending",
+          "error_code": "SETTLEMENT_MUST_BE_PENDING_EXECUTION_FAILED",
+          "error_message": "settlement_must_be_pending_execution failed",
+          "on_failure": "REJECT",
+          "rule_id": "settlement_must_be_pending_execution",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "treasury_transfer_treasury_transfer_reference_is_complete",
+          "error_code": "TREASURY_TRANSFER_MUST_BE_COMPLETE_FAILED",
+          "error_message": "treasury_transfer_must_be_complete failed",
+          "on_failure": "REJECT",
+          "rule_id": "treasury_transfer_must_be_complete",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "tigerbeetle_transfer_id_confirmed_on_the_settlement_ledger",
+          "error_code": "TIGERBEETLE_TRANSFER_MUST_BE_CONFIRMED_FAILED",
+          "error_message": "tigerbeetle_transfer_must_be_confirmed failed",
+          "on_failure": "REJECT",
+          "rule_id": "tigerbeetle_transfer_must_be_confirmed",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "GenerateEvidencePackage_rules": {
+      "abi": "v1",
+      "command": "GenerateEvidencePackage",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PACKAGE_ID",
+          "error_message": "package_id is required",
+          "field": "payload.package_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EVIDENCE_PACKAGE_ID",
+          "error_message": "evidence_package_id is required",
+          "field": "payload.evidence_package_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_ID",
+          "error_message": "settlement_id is required",
+          "field": "payload.settlement_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_COMMERCIAL_OBLIGATION_ID",
+          "error_message": "commercial_obligation_id is required",
+          "field": "payload.commercial_obligation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_TIGERBEETLE_TRANSFER_ID",
+          "error_message": "tigerbeetle_transfer_id is required",
+          "field": "payload.tigerbeetle_transfer_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_record_state_ledger_posted",
+          "error_code": "SETTLEMENT_MUST_BE_EXECUTED_FAILED",
+          "error_message": "settlement_must_be_executed failed",
+          "on_failure": "REJECT",
+          "rule_id": "settlement_must_be_executed",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "tigerbeetle_transfer_id_confirmed_on_the_settlement_ledger",
+          "error_code": "TIGERBEETLE_TRANSFER_MUST_BE_CONFIRMED_FAILED",
+          "error_message": "tigerbeetle_transfer_must_be_confirmed failed",
+          "on_failure": "REJECT",
+          "rule_id": "tigerbeetle_transfer_must_be_confirmed",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "IssueSVU_rules": {
+      "abi": "v1",
+      "command": "IssueSVU",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SVU_ID",
+          "error_message": "svu_id is required",
+          "field": "payload.svu_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_VALUE_UNIT_ID",
+          "error_message": "settlement_value_unit_id is required",
+          "field": "payload.settlement_value_unit_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EVIDENCE_PACKAGE_ID",
+          "error_message": "evidence_package_id is required",
+          "field": "payload.evidence_package_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_RECIPIENT",
+          "error_message": "recipient is required",
+          "field": "payload.recipient",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT_CENTS",
+          "error_message": "amount_cents is required",
+          "field": "payload.amount_cents",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_MULTISIG_AUTHORIZATION",
+          "error_message": "multisig_authorization is required",
+          "field": "payload.multisig_authorization",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "evidence_package_state_signed",
+          "error_code": "EVIDENCE_PACKAGE_MUST_BE_SIGNED_FAILED",
+          "error_message": "evidence_package_must_be_signed failed",
+          "on_failure": "REJECT",
+          "rule_id": "evidence_package_must_be_signed",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "multisig_authorization_satisfies_2_of_3_threshold_over_registered_signers",
+          "error_code": "MULTISIG_THRESHOLD_MUST_BE_MET_FAILED",
+          "error_message": "multisig_threshold_must_be_met failed",
+          "on_failure": "REJECT",
+          "rule_id": "multisig_threshold_must_be_met",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "amount_cents_circulating_svu_supply_reserve_cap",
+          "error_code": "SUPPLY_MUST_NOT_EXCEED_RESERVE_CAP_FAILED",
+          "error_message": "supply_must_not_exceed_reserve_cap failed",
+          "on_failure": "REJECT",
+          "rule_id": "supply_must_not_exceed_reserve_cap",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "obligation_settlement_package_and_attestation_ids_re_derive_a_single_lineage",
+          "error_code": "PROVENANCE_CHAIN_MUST_BE_TRACEABLE_FAILED",
+          "error_message": "provenance_chain_must_be_traceable failed",
+          "on_failure": "REJECT",
+          "rule_id": "provenance_chain_must_be_traceable",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "PublishPackage_rules": {
+      "abi": "v1",
+      "command": "PublishPackage",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PACKAGE_ID",
+          "error_message": "package_id is required",
+          "field": "payload.package_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EVIDENCE_PACKAGE_ID",
+          "error_message": "evidence_package_id is required",
+          "field": "payload.evidence_package_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PUBLISHED_BY",
+          "error_message": "published_by is required",
+          "field": "payload.published_by",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_CHANNEL",
+          "error_message": "channel is required",
+          "field": "payload.channel",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "evidence_package_state_signed",
+          "error_code": "PACKAGE_MUST_BE_SIGNED_FAILED",
+          "error_message": "package_must_be_signed failed",
+          "on_failure": "REJECT",
+          "rule_id": "package_must_be_signed",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "boundary_storage_adapter_reports_available",
+          "error_code": "STORAGE_ADAPTER_MUST_BE_AVAILABLE_FAILED",
+          "error_message": "storage_adapter_must_be_available failed",
+          "on_failure": "REJECT",
+          "rule_id": "storage_adapter_must_be_available",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "RedeemSVU_rules": {
+      "abi": "v1",
+      "command": "RedeemSVU",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SVU_ID",
+          "error_message": "svu_id is required",
+          "field": "payload.svu_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_VALUE_UNIT_ID",
+          "error_message": "settlement_value_unit_id is required",
+          "field": "payload.settlement_value_unit_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_FROM_ADDRESS",
+          "error_message": "from_address is required",
+          "field": "payload.from_address",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_AMOUNT_CENTS",
+          "error_message": "amount_cents is required",
+          "field": "payload.amount_cents",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_REFERENCE",
+          "error_message": "settlement_reference is required",
+          "field": "payload.settlement_reference",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_value_unit_state_issued",
+          "error_code": "SVU_MUST_BE_ISSUED_FAILED",
+          "error_message": "svu_must_be_issued failed",
+          "on_failure": "REJECT",
+          "rule_id": "svu_must_be_issued",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "from_address_svu_balance_amount_cents",
+          "error_code": "BALANCE_MUST_BE_SUFFICIENT_FAILED",
+          "error_message": "balance_must_be_sufficient failed",
+          "on_failure": "REJECT",
+          "rule_id": "balance_must_be_sufficient",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "settlement_reference_resolves_to_a_ledger_posted_settlement_record",
+          "error_code": "SETTLEMENT_REFERENCE_MUST_BE_VALID_FAILED",
+          "error_message": "settlement_reference_must_be_valid failed",
+          "on_failure": "REJECT",
+          "rule_id": "settlement_reference_must_be_valid",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "SignAttestation_rules": {
+      "abi": "v1",
+      "command": "SignAttestation",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_PACKAGE_ID",
+          "error_message": "package_id is required",
+          "field": "payload.package_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_EVIDENCE_PACKAGE_ID",
+          "error_message": "evidence_package_id is required",
+          "field": "payload.evidence_package_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SETTLEMENT_ID",
+          "error_message": "settlement_id is required",
+          "field": "payload.settlement_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_ATTESTOR",
+          "error_message": "attestor is required",
+          "field": "payload.attestor",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_SIGNATURE",
+          "error_message": "signature is required",
+          "field": "payload.signature",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "evidence_package_package_hash_recomputes_over_manifest_and_document_hashes",
+          "error_code": "PACKAGE_MUST_BE_VERIFIED_FAILED",
+          "error_message": "package_must_be_verified failed",
+          "on_failure": "REJECT",
+          "rule_id": "package_must_be_verified",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_holds_certification_package_sign_capability",
+          "error_code": "ATTESTOR_MUST_HAVE_ATTESTATION_AUTHORITY_FAILED",
+          "error_message": "attestor_must_have_attestation_authority failed",
+          "on_failure": "REJECT",
+          "rule_id": "attestor_must_have_attestation_authority",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "signature_verifies_against_attestor_identity_key",
+          "error_code": "SIGNATURE_MUST_BE_VALID_ECDSA_FAILED",
+          "error_message": "signature_must_be_valid_ecdsa failed",
+          "on_failure": "REJECT",
+          "rule_id": "signature_must_be_valid_ecdsa",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
+    "ValidateObligation_rules": {
+      "abi": "v1",
+      "command": "ValidateObligation",
+      "rules": [
+        {
+          "abi": "v1",
+          "error_code": "MISSING_OBLIGATION_ID",
+          "error_message": "obligation_id is required",
+          "field": "payload.obligation_id",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_VALIDATED_BY",
+          "error_message": "validated_by is required",
+          "field": "payload.validated_by",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "error_code": "MISSING_VALIDATION_REFERENCE",
+          "error_message": "validation_reference is required",
+          "field": "payload.validation_reference",
+          "type": "EXISTS"
+        },
+        {
+          "abi": "v1",
+          "check_id": "commercial_obligation_with_obligation_id_exists",
+          "error_code": "OBLIGATION_MUST_EXIST_FAILED",
+          "error_message": "obligation_must_exist failed",
+          "on_failure": "REJECT",
+          "rule_id": "obligation_must_exist",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "commercial_obligation_state_draft",
+          "error_code": "OBLIGATION_MUST_BE_DRAFT_FAILED",
+          "error_message": "obligation_must_be_draft failed",
+          "on_failure": "REJECT",
+          "rule_id": "obligation_must_be_draft",
+          "type": "DECLARATIVE_ASSERTION"
+        },
+        {
+          "abi": "v1",
+          "check_id": "actor_holds_commercial_obligation_validate_capability_scoped_to_the_obligation",
+          "error_code": "VALIDATOR_MUST_HAVE_AUTHORITY_FAILED",
+          "error_message": "validator_must_have_authority failed",
+          "on_failure": "REJECT",
+          "rule_id": "validator_must_have_authority",
+          "type": "DECLARATIVE_ASSERTION"
+        }
+      ]
+    },
     "agent_activate_rules": {
       "abi": "v1",
       "command": "agent.activate",
@@ -5301,13 +6134,13 @@
       ]
     }
   },
-  "entry_count": 105,
+  "entry_count": 118,
   "integrity": {
     "algorithm": "SHA256",
     "generated_by": {
       "compiler_version": "0.6.0"
     },
-    "hash": "ad38cca745fe1ae577a00b4b11c505787db9503aba261bb8ce095167fd3c80eb",
+    "hash": "134a55bfa6d5d16b9c025d54c47d17bd8147a07d93d1d56f92efe7b5c03802fb",
     "timestamp": "2026-08-07T00:00:00.000Z"
   },
   "kind": "validation"

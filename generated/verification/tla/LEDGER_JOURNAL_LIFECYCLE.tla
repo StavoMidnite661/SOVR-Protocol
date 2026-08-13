@@ -7,62 +7,32 @@ EXTENDS Naturals, Sequences
 
 VARIABLES state, visited
 
-States == {"CREATED", "POSTED", "RECONCILED", "REJECTED", "SETTLED", "VALIDATING"}
+States == {"CORRECTED", "POSTED", "REVERSED"}
 
-FinalStates == {"REJECTED"}
+FinalStates == {"CORRECTED", "REVERSED"}
 
 Init == 
-    /\ state = "CREATED"
-    /\ visited = {"CREATED"}
-
-CREATED_TO_REJECTED == 
-    /\ state = "CREATED"
-    /\ state' = "REJECTED"
-    /\ visited' = visited \cup {"REJECTED"}
-\* Trigger: TIMEOUT
-
-CREATED_TO_VALIDATING == 
-    /\ state = "CREATED"
-    /\ state' = "VALIDATING"
-    /\ visited' = visited \cup {"VALIDATING"}
-\* Trigger: VALIDATION_STARTED
-
-POSTED_TO_RECONCILED == 
     /\ state = "POSTED"
-    /\ state' = "RECONCILED"
-    /\ visited' = visited \cup {"RECONCILED"}
-\* Trigger: RECONCILIATION_CONFIRMS
+    /\ visited = {"POSTED"}
 
-POSTED_TO_SETTLED == 
+POSTED_TO_CORRECTED == 
     /\ state = "POSTED"
-    /\ state' = "SETTLED"
-    /\ visited' = visited \cup {"SETTLED"}
-\* Trigger: ORIGINATING_DOMAIN_CONFIRMS
+    /\ state' = "CORRECTED"
+    /\ visited' = visited \cup {"CORRECTED"}
+\* Trigger: LEDGER_ENTRY_CORRECTED
 
-SETTLED_TO_RECONCILED == 
-    /\ state = "SETTLED"
-    /\ state' = "RECONCILED"
-    /\ visited' = visited \cup {"RECONCILED"}
-\* Trigger: RECONCILIATION_CONFIRMS
-
-VALIDATING_TO_POSTED == 
-    /\ state = "VALIDATING"
-    /\ state' = "POSTED"
-    /\ visited' = visited \cup {"POSTED"}
-\* Trigger: VALIDATION_PASSED
-
-VALIDATING_TO_REJECTED == 
-    /\ state = "VALIDATING"
-    /\ state' = "REJECTED"
-    /\ visited' = visited \cup {"REJECTED"}
-\* Trigger: VALIDATION_FAILED
+POSTED_TO_REVERSED == 
+    /\ state = "POSTED"
+    /\ state' = "REVERSED"
+    /\ visited' = visited \cup {"REVERSED"}
+\* Trigger: LEDGER_ENTRY_REVERSED
 
 Terminated == 
     /\ state \in FinalStates
     /\ UNCHANGED <<state, visited>>
 
 Next == 
-    CREATED_TO_REJECTED \/ CREATED_TO_VALIDATING \/ POSTED_TO_RECONCILED \/ POSTED_TO_SETTLED \/ SETTLED_TO_RECONCILED \/ VALIDATING_TO_POSTED \/ VALIDATING_TO_REJECTED \/ Terminated
+    POSTED_TO_CORRECTED \/ POSTED_TO_REVERSED \/ Terminated
 
 \* INV-006: state is always one the compiled machine declares.
 \* Falsifiable: a transition to an undeclared state breaks this.

@@ -3,7 +3,7 @@
     "warning": "SOVR GENERATED FILE — DO NOT EDIT",
     "compiler": "0.6.0",
     "protocol": "1.0.0",
-    "hash": "49c9521d8a59c75eb6dacd05b21f69085797175a63bc0e1e1727d0d75bedcab6"
+    "hash": "485f1fcec63f91f6f020c7aa3d6b87ec012f0803f48b065574d42d5e750db9d8"
   },
   "openapi": "3.1.0",
   "info": {
@@ -328,6 +328,177 @@
           "invariants": []
         },
         "x-capability-required": "agent.governance.override"
+      }
+    },
+    "/api/v1/certification/evidence_package": {
+      "post": {
+        "operationId": "certification_evidence_package_SignAttestation",
+        "summary": "SignAttestation",
+        "description": "Command SignAttestation requiring capability certification.package.sign",
+        "tags": [
+          "certification"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": [
+            "INV-001",
+            "INV-005",
+            "INV-008"
+          ]
+        },
+        "x-capability-required": "certification.package.sign"
+      }
+    },
+    "/api/v1/settlement/settlement_record": {
+      "post": {
+        "operationId": "settlement_settlement_record_ExecuteSettlement",
+        "summary": "ExecuteSettlement",
+        "description": "Command ExecuteSettlement requiring capability settlement.record.execute",
+        "tags": [
+          "settlement"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": [
+            "INV-001",
+            "INV-005",
+            "INV-006",
+            "INV-007",
+            "INV-008"
+          ]
+        },
+        "x-capability-required": "settlement.record.execute"
+      }
+    },
+    "/api/v1/commercial/commercial_obligation": {
+      "post": {
+        "operationId": "commercial_commercial_obligation_ValidateObligation",
+        "summary": "ValidateObligation",
+        "description": "Command ValidateObligation requiring capability commercial.obligation.validate",
+        "tags": [
+          "commercial"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": [
+            "INV-001",
+            "INV-005",
+            "INV-006",
+            "INV-008"
+          ]
+        },
+        "x-capability-required": "commercial.obligation.validate"
       }
     },
     "/api/v1/escrow/escrow_account": {
@@ -1113,6 +1284,64 @@
         "x-capability-required": "intent.validate"
       }
     },
+    "/api/v1/representation/settlement_value_unit": {
+      "post": {
+        "operationId": "representation_settlement_value_unit_RedeemSVU",
+        "summary": "RedeemSVU",
+        "description": "Command RedeemSVU requiring capability representation.svu.redeem",
+        "tags": [
+          "representation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": [
+            "INV-001",
+            "INV-003",
+            "INV-005",
+            "INV-007",
+            "INV-008"
+          ]
+        },
+        "x-capability-required": "representation.svu.redeem"
+      }
+    },
     "/api/v1/ledger/account": {
       "post": {
         "operationId": "ledger_account_freeze",
@@ -1373,11 +1602,11 @@
         "x-capability-required": "ledger.reconcile"
       }
     },
-    "/api/v1/payment/execution": {
+    "/api/v1/payment/rail_adapter": {
       "post": {
-        "operationId": "payment_execution_prepare",
-        "summary": "payment.execution.prepare",
-        "description": "Command payment.execution.prepare requiring capability payment.execution.plan",
+        "operationId": "payment_rail_adapter_disable",
+        "summary": "payment.adapter.disable",
+        "description": "Command payment.adapter.disable requiring capability payment.adapter.disable",
         "tags": [
           "payment"
         ],
@@ -1422,7 +1651,7 @@
           "capability_required": true,
           "invariants": []
         },
-        "x-capability-required": "payment.execution.plan"
+        "x-capability-required": "payment.adapter.disable"
       }
     },
     "/api/v1/payment/payment_request": {
@@ -1482,6 +1711,58 @@
         "operationId": "payment_execution_plan_plan",
         "summary": "payment.execution.plan",
         "description": "Command payment.execution.plan requiring capability payment.execution.plan",
+        "tags": [
+          "payment"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - capability or policy"
+          },
+          "422": {
+            "description": "Validation error"
+          }
+        },
+        "x-constitutional-gates": {
+          "identity_required": true,
+          "policy_required": true,
+          "capability_required": true,
+          "invariants": []
+        },
+        "x-capability-required": "payment.execution.plan"
+      }
+    },
+    "/api/v1/payment/execution": {
+      "post": {
+        "operationId": "payment_execution_prepare",
+        "summary": "payment.execution.prepare",
+        "description": "Command payment.execution.prepare requiring capability payment.execution.plan",
         "tags": [
           "payment"
         ],
@@ -1893,13 +2174,13 @@
         "x-capability-required": "policy.set.evaluate"
       }
     },
-    "/api/v1/saga/saga_execution": {
+    "/api/v1/kernel/saga_instance": {
       "post": {
-        "operationId": "saga_saga_execution_compensate",
+        "operationId": "kernel_saga_instance_compensate",
         "summary": "saga.compensate",
         "description": "Command saga.compensate requiring capability system.internal",
         "tags": [
-          "saga"
+          "kernel"
         ],
         "security": [
           {
@@ -2373,6 +2654,6 @@
     "schemas": {}
   },
   "x-compiler-version": "0.6.0",
-  "x-ir-hash": "6327d0523d685ebe4e00fedebd2c4bbe7900be872efbf82348335a0ae740b40d",
+  "x-ir-hash": "16c3f8b8a6352d35acc5f449b1a00251763341a6ec1ea12e680ded6a23381d6e",
   "x-generated": "SOVR generated file — do not edit"
 }

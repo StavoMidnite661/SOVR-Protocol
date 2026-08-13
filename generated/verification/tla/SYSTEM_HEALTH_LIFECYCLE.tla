@@ -19,7 +19,7 @@ DEGRADED_TO_HALTED ==
     /\ state = "DEGRADED"
     /\ state' = "HALTED"
     /\ visited' = visited \cup {"HALTED"}
-\* Trigger: GOVERNANCE_EMERGENCY_HALT
+\* Trigger: GOVERNANCE_EMERGENCY_HALT_ISSUED
 
 DEGRADED_TO_HEALTHY == 
     /\ state = "DEGRADED"
@@ -37,7 +37,7 @@ HEALTHY_TO_HALTED ==
     /\ state = "HEALTHY"
     /\ state' = "HALTED"
     /\ visited' = visited \cup {"HALTED"}
-\* Trigger: GOVERNANCE_EMERGENCY_HALT
+\* Trigger: GOVERNANCE_EMERGENCY_HALT_ISSUED
 
 HEALTHY_TO_UNKNOWN == 
     /\ state = "HEALTHY"

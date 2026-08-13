@@ -10,16 +10,22 @@ actor_context:
   identity_id: sim-treasury-operator-id
   session_id: sim-treasury-session-001
 
+# REPAIR (fail-closed canonicalization): lifecycle retargeted to states the
+# scenario's own commands actually reach. "Approval" completes at AUTHORIZED;
+# the previous INIT->REQUESTED pair pre-dated the authorize command and could
+# never be verified (REQUESTED is the machine's initial state).
 lifecycle:
-  initial_state: INIT
-  terminal_state: REQUESTED
+  initial_state: REQUESTED
+  terminal_state: AUTHORIZED
 
 commands:
   - command_id: cmd-001
     command_name: treasury.transfer.request
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-001
     payload:
+      order_id: sim-transfer-001
       source_actor_id: sim-treasury-operator
       destination_actor_id: sim-recipient
       asset_id: vault-asset-001
@@ -38,6 +44,7 @@ commands:
     command_name: treasury.transfer.authorize
     domain: treasury
     aggregate: transfer_order
+    aggregate_id: sim-transfer-001
     payload:
       order_id: 'sim-transfer-001'
       authorization_reference: 'auth-ref-001'

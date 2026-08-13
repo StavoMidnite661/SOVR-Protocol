@@ -8,6 +8,8 @@ import { MerkleRootService } from '../audit/MerkleRootService.js';
 import { bootstrapSimulation } from './simulation-bootstrap.js';
 import { SimulationScenario, SimulationResult, SimulationReport, InvariantResult, SimulationCommand, EventLineageReport, LifecycleValidationResult } from './types.js';
 import { KernelExecutor, AuthorityRegistryIntegrityError } from '../execution/kernel-executor.js';
+import type { StateRegistry } from '../execution/state-registry.js';
+import type { EventStore } from '../server/eventStore.js';
 import { CommandEnvelope } from '../server/commandBus.js';
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -177,13 +179,26 @@ export class SimulationRunner {
         }
       } catch (e: any) {
         commandsRejected++;
-        success = false;
-        error = `Command ${cmd.command_name} threw: ${e.message}`;
-        invariantResults.push({
-          invariant: 'command_execution',
-          passed: false,
-          detail: `${cmd.command_name}: ${e.message}`,
-        });
+        // Constitutional-gate violations (identity/capability/validation rules
+        // such as BALANCED_POSTINGS) are thrown by the kernel rather than
+        // returned as REJECTED envelopes. Honor the scenario's declared
+        // expectation either way: an expected rejection that throws is still
+        // a rejection — nothing was accepted and nothing was committed.
+        if (cmd.expected_result === 'REJECTED') {
+          invariantResults.push({
+            invariant: 'command_execution',
+            passed: true,
+            detail: `${cmd.command_name}: REJECTED — ${e.message}`,
+          });
+        } else {
+          success = false;
+          error = `Command ${cmd.command_name} threw: ${e.message}`;
+          invariantResults.push({
+            invariant: 'command_execution',
+            passed: false,
+            detail: `${cmd.command_name}: ${e.message}`,
+          });
+        }
       }
     }
 
@@ -196,7 +211,10 @@ export class SimulationRunner {
 
     const deterministicReplayHash = this.computeReplayHash(events);
     const eventLineageReport = this.generateEventLineageReport(scenario.scenario_id, events);
-    const lifecycleVerified = this.verifyLifecycleCompletion(scenario, events, aggregateStates);
+    const lifecycleVerified = await this.verifyLifecycleCompletion(scenario, events, aggregateStates, {
+      stateRegistry,
+      eventStore,
+    });
 
     const simulationResult: SimulationResult = {
       scenario_id: scenario.scenario_id,
@@ -245,13 +263,38 @@ export class SimulationRunner {
     return { initial_state_verified: true, terminal_state_verified: true, transitions_valid: true };
   }
 
-  private verifyLifecycleCompletion(scenario: SimulationScenario, events: any[], aggregateStates: Map<string, string>): boolean {
+  private async verifyLifecycleCompletion(
+    scenario: SimulationScenario,
+    events: any[],
+    aggregateStates: Map<string, string>,
+    bootstrap: { stateRegistry: StateRegistry; eventStore: EventStore },
+  ): Promise<boolean> {
     if (!scenario.lifecycle?.terminal_state) return true;
     const terminalState = scenario.lifecycle.terminal_state;
     for (const state of aggregateStates.values()) {
       if (state === terminalState) {
         return true;
       }
+    }
+    // Honest verification against committed truth: the pre-check tracking map
+    // cannot observe machine states born at the initial state (creation events
+    // synthesize INIT→initial inside the kernel, bypassing interpreter-tracked
+    // transitions). Rebuild aggregate states from the event log (INV-001) using
+    // the kernel-recorded transition receipts and check those.
+    try {
+      await bootstrap.stateRegistry.rebuildFromEventLog(bootstrap.eventStore);
+      const seen = new Set<string>();
+      for (const e of events) {
+        const key = `${e.source_domain}|${e.aggregate}|${e.aggregate_id}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const st = await bootstrap.stateRegistry
+          .getState(String(e.aggregate), String(e.aggregate_id), String(e.source_domain))
+          .catch(() => undefined);
+        if (st === terminalState) return true;
+      }
+    } catch {
+      // If the log cannot be rebuilt, lifecycle verification remains unproven.
     }
     return false;
   }

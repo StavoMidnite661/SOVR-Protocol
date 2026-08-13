@@ -3,7 +3,7 @@
 // Compiler: @sovr/compiler v0.6.0
 // Protocol: SOVR Financial OS v1.0.0
 // Source: 04_event-catalog.yaml:payment
-// Hash: 86a4ad7701e072c6e95fb5f581a364394fc3b2e0075b17dc1de6beac60cb9963
+// Hash: ab73866e57682590dcbf06259cb391e04a18bf40cd158d27cfe05996ff2b08bc
 // ============================================================
 //
 // This file is a compiled product of the SOVR Protocol
@@ -16,6 +16,22 @@
 
 // Domain: payment — Events
 import { EventEnvelope } from '../../events/event-envelope.js';
+
+export class PaymentAdapterDisableFailedEvent {
+  static readonly eventName = 'payment.adapter.disable_failed' as const;
+  static readonly aggregate = 'rail_adapter' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
+
+export class PaymentAdapterDisabledEvent {
+  static readonly eventName = 'payment.adapter.disabled' as const;
+  static readonly aggregate = 'rail_adapter' as const;
+  static create(envelope: EventEnvelope, payload: Record<string,unknown>) {
+    return { envelope, eventName: this.eventName, payload, aggregate: this.aggregate, timestamp: new Date().toISOString() };
+  }
+}
 
 export class PaymentCompensationCompletedEvent {
   static readonly eventName = 'payment.compensation.completed' as const;

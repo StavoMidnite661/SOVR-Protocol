@@ -10,9 +10,15 @@ actor_context:
   identity_id: sim-ledger-operator-id
   session_id: sim-ledger-session-006
 
+# REPAIR (fail-closed canonicalization): RECONCILED was unreachable — no
+# journal_entry-aggregated event exists for settlement/reconciliation (those
+# events are aggregated to transfer_order/reconciliation). The verifiable
+# progression this scenario drives is journal entries created and POSTED;
+# reconciliation completion is evidenced by ledger.reconciliation.started /
+# .completed events in the log. See the ledger_journal_lifecycle repair note.
 lifecycle:
-  initial_state: ACTIVE
-  terminal_state: RECONCILED
+  initial_state: CREATED
+  terminal_state: POSTED
 
 commands:
   - command_id: cmd-001

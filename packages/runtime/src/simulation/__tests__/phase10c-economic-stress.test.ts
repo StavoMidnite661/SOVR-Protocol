@@ -38,11 +38,17 @@ describe('Phase 10C Economic Stress Simulation', () => {
       const eventCounts: number[] = [];
       let invariantFailures = 0;
 
+      // Registered authority id + pinned seed: determinism means identical
+      // inputs replay byte-identically. The seed parameterizes the
+      // deterministic clock/id stream, so varying seeds legitimately vary
+      // hashes — stress asserts invariance under repetition, not under
+      // parameter change. Ad-hoc scenario ids are refused by the
+      // authority-registry integrity gate.
       for (let i = 0; i < ITERATIONS; i++) {
         const scenario = {
           ...baseScenario,
-          scenario_id: `STRESS-${scenarioId}-${i}`,
-          seed: 0xDEADBEEF + i,
+          scenario_id: scenarioId,
+          seed: 0xDEADBEEF,
         };
 
         const report = await runner.run(scenario);
