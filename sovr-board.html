@@ -281,7 +281,10 @@
       </script>
     </div>
   </div>
-  <div class="fixed inset-0 z-0 opacity-10 pointer-events-none mix-blend-screen" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC5bBItc86zBkM_DcIqrcM0f98ArnsZXjjwhHjxG0UOxOqRbDnbi-9DOb187EsZh6zqq9aw0isGQtAiGp8vCf3EZtrmjDHKL-kyuWGGRuuHVI08Z6YYIvitzXzijsRd95SftCkldGIf2JChPWTsCyRyv5iL5GPZnpyOO7UJEJO8tDrH-Bk6rMpDb1wJrxMgiz8tds6KO7_2AsM1RPI7NUFUslwC2UHFiuMv2Zzk96UwDYk2t2rqYUHQdxqgtSYpWAmVaQ'); background-size: cover; background-position: center;"></div>
+  <!-- Planetary backdrop: served from the repository's own artwork
+       (sovr_space_planet.png — JPEG bytes, published as /assets/sovr-planet.jpg by
+       scripts/build-vercel-site.mjs) so the console has no external image dependency. -->
+  <div class="fixed inset-0 z-0 opacity-10 pointer-events-none mix-blend-screen" style="background-image: url('/assets/sovr-planet.jpg'); background-size: cover; background-position: center;"></div>
 
   <!-- TopNavBar -->
   <header class="bg-surface-container-lowest/80 backdrop-blur-xl docked full-width top-0 border-b border-primary/30 shadow-[0_0_15px_rgba(76,215,246,0.15)] flex justify-between items-center w-full px-container-padding py-4 h-16 z-50 sticky">
@@ -691,12 +694,22 @@ export class KernelBridge {
 
   <!-- Interactive JavaScript Logic -->
   <script>
+    // When THE BOARD is served over HTTPS it is the static demo deployment
+    // (Vercel): the console talks to its own origin, where /health returns the
+    // compiled build manifest. Locally it targets the development kernel.
+    const isHostedStatic = location.protocol === 'https:';
+
     const state = {
-      kernelUrl: 'http://localhost:3429',
+      kernelUrl: isHostedStatic ? location.origin : 'http://localhost:3429',
       autonomy: 'assisted',
       actorId: 'actor_agent_001',
       activeTab: 'yaml',
     };
+
+    if (isHostedStatic) {
+      const urlInput = document.getElementById('kernel-url-input');
+      if (urlInput) urlInput.value = location.origin;
+    }
 
     function switchTab(tabId) {
       state.activeTab = tabId;
@@ -793,7 +806,9 @@ export class KernelBridge {
             const json = await res.json();
             appendTerminal(JSON.stringify(json, null, 2), res.ok ? 'text-secondary' : 'text-tertiary');
           } catch (e) {
-            appendTerminal(`✗ Submit failed: ${e.message}`, 'text-error');
+            appendTerminal(isHostedStatic
+              ? '[DEMO] No kernel API attached to this static deployment — command not executed. Start the runtime (deployment/docker-compose.dev.yml) to execute against a live kernel.'
+              : `✗ Submit failed: ${e.message}`, isHostedStatic ? 'text-tertiary' : 'text-error');
           }
         } else if (action === 'kernel_query' || action === 'events') {
           const dom = parts[1] || 'vault';
@@ -804,7 +819,9 @@ export class KernelBridge {
             appendTerminal(`Found ${json.total} events. Latest:`, 'text-secondary');
             appendTerminal(JSON.stringify(json.events?.[0] ?? json, null, 2), 'text-on-surface-variant');
           } catch (e) {
-            appendTerminal(`✗ Query failed: ${e.message}`, 'text-error');
+            appendTerminal(isHostedStatic
+              ? '[DEMO] No event store attached to this static deployment — the console ships the compiled protocol, not live events.'
+              : `✗ Query failed: ${e.message}`, isHostedStatic ? 'text-tertiary' : 'text-error');
           }
         } else if (action === 'bash') {
           const sub = parts.slice(1).join(' ') || 'git status';
@@ -853,6 +870,9 @@ export class KernelBridge {
         if (res.ok) {
           const data = await res.json();
           appendTerminal(`✓ Kernel HEALTHY. Build Hash: ${data.build_hash?.slice(0, 16)}..., Events: ${data.event_store?.totalEvents ?? 0}`, 'text-secondary');
+          if (data.mode === 'static-demo') {
+            appendTerminal('[DEMO] Static demo deployment — build identity is served from the compiled manifest at /health. No live kernel is attached: command execution, event store, Kafka/Redis streams and WebSocket delivery require the container runtime (deployment/ · deploy/).', 'text-tertiary');
+          }
           if (data.build_hash) {
             document.getElementById('header-build-hash').textContent = `Hash: ${data.build_hash.slice(0, 12)}...`;
           }
@@ -905,6 +925,10 @@ export class KernelBridge {
 
     // Dynamic Time display & Kernel ping on load
     window.onload = () => {
+      if (isHostedStatic) {
+        appendTerminal('[DEMO] THE BOARD — static demo deployment. Console is fully interactive; the kernel API is not attached.', 'text-tertiary');
+        appendTerminal('[DEMO] Ping checks this deployment\'s /health (real build_hash + registry counts). Type help for the command surface.', 'text-tertiary');
+      }
       testKernelConnection();
       setInterval(() => {
         const timeStr = new Date().toISOString().replace(/\.\d+Z$/, 'Z');

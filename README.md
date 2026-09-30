@@ -304,7 +304,8 @@ SOVR-Protocol/
 │
 ├── .github/workflows/               # ci.yml, ci-production.yml, formal-verify.yml
 ├── example-frontend/                # Reference frontend
-├── sovr-board.html                  # Operational board page
+├── sovr-board.html                  # Operational board page (served by the Vercel demo)
+├── vercel.json                      # Static demo deployment config (dist/ output)
 ├── .env.example                     # Full production environment template
 ├── CHANGELOG.md                     # Keep a Changelog — phase narratives
 └── package.json                     # npm workspaces root (Node ≥ 20, ESM)
@@ -670,6 +671,42 @@ Node.js 20 throughout, npm-cached.
 
 ## Deployment
 
+### Vercel (static demo of THE BOARD)
+
+The repository is pre-configured for a zero-dependency Vercel deployment that
+publishes the constitutional console plus the compiled protocol artifacts — no
+database, broker, or environment variables required:
+
+```bash
+vercel            # preview deployment
+vercel --prod     # production deployment
+```
+
+Import the repo in the Vercel dashboard and it works with no configuration:
+[`vercel.json`](vercel.json) skips `npm install`, runs
+[`scripts/build-vercel-site.mjs`](scripts/build-vercel-site.mjs) (Node stdlib
+only) and publishes `dist/`.
+
+| Route | What it serves |
+| --- | --- |
+| `/` | `sovr-board.html` — THE BOARD console, fully interactive |
+| `/health` | real build identity from `generated/compiler-manifest.yaml` — `build_hash`, `ir_hash`, registry counts |
+| `/openapi.json` | compiler-generated OpenAPI 3.1 command surface |
+| `/assets/sovr-planet.jpg` | console backdrop |
+
+Preview the exact deployment locally:
+
+```bash
+npm run preview:vercel     # builds dist/ and serves it on http://localhost:4173
+```
+
+Because this deployment is static, command execution, the event store,
+Kafka/Redis streams and WebSocket delivery are **not** attached — the console
+labels itself as a static demo and points at the real build manifest instead of
+faking liveness. Run the container stack below for a live kernel.
+Full guide, verification steps and the path to a hybrid API deployment:
+[`docs/VERCEL_DEPLOYMENT.md`](docs/VERCEL_DEPLOYMENT.md).
+
 ### Docker
 
 ```bash
@@ -754,6 +791,7 @@ concepts — do not force them to be equal.
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | **Implementation truth** — architecture as built, live compiled counts |
 | [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) | Operating & extending the system |
 | [`docs/DOCUMENTATION.md`](docs/DOCUMENTATION.md) | Documentation policy |
+| [`docs/VERCEL_DEPLOYMENT.md`](docs/VERCEL_DEPLOYMENT.md) | Static demo deployment (Vercel) — routes, verification, limits, local preview |
 | [`docs/generated/`](docs/generated) | Compiler-emitted reference (commands, events, machines, capabilities, projections). **Presentation only — not counts authority. Do not hand-edit.** |
 | [`docs/history/`](docs/history) | Forensic / remediation records, old audits, certification packets. Marked `HISTORICAL / REMEDIATION RECORD`. Not descriptions of the current architecture. |
 | [`CHANGELOG.md`](CHANGELOG.md) | Phase narratives (Keep a Changelog + SemVer). Counts/hashes below the current baseline may be superseded — treat as history. |
