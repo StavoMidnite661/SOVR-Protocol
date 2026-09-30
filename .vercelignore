@@ -1,0 +1,29 @@
+# ============================================================
+# SOVR Protocol — .vercelignore
+# ============================================================
+# Keeps Vercel uploads lean. The static demo build only reads:
+#   sovr-board.html, sovr_space_planet.png, generated/, scripts/, vercel.json
+# Everything listed here is unrelated to publishing THE BOARD (it stays in the
+# repository — it is simply not shipped to Vercel's build container).
+#
+# NOTE: dirs not listed (generated/, docs/, deploy/, …) are kept on purpose.
+# ============================================================
+
+# Install artifacts (Vercel skips `npm install` for this build anyway)
+node_modules/
+
+# TypeScript workspaces — used by the container/kernel build, not the static demo.
+# Re-include these if you ever switch the Vercel build to `npm run build:protocol`.
+packages/
+example-frontend/
+
+# Local tooling output / caches
+graphify-out/
+_test_output/
+_archive/
+
+# CI, logs and scratch files
+.github/
+*.log
+compile1.log
+compile2.log
